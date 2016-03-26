@@ -57,6 +57,11 @@ private:
 	bool m_IsOnGround = true;
 	int m_FramesSpentInAir = -1;
 
+	int m_Score;
+	int m_Coins;
+	int m_Lives;
+	int m_DragonCoinsCollected;
+
 	String AnimationStateToString(ANIMATION_STATE state);
 
 	FACING_DIRECTION m_DirFacing = FACING_DIRECTION::RIGHT;

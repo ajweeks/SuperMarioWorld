@@ -49,7 +49,7 @@ LevelData::LevelData(String platforms, String pipes, String items)
 		}
 		else
 		{
-			m_ItemsPtrArr.push_back(new Block(topLeft));
+			OutputDebugString(String("ERROR: Unhandled item in LevelData()"));
 		}
 	}
 }
@@ -202,6 +202,36 @@ LevelData* LevelData::GenerateLevel(int levelIndex)
 	String itemsString = String(itemsStream.str().c_str());
 
 	return new LevelData(platformsString, pipesString, itemsString);
+}
+
+
+void LevelData::AddItem(Item* newItemPtr)
+{
+	for (size_t i = 0; i < m_ItemsPtrArr.size(); ++i)
+	{
+		if (m_ItemsPtrArr[i] == nullptr)
+		{
+			m_ItemsPtrArr[i] = newItemPtr;
+			return;
+		}
+	}
+
+	m_ItemsPtrArr.push_back(newItemPtr);
+}
+
+void LevelData::RemoveItem(Item* itemPtr)
+{
+	for (size_t i = 0; i < m_ItemsPtrArr.size(); ++i)
+	{
+		if (m_ItemsPtrArr[i] == itemPtr)
+		{
+			delete m_ItemsPtrArr[i];
+			m_ItemsPtrArr[i] = nullptr;
+			return;
+		}
+	}
+
+	OutputDebugString(String("ERROR: Could not delete item in LevelData::RemoveItem\n"));
 }
 
 void LevelData::TickItems(double deltaTime, Level* levelPtr)

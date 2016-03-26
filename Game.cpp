@@ -11,7 +11,6 @@
 
 #include "Game.h"		
 #include "SpriteSheetManager.h"
-#include "EntityManager.h"
 #include "LevelData.h"
 
 #define GAME_ENGINE (GameEngine::GetSingleton())
@@ -60,7 +59,6 @@ void Game::GameEnd()
 
 	WriteSessionInfoToFile();
 
-	EntityManager::Unload();
 	LevelData::Unload();
 	SpriteSheetManager::Unload();
 }

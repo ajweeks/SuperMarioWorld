@@ -4,10 +4,8 @@
 #include "Camera.h"
 #include "LevelData.h"
 #include "SpriteSheetManager.h"
-#include "EntityManager.h"
 
 #define GAME_ENGINE (GameEngine::GetSingleton())
-#define ENTITY_MANAGER (EntityManager::GetInstance())
 
 Level::Level()
 {
@@ -55,7 +53,6 @@ void Level::ReadLevelData(int levelIndex)
 	for (size_t i = 0; i < itemsData.size(); ++i)
 	{
 		itemsData[i]->AddContactListener(this);
-		ENTITY_MANAGER->Add(itemsData[i]);
 	}
 }
 
@@ -84,7 +81,6 @@ void Level::Paint()
 
 	int bgWidth = SpriteSheetManager::levelOneBackground->GetWidth();
 	double cameraX = -matCameraView.orig.x;
-
 	double parallax = (1.0 - 0.65); // 65% of the speed of the camera
 	int xo = int(cameraX*parallax);
 	xo += (int(cameraX - xo) / bgWidth) * bgWidth;
@@ -214,7 +210,19 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 		} break;
 		case int(ActorId::ITEM) :
 		{
-
+			Item* item = (Item*)actThisPtr->GetUserPointer();
+			switch (item->m_Type)
+			{
+			case Item::TYPE::PRIZE_BLOCK:
+			{
+				// They be bonkin their head on us
+				if (actOtherPtr->GetLinearVelocity().y < 0.0 && 
+					actOtherPtr->GetPosition().y > actThisPtr->GetPosition().y + Block::WIDTH/2)
+				{
+					((PrizeBlock*)item)->Hit(m_LevelDataPtr);
+				}
+			} break;
+			}
 		} break;
 		}
 	}
