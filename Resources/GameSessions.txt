@@ -1,0 +1,920 @@
+<Session>
+	<Start>
+		<Date>2016:03:23</Date>
+		<Time>12:09:33</Time>
+	</Start>
+	<End>
+		<Date>2016:03:23</Date>
+		<Time>12:09:39</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:23</Date>
+		<Time>12:09:41</Time>
+	</Start>
+	<End>
+		<Date>2016:03:23</Date>
+		<Time>12:10:19</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:23</Date>
+		<Time>12:14:25</Time>
+	</Start>
+	<End>
+		<Date>2016:03:23</Date>
+		<Time>12:14:27</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:23</Date>
+		<Time>12:17:24</Time>
+	</Start>
+	<End>
+		<Date>2016:03:23</Date>
+		<Time>12:17:33</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:23</Date>
+		<Time>12:17:43</Time>
+	</Start>
+	<End>
+		<Date>2016:03:23</Date>
+		<Time>12:17:45</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:23</Date>
+		<Time>12:17:58</Time>
+	</Start>
+	<End>
+		<Date>2016:03:23</Date>
+		<Time>12:18:02</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:23</Date>
+		<Time>12:18:12</Time>
+	</Start>
+	<End>
+		<Date>2016:03:23</Date>
+		<Time>12:18:18</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:23</Date>
+		<Time>12:18:33</Time>
+	</Start>
+	<End>
+		<Date>2016:03:23</Date>
+		<Time>12:18:37</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:23</Date>
+		<Time>12:19:16</Time>
+	</Start>
+	<End>
+		<Date>2016:03:23</Date>
+		<Time>12:19:21</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:23</Date>
+		<Time>12:20:59</Time>
+	</Start>
+	<End>
+		<Date>2016:03:23</Date>
+		<Time>12:21:08</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:23</Date>
+		<Time>12:21:12</Time>
+	</Start>
+	<End>
+		<Date>2016:03:23</Date>
+		<Time>12:21:13</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:23</Date>
+		<Time>12:21:41</Time>
+	</Start>
+	<End>
+		<Date>2016:03:23</Date>
+		<Time>12:21:46</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:23</Date>
+		<Time>12:22:50</Time>
+	</Start>
+	<End>
+		<Date>2016:03:23</Date>
+		<Time>12:23:01</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:23</Date>
+		<Time>12:23:23</Time>
+	</Start>
+	<End>
+		<Date>2016:03:23</Date>
+		<Time>12:23:26</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:23</Date>
+		<Time>12:24:09</Time>
+	</Start>
+	<End>
+		<Date>2016:03:23</Date>
+		<Time>12:24:16</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:23</Date>
+		<Time>12:24:18</Time>
+	</Start>
+	<End>
+		<Date>2016:03:23</Date>
+		<Time>12:24:20</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:23</Date>
+		<Time>12:24:43</Time>
+	</Start>
+	<End>
+		<Date>2016:03:23</Date>
+		<Time>12:24:47</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:23</Date>
+		<Time>12:31:21</Time>
+	</Start>
+	<End>
+		<Date>2016:03:23</Date>
+		<Time>12:31:25</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:23</Date>
+		<Time>12:31:52</Time>
+	</Start>
+	<End>
+		<Date>2016:03:23</Date>
+		<Time>12:31:56</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:23</Date>
+		<Time>13:50:18</Time>
+	</Start>
+	<End>
+		<Date>2016:03:23</Date>
+		<Time>13:50:28</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:23</Date>
+		<Time>13:50:44</Time>
+	</Start>
+	<End>
+		<Date>2016:03:23</Date>
+		<Time>13:51:03</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:23</Date>
+		<Time>13:51:11</Time>
+	</Start>
+	<End>
+		<Date>2016:03:23</Date>
+		<Time>13:51:15</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:23</Date>
+		<Time>13:52:19</Time>
+	</Start>
+	<End>
+		<Date>2016:03:23</Date>
+		<Time>13:52:23</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:23</Date>
+		<Time>15:58:52</Time>
+	</Start>
+	<End>
+		<Date>2016:03:23</Date>
+		<Time>15:59:01</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:23</Date>
+		<Time>16:34:55</Time>
+	</Start>
+	<End>
+		<Date>2016:03:23</Date>
+		<Time>16:35:09</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:23</Date>
+		<Time>16:35:40</Time>
+	</Start>
+	<End>
+		<Date>2016:03:23</Date>
+		<Time>16:35:43</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>09:51:37</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>09:51:42</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>10:04:35</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>10:04:38</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>10:10:07</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>10:10:14</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>10:10:31</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>10:10:35</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>10:10:49</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>10:10:58</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>10:12:02</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>10:12:08</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>10:12:55</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>10:13:23</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>10:13:45</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>10:13:48</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>10:13:59</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>10:14:10</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>10:14:16</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>10:14:19</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>10:14:25</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>10:14:26</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>10:14:29</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>10:14:31</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>10:17:55</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>10:17:59</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>10:18:01</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>10:18:05</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>10:18:13</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>10:18:18</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>10:19:06</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>10:19:08</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>10:19:13</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>10:19:14</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>10:19:17</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>10:19:21</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>10:21:08</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>10:21:11</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>10:21:17</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>10:21:20</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>10:21:42</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>10:21:46</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>10:21:55</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>10:21:58</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>10:22:04</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>10:22:07</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>10:22:21</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>10:22:27</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>10:25:46</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>10:25:50</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>10:26:11</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>10:26:14</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>11:18:47</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>11:18:51</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>11:19:16</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>11:19:17</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>11:19:25</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>11:19:33</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>11:19:57</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>11:20:09</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>11:20:12</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>11:20:17</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>11:20:46</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>11:20:50</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>11:21:05</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>11:21:11</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>11:21:13</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>11:21:18</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>11:21:53</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>11:21:59</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>11:22:20</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>11:22:33</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>13:53:57</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>13:53:58</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>13:55:27</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>13:55:27</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>13:57:11</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>13:57:25</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>14:56:12</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>14:56:14</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>14:57:35</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>14:57:41</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>15:00:18</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>15:00:20</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>15:04:39</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>15:04:57</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>15:05:17</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>15:05:25</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>15:06:36</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>15:06:43</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>15:06:49</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>15:06:52</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>15:07:49</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>15:07:54</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>15:08:07</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>15:08:15</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>15:08:53</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>15:08:59</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>15:10:00</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>15:10:31</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>15:10:52</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>15:10:56</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>15:13:27</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>15:13:31</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>15:13:52</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>15:14:02</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>15:15:27</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>15:16:43</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>15:17:39</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>15:17:45</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>15:18:03</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>15:18:07</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>15:19:33</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>15:19:34</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>15:29:06</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>15:29:11</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>15:34:37</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>15:34:47</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>15:34:55</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>15:34:58</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>15:35:02</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>15:35:04</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>15:37:52</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>15:37:53</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>15:39:39</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>15:39:40</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>15:42:36</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>15:42:37</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>15:45:19</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>15:45:37</Time>
+	</End>
+</Session>
+<Session>
+	<Start>
+		<Date>2016:03:26</Date>
+		<Time>15:46:37</Time>
+	</Start>
+	<End>
+		<Date>2016:03:26</Date>
+		<Time>15:46:38</Time>
+	</End>
+</Session>
