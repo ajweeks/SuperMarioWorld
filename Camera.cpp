@@ -14,51 +14,55 @@ Camera::~Camera()
 {
 }
 
-// TODO(AJ): Add cushion zone in center of screen
-// TODO(AJ): Ensure all cases are correct
+// TODO: Add yo functionality for certain levels
 MATRIX3X2 Camera::GetViewMatrix(Player* playerPtr, Level* levelPtr)
 {
 	DOUBLE2 newTranslation = m_PrevTranslation;
-	//TrackAvatar(pos, playerPtr);
 
 	DOUBLE2 playerPos = playerPtr->GetPosition();
 
-	switch (playerPtr->GetDirectionFacing())
+	if (playerPtr->GetDirectionFacing() == FACING_DIRECTION::LEFT)
 	{
-	case FACING_DIRECTION::LEFT:
-	{
-		if (playerPos.x - m_XOffset < m_PrevTranslation.x)
+		// TODO:This hacky af but it works, change it later perhaps
+		if (m_XOffset == MAX_OFFSET)
 		{
-			m_TargetOffset.x = playerPos.x - 350;
-			m_XOffset = 350;
+			m_TargetOffset.x = playerPos.x - MAX_OFFSET;
 		}
-	} break;
-	case FACING_DIRECTION::RIGHT:
-	{
-		if (m_Width - (playerPos.x - m_PrevTranslation.x) < m_Width - m_XOffset)
+		else if (playerPos.x - m_PrevTranslation.x < m_XOffset - MAX_BACKTRACK_DISTANCE)
 		{
-			m_TargetOffset.x = playerPos.x + 400 - m_Width;
-			m_XOffset = -(400-m_Width);
+			m_TargetOffset.x = playerPos.x - MAX_OFFSET;
+			m_XOffset = MAX_OFFSET;
 		}
-	} break;
+	} 
+	else // The player is facing right
+	{
+		if (m_XOffset == -(MAX_OFFSET - m_Width))
+		{
+			m_TargetOffset.x = playerPos.x + MAX_OFFSET - m_Width;
+		}
+		else if (playerPos.x - m_PrevTranslation.x >= m_XOffset + MAX_BACKTRACK_DISTANCE)
+		{
+			m_TargetOffset.x = playerPos.x + MAX_OFFSET - m_Width;
+			m_XOffset = -(MAX_OFFSET - m_Width);
+		}
 	}
 
-	double EPSILON = 0.01;
-	double PAN_SPEED = 10;
+	double epsilon = 0.001;
+	double panSpeed = 8;
 	double difference = abs(m_PrevTranslation.x - m_TargetOffset.x);
-	if (difference < PAN_SPEED)
+	if (difference < panSpeed)
 	{
-		PAN_SPEED = difference;
+		panSpeed = difference;
 	}
-	if (difference > EPSILON)
+	if (difference > epsilon)
 	{
 		if (m_TargetOffset.x > m_PrevTranslation.x)
 		{
-			newTranslation.x = m_PrevTranslation.x + PAN_SPEED;
+			newTranslation.x = m_PrevTranslation.x + panSpeed;
 		}
 		else
 		{
-			newTranslation.x = m_PrevTranslation.x - PAN_SPEED;
+			newTranslation.x = m_PrevTranslation.x - panSpeed;
 		}
 	}
 
@@ -75,15 +79,26 @@ MATRIX3X2 Camera::GetViewMatrix(Player* playerPtr, Level* levelPtr)
 	return matCameraTranslation;
 }
 
-void Camera::TrackAvatar(DOUBLE2& posRef, Player* playerPtr)
+/* Paints extra debug info about the camera (Expects view matrix to be identity) */
+void Camera::DEBUGPaint()
 {
-	RECT2 playerRect = playerPtr->GetCameraRect();
+	//GAME_ENGINE->SetColor(COLOR(250, 20, 20));
+	//GAME_ENGINE->DrawLine(m_XOffset, 0, m_XOffset, GAME_ENGINE->GetHeight());
 
-	double playerWidth = playerRect.right - playerRect.left;
-	double playerHeight = playerRect.bottom - playerRect.top;
+	double centerX = m_Width / 2;
+	double x = 0;
 
-	posRef.x = playerRect.left + playerWidth / 2 - m_Width / 2;
-	posRef.y = playerRect.top + playerHeight / 2 - m_Height / 2;
+	GAME_ENGINE->SetColor(COLOR(20, 20, 250));
+	x = MAX_OFFSET + MAX_BACKTRACK_DISTANCE;
+	GAME_ENGINE->DrawLine(x, 0, x, m_Height);
+	x = m_Width - MAX_OFFSET - MAX_BACKTRACK_DISTANCE;
+	GAME_ENGINE->DrawLine(x, 0, x, m_Height);
+
+	GAME_ENGINE->SetColor(COLOR(20, 200, 20));
+	x = MAX_OFFSET;
+	GAME_ENGINE->DrawLine(x, 0, x, m_Height);
+	x = m_Width - MAX_OFFSET;
+	GAME_ENGINE->DrawLine(x, 0, x, m_Height);
 }
 
 void Camera::Clamp(DOUBLE2& posRef, Level* levelPtr)
