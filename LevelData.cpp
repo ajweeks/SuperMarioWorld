@@ -45,7 +45,7 @@ LevelData::LevelData(String platforms, String pipes, String items)
 		}
 		else if (itemType.Compare(String("EXCLAMATION_MARK")))
 		{
-			m_ItemsPtrArr.push_back(new ExclamationMarkBlock(topLeft, ExclamationMarkBlock::COLOUR::YELLOW));
+			m_ItemsPtrArr.push_back(new ExclamationMarkBlock(topLeft, ExclamationMarkBlock::COLOUR::YELLOW, false));
 		}
 		else
 		{
@@ -123,6 +123,21 @@ LevelData* LevelData::GetLevel(int levelIndex)
 	}
 
 	return m_LevelOnePtr;
+}
+
+void LevelData::RegenerateLevel(int levelIndex)
+{
+	if (levelIndex == 1)
+	{
+		delete m_LevelOnePtr;
+		m_LevelOnePtr = GenerateLevel(levelIndex);
+		return;
+	}
+	else
+	{
+		OutputDebugString(String("ERROR: Invalid level index passed to LevelData::RegenerateLevel: ") + String(levelIndex) + String("\n"));
+		return;
+	}
 }
 
 LevelData* LevelData::GenerateLevel(int levelIndex)
@@ -234,11 +249,26 @@ void LevelData::RemoveItem(Item* itemPtr)
 	OutputDebugString(String("ERROR: Could not delete item in LevelData::RemoveItem\n"));
 }
 
+void LevelData::RemoveItem(int itemIndex)
+{
+	assert(itemIndex >= 0 && itemIndex < int(m_ItemsPtrArr.size()));
+
+	delete m_ItemsPtrArr[itemIndex];
+	m_ItemsPtrArr[itemIndex] = nullptr;
+}
+
 void LevelData::TickItems(double deltaTime, Level* levelPtr)
 {
 	for (size_t i = 0; i < m_ItemsPtrArr.size(); ++i)
 	{
-		m_ItemsPtrArr[i]->Tick(deltaTime, levelPtr);
+		if (m_ItemsPtrArr[i] != nullptr)
+		{
+			if (m_ItemsPtrArr[i]->Tick(deltaTime, levelPtr))
+			{
+				// This item needs to be removed
+				RemoveItem(i);
+			}
+		}
 	}
 }
 
@@ -246,6 +276,9 @@ void LevelData::PaintItems()
 {
 	for (size_t i = 0; i < m_ItemsPtrArr.size(); ++i)
 	{
-		m_ItemsPtrArr[i]->Paint();
+		if (m_ItemsPtrArr[i] != nullptr)
+		{
+			m_ItemsPtrArr[i]->Paint();
+		}
 	}
 }

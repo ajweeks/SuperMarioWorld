@@ -1,4 +1,5 @@
 #include "stdafx.h"
+
 #include "Player.h"
 #include "Game.h"
 #include "Enumerations.h"
@@ -25,6 +26,21 @@ Player::~Player()
 {
 }
 
+void Player::Reset()
+{
+	m_ActPtr->SetPosition(DOUBLE2(60, 740));
+	m_ActPtr->SetLinearVelocity(DOUBLE2(0, 0));
+
+	m_IsOnGround = false;
+
+	m_AnimInfo.Reset();
+
+	m_Score = 0;
+	m_Coins = 0;
+	m_Lives = 5;
+	m_DragonCoinsCollected = 0;
+}
+
 RECT2 Player::GetCameraRect()
 {
 	RECT2 result;
@@ -37,7 +53,7 @@ RECT2 Player::GetCameraRect()
 	return result;
 }
 
-void Player::Tick(double deltaTime, Level *levelPtr)
+bool Player::Tick(double deltaTime, Level *levelPtr)
 {
 	// TODO: Move these variables to the end of the method
 	double jumpVelocity = -32000.0;
@@ -189,6 +205,8 @@ void Player::Tick(double deltaTime, Level *levelPtr)
 	}
 
 	TickAnimations(deltaTime);
+
+	return false;
 }
 
 void Player::TickAnimations(double deltaTime)
@@ -361,21 +379,6 @@ DOUBLE2 Player::GetLinearVelocity()
 void Player::TogglePaused(bool paused)
 {
 	m_ActPtr->SetActive(!paused);
-}
-
-void Player::Reset()
-{
-	m_ActPtr->SetPosition(DOUBLE2(60, 734));
-	m_ActPtr->SetLinearVelocity(DOUBLE2(0, 0));
-
-	m_IsOnGround = false;
-
-	m_AnimInfo.Reset();
-
-	m_Score = 0;
-	m_Coins = 0;
-	m_Lives = 5;
-	m_DragonCoinsCollected = 0;
 }
 
 String Player::AnimationStateToString(ANIMATION_STATE state)

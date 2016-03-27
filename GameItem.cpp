@@ -7,6 +7,7 @@
 #include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
 #include "LevelData.h"
+#include "Level.h"
 
 
 // ___PLATFORM___
@@ -51,65 +52,81 @@ void Pipe::AddContactListener(ContactListener* listener)
 
 
 // ___ITEM___
-Item::Item(DOUBLE2 topLeft, DOUBLE2 bottomRight) :
+Item::Item(DOUBLE2 topLeft, DOUBLE2 bottomRight, TYPE type, BodyType bodyType) :
 	Entity(topLeft + DOUBLE2((bottomRight.x - topLeft.x) / 2, (bottomRight.y - topLeft.y) / 2),
-		SpriteSheetManager::generalTiles,
-		BodyType::KINEMATIC,
-		this)
+		SpriteSheetManager::generalTiles, bodyType, this), m_Type(type)
 {
 	double width = bottomRight.x - topLeft.x;
 	double height = bottomRight.y - topLeft.y;
 	m_ActPtr->AddBoxFixture(width, height, 0.0);
 	m_ActPtr->SetUserData(int(ActorId::ITEM));
+	// TODO: Figure out if all items have a fixed rotation
+	//m_ActPtr->SetFixedRotation(true);
 }
 Item::~Item() {}
 void Item::AddContactListener(ContactListener* listener)
 {
 	m_ActPtr->AddContactListener(listener);
 }
-/*void SetUserPointer(void* userPointer)
+Item::TYPE Item::GetType()
 {
-if (typeid(userPointer) != typeid(Item*))
-{
-GAME_ENGINE->MessageBox(String("INVALID USER POINTER PASSED TO SetUserPointer (LevelData.h)"));
-return;
+	return m_Type;
 }
-m_ActPtr->SetUserPointer(userPointer);
-}*/
-
 
 // ___COIN___
-Coin::Coin(DOUBLE2 centerPos) :
-	Item(centerPos, centerPos + DOUBLE2(WIDTH, HEIGHT))
+// NOTE: There are two types of regular coins, those spawned at the start of the game,
+// which have an infinite lifetime, and those which are spawned from prize blocks, which are only visible for 
+// a few frames. If m_LifeTicks == -1, this coin is the former, otherwise it is the latter
+Coin::Coin(DOUBLE2 centerPos, int life, TYPE type) :
+	Item(centerPos - DOUBLE2(WIDTH/2, HEIGHT/2), centerPos + DOUBLE2(WIDTH/2, HEIGHT/2), type, BodyType::DYNAMIC), m_Life(life)
 {
-	m_Type = TYPE::COIN;
+	m_ActPtr->SetFixedRotation(true);
+	m_ActPtr->SetSensor(true);
+
+	// This coin shoots up, then falls down, then disapears
+	if (life > -1)
+	{
+		m_ActPtr->SetLinearVelocity(DOUBLE2(0, -330));
+	}
 }
-void Coin::Tick(double deltaTime, Level* levelPtr)
+bool Coin::Tick(double deltaTime, Level* levelPtr)
 {
 	m_AnimInfo.Tick(deltaTime);
 	m_AnimInfo.frameNumber %= 4;
+
+	if (m_Life > -1)
+	{
+		if (++m_Life > LIFETIME)
+		{
+			m_Life = -1; // Not really necesary... right?
+			return true;
+		}
+	}
+
+	return false;
 }
 void Coin::Paint()
 {
 	double srcX = 0 + m_AnimInfo.frameNumber * WIDTH;
 	double srcY = 0;
 	RECT2 srcRect = RECT2(srcX, srcY, srcX + WIDTH, srcY + HEIGHT);
-	double left = m_ActPtr->GetPosition().x - WIDTH / 2;
-	double top = m_ActPtr->GetPosition().y - HEIGHT / 2;
+	double left = m_ActPtr->GetPosition().x;
+	double top = m_ActPtr->GetPosition().y;
 	SpriteSheetManager::generalTiles->Paint(left, top, srcRect);
 }
 
-
 // ___DRAGON COIN___
+// NOTE: Dragon coins always haev infinite life, therefore -1 as life param
 DragonCoin::DragonCoin(DOUBLE2 centerPos) :
-	Coin(centerPos)
+	Coin(centerPos, -1, TYPE::DRAGON_COIN)
 {
-	m_Type = TYPE::DRAGON_COIN;
 }
-void DragonCoin::Tick(double deltaTime, Level* levelPtr)
+bool DragonCoin::Tick(double deltaTime, Level* levelPtr)
 {
 	m_AnimInfo.Tick(deltaTime);
 	m_AnimInfo.frameNumber %= 6;
+
+	return false;
 }
 void DragonCoin::Paint()
 {
@@ -123,19 +140,18 @@ void DragonCoin::Paint()
 
 
 // ___BLOCK___
-Block::Block(DOUBLE2 topLeft) :
-	Item(topLeft, topLeft + DOUBLE2(WIDTH, HEIGHT))
+Block::Block(DOUBLE2 topLeft, TYPE type) :
+	Item(topLeft, topLeft + DOUBLE2(WIDTH, HEIGHT), type)
 {
 }
 
 
 // ___PRIZE BLOCK___
 PrizeBlock::PrizeBlock(DOUBLE2 topLeft) :
-	Block(topLeft)
+	Block(topLeft, TYPE::PRIZE_BLOCK)
 {
-	m_Type = TYPE::PRIZE_BLOCK;
 }
-void PrizeBlock::Tick(double deltaTime, Level* levelPtr)
+bool PrizeBlock::Tick(double deltaTime, Level* levelPtr)
 {
 	if (m_CurrentFrameOfBumpAnimation > -1)
 	{
@@ -163,6 +179,7 @@ void PrizeBlock::Tick(double deltaTime, Level* levelPtr)
 		m_AnimInfo.Tick(deltaTime);
 		m_AnimInfo.frameNumber %= 4;
 	}
+	return false;
 }
 void PrizeBlock::Paint()
 {
@@ -179,7 +196,7 @@ void PrizeBlock::Paint()
 	double top = m_ActPtr->GetPosition().y + m_yo * 3;
 	SpriteSheetManager::generalTiles->Paint(left, top, srcRect);
 }
-void PrizeBlock::Hit(LevelData* levelDataPtr)
+DOUBLE2 PrizeBlock::Hit()
 {
 	if (m_IsUsed == false)
 	{
@@ -187,40 +204,51 @@ void PrizeBlock::Hit(LevelData* levelDataPtr)
 		m_CurrentFrameOfBumpAnimation = 0;
 		m_yo = 0;
 
-		// Shoot out coin
-		levelDataPtr->AddItem(new Coin(DOUBLE2(m_ActPtr->GetPosition().x + WIDTH / 2, m_ActPtr->GetPosition().y - 10)));
+		return DOUBLE2(m_ActPtr->GetPosition().x, m_ActPtr->GetPosition().y - HEIGHT/2);
 	}
-}
 
+	// TODO: return a better null value?
+	return DOUBLE2();
+}
 
 // ___EXCLAMATION MARK BLOCK___
-ExclamationMarkBlock::ExclamationMarkBlock(DOUBLE2 topLeft, COLOUR colour) :
-	Block(topLeft), m_Colour(colour)
+ExclamationMarkBlock::ExclamationMarkBlock(DOUBLE2 topLeft, COLOUR colour, bool isSolid) :
+	Block(topLeft, TYPE::EXCLAMATION_MARK_BLOCK), m_Colour(colour)
 {
-	m_Type = TYPE::EXCLAMATION_MARK_BLOCK;
 	m_AnimInfo.frameNumber = 0;
+	SetSolid(isSolid);
 }
-void ExclamationMarkBlock::Tick(double deltaTime, Level* levelPtr)
+bool ExclamationMarkBlock::Tick(double deltaTime, Level* levelPtr)
 {
+	return false;
 }
 void ExclamationMarkBlock::Paint()
 {
 	double srcX = 1 * WIDTH;
 	double srcY = 10 * HEIGHT;
+	if (m_IsSolid == false)
+	{
+		srcY -= HEIGHT;
+	}
+	
 	RECT2 srcRect = RECT2(srcX, srcY, srcX + WIDTH, srcY + HEIGHT);
 	double left = m_ActPtr->GetPosition().x;
 	double top = m_ActPtr->GetPosition().y;
 	SpriteSheetManager::generalTiles->Paint(left, top, srcRect);
 }
+void ExclamationMarkBlock::SetSolid(bool solid)
+{
+	m_IsSolid = solid;
+	m_ActPtr->SetSensor(!solid);
+}
 
 
 // ___ROTATING BLOCK___
 RotatingBlock::RotatingBlock(DOUBLE2 topLeft) :
-	Block(topLeft)
+	Block(topLeft, TYPE::ROTATING_BLOCK)
 {
-	m_Type = TYPE::ROTATING_BLOCK;
 }
-void RotatingBlock::Tick(double deltaTime, Level* levelPtr)
+bool RotatingBlock::Tick(double deltaTime, Level* levelPtr)
 {
 	if (m_IsRotating)
 	{
@@ -236,6 +264,7 @@ void RotatingBlock::Tick(double deltaTime, Level* levelPtr)
 			}
 		}
 	}
+	return false;
 }
 void RotatingBlock::Paint()
 {
@@ -250,9 +279,8 @@ void RotatingBlock::Paint()
 
 // ___MESSAGE BLOCK___
 MessageBlock::MessageBlock(DOUBLE2 topLeft, String message) :
-	Block(topLeft), m_Message(message)
+	Block(topLeft, TYPE::MESSAGE_BLOCK), m_Message(message)
 {
-	m_Type = TYPE::MESSAGE_BLOCK;
 	m_AnimInfo.frameNumber = 0;
 }
 void MessageBlock::Paint()

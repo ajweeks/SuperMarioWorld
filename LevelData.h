@@ -27,11 +27,14 @@ public:
 	LevelData& operator=(const LevelData&) = delete;
 	LevelData(const LevelData&) = delete;
 
-	static LevelData* GetLevel(int level);
+	static LevelData* GetLevel(int levelIndex);
+	static void RegenerateLevel(int levelIndex);
 	static void Unload();
 
 	void AddItem(Item* newItemPtr);
 	void RemoveItem(Item* itemPtr);
+	void RemoveItem(int itemIndex);
+
 	// Platforms and pipes don't need to be individually painted or ticked
 	// since they are part of the forground bitmap and static,
 	// therefore only tick and paint the items (TODO: Rename item to entity?)

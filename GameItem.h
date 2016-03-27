@@ -55,34 +55,42 @@ struct Item : public Entity
 		PRIZE_BLOCK, USED_BLOCK, MESSAGE_BLOCK, ROTATING_BLOCK, EXCLAMATION_MARK_BLOCK
 	};
 
-	Item(DOUBLE2 topLeft, DOUBLE2 bottomRight);
+	Item(DOUBLE2 topLeft, DOUBLE2 bottomRight, TYPE type, BodyType bodyType = BodyType::KINEMATIC);
 	virtual ~Item();
 	void AddContactListener(ContactListener* listener);
 
-	virtual void Tick(double deltaTime, Level* levelPtr) = 0;
+	virtual bool Tick(double deltaTime, Level* levelPtr) = 0;
 	virtual void Paint() = 0;
 
+	TYPE GetType();
+
 	ANIMATION_INFO m_AnimInfo;
-	TYPE m_Type;
 	RECT2 m_Bounds;
+private:
+	TYPE m_Type;
 
 	// TODO: Add velocity member? (And an isStatic field? or just a vel of 0)
 };
 
 struct Coin : public Item
 {
-	static const int WIDTH = 16;
-	static const int HEIGHT = 16;
+	static const int WIDTH = 32;
+	static const int HEIGHT = 32;
 
-	Coin(DOUBLE2 centerPos);
-	virtual void Tick(double deltaTime, Level* levelPtr);
+	Coin(DOUBLE2 centerPos, int life, Item::TYPE type = Item::TYPE::COIN);
+
+	virtual bool Tick(double deltaTime, Level* levelPtr);
 	void Paint();
+
+private:
+	int m_Life;
+	static const int LIFETIME = 50;
 };
 
 struct DragonCoin : public Coin
 {
 	DragonCoin(DOUBLE2 centerPos);
-	void Tick(double deltaTime, Level* levelPtr);
+	bool Tick(double deltaTime, Level* levelPtr);
 	void Paint();
 };
 
@@ -91,17 +99,20 @@ struct Block : public Item
 	static const int WIDTH = 16 * 2;
 	static const int HEIGHT = 16 * 2;
 
-	Block(DOUBLE2 topLeft);
-	virtual void Tick(double deltaTime, Level* levelPtr) = 0;
+	Block(DOUBLE2 topLeft, Item::TYPE type);
+	virtual bool Tick(double deltaTime, Level* levelPtr) = 0;
 	virtual void Paint() = 0;
 };
 struct PrizeBlock : public Block
 {
 	// LATER: Find out if there are any blocks spawned as used blocks ever in the real game
 	PrizeBlock(DOUBLE2 topLeft);
-	void Tick(double deltaTime, Level* levelPtr);
+	bool Tick(double deltaTime, Level* levelPtr);
 	void Paint();
-	void Hit(LevelData* levelDataPtr); // NOTE: This is called when mario hits this block with his head
+	// I think Box2D prevents you from adding physics actors during preSolve, therefore
+	// we need to set a flag when the player hits a prize block and generate the coin in the next tick,
+	// or at least after pre-solve
+	DOUBLE2 Hit(); // Returns the position of the coin to be generated, or empty DOUBLE2() for no coin (0,0)
 
 private:
 	int m_CurrentFrameOfBumpAnimation = -1;
@@ -116,17 +127,22 @@ struct ExclamationMarkBlock : public Block
 		YELLOW, GREEN, RED, BLUE
 	};
 
-	ExclamationMarkBlock(DOUBLE2 topLeft, COLOUR colour);
-	void Tick(double deltaTime, Level* levelPtr);
+	ExclamationMarkBlock(DOUBLE2 topLeft, COLOUR colour, bool isSolid);
+	bool Tick(double deltaTime, Level* levelPtr);
 	void Paint();
+	void SetSolid(bool solid);
 
 private:
 	COLOUR m_Colour;
+	// NOTE: This is set to true for every ! block when the player hits the
+	// yellow switch palace switch block dohickey
+	bool m_IsSolid = false;
 };
+
 struct RotatingBlock : public Block
 {
 	RotatingBlock(DOUBLE2 topLeft);
-	void Tick(double deltaTime, Level* levelPtr);
+	bool Tick(double deltaTime, Level* levelPtr);
 	void Paint();
 	static const int MAX_ROTATIONS = 8;
 

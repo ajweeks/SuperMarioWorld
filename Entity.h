@@ -13,10 +13,12 @@ public:
 	Entity& operator=(const Entity&) = delete;
 	Entity(const Entity&) = delete;
 
-	virtual void Tick(double deltaTime, Level *levelPtr) = 0;
+	// NOTE: Returns true when this entity should be removed
+	virtual bool Tick(double deltaTime, Level *levelPtr) = 0;
 	virtual void Paint() = 0;
 
 protected:
 	PhysicsActor* m_ActPtr = nullptr;
 	SpriteSheet* m_SpriteSheetPtr = nullptr;
+
 };

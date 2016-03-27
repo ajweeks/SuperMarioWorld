@@ -1,4 +1,5 @@
 #include "stdafx.h"
+
 #include "Game.h"
 #include "Level.h"
 #include "Camera.h"
@@ -60,10 +61,20 @@ void Level::Reset()
 {
 	m_PlayerPtr->Reset();
 	m_Camera->Reset();
+
+	m_LevelDataPtr->RegenerateLevel(1);
+	ReadLevelData(1);
 }
 
 void Level::Tick(double deltaTime)
 {
+	if (m_NewCoinPos != DOUBLE2())
+	{
+		// There is a coin we need to generate
+		m_LevelDataPtr->AddItem(new Coin(m_NewCoinPos, 15));
+		m_NewCoinPos = DOUBLE2();
+	}
+
 	m_PlayerPtr->Tick(deltaTime, this);
 
 	m_LevelDataPtr->TickItems(deltaTime, this);
@@ -211,7 +222,7 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 		case int(ActorId::ITEM) :
 		{
 			Item* item = (Item*)actThisPtr->GetUserPointer();
-			switch (item->m_Type)
+			switch (item->GetType())
 			{
 			case Item::TYPE::PRIZE_BLOCK:
 			{
@@ -219,7 +230,7 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 				if (actOtherPtr->GetLinearVelocity().y < 0.0 && 
 					actOtherPtr->GetPosition().y > actThisPtr->GetPosition().y + Block::WIDTH/2)
 				{
-					((PrizeBlock*)item)->Hit(m_LevelDataPtr);
+					m_NewCoinPos = ((PrizeBlock*)item)->Hit();
 				}
 			} break;
 			}
@@ -232,8 +243,9 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 {
 	if (actOtherPtr->GetUserData() == int(ActorId::PLAYER))
 	{
-				m_IsPlayerOnGround = true;
-				return;
+		m_IsPlayerOnGround = true;
+		return;
+
 		if (actThisPtr->GetUserData() == int(ActorId::PLATFORM))
 		{
 			if (actOtherPtr->GetLinearVelocity().y >= 0.0)

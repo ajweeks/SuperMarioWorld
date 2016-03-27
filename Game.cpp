@@ -28,7 +28,7 @@ Game::~Game()
 
 void Game::GameInitialize(GameSettings &gameSettingsRef)
 {
-	gameSettingsRef.SetWindowTitle(String("Game - Weeks, Andrew - 1DAE06"));
+	gameSettingsRef.SetWindowTitle(String("Super Mario World - Weeks, Andrew - 1DAE06"));
 	gameSettingsRef.SetWindowWidth(512);
 	gameSettingsRef.SetWindowHeight(448);
 	gameSettingsRef.EnableConsole(false);

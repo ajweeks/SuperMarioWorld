@@ -41,10 +41,9 @@ private:
 	void ReadLevelData(int levelIndex);
 	LevelData* m_LevelDataPtr = nullptr;
 
+	DOUBLE2 m_NewCoinPos = DOUBLE2();
+
 	PhysicsActor* m_ActLevelPtr = nullptr;
-	//std::vector<Platform*> m_PlatformsPtrArr;
-	//std::vector<Pipe*> m_PipesPtrArr;
-	//std::vector<Item*> m_ItemsPtrArr;
 
 	double m_Width;
 	double m_Height;

@@ -29,7 +29,7 @@ public:
 
 	RECT2 GetCameraRect();
 
-	void Tick(double deltaTime, Level *levelPtr);
+	bool Tick(double deltaTime, Level *levelPtr);
 	void TickAnimations(double deltaTime);
 
 	void Paint();
@@ -47,7 +47,7 @@ public:
 
 	void TogglePaused(bool paused);
 
-	static const int WIDTH = 34;
+	static const int WIDTH = 18;
 	static const int HEIGHT = 35;
 
 private:

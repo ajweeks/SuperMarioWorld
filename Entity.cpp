@@ -1,4 +1,5 @@
 #include "stdafx.h"
+
 #include "Entity.h"
 #include "SpriteSheet.h"
 
@@ -8,7 +9,10 @@ Entity::Entity(DOUBLE2& posRef, SpriteSheet *spriteSheetPtr, BodyType bodyType, 
 	: m_SpriteSheetPtr(spriteSheetPtr)
 {
 	m_ActPtr = new PhysicsActor(posRef, 0, bodyType);
-	if (userPointer != nullptr) m_ActPtr->SetUserPointer(userPointer);
+	if (userPointer != nullptr)
+	{
+		m_ActPtr->SetUserPointer(userPointer);
+	}
 	m_ActPtr->SetLinearVelocity(initialVelRef);
 }
 
@@ -16,7 +20,3 @@ Entity::~Entity()
 {
 	delete m_ActPtr;
 }
-
-// TODO: Are these definitions required?
-//void Entity::Tick(double deltaTime) {}
-//void Entity::Paint() {}
