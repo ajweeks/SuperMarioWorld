@@ -62,6 +62,8 @@ struct Item : public Entity
 	virtual bool Tick(double deltaTime, Level* levelPtr) = 0;
 	virtual void Paint() = 0;
 
+	void TogglePaused(bool paused);
+
 	TYPE GetType();
 
 	ANIMATION_INFO m_AnimInfo;
@@ -77,7 +79,7 @@ struct Coin : public Item
 	static const int WIDTH = 32;
 	static const int HEIGHT = 32;
 
-	Coin(DOUBLE2 centerPos, int life, Item::TYPE type = Item::TYPE::COIN);
+	Coin(DOUBLE2 topLeft, int life, Item::TYPE type = Item::TYPE::COIN, DOUBLE2 size = DOUBLE2(WIDTH, HEIGHT));
 
 	virtual bool Tick(double deltaTime, Level* levelPtr);
 	void Paint();
@@ -89,9 +91,12 @@ private:
 
 struct DragonCoin : public Coin
 {
-	DragonCoin(DOUBLE2 centerPos);
+	DragonCoin(DOUBLE2 topLeft);
 	bool Tick(double deltaTime, Level* levelPtr);
 	void Paint();
+
+	static const int WIDTH = 32;
+	static const int HEIGHT = 52;
 };
 
 struct Block : public Item

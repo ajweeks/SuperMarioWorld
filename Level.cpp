@@ -25,6 +25,8 @@ Level::Level()
 
 	m_Camera = new Camera(GAME_ENGINE->GetWidth(), GAME_ENGINE->GetHeight(), this);
 
+	Reset();
+
 	ReadLevelData(1);
 }
 
@@ -64,15 +66,26 @@ void Level::Reset()
 
 	m_LevelDataPtr->RegenerateLevel(1);
 	ReadLevelData(1);
+
+	m_TotalTime = 400; // This changes for every level, TODO: Put this info in the level save
+	m_SecondsElapsed = 0.0;
 }
 
 void Level::Tick(double deltaTime)
 {
+	m_SecondsElapsed += (deltaTime);
+
 	if (m_NewCoinPos != DOUBLE2())
 	{
 		// There is a coin we need to generate
 		m_LevelDataPtr->AddItem(new Coin(m_NewCoinPos, 15));
 		m_NewCoinPos = DOUBLE2();
+	}
+	if (m_ItemToBeRemoved != nullptr)
+	{
+		// The player collided with a coin during begin-contact, we need to remove it now
+		m_LevelDataPtr->RemoveItem(m_ItemToBeRemoved);
+		m_ItemToBeRemoved = nullptr;
 	}
 
 	m_PlayerPtr->Tick(deltaTime, this);
@@ -104,19 +117,116 @@ void Level::Paint()
 	m_LevelDataPtr->PaintItems();
 
 	m_PlayerPtr->Paint();
-
+	
 	GAME_ENGINE->SetViewMatrix(MATRIX3X2::CreateIdentityMatrix());
 
+	PaintHUD();
+
+#if 0
+	m_Camera->DEBUGPaint();
+#endif
+
+#if 0
 	GAME_ENGINE->SetColor(COLOR(0, 0, 0));
 	GAME_ENGINE->SetFont(Game::Font16Ptr);
 	GAME_ENGINE->DrawString(String("Player pos: ") + m_PlayerPtr->GetPosition().ToString(), 10, 10);
 	GAME_ENGINE->DrawString(String("Player vel: ") + m_PlayerPtr->GetLinearVelocity().ToString(), 10, 25);
 	GAME_ENGINE->DrawString(String("Player onGround: ") + String(m_PlayerPtr->IsOnGround() ? "true" : "false"), 10, 40);
+#endif
 
 	GAME_ENGINE->SetViewMatrix(matCameraView);
 }
 
-void Level::DEBUGPaintZoomedOut()
+void Level::PaintHUD()
+{
+	int playerLives = m_PlayerPtr->GetLives();
+	int playerDragonCoins = m_PlayerPtr->GetDragonCoinsCollected();
+	int playerStars = m_PlayerPtr->GetStarsCollected();
+	int playerCoins = m_PlayerPtr->GetCoinsCollected();
+	int playerScore = m_PlayerPtr->GetScore();
+	Item::TYPE playerExtraItemType = m_PlayerPtr->GetExtraItemType();
+
+	int timeRemaining = m_TotalTime - int(m_SecondsElapsed);
+
+	int x = 30;
+	int y = 30;
+	RECT2 srcRect;
+
+	const int SCALE = 2;
+
+	// LATER: Add luigi here when he's playing
+	// MARIO
+	srcRect = RECT2(1 * SCALE, 1 * SCALE, 41 * SCALE, 9 * SCALE);
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
+	
+	// X
+	x += 18;
+	y += 17;
+	srcRect = RECT2(10 * SCALE, 61 * SCALE, 10 * SCALE + 7 * SCALE, 61 * SCALE + 7 * SCALE);
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
+
+	// LIVES
+	srcRect = GetSmallSingleNumberSrcRect(playerLives, false);
+	x += 30;
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
+
+	// TIME
+	x += 100;
+	y = 30;
+	srcRect = RECT2(1 * SCALE, 52 * SCALE, 1 * SCALE + 24 * SCALE, 52 * SCALE + 7 * SCALE);
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
+
+	// TIME VALUE
+	y += 18;
+	PaintSeveralDigitNumber(x, y, timeRemaining, true);
+}
+
+// TODO: Move all SCALE references to one global constant in Game.h
+// TODO: Just set a world matrix to print these instead of passing numbers
+void Level::PaintSeveralDigitNumber(int x, int y, int number, bool yellow)
+{
+	int SCALE = 2;
+
+	number = abs(number);
+	x += (GetNumberOfDigits(number) - 1) * 8 * SCALE;
+
+	do {
+		int digit = number % 10;
+		RECT2 srcRect = GetSmallSingleNumberSrcRect(digit, yellow);
+		GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
+
+		x -= 8 * SCALE;
+		number /= 10;
+	} while (number > 0);
+}
+
+unsigned int Level::GetNumberOfDigits(unsigned int i)
+{
+	return i > 0 ? (int)log10((double)i) + 1 : 1;
+}
+
+// NOTE: If yellow is true, this returns the rect for a yellow number, otherwise for a white number
+RECT2 Level::GetSmallSingleNumberSrcRect(int number, bool yellow)
+{
+	assert (number >= 0 && number <= 9);
+
+	RECT2 result;
+
+	const int SCALE = 2;
+
+	int numberWidth = 9 * SCALE;
+	int numberHeight = 7 * SCALE;
+	int xo = 0 + numberWidth * number;
+	int yo = 34 * SCALE;
+
+	if (yellow) yo += 10 * SCALE;
+
+	result = RECT2(xo, yo, xo + numberWidth, yo + numberHeight);
+
+	return result;
+}
+
+ void Level::DEBUGPaintZoomedOut()
 {
 	MATRIX3X2 matCameraView = m_Camera->GetViewMatrix(m_PlayerPtr, this);
 	MATRIX3X2 matZoom = MATRIX3X2::CreateScalingMatrix(0.25);
@@ -243,20 +353,30 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 {
 	if (actOtherPtr->GetUserData() == int(ActorId::PLAYER))
 	{
-		m_IsPlayerOnGround = true;
-		return;
-
-		if (actThisPtr->GetUserData() == int(ActorId::PLATFORM))
+		if (actThisPtr->GetUserData() == int(ActorId::PLATFORM) ||
+			actThisPtr->GetUserData() == int(ActorId::LEVEL))
 		{
-			if (actOtherPtr->GetLinearVelocity().y >= 0.0)
-			{
-				m_IsPlayerOnGround = true;
-			}
+			m_IsPlayerOnGround = true;
 		}
-		else if (actOtherPtr->GetUserData() == int(ActorId::ITEM))
+		else if (actThisPtr->GetUserData() == int(ActorId::ITEM))
 		{
-			if (actOtherPtr->GetLinearVelocity().y >= 0.0)
+			Item* item = (Item*)actThisPtr->GetUserPointer();
+			switch (item->GetType())
 			{
+			case Item::TYPE::COIN:
+			{
+				assert(m_ItemToBeRemoved == nullptr);
+
+				((Player*)actOtherPtr->GetUserPointer())->OnItemPickup(item);
+				m_ItemToBeRemoved = item;
+			} break;
+			case Item::TYPE::DRAGON_COIN:
+			{
+				assert(m_ItemToBeRemoved == nullptr);
+
+				((Player*)actOtherPtr->GetUserPointer())->OnItemPickup(item);
+				m_ItemToBeRemoved = item;
+			} break;
 			}
 		}
 	}
@@ -273,6 +393,7 @@ void Level::EndContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 void Level::TogglePaused(bool paused)
 {
 	m_PlayerPtr->TogglePaused(paused);
+	m_LevelDataPtr->TogglePaused(paused);
 }
 
 double Level::GetWidth()

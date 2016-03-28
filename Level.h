@@ -38,12 +38,21 @@ private:
 
 	void DEBUGPaintZoomedOut();
 
+	void PaintHUD();
+	unsigned int GetNumberOfDigits(unsigned int i);
+	void PaintSeveralDigitNumber(int x, int y, int number, bool yellow);
+	RECT2 GetSmallSingleNumberSrcRect(int number, bool yellow);
+
 	void ReadLevelData(int levelIndex);
 	LevelData* m_LevelDataPtr = nullptr;
 
 	DOUBLE2 m_NewCoinPos = DOUBLE2();
+	Item* m_ItemToBeRemoved = nullptr;
 
 	PhysicsActor* m_ActLevelPtr = nullptr;
+
+	int m_TotalTime;
+	double m_SecondsElapsed = 0.0;
 
 	double m_Width;
 	double m_Height;

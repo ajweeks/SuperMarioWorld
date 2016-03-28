@@ -1,9 +1,9 @@
 #include "stdafx.h"
+
+#include "Game.h"
 #include "Camera.h"
 #include "Player.h"
 #include "Level.h"
-
-#define GAME_ENGINE (GameEngine::GetSingleton())
 
 Camera::Camera(int width, int height, Level* levelPtr) : m_Width(width), m_Height(height)
 {
@@ -17,6 +17,13 @@ Camera::~Camera()
 // TODO: Add yo functionality for certain levels
 MATRIX3X2 Camera::GetViewMatrix(Player* playerPtr, Level* levelPtr)
 {
+#if SMW_ENABLE_JUMP_TO
+	if (GAME_ENGINE->IsKeyboardKeyPressed('O'))
+	{
+		m_PrevTranslation.x = SMW_JUMP_TO_POS_X - GAME_ENGINE->GetWidth()/2;
+	}
+#endif
+
 	DOUBLE2 newTranslation = m_PrevTranslation;
 
 	DOUBLE2 playerPos = playerPtr->GetPosition();

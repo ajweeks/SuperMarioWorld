@@ -72,20 +72,28 @@ Item::TYPE Item::GetType()
 {
 	return m_Type;
 }
+void Item::TogglePaused(bool paused)
+{
+	m_ActPtr->SetActive(!paused);
+}
+
 
 // ___COIN___
 // NOTE: There are two types of regular coins, those spawned at the start of the game,
 // which have an infinite lifetime, and those which are spawned from prize blocks, which are only visible for 
 // a few frames. If m_LifeTicks == -1, this coin is the former, otherwise it is the latter
-Coin::Coin(DOUBLE2 centerPos, int life, TYPE type) :
-	Item(centerPos - DOUBLE2(WIDTH/2, HEIGHT/2), centerPos + DOUBLE2(WIDTH/2, HEIGHT/2), type, BodyType::DYNAMIC), m_Life(life)
+Coin::Coin(DOUBLE2 topLeft, int life, TYPE type, DOUBLE2 size) :
+	Item(topLeft,
+		topLeft + size,
+		type), m_Life(life)
 {
 	m_ActPtr->SetFixedRotation(true);
 	m_ActPtr->SetSensor(true);
 
-	// This coin shoots up, then falls down, then disapears
 	if (life > -1)
 	{
+		// This coin shoots up, then falls down, then disapears
+		m_ActPtr->SetBodyType(BodyType::DYNAMIC);
 		m_ActPtr->SetLinearVelocity(DOUBLE2(0, -330));
 	}
 }
@@ -118,7 +126,7 @@ void Coin::Paint()
 // ___DRAGON COIN___
 // NOTE: Dragon coins always haev infinite life, therefore -1 as life param
 DragonCoin::DragonCoin(DOUBLE2 centerPos) :
-	Coin(centerPos, -1, TYPE::DRAGON_COIN)
+	Coin(centerPos, -1, TYPE::DRAGON_COIN, DOUBLE2(WIDTH,HEIGHT))
 {
 }
 bool DragonCoin::Tick(double deltaTime, Level* levelPtr)
@@ -131,10 +139,10 @@ bool DragonCoin::Tick(double deltaTime, Level* levelPtr)
 void DragonCoin::Paint()
 {
 	double srcX = 0 + m_AnimInfo.frameNumber * WIDTH;
-	double srcY = 2 * HEIGHT;
-	RECT2 srcRect = RECT2(srcX, srcY, srcX + WIDTH, srcY + HEIGHT * 2);
-	double left = m_ActPtr->GetPosition().x - WIDTH / 2;
-	double top = m_ActPtr->GetPosition().y - HEIGHT / 2;
+	double srcY = 2 * Coin::HEIGHT;
+	RECT2 srcRect = RECT2(srcX, srcY, srcX + WIDTH, srcY + HEIGHT);
+	double left = m_ActPtr->GetPosition().x;
+	double top = m_ActPtr->GetPosition().y - 18;
 	SpriteSheetManager::generalTiles->Paint(left, top, srcRect);
 }
 
@@ -204,7 +212,7 @@ DOUBLE2 PrizeBlock::Hit()
 		m_CurrentFrameOfBumpAnimation = 0;
 		m_yo = 0;
 
-		return DOUBLE2(m_ActPtr->GetPosition().x, m_ActPtr->GetPosition().y - HEIGHT/2);
+		return DOUBLE2(m_ActPtr->GetPosition().x - WIDTH/2, m_ActPtr->GetPosition().y - HEIGHT);
 	}
 
 	// TODO: return a better null value?

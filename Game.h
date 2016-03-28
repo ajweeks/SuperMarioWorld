@@ -19,6 +19,11 @@
 
 #include "Level.h"
 
+#define GAME_ENGINE (GameEngine::GetSingleton())
+
+#define SMW_ENABLE_JUMP_TO true
+#define SMW_JUMP_TO_POS_X 2400
+
 class Game : public AbstractGame
 {
 public:

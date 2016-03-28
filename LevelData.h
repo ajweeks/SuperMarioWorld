@@ -41,6 +41,8 @@ public:
 	void PaintItems();
 	void TickItems(double deltaTime, Level* levelPtr);
 
+	void TogglePaused(bool paused);
+
 	std::vector<Platform*> GetPlatforms();
 	std::vector<Pipe*> GetPipes();
 	std::vector<Item*> GetItems();

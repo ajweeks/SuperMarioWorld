@@ -16,6 +16,8 @@ public:
 	static Bitmap* levelOneBackground;
 	static Bitmap* levelOneForeground;
 
+	static Bitmap* hud;
+
 	static SpriteSheet* smallMario;
 	static SpriteSheet* generalTiles;
 

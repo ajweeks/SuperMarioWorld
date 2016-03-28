@@ -13,8 +13,6 @@
 #include "SpriteSheetManager.h"
 #include "LevelData.h"
 
-#define GAME_ENGINE (GameEngine::GetSingleton())
-
 Font* Game::Font16Ptr = nullptr;
 Font* Game::Font24Ptr = nullptr;
 

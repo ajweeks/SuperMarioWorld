@@ -1,9 +1,12 @@
 #include "stdafx.h"
+
 #include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
 
 Bitmap* SpriteSheetManager::levelOneBackground = nullptr;
 Bitmap* SpriteSheetManager::levelOneForeground = nullptr;
+
+Bitmap* SpriteSheetManager::hud = nullptr;
 
 SpriteSheet* SpriteSheetManager::smallMario = nullptr;
 SpriteSheet* SpriteSheetManager::generalTiles = nullptr;
@@ -25,6 +28,9 @@ void SpriteSheetManager::Load()
 	smallMario->SetTransparencyColor(COLOR(80, 128, 255));
 
 	generalTiles = new SpriteSheet(String("Resources/general_tilesx2.png"), 14, 24, 32, 32);
+
+	hud = new Bitmap(String("Resources/hudx2.png"));
+	//hud->SetTransparencyColor(COLOR(255,0,255));
 }
 
 void SpriteSheetManager::Unload()
@@ -34,4 +40,6 @@ void SpriteSheetManager::Unload()
 
 	delete smallMario;
 	delete generalTiles;
+
+	delete hud;
 }

@@ -1,19 +1,18 @@
 #include "stdafx.h"
 
-#include "Player.h"
 #include "Game.h"
+#include "Player.h"
 #include "Enumerations.h"
 #include "SpriteSheetManager.h"
 #include "Entity.h"
 
-#define GAME_ENGINE (GameEngine::GetSingleton())
 #define ENTITY_MANAGER (EntityManager::GetInstance())
 
 // STATIC INITIALIZATIONS
 const double Player::WALK_SPEED = 25.0;
 const double Player::RUN_SPEED = 50.0;
 
-Player::Player() : Entity(DOUBLE2(), SpriteSheetManager::smallMario, BodyType::DYNAMIC)
+Player::Player() : Entity(DOUBLE2(), SpriteSheetManager::smallMario, BodyType::DYNAMIC, this)
 {
 	m_ActPtr->AddBoxFixture(WIDTH, HEIGHT, 0.0);
 	m_ActPtr->SetFixedRotation(true);
@@ -38,7 +37,8 @@ void Player::Reset()
 	m_Score = 0;
 	m_Coins = 0;
 	m_Lives = 5;
-	m_DragonCoinsCollected = 0;
+	m_Stars = 0;
+	m_DragonCoins = 0;
 }
 
 RECT2 Player::GetCameraRect()
@@ -55,6 +55,13 @@ RECT2 Player::GetCameraRect()
 
 bool Player::Tick(double deltaTime, Level *levelPtr)
 {
+#if SMW_ENABLE_JUMP_TO
+	if (GAME_ENGINE->IsKeyboardKeyPressed('O'))
+	{
+		m_ActPtr->SetPosition(DOUBLE2(SMW_JUMP_TO_POS_X, 740));
+	}
+#endif
+
 	// TODO: Move these variables to the end of the method
 	double jumpVelocity = -32000.0;
 	// How much to add each addintional frame 'jump' is held down
@@ -290,7 +297,7 @@ RECT2 Player::CalculateAnimationFrame()
 	double tileHeight = m_SpriteSheetPtr->GetTileHeight();
 
 	double srcX = 2 * tileWidth;
-	double srcY = 0 * tileHeight;
+	double srcY = 0;
 
 	switch (m_AnimationState)
 	{
@@ -344,7 +351,41 @@ RECT2 Player::CalculateAnimationFrame()
 	} break;
 	}
 
-	return RECT2(srcX, srcY, srcX + tileWidth, srcY + tileHeight);
+	// srcY+1 to get rid of small black line (should probably find a better way to fix that though)
+	return RECT2(srcX, srcY + 1, srcX + tileWidth, srcY + tileHeight - 1);
+}
+
+void Player::OnItemPickup(Item* item)
+{
+	switch (item->GetType())
+	{
+	case Item::TYPE::COIN:
+	{
+		m_Coins++;
+		m_Score += 10;
+	} break;
+	case Item::TYPE::DRAGON_COIN:
+	{
+		m_DragonCoins++;
+		m_Score += 2000; // NOTE: Not quite perfectly accurate, but enough for now
+	} break;
+	case Item::TYPE::SUPER_MUSHROOM:
+	{
+
+	} break;
+	case Item::TYPE::ONE_UP_MUSHROOM:
+	{
+		m_Lives++;
+	} break;
+	case Item::TYPE::THREE_UP_MOON:
+	{
+		m_Lives += 3;
+	} break;
+	default:
+	{
+		OutputDebugString(String("ERROR: Unhandled item passed to Player::OnItemPickup\n"));
+	} break;
+	}
 }
 
 bool Player::IsOnGround()
@@ -379,6 +420,43 @@ DOUBLE2 Player::GetLinearVelocity()
 void Player::TogglePaused(bool paused)
 {
 	m_ActPtr->SetActive(!paused);
+}
+
+int Player::GetLives()
+{
+	return m_Lives;
+}
+
+int Player::GetCoinsCollected()
+{
+	return m_Coins;
+}
+
+int Player::GetDragonCoinsCollected()
+{
+	return m_DragonCoins;
+}
+
+int Player::GetStarsCollected()
+{
+	return m_Stars;
+}
+
+int Player::GetScore()
+{
+	return m_Score;
+}
+
+Item::TYPE Player::GetExtraItemType()
+{
+	if (m_ExtraItemPtr != nullptr)
+	{
+		return m_ExtraItemPtr->GetType();
+	}
+	else
+	{
+		return Item::TYPE(-1);
+	}
 }
 
 String Player::AnimationStateToString(ANIMATION_STATE state)

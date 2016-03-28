@@ -2,6 +2,7 @@
 #include "Enumerations.h"
 #include "SpriteSheet.h"
 #include "Entity.h"
+#include "GameItem.h"
 
 class Level;
 class SpriteSheet;
@@ -40,10 +41,19 @@ public:
 	int GetWidth();
 	int GetHeight();
 
+	int GetLives();
+	int GetCoinsCollected();
+	int GetDragonCoinsCollected();
+	int GetStarsCollected();
+	int GetScore();
+	Item::TYPE GetExtraItemType();
+
 	DOUBLE2 GetLinearVelocity();
 	DOUBLE2 GetPosition();
 	FACING_DIRECTION GetDirectionFacing();
 	bool IsOnGround();
+
+	void OnItemPickup(Item* item);
 
 	void TogglePaused(bool paused);
 
@@ -57,10 +67,13 @@ private:
 	bool m_IsOnGround = true;
 	int m_FramesSpentInAir = -1;
 
-	int m_Score;
-	int m_Coins;
 	int m_Lives;
-	int m_DragonCoinsCollected;
+	int m_Coins;
+	int m_DragonCoins;
+	int m_Stars;
+	int m_Score;
+
+	Item* m_ExtraItemPtr = nullptr; // This is the extra item slot mario has at the top of the screen
 
 	String AnimationStateToString(ANIMATION_STATE state);
 

@@ -37,15 +37,23 @@ LevelData::LevelData(String platforms, String pipes, String items)
 		int closeBracket = line.find(']');
 
 		DOUBLE2 topLeft = StringToDOUBLE2(line.substr(0, closeBracket + 1));
-		String itemType = String(line.substr(closeBracket+1).c_str());
+		int itemType = std::stoi(line.substr(closeBracket+1).c_str());
 
-		if (itemType.Compare(String("PRIZE")))
+		if (itemType == int(Item::TYPE::PRIZE_BLOCK))
 		{
 			m_ItemsPtrArr.push_back(new PrizeBlock(topLeft));
 		}
-		else if (itemType.Compare(String("EXCLAMATION_MARK")))
+		else if (itemType == int(Item::TYPE::EXCLAMATION_MARK_BLOCK))
 		{
 			m_ItemsPtrArr.push_back(new ExclamationMarkBlock(topLeft, ExclamationMarkBlock::COLOUR::YELLOW, false));
+		}
+		else if (itemType == int(Item::TYPE::COIN))
+		{
+			m_ItemsPtrArr.push_back(new Coin(topLeft, -1));
+		}
+		else if (itemType == int(Item::TYPE::DRAGON_COIN))
+		{
+			m_ItemsPtrArr.push_back(new DragonCoin(topLeft));
 		}
 		else
 		{
@@ -96,6 +104,17 @@ LevelData::~LevelData()
 void LevelData::Unload()
 {
 	delete m_LevelOnePtr;
+}
+
+void LevelData::TogglePaused(bool paused)
+{
+	for (size_t i = 0; i < m_ItemsPtrArr.size(); ++i)
+	{
+		if (m_ItemsPtrArr[i] != nullptr)
+		{
+			m_ItemsPtrArr[i]->TogglePaused(paused);
+		}
+	}
 }
 
 std::vector<Platform*> LevelData::GetPlatforms()
@@ -196,13 +215,28 @@ LevelData* LevelData::GenerateLevel(int levelIndex)
 		pipesStream << std::string(Pipe::ColourNames[int(Pipe::Colour::GREEN)]);
 
 		itemsStream << "[" << 609 * scale << "," << 320 * scale << "]";
-		itemsStream << "PRIZE";
+		itemsStream << int(Item::TYPE::PRIZE_BLOCK);
 		itemsStream << "\n";
 		itemsStream << "[" << 625 * scale << "," << 320 * scale << "]";
-		itemsStream << "EXCLAMATION_MARK";
+		itemsStream << int(Item::TYPE::EXCLAMATION_MARK_BLOCK);
 		itemsStream << "\n";
 		itemsStream << "[" << 641 * scale << "," << 320 * scale << "]";
-		itemsStream << "PRIZE";
+		itemsStream << int(Item::TYPE::PRIZE_BLOCK);
+		itemsStream << "\n";
+		itemsStream << "[" << 1240 * scale << "," << 320 * scale << "]";
+		itemsStream << int(Item::TYPE::COIN);
+		itemsStream << "\n";
+		itemsStream << "[" << 1250 * scale << "," << 300 * scale << "]";
+		itemsStream << int(Item::TYPE::COIN);
+		itemsStream << "\n";
+		itemsStream << "[" << 1266 * scale << "," << 280 * scale << "]";
+		itemsStream << int(Item::TYPE::DRAGON_COIN);
+		itemsStream << "\n";
+		itemsStream << "[" << 1288 * scale << "," << 300 * scale << "]";
+		itemsStream << int(Item::TYPE::COIN);
+		itemsStream << "\n";
+		itemsStream << "[" << 1302 * scale << "," << 320 * scale << "]";
+		itemsStream << int(Item::TYPE::COIN);
 		itemsStream << "\n";
 	} break;
 	default:
