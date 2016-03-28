@@ -73,6 +73,10 @@ private:
 	int m_Stars;
 	int m_Score;
 
+	void AddCoin(bool playSound = true);
+	void AddDragonCoin();
+	void AddLife();
+
 	Item* m_ExtraItemPtr = nullptr; // This is the extra item slot mario has at the top of the screen
 
 	String AnimationStateToString(ANIMATION_STATE state);

@@ -37,7 +37,7 @@ void Player::Reset()
 	m_Score = 0;
 	m_Coins = 0;
 	m_Lives = 5;
-	m_Stars = 0;
+	m_Stars = 15;
 	m_DragonCoins = 0;
 }
 
@@ -361,12 +361,12 @@ void Player::OnItemPickup(Item* item)
 	{
 	case Item::TYPE::COIN:
 	{
-		m_Coins++;
+		AddCoin();
 		m_Score += 10;
 	} break;
 	case Item::TYPE::DRAGON_COIN:
 	{
-		m_DragonCoins++;
+		AddDragonCoin();
 		m_Score += 2000; // NOTE: Not quite perfectly accurate, but enough for now
 	} break;
 	case Item::TYPE::SUPER_MUSHROOM:
@@ -386,6 +386,38 @@ void Player::OnItemPickup(Item* item)
 		OutputDebugString(String("ERROR: Unhandled item passed to Player::OnItemPickup\n"));
 	} break;
 	}
+}
+
+void Player::AddCoin(bool playSound)
+{
+	m_Coins++;
+	
+	if (m_Coins > 99)
+	{
+		m_Coins = 0;
+		AddLife();
+		// LATER: Play sound here
+	}
+}
+
+void Player::AddDragonCoin()
+{
+	AddCoin(false);
+	m_DragonCoins++;
+
+	// LATER:: Play sound here
+
+	if (m_DragonCoins >= 5)
+	{
+		m_DragonCoins = 0;
+		AddLife();
+	}
+}
+
+void Player::AddLife()
+{
+	m_Lives++;
+	// LATER: Play sound here
 }
 
 bool Player::IsOnGround()

@@ -78,7 +78,12 @@ void Level::Tick(double deltaTime)
 	if (m_NewCoinPos != DOUBLE2())
 	{
 		// There is a coin we need to generate
-		m_LevelDataPtr->AddItem(new Coin(m_NewCoinPos, 15));
+		Coin* newCoin = new Coin(m_NewCoinPos, 15);
+		m_LevelDataPtr->AddItem(newCoin);
+
+		// TODO: Test that this works in all cases, it may 
+		//be slightly janky since the player isn't actually touching the coin
+		m_PlayerPtr->OnItemPickup(newCoin); 
 		m_NewCoinPos = DOUBLE2();
 	}
 	if (m_ItemToBeRemoved != nullptr)
@@ -166,29 +171,67 @@ void Level::PaintHUD()
 	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
 
 	// LIVES
-	srcRect = GetSmallSingleNumberSrcRect(playerLives, false);
 	x += 30;
+	srcRect = GetSmallSingleNumberSrcRect(playerLives, false);
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
+
+	// RED STAR
+	y -= 3;
+	x += 68;
+	srcRect = RECT2(19 * SCALE, 60 * SCALE, 19 * SCALE + 8 * SCALE, 60 * SCALE + 8 * SCALE);
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
+
+	// X
+	x += 20;
+	y += 3;
+	srcRect = RECT2(10 * SCALE, 61 * SCALE, 10 * SCALE + 7 * SCALE, 61 * SCALE + 7 * SCALE);
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
+
+	// NUMBER OF STARS
+	x += 42;
+	y -= 15;
+	PaintSeveralDigitLargeNumber(x, y, playerStars);
+
+	// ITEM BOX
+	x += 20;
+	y -= 15;
+	srcRect = RECT2(36 * SCALE, 52 * SCALE, 36 * SCALE + 28 * SCALE, 52 * SCALE + 28 * SCALE);
 	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
 
 	// TIME
-	x += 100;
+	x += 72;
 	y = 30;
 	srcRect = RECT2(1 * SCALE, 52 * SCALE, 1 * SCALE + 24 * SCALE, 52 * SCALE + 7 * SCALE);
 	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
 
 	// TIME VALUE
-	y += 18;
+	y += 17;
+	x += 32;
 	PaintSeveralDigitNumber(x, y, timeRemaining, true);
+
+	// COIN LABEL
+	x += 66;
+	y = 30;
+	srcRect = RECT2(1 * SCALE, 60 * SCALE, 1 * SCALE + 16 * SCALE, 60 * SCALE + 8 * SCALE);
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
+
+	// COINS
+	x += 60;
+	PaintSeveralDigitNumber(x, y, playerCoins, false);
+
+	// SCORE
+	y += 17;
+	PaintSeveralDigitNumber(x, y, playerScore, false);
 }
 
 // TODO: Move all SCALE references to one global constant in Game.h
 // TODO: Just set a world matrix to print these instead of passing numbers
+// NOTE: The x coordinate specifies the placement of the right-most digit
 void Level::PaintSeveralDigitNumber(int x, int y, int number, bool yellow)
 {
 	int SCALE = 2;
 
 	number = abs(number);
-	x += (GetNumberOfDigits(number) - 1) * 8 * SCALE;
 
 	do {
 		int digit = number % 10;
@@ -200,15 +243,17 @@ void Level::PaintSeveralDigitNumber(int x, int y, int number, bool yellow)
 	} while (number > 0);
 }
 
+// TODO: Move to a more global class (custom math class?)
 unsigned int Level::GetNumberOfDigits(unsigned int i)
 {
 	return i > 0 ? (int)log10((double)i) + 1 : 1;
 }
 
 // NOTE: If yellow is true, this returns the rect for a yellow number, otherwise for a white number
+// TODO: Fix slight issue with bitmap (6 appears to close to the left of the number next to it)
 RECT2 Level::GetSmallSingleNumberSrcRect(int number, bool yellow)
 {
-	assert (number >= 0 && number <= 9);
+	assert(number >= 0 && number <= 9);
 
 	RECT2 result;
 
@@ -220,6 +265,40 @@ RECT2 Level::GetSmallSingleNumberSrcRect(int number, bool yellow)
 	int yo = 34 * SCALE;
 
 	if (yellow) yo += 10 * SCALE;
+
+	result = RECT2(xo, yo, xo + numberWidth, yo + numberHeight);
+
+	return result;
+}
+
+void Level::PaintSeveralDigitLargeNumber(int x, int y, int number)
+{
+	int SCALE = 2;
+
+	number = abs(number);
+
+	do {
+		int digit = number % 10;
+		RECT2 srcRect = GetLargeSingleNumberSrcRect(digit);
+		GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
+
+		x -= 8 * SCALE;
+		number /= 10;
+	} while (number > 0);
+}
+
+RECT2 Level::GetLargeSingleNumberSrcRect(int number)
+{
+	assert(number >= 0 && number <= 9);
+
+	RECT2 result;
+
+	const int SCALE = 2;
+
+	int numberWidth = 9 * SCALE;
+	int numberHeight = 14 * SCALE;
+	int xo = 0 + numberWidth * number;
+	int yo = 19 * SCALE;
 
 	result = RECT2(xo, yo, xo + numberWidth, yo + numberHeight);
 

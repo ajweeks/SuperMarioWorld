@@ -41,7 +41,9 @@ private:
 	void PaintHUD();
 	unsigned int GetNumberOfDigits(unsigned int i);
 	void PaintSeveralDigitNumber(int x, int y, int number, bool yellow);
+	void PaintSeveralDigitLargeNumber(int x, int y, int number);
 	RECT2 GetSmallSingleNumberSrcRect(int number, bool yellow);
+	RECT2 GetLargeSingleNumberSrcRect(int number);
 
 	void ReadLevelData(int levelIndex);
 	LevelData* m_LevelDataPtr = nullptr;
