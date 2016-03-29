@@ -37,7 +37,7 @@ void Player::Reset()
 	m_Score = 0;
 	m_Coins = 0;
 	m_Lives = 5;
-	m_Stars = 15;
+	m_Stars = 0;
 	m_DragonCoins = 0;
 }
 

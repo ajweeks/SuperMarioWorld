@@ -142,6 +142,7 @@ void Level::Paint()
 	GAME_ENGINE->SetViewMatrix(matCameraView);
 }
 
+// TODO: Make this scalable
 void Level::PaintHUD()
 {
 	int playerLives = m_PlayerPtr->GetLives();
@@ -153,11 +154,11 @@ void Level::PaintHUD()
 
 	int timeRemaining = m_TotalTime - int(m_SecondsElapsed);
 
-	int x = 30;
+	const int SCALE = 2;
+
+	int x = 31;
 	int y = 30;
 	RECT2 srcRect;
-
-	const int SCALE = 2;
 
 	// LATER: Add luigi here when he's playing
 	// MARIO
@@ -175,9 +176,19 @@ void Level::PaintHUD()
 	srcRect = GetSmallSingleNumberSrcRect(playerLives, false);
 	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
 
+	// DRAGON COINS
+	x += 48;
+	y = 30;
+	for (size_t i = 0; i < playerDragonCoins; ++i)
+	{
+		srcRect = RECT2(1 * SCALE, 60 * SCALE, 1 * SCALE + 8 * SCALE, 60 * SCALE + 8 * SCALE);
+		GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
+		x += 8 * SCALE;
+	}
+
 	// RED STAR
-	y -= 3;
-	x += 68;
+	y += 16;
+	x = 140;
 	srcRect = RECT2(19 * SCALE, 60 * SCALE, 19 * SCALE + 8 * SCALE, 60 * SCALE + 8 * SCALE);
 	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
 
@@ -188,7 +199,7 @@ void Level::PaintHUD()
 	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
 
 	// NUMBER OF STARS
-	x += 42;
+	x += 48;
 	y -= 15;
 	PaintSeveralDigitLargeNumber(x, y, playerStars);
 
@@ -199,13 +210,13 @@ void Level::PaintHUD()
 	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
 
 	// TIME
-	x += 72;
+	x += 75;
 	y = 30;
 	srcRect = RECT2(1 * SCALE, 52 * SCALE, 1 * SCALE + 24 * SCALE, 52 * SCALE + 7 * SCALE);
 	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
 
 	// TIME VALUE
-	y += 17;
+	y += 19;
 	x += 32;
 	PaintSeveralDigitNumber(x, y, timeRemaining, true);
 
@@ -259,7 +270,7 @@ RECT2 Level::GetSmallSingleNumberSrcRect(int number, bool yellow)
 
 	const int SCALE = 2;
 
-	int numberWidth = 9 * SCALE;
+	int numberWidth = 8 * SCALE;
 	int numberHeight = 7 * SCALE;
 	int xo = 0 + numberWidth * number;
 	int yo = 34 * SCALE;
@@ -295,7 +306,7 @@ RECT2 Level::GetLargeSingleNumberSrcRect(int number)
 
 	const int SCALE = 2;
 
-	int numberWidth = 9 * SCALE;
+	int numberWidth = 8 * SCALE;
 	int numberHeight = 14 * SCALE;
 	int xo = 0 + numberWidth * number;
 	int yo = 19 * SCALE;
