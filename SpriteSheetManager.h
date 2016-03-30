@@ -19,6 +19,7 @@ public:
 	static Bitmap* hud;
 
 	static SpriteSheet* smallMario;
+	static SpriteSheet* superMario;
 	static SpriteSheet* generalTiles;
 
 private:

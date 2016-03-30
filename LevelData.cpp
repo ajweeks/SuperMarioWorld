@@ -28,7 +28,7 @@ LevelData::LevelData(String platforms, String pipes, String items)
 		DOUBLE2 topLeft = StringToDOUBLE2(line.substr(0, closeBracket + 1));
 		DOUBLE2 bottomRight = StringToDOUBLE2(line.substr(closeBracket + 1));
 
-		m_PipesPtrArr.push_back(new Pipe(topLeft, bottomRight, Pipe::Colour::YELLOW, false));
+		m_PipesPtrArr.push_back(new Pipe(topLeft, bottomRight, COLOUR::YELLOW, false));
 	}
 
 	std::stringstream itemsStream = std::stringstream(items.C_str());
@@ -39,25 +39,48 @@ LevelData::LevelData(String platforms, String pipes, String items)
 		DOUBLE2 topLeft = StringToDOUBLE2(line.substr(0, closeBracket + 1));
 		int itemType = std::stoi(line.substr(closeBracket+1).c_str());
 
-		if (itemType == int(Item::TYPE::PRIZE_BLOCK))
+		switch (itemType)
+		{
+		case int(Item::TYPE::PRIZE_BLOCK):
 		{
 			m_ItemsPtrArr.push_back(new PrizeBlock(topLeft));
-		}
-		else if (itemType == int(Item::TYPE::EXCLAMATION_MARK_BLOCK))
+		} break;
+		case int(Item::TYPE::EXCLAMATION_MARK_BLOCK):
 		{
-			m_ItemsPtrArr.push_back(new ExclamationMarkBlock(topLeft, ExclamationMarkBlock::COLOUR::YELLOW, false));
-		}
-		else if (itemType == int(Item::TYPE::COIN))
+			m_ItemsPtrArr.push_back(new ExclamationMarkBlock(topLeft, COLOUR::YELLOW, false));
+		} break;
+		case int(Item::TYPE::COIN):
 		{
 			m_ItemsPtrArr.push_back(new Coin(topLeft, -1));
-		}
-		else if (itemType == int(Item::TYPE::DRAGON_COIN))
+		} break;
+		case int(Item::TYPE::DRAGON_COIN):
 		{
 			m_ItemsPtrArr.push_back(new DragonCoin(topLeft));
-		}
-		else
+		} break;
+		case int(Item::TYPE::MESSAGE_BLOCK):
 		{
-			OutputDebugString(String("ERROR: Unhandled item in LevelData()"));
+			m_ItemsPtrArr.push_back(new MessageBlock(topLeft, String("Messagge!!!! Woo")));
+		} break;
+		case int(Item::TYPE::ROTATING_BLOCK):
+		{
+			m_ItemsPtrArr.push_back(new RotatingBlock(topLeft));
+		} break;
+		case int(Item::TYPE::P_SWITCH):
+		{
+			m_ItemsPtrArr.push_back(new PSwitch(topLeft, COLOUR::BLUE));
+		} break;
+		case int(Item::TYPE::ONE_UP_MUSHROOM):
+		{
+			m_ItemsPtrArr.push_back(new OneUpMushroom(topLeft));
+		} break;
+		case int(Item::TYPE::THREE_UP_MOON):
+		{
+			m_ItemsPtrArr.push_back(new ThreeUpMoon(topLeft));
+		} break;
+		default:
+		{
+			OutputDebugString(String("ERROR: Unhandled item in LevelData(): ") + String(int(itemType)) + String("\n"));
+		} break;
 		}
 	}
 }
@@ -170,74 +193,112 @@ LevelData* LevelData::GenerateLevel(int levelIndex)
 	case 1:
 	{
 		// TODO: Make this cleaner/more efficient
-		// e.g. Move scale to the constructor
-		double scale = 2.0;
-		platformsStream << "[" << 305 * scale << "," << 337 * scale << "]";
-		platformsStream << "[" << 559 * scale << "," << 342 * scale << "]";
+		platformsStream << "[" << 305 << "," << 337 << "]";
+		platformsStream << "[" << 559 << "," << 342 << "]";
 		platformsStream << "\n";
-		platformsStream << "[" << 705 * scale << "," << 321 * scale << "]";
-		platformsStream << "[" << 815 * scale << "," << 326 * scale << "]";
+		platformsStream << "[" << 705 << "," << 321 << "]";
+		platformsStream << "[" << 815 << "," << 326 << "]";
 		platformsStream << "\n";
-		platformsStream << "[" << 2993 * scale << "," << 337 * scale << "]";
-		platformsStream << "[" << 3070 * scale << "," << 342 * scale << "]";
+		platformsStream << "[" << 2993 << "," << 337 << "]";
+		platformsStream << "[" << 3070 << "," << 342 << "]";
 		platformsStream << "\n";
-		platformsStream << "[" << 3025 * scale << "," << 289 * scale << "]";
-		platformsStream << "[" << 3150 * scale << "," << 294 * scale << "]";
+		platformsStream << "[" << 3025 << "," << 289 << "]";
+		platformsStream << "[" << 3150 << "," << 294 << "]";
 		platformsStream << "\n";
-		platformsStream << "[" << 3121 * scale << "," << 337 * scale << "]";
-		platformsStream << "[" << 3214 * scale << "," << 342 * scale << "]";
+		platformsStream << "[" << 3121 << "," << 337 << "]";
+		platformsStream << "[" << 3214 << "," << 342 << "]";
 		platformsStream << "\n";
-		platformsStream << "[" << 3393 * scale << "," << 305 * scale << "]";
-		platformsStream << "[" << 3550 * scale << "," << 310 * scale << "]";
+		platformsStream << "[" << 3393 << "," << 305 << "]";
+		platformsStream << "[" << 3550 << "," << 310 << "]";
 
-		pipesStream << "[" << 2705 * scale << "," << 337 * scale << "]";
-		pipesStream << "[" << 2733 * scale << "," << 384 * scale << "]";
-		pipesStream << std::string(Pipe::ColourNames[int(Pipe::Colour::YELLOW)]);
+		pipesStream << "[" << 2705 << "," << 337 << "]";
+		pipesStream << "[" << 2733 << "," << 384 << "]";
+		pipesStream << std::string(Pipe::ColourNames[int(COLOUR::YELLOW)]);
 		pipesStream << "\n";
-		pipesStream << "[" << 2737 * scale << "," << 321 * scale << "]";
-		pipesStream << "[" << 2767 * scale << "," << 384 * scale << "]";
-		pipesStream << std::string(Pipe::ColourNames[int(Pipe::Colour::YELLOW)]);
+		pipesStream << "[" << 2737 << "," << 321 << "]";
+		pipesStream << "[" << 2767 << "," << 384 << "]";
+		pipesStream << std::string(Pipe::ColourNames[int(COLOUR::YELLOW)]);
 		pipesStream << "\n";
-		pipesStream << "[" << 3873 * scale << "," << 353 * scale << "]";
-		pipesStream << "[" << 3902 * scale << "," << 383 * scale << "]";
-		pipesStream << std::string(Pipe::ColourNames[int(Pipe::Colour::BLUE)]);
+		pipesStream << "[" << 3873 << "," << 353 << "]";
+		pipesStream << "[" << 3902 << "," << 383 << "]";
+		pipesStream << std::string(Pipe::ColourNames[int(COLOUR::BLUE)]);
 		pipesStream << "\n";
-		pipesStream << "[" << 4049 * scale << "," << 337 * scale << "]";
-		pipesStream << "[" << 4078 * scale << "," << 383 * scale << "]";
-		pipesStream << std::string(Pipe::ColourNames[int(Pipe::Colour::BLUE)]);
+		pipesStream << "[" << 4049 << "," << 337 << "]";
+		pipesStream << "[" << 4078 << "," << 383 << "]";
+		pipesStream << std::string(Pipe::ColourNames[int(COLOUR::BLUE)]);
 		pipesStream << "\n";
-		pipesStream << "[" << 4321 * scale << "," << 353 * scale << "]";
-		pipesStream << "[" << 4350 * scale << "," << 383 * scale << "]";
-		pipesStream << std::string(Pipe::ColourNames[int(Pipe::Colour::GREY)]);
+		pipesStream << "[" << 4321 << "," << 353 << "]";
+		pipesStream << "[" << 4350 << "," << 383 << "]";
+		pipesStream << std::string(Pipe::ColourNames[int(COLOUR::GREY)]);
 		pipesStream << "\n";
-		pipesStream << "[" << 4369 * scale << "," << 337 * scale << "]";
-		pipesStream << "[" << 4398 * scale << "," << 383 * scale << "]";
-		pipesStream << std::string(Pipe::ColourNames[int(Pipe::Colour::GREEN)]);
+		pipesStream << "[" << 4369 << "," << 337 << "]";
+		pipesStream << "[" << 4398 << "," << 383 << "]";
+		pipesStream << std::string(Pipe::ColourNames[int(COLOUR::GREEN)]);
 
-		itemsStream << "[" << 609 * scale << "," << 320 * scale << "]";
-		itemsStream << int(Item::TYPE::PRIZE_BLOCK);
-		itemsStream << "\n";
-		itemsStream << "[" << 625 * scale << "," << 320 * scale << "]";
-		itemsStream << int(Item::TYPE::EXCLAMATION_MARK_BLOCK);
-		itemsStream << "\n";
-		itemsStream << "[" << 641 * scale << "," << 320 * scale << "]";
-		itemsStream << int(Item::TYPE::PRIZE_BLOCK);
-		itemsStream << "\n";
-		itemsStream << "[" << 1240 * scale << "," << 320 * scale << "]";
-		itemsStream << int(Item::TYPE::COIN);
-		itemsStream << "\n";
-		itemsStream << "[" << 1250 * scale << "," << 300 * scale << "]";
-		itemsStream << int(Item::TYPE::COIN);
-		itemsStream << "\n";
-		itemsStream << "[" << 1266 * scale << "," << 280 * scale << "]";
-		itemsStream << int(Item::TYPE::DRAGON_COIN);
-		itemsStream << "\n";
-		itemsStream << "[" << 1288 * scale << "," << 300 * scale << "]";
-		itemsStream << int(Item::TYPE::COIN);
-		itemsStream << "\n";
-		itemsStream << "[" << 1302 * scale << "," << 320 * scale << "]";
-		itemsStream << int(Item::TYPE::COIN);
-		itemsStream << "\n";
+		itemsStream << "[" << 609 << "," << 320 << "]";
+		itemsStream << int(Item::TYPE::PRIZE_BLOCK) << "\n";
+		itemsStream << "[" << 625 << "," << 320 << "]";
+		itemsStream << int(Item::TYPE::EXCLAMATION_MARK_BLOCK) << "\n";
+		itemsStream << "[" << 641 << "," << 320 << "]";
+		itemsStream << int(Item::TYPE::PRIZE_BLOCK) << "\n";
+
+		itemsStream << "[" << 849 << "," << 335 << "]";
+		itemsStream << int(Item::TYPE::PRIZE_BLOCK) << "\n";
+		itemsStream << "[" << 865 << "," << 335 << "]";
+		itemsStream << int(Item::TYPE::PRIZE_BLOCK) << "\n";
+
+		itemsStream << "[" << 1240 << "," << 320 << "]";
+		itemsStream << int(Item::TYPE::COIN) << "\n";
+		itemsStream << "[" << 1250 << "," << 300 << "]";
+		itemsStream << int(Item::TYPE::COIN) << "\n";
+		itemsStream << "[" << 1266 << "," << 280 << "]";
+		itemsStream << int(Item::TYPE::DRAGON_COIN) << "\n";
+		itemsStream << "[" << 1288 << "," << 300 << "]";
+		itemsStream << int(Item::TYPE::COIN) << "\n";
+		itemsStream << "[" << 1302 << "," << 320 << "]";
+		itemsStream << int(Item::TYPE::COIN) << "\n";
+
+		itemsStream << "[" << 2511 << "," << 336 << "]";
+		itemsStream << int(Item::TYPE::MESSAGE_BLOCK) << "\n";
+
+		itemsStream << "[" << 2850 << "," << 336 << "]";
+		itemsStream << int(Item::TYPE::PRIZE_BLOCK) << "\n";
+		itemsStream << "[" << 2866 << "," << 336 << "]";
+		itemsStream << int(Item::TYPE::PRIZE_BLOCK) << "\n";
+		itemsStream << "[" << 2882 << "," << 336 << "]";
+		itemsStream << int(Item::TYPE::PRIZE_BLOCK) << "\n";
+
+		itemsStream << "[" << 3185 << "," << 257 << "]";
+		itemsStream << int(Item::TYPE::ROTATING_BLOCK) << "\n";
+		itemsStream << "[" << 3201 << "," << 257 << "]";
+		itemsStream << int(Item::TYPE::ROTATING_BLOCK) << "\n";
+
+		itemsStream << "[" << 3575 << "," << 288 << "]";
+		itemsStream << int(Item::TYPE::EXCLAMATION_MARK_BLOCK) << "\n";
+		itemsStream << "[" << 3648 << "," << 385 << "]";
+		itemsStream << int(Item::TYPE::EXCLAMATION_MARK_BLOCK) << "\n";
+		itemsStream << "[" << 3664 << "," << 385 << "]";
+		itemsStream << int(Item::TYPE::EXCLAMATION_MARK_BLOCK) << "\n";
+
+		itemsStream << "[" << 4498 << "," << 257 << "]";
+		itemsStream << int(Item::TYPE::EXCLAMATION_MARK_BLOCK) << "\n";
+		itemsStream << "[" << 4514 << "," << 257 << "]";
+		itemsStream << int(Item::TYPE::EXCLAMATION_MARK_BLOCK)  << "\n";
+		itemsStream << "[" << 4530 << "," << 257 << "]";
+		itemsStream << int(Item::TYPE::EXCLAMATION_MARK_BLOCK) << "\n";
+		itemsStream << "[" << 4498 << "," << 273 << "]";
+		itemsStream << int(Item::TYPE::EXCLAMATION_MARK_BLOCK) << "\n";
+		itemsStream << "[" << 4514 << "," << 273 << "]";
+		itemsStream << int(Item::TYPE::P_SWITCH) << "\n";
+		itemsStream << "[" << 4530 << "," << 273 << "]";
+		itemsStream << int(Item::TYPE::EXCLAMATION_MARK_BLOCK) << "\n";
+		itemsStream << "[" << 4498 << "," << 289 << "]";
+		itemsStream << int(Item::TYPE::EXCLAMATION_MARK_BLOCK) << "\n";
+		itemsStream << "[" << 4514 << "," << 289 << "]";
+		itemsStream << int(Item::TYPE::EXCLAMATION_MARK_BLOCK) << "\n";
+		itemsStream << "[" << 4530 << "," << 289 << "]";
+		itemsStream << int(Item::TYPE::EXCLAMATION_MARK_BLOCK) << "\n";
+
 	} break;
 	default:
 	{
@@ -299,7 +360,6 @@ void LevelData::TickItems(double deltaTime, Level* levelPtr)
 		{
 			if (m_ItemsPtrArr[i]->Tick(deltaTime, levelPtr))
 			{
-				// This item needs to be removed
 				RemoveItem(i);
 			}
 		}

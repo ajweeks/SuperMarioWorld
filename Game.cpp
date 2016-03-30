@@ -27,17 +27,24 @@ Game::~Game()
 void Game::GameInitialize(GameSettings &gameSettingsRef)
 {
 	gameSettingsRef.SetWindowTitle(String("Super Mario World - Weeks, Andrew - 1DAE06"));
-	gameSettingsRef.SetWindowWidth(512);
-	gameSettingsRef.SetWindowHeight(448);
+
+	const int SCALE = 1;
+	gameSettingsRef.SetWindowWidth(256 * SCALE);
+	gameSettingsRef.SetWindowHeight(224 * SCALE);
+
 	gameSettingsRef.EnableConsole(false);
 	gameSettingsRef.EnableAntiAliasing(false);
+
+	gameSettingsRef.EnableVSync(true);
 }
 
 void Game::GameStart()
 {
 	SpriteSheetManager::Load();
-	Game::Font16Ptr = new Font(String("smwtextfontpro"), 16);
-	Game::Font24Ptr = new Font(String("smwtextfontpro"), 24);
+
+	// TODO: Add mario fonts
+	Game::Font16Ptr = new Font(String("consolas"), 16);
+	Game::Font24Ptr = new Font(String("consolas"), 24);
 
 	m_LevelPtr = new Level();
 
@@ -90,7 +97,8 @@ void Game::GameTick(double deltaTime)
 	}
 	if (m_ShowingSessionInfo)
 	{
-		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_NEXT)) // Page Down
+		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_NEXT) || 
+			(GAME_ENGINE->IsKeyboardKeyDown(VK_NEXT) && GAME_ENGINE->IsKeyboardKeyDown(VK_CONTROL))) // Page Down
 		{
 			if (m_CurrentSessionInfoShowingIndex + 1 < m_TotalSessionsWithInfo)
 			{
@@ -98,7 +106,8 @@ void Game::GameTick(double deltaTime)
 				m_CurrentSessionInfo = GetReadableSessionInfo(m_CurrentSessionInfoShowingIndex);
 			}
 		}
-		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_PRIOR)) // Page Up
+		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_PRIOR) || 
+			(GAME_ENGINE->IsKeyboardKeyDown(VK_PRIOR) && GAME_ENGINE->IsKeyboardKeyDown(VK_CONTROL))) // Page Up
 		{
 			if (m_CurrentSessionInfoShowingIndex - 1 >= 0)
 			{
@@ -111,6 +120,9 @@ void Game::GameTick(double deltaTime)
 
 void Game::GamePaint()
 {
+	MATRIX3X2 matZoom = MATRIX3X2::CreateScalingMatrix(1.0 / SCALE);
+	GAME_ENGINE->SetViewMatrix(matZoom);
+
 	m_LevelPtr->Paint();
 
 	MATRIX3X2 matPrevious = GAME_ENGINE->GetViewMatrix();
@@ -122,8 +134,12 @@ void Game::GamePaint()
 	}
 	if (m_ShowingSessionInfo)
 	{
-		int x = GAME_ENGINE->GetWidth() - 110;
-		int y = 10;
+		int x = GAME_ENGINE->GetWidth() - 107;
+		int y = 40;
+	
+		GAME_ENGINE->SetColor(COLOR(10, 10, 10, 160));
+		GAME_ENGINE->FillRect(x - 5, y - 5, x + 106, y + 140);
+
 		int dy = 15;
 		GAME_ENGINE->SetColor(COLOR(255,255,255));
 		std::stringstream stringStream(m_CurrentSessionInfo);

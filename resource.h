@@ -10,6 +10,5 @@
 // Icons                    Range : 1000 - 1999
 //-----------------------------------------------------------------
 
-#define IDI_BIG             1000
-#define IDI_SMALL           1001
+#define IDI_MARIO_ICON                  1003
 

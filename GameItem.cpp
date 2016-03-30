@@ -31,7 +31,7 @@ void Platform::AddContactListener(ContactListener* listener)
 
 
 // ___PIPE___
-Pipe::Pipe(DOUBLE2 topLeft, DOUBLE2 bottomRight, Colour colour, bool canAccess) :
+Pipe::Pipe(DOUBLE2 topLeft, DOUBLE2 bottomRight, COLOUR colour, bool canAccess) :
 	m_Colour(colour), m_CanAccess(canAccess)
 {
 	m_Bounds = RECT2(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
@@ -52,18 +52,15 @@ void Pipe::AddContactListener(ContactListener* listener)
 
 
 // ___ITEM___
-Item::Item(DOUBLE2 topLeft, DOUBLE2 bottomRight, TYPE type, BodyType bodyType) :
-	Entity(topLeft + DOUBLE2((bottomRight.x - topLeft.x) / 2, (bottomRight.y - topLeft.y) / 2),
-		SpriteSheetManager::generalTiles, bodyType, this), m_Type(type)
+Item::Item(DOUBLE2 topLeft,TYPE type, BodyType bodyType, int width, int height) :
+	Entity(topLeft + DOUBLE2(width / 2, height / 2), 
+		SpriteSheetManager::generalTiles, bodyType, this), m_Type(type), WIDTH(width), HEIGHT(height)
 {
-	double width = bottomRight.x - topLeft.x;
-	double height = bottomRight.y - topLeft.y;
 	m_ActPtr->AddBoxFixture(width, height, 0.0);
 	m_ActPtr->SetUserData(int(ActorId::ITEM));
 	// TODO: Figure out if all items have a fixed rotation
 	//m_ActPtr->SetFixedRotation(true);
 }
-Item::~Item() {}
 void Item::AddContactListener(ContactListener* listener)
 {
 	m_ActPtr->AddContactListener(listener);
@@ -83,9 +80,7 @@ void Item::TogglePaused(bool paused)
 // which have an infinite lifetime, and those which are spawned from prize blocks, which are only visible for 
 // a few frames. If m_LifeTicks == -1, this coin is the former, otherwise it is the latter
 Coin::Coin(DOUBLE2 topLeft, int life, TYPE type, DOUBLE2 size) :
-	Item(topLeft,
-		topLeft + size,
-		type), m_Life(life)
+	Item(topLeft, type, BodyType::STATIC, int(size.x), int(size.y)), m_Life(life)
 {
 	m_ActPtr->SetFixedRotation(true);
 	m_ActPtr->SetSensor(true);
@@ -94,7 +89,7 @@ Coin::Coin(DOUBLE2 topLeft, int life, TYPE type, DOUBLE2 size) :
 	{
 		// This coin shoots up, then falls down, then disapears
 		m_ActPtr->SetBodyType(BodyType::DYNAMIC);
-		m_ActPtr->SetLinearVelocity(DOUBLE2(0, -330));
+		m_ActPtr->SetLinearVelocity(DOUBLE2(0, -250));
 	}
 }
 bool Coin::Tick(double deltaTime, Level* levelPtr)
@@ -115,18 +110,17 @@ bool Coin::Tick(double deltaTime, Level* levelPtr)
 }
 void Coin::Paint()
 {
-	double srcX = 0 + m_AnimInfo.frameNumber * WIDTH;
-	double srcY = 0;
-	RECT2 srcRect = RECT2(srcX, srcY, srcX + WIDTH, srcY + HEIGHT);
+	double srcCol = 0 + m_AnimInfo.frameNumber;
+	double srcRow = 0;
 	double left = m_ActPtr->GetPosition().x;
 	double top = m_ActPtr->GetPosition().y;
-	SpriteSheetManager::generalTiles->Paint(left, top, srcRect);
+	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
 }
 
 // ___DRAGON COIN___
 // NOTE: Dragon coins always haev infinite life, therefore -1 as life param
 DragonCoin::DragonCoin(DOUBLE2 centerPos) :
-	Coin(centerPos, -1, TYPE::DRAGON_COIN, DOUBLE2(WIDTH,HEIGHT))
+	Coin(centerPos, -1, TYPE::DRAGON_COIN, DOUBLE2(WIDTH, HEIGHT))
 {
 }
 bool DragonCoin::Tick(double deltaTime, Level* levelPtr)
@@ -138,21 +132,138 @@ bool DragonCoin::Tick(double deltaTime, Level* levelPtr)
 }
 void DragonCoin::Paint()
 {
-	double srcX = 0 + m_AnimInfo.frameNumber * WIDTH;
-	double srcY = 2 * Coin::HEIGHT;
-	RECT2 srcRect = RECT2(srcX, srcY, srcX + WIDTH, srcY + HEIGHT);
+	double srcCol = 0 + m_AnimInfo.frameNumber;
+	double srcRow = 2;
 	double left = m_ActPtr->GetPosition().x;
-	double top = m_ActPtr->GetPosition().y - 18;
-	SpriteSheetManager::generalTiles->Paint(left, top, srcRect);
+	double top = m_ActPtr->GetPosition().y - 9;
+	// NOTE: Dragon coins are two tiles tall, we could draw both at once of course 
+	// but drawing each half seperately is perhaps a bit simpler
+	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
+	m_SpriteSheetPtr->Paint(left, top + Coin::HEIGHT, srcCol, srcRow + 1);
 }
 
+
+// ___P SWITCH___
+PSwitch::PSwitch(DOUBLE2 topLeft, COLOUR colour) :
+	Item(topLeft, Item::TYPE::P_SWITCH, BodyType::KINEMATIC), m_Colour(colour)
+{
+}
+bool PSwitch::Tick(double deltaTime, Level* levelPtr)
+{
+	return false;
+}
+void PSwitch::Paint()
+{
+	double left = m_ActPtr->GetPosition().x;
+	double top = m_ActPtr->GetPosition().y;
+	double srcCol = 4;
+	double srcRow = 11;
+	if (m_IsPressed)
+	{
+		srcCol += 1;
+	}
+	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
+}
+
+// ___1-UP MUSHROOM___
+OneUpMushroom::OneUpMushroom(DOUBLE2 topLeft) :
+	Item(topLeft, TYPE::ONE_UP_MUSHROOM)
+{
+}
+bool OneUpMushroom::Tick(double deltaTime, Level* levelPtr)
+{
+	return false;
+}
+void OneUpMushroom::Paint()
+{
+	double left = m_ActPtr->GetPosition().x;
+	double top = m_ActPtr->GetPosition().y;
+	double srcCol = 2;
+	double srcRow = 12;
+
+	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
+}
+// ___3-UP MOON___
+ThreeUpMoon::ThreeUpMoon(DOUBLE2 topLeft) :
+	Item(topLeft, TYPE::THREE_UP_MOON)
+{
+}
+bool ThreeUpMoon::Tick(double deltaTime, Level* levelPtr)
+{
+	return false;
+}
+void ThreeUpMoon::Paint()
+{
+	double left = m_ActPtr->GetPosition().x;
+	double top = m_ActPtr->GetPosition().y;
+	double srcCol = 3;
+	double srcRow = 7;
+
+	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
+}
+// ___SUPER MUSHROOM___
+SuperMushroom::SuperMushroom(DOUBLE2 topLeft) :
+	Item(topLeft, TYPE::SUPER_MUSHROOM)
+{
+}
+bool SuperMushroom::Tick(double deltaTime, Level* levelPtr)
+{
+	return false;
+}
+void SuperMushroom::Paint()
+{
+	double left = m_ActPtr->GetPosition().x;
+	double top = m_ActPtr->GetPosition().y;
+	double srcCol = 2;
+	double srcRow = 12;
+
+	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
+}
+// ___FIRE FLOWER___
+FireFlower::FireFlower(DOUBLE2 topLeft) :
+	Item(topLeft, TYPE::FIRE_FLOWER)
+{
+}
+bool FireFlower::Tick(double deltaTime, Level* levelPtr)
+{
+	return false;
+}
+void FireFlower::Paint()
+{
+	double left = m_ActPtr->GetPosition().x;
+	double top = m_ActPtr->GetPosition().y;
+	double srcCol = 4 + m_AnimInfo.frameNumber;
+	double srcRow = 13;
+
+	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
+}
+// ___CAPE FEATHER___
+CapeFeather::CapeFeather(DOUBLE2 topLeft) :
+	Item(topLeft, TYPE::CAPE_FEATHER)
+{
+}
+bool CapeFeather::Tick(double deltaTime, Level* levelPtr)
+{
+	m_AnimInfo.Tick(deltaTime);
+	m_AnimInfo.frameNumber %= 2;
+
+	return false;
+}
+void CapeFeather::Paint()
+{
+	double left = m_ActPtr->GetPosition().x;
+	double top = m_ActPtr->GetPosition().y;
+	double srcCol = 3;
+	double srcRow = 8;
+
+	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
+}
 
 // ___BLOCK___
 Block::Block(DOUBLE2 topLeft, TYPE type) :
-	Item(topLeft, topLeft + DOUBLE2(WIDTH, HEIGHT), type)
+	Item(topLeft, type, BodyType::STATIC, WIDTH, HEIGHT)
 {
 }
-
 
 // ___PRIZE BLOCK___
 PrizeBlock::PrizeBlock(DOUBLE2 topLeft) :
@@ -173,7 +284,7 @@ bool PrizeBlock::Tick(double deltaTime, Level* levelPtr)
 		{
 			m_yo = (m_FramesOfBumpAnimation / 2) - (m_yo - (m_FramesOfBumpAnimation / 2));
 		}
-		m_yo *= -1;
+		m_yo = int(m_yo * -0.5);
 
 		m_CurrentFrameOfBumpAnimation++;
 		if (m_CurrentFrameOfBumpAnimation > m_FramesOfBumpAnimation)
@@ -191,25 +302,24 @@ bool PrizeBlock::Tick(double deltaTime, Level* levelPtr)
 }
 void PrizeBlock::Paint()
 {
-	double srcX = 0 + m_AnimInfo.frameNumber * WIDTH;
-	double srcY = 4 * HEIGHT;
+	double srcCol = 0 + m_AnimInfo.frameNumber;
+	double srcRow = 4;
 
 	if (m_IsUsed)
 	{
-		srcX = 4 * WIDTH;
+		srcCol = 4;
 	}
 
-	RECT2 srcRect = RECT2(srcX, srcY, srcX + WIDTH, srcY + HEIGHT);
 	double left = m_ActPtr->GetPosition().x;
 	double top = m_ActPtr->GetPosition().y + m_yo * 3;
-	SpriteSheetManager::generalTiles->Paint(left, top, srcRect);
+	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
 }
 DOUBLE2 PrizeBlock::Hit()
 {
 	if (m_IsUsed == false)
 	{
 		m_IsUsed = true;
-		m_CurrentFrameOfBumpAnimation = 0;
+		m_CurrentFrameOfBumpAnimation = 2;
 		m_yo = 0;
 
 		return DOUBLE2(m_ActPtr->GetPosition().x - WIDTH/2, m_ActPtr->GetPosition().y - HEIGHT);
@@ -232,17 +342,16 @@ bool ExclamationMarkBlock::Tick(double deltaTime, Level* levelPtr)
 }
 void ExclamationMarkBlock::Paint()
 {
-	double srcX = 1 * WIDTH;
-	double srcY = 10 * HEIGHT;
+	double srcCol = 1;
+	double srcRow = 10;
 	if (m_IsSolid == false)
 	{
-		srcY -= HEIGHT;
+		srcRow -= 1;
 	}
 	
-	RECT2 srcRect = RECT2(srcX, srcY, srcX + WIDTH, srcY + HEIGHT);
 	double left = m_ActPtr->GetPosition().x;
 	double top = m_ActPtr->GetPosition().y;
-	SpriteSheetManager::generalTiles->Paint(left, top, srcRect);
+	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
 }
 void ExclamationMarkBlock::SetSolid(bool solid)
 {
@@ -276,14 +385,16 @@ bool RotatingBlock::Tick(double deltaTime, Level* levelPtr)
 }
 void RotatingBlock::Paint()
 {
-	double srcX = 0 + m_AnimInfo.frameNumber * WIDTH;
-	double srcY = 5 * HEIGHT;
-	RECT2 srcRect = RECT2(srcX, srcY, srcX + WIDTH, srcY + HEIGHT);
+	double srcCol = 0 + m_AnimInfo.frameNumber;
+	double srcRow = 5;
 	double left = m_ActPtr->GetPosition().x;
 	double top = m_ActPtr->GetPosition().y;
-	SpriteSheetManager::generalTiles->Paint(left, top, srcRect);
+	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
 }
-
+bool RotatingBlock::IsRotating()
+{
+	return m_IsRotating;
+}
 
 // ___MESSAGE BLOCK___
 MessageBlock::MessageBlock(DOUBLE2 topLeft, String message) :
@@ -293,10 +404,14 @@ MessageBlock::MessageBlock(DOUBLE2 topLeft, String message) :
 }
 void MessageBlock::Paint()
 {
-	double srcX = 5 * WIDTH;
-	double srcY = 9 * HEIGHT;
-	RECT2 srcRect = RECT2(srcX, srcY, srcX + WIDTH, srcY + HEIGHT);
+	double srcCol = 5;
+	double srcRow = 9;
 	double left = m_ActPtr->GetPosition().x;
 	double top = m_ActPtr->GetPosition().y;
-	SpriteSheetManager::generalTiles->Paint(left, top, srcRect);
+	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
+}
+bool MessageBlock::Tick(double deltaTime, Level* levelPtr)
+{
+
+	return false;
 }

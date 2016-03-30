@@ -14,7 +14,7 @@ Level::Level()
 	m_PlayerPtr = new Player();
 
 	m_ActLevelPtr = new PhysicsActor(DOUBLE2(0, 0), 0, BodyType::STATIC);
-	m_ActLevelPtr->AddSVGFixture(String("Resources/levels/01/Level01hitx2.svg"), 0.0);
+	m_ActLevelPtr->AddSVGFixture(String("Resources/levels/01/Level01hit.svg"), 0.0);
 	m_ActLevelPtr->AddContactListener(this);
 	m_ActLevelPtr->SetUserData(int(ActorId::LEVEL));
 
@@ -23,7 +23,7 @@ Level::Level()
 	m_Width = SpriteSheetManager::levelOneForeground->GetWidth();
 	m_Height = SpriteSheetManager::levelOneForeground->GetHeight();
 
-	m_Camera = new Camera(GAME_ENGINE->GetWidth(), GAME_ENGINE->GetHeight(), this);
+	m_Camera = new Camera(256, 224, this);
 
 	Reset();
 
@@ -105,13 +105,16 @@ void Level::Paint()
 	return;
 #endif
 
+	MATRIX3X2 matPreviousView = GAME_ENGINE->GetViewMatrix();
+
 	MATRIX3X2 matCameraView = m_Camera->GetViewMatrix(m_PlayerPtr, this);
-	GAME_ENGINE->SetViewMatrix(matCameraView);
+	MATRIX3X2 matTotalView = matPreviousView * matCameraView;
+	GAME_ENGINE->SetViewMatrix(matTotalView);
 
 	int bgWidth = SpriteSheetManager::levelOneBackground->GetWidth();
 	double cameraX = -matCameraView.orig.x;
 	double parallax = (1.0 - 0.65); // 65% of the speed of the camera
-	int xo = int(cameraX*parallax);
+	int xo = int(cameraX * parallax);
 	xo += (int(cameraX - xo) / bgWidth) * bgWidth;
 
 	GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneBackground, DOUBLE2(xo, 0));
@@ -139,7 +142,7 @@ void Level::Paint()
 	GAME_ENGINE->DrawString(String("Player onGround: ") + String(m_PlayerPtr->IsOnGround() ? "true" : "false"), 10, 40);
 #endif
 
-	GAME_ENGINE->SetViewMatrix(matCameraView);
+	GAME_ENGINE->SetViewMatrix(matTotalView);
 }
 
 // TODO: Make this scalable
@@ -154,94 +157,89 @@ void Level::PaintHUD()
 
 	int timeRemaining = m_TotalTime - int(m_SecondsElapsed);
 
-	const int SCALE = 2;
-
-	int x = 31;
-	int y = 30;
+	int x = 15;
+	int y = 15;
 	RECT2 srcRect;
 
 	// LATER: Add luigi here when he's playing
 	// MARIO
-	srcRect = RECT2(1 * SCALE, 1 * SCALE, 41 * SCALE, 9 * SCALE);
+	srcRect = RECT2(1, 1, 41, 9);
 	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
 	
 	// X
-	x += 18;
-	y += 17;
-	srcRect = RECT2(10 * SCALE, 61 * SCALE, 10 * SCALE + 7 * SCALE, 61 * SCALE + 7 * SCALE);
+	x += 9;
+	y += 8;
+	srcRect = RECT2(10, 61, 10 + 7, 61 + 7);
 	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
 
 	// LIVES
-	x += 30;
+	x += 15;
 	srcRect = GetSmallSingleNumberSrcRect(playerLives, false);
 	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
 
 	// DRAGON COINS
-	x += 48;
-	y = 30;
-	for (size_t i = 0; i < playerDragonCoins; ++i)
+	x += 24;
+	y = 15;
+	for (int i = 0; i < playerDragonCoins; ++i)
 	{
-		srcRect = RECT2(1 * SCALE, 60 * SCALE, 1 * SCALE + 8 * SCALE, 60 * SCALE + 8 * SCALE);
+		srcRect = RECT2(1, 60, 1 + 8, 60 + 8);
 		GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
-		x += 8 * SCALE;
+		x += 8;
 	}
 
 	// RED STAR
-	y += 16;
-	x = 140;
-	srcRect = RECT2(19 * SCALE, 60 * SCALE, 19 * SCALE + 8 * SCALE, 60 * SCALE + 8 * SCALE);
+	y += 8;
+	x = 70;
+	srcRect = RECT2(19, 60, 19 + 8, 60 + 8);
 	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
 
 	// X
-	x += 20;
-	y += 3;
-	srcRect = RECT2(10 * SCALE, 61 * SCALE, 10 * SCALE + 7 * SCALE, 61 * SCALE + 7 * SCALE);
+	x += 10;
+	y += 2;
+	srcRect = RECT2(10, 61, 10 + 7, 61 + 7);
 	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
 
 	// NUMBER OF STARS
-	x += 48;
-	y -= 15;
+	x += 24;
+	y -= 7;
 	PaintSeveralDigitLargeNumber(x, y, playerStars);
 
 	// ITEM BOX
-	x += 20;
-	y -= 15;
-	srcRect = RECT2(36 * SCALE, 52 * SCALE, 36 * SCALE + 28 * SCALE, 52 * SCALE + 28 * SCALE);
+	x += 10;
+	y -= 7;
+	srcRect = RECT2(36, 52, 36 + 28, 52 + 28);
 	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
 
 	// TIME
-	x += 75;
-	y = 30;
-	srcRect = RECT2(1 * SCALE, 52 * SCALE, 1 * SCALE + 24 * SCALE, 52 * SCALE + 7 * SCALE);
+	x += 37;
+	y = 15;
+	srcRect = RECT2(1, 52, 1 + 24, 52 + 7);
 	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
 
 	// TIME VALUE
-	y += 19;
-	x += 32;
+	y += 9;
+	x += 16;
 	PaintSeveralDigitNumber(x, y, timeRemaining, true);
 
 	// COIN LABEL
-	x += 66;
-	y = 30;
-	srcRect = RECT2(1 * SCALE, 60 * SCALE, 1 * SCALE + 16 * SCALE, 60 * SCALE + 8 * SCALE);
+	x += 33;
+	y = 15;
+	srcRect = RECT2(1, 60, 1 + 16, 60 + 8);
 	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
 
 	// COINS
-	x += 60;
+	x += 30;
 	PaintSeveralDigitNumber(x, y, playerCoins, false);
 
 	// SCORE
-	y += 17;
+	y += 8;
 	PaintSeveralDigitNumber(x, y, playerScore, false);
 }
 
-// TODO: Move all SCALE references to one global constant in Game.h
 // TODO: Just set a world matrix to print these instead of passing numbers
 // NOTE: The x coordinate specifies the placement of the right-most digit
 void Level::PaintSeveralDigitNumber(int x, int y, int number, bool yellow)
 {
-	int SCALE = 2;
-
 	number = abs(number);
 
 	do {
@@ -249,7 +247,7 @@ void Level::PaintSeveralDigitNumber(int x, int y, int number, bool yellow)
 		RECT2 srcRect = GetSmallSingleNumberSrcRect(digit, yellow);
 		GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
 
-		x -= 8 * SCALE;
+		x -= 8;
 		number /= 10;
 	} while (number > 0);
 }
@@ -268,14 +266,12 @@ RECT2 Level::GetSmallSingleNumberSrcRect(int number, bool yellow)
 
 	RECT2 result;
 
-	const int SCALE = 2;
-
-	int numberWidth = 8 * SCALE;
-	int numberHeight = 7 * SCALE;
+	int numberWidth = 8;
+	int numberHeight = 7;
 	int xo = 0 + numberWidth * number;
-	int yo = 34 * SCALE;
+	int yo = 34;
 
-	if (yellow) yo += 10 * SCALE;
+	if (yellow) yo += 10;
 
 	result = RECT2(xo, yo, xo + numberWidth, yo + numberHeight);
 
@@ -284,8 +280,6 @@ RECT2 Level::GetSmallSingleNumberSrcRect(int number, bool yellow)
 
 void Level::PaintSeveralDigitLargeNumber(int x, int y, int number)
 {
-	int SCALE = 2;
-
 	number = abs(number);
 
 	do {
@@ -293,7 +287,7 @@ void Level::PaintSeveralDigitLargeNumber(int x, int y, int number)
 		RECT2 srcRect = GetLargeSingleNumberSrcRect(digit);
 		GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
 
-		x -= 8 * SCALE;
+		x -= 8;
 		number /= 10;
 	} while (number > 0);
 }
@@ -304,12 +298,10 @@ RECT2 Level::GetLargeSingleNumberSrcRect(int number)
 
 	RECT2 result;
 
-	const int SCALE = 2;
-
-	int numberWidth = 8 * SCALE;
-	int numberHeight = 14 * SCALE;
+	int numberWidth = 8;
+	int numberHeight = 14;
 	int xo = 0 + numberWidth * number;
-	int yo = 19 * SCALE;
+	int yo = 19;
 
 	result = RECT2(xo, yo, xo + numberWidth, yo + numberHeight);
 
@@ -419,7 +411,7 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 
 			}
 		} break;
-		case int(ActorId::ITEM) :
+		case int(ActorId::ITEM):
 		{
 			Item* item = (Item*)actThisPtr->GetUserPointer();
 			switch (item->GetType())
@@ -427,14 +419,36 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 			case Item::TYPE::PRIZE_BLOCK:
 			{
 				// They be bonkin their head on us
-				if (actOtherPtr->GetLinearVelocity().y < 0.0 && 
-					actOtherPtr->GetPosition().y > actThisPtr->GetPosition().y + Block::WIDTH/2)
+				if (actOtherPtr->GetLinearVelocity().y < 0.0 &&
+					actOtherPtr->GetPosition().y > actThisPtr->GetPosition().y + Block::WIDTH / 2)
 				{
 					m_NewCoinPos = ((PrizeBlock*)item)->Hit();
 				}
 			} break;
 			}
 		} break;
+		}
+	}
+	else if (actOtherPtr->GetUserData() == int(ActorId::ITEM))
+	{
+		if (actThisPtr->GetUserData() == int(ActorId::ITEM))
+		{
+			Item* thisItem = (Item*)actThisPtr->GetUserPointer();
+			switch (thisItem->GetType())
+			{
+			case Item::TYPE::ROTATING_BLOCK:
+			{
+				Item* otherItem = (Item*)actThisPtr->GetUserPointer();
+				if (otherItem->GetType() == Item::TYPE::P_SWITCH)
+				{
+					// Only let it fall through if the rotating block is spinning
+					if (((RotatingBlock*)thisItem)->IsRotating())
+					{
+						enableContactRef = false;
+					}
+				}
+			} break;
+			}
 		}
 	}
 }
@@ -444,7 +458,14 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 	if (actOtherPtr->GetUserData() == int(ActorId::PLAYER))
 	{
 		if (actThisPtr->GetUserData() == int(ActorId::PLATFORM) ||
-			actThisPtr->GetUserData() == int(ActorId::LEVEL))
+			actThisPtr->GetUserData() == int(ActorId::PIPE))
+		{
+			if (actOtherPtr->GetPosition().y < actThisPtr->GetPosition().y)
+			{
+				m_IsPlayerOnGround = true;
+			}
+		}
+		else if (actThisPtr->GetUserData() == int(ActorId::LEVEL))
 		{
 			m_IsPlayerOnGround = true;
 		}

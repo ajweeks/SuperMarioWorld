@@ -38,3 +38,9 @@ struct ANIMATION_INFO
 		msPerFrame = 0.065;
 	}
 };
+
+enum class COLOUR
+{
+	GREEN, YELLOW, BLUE, ORANGE, GREY
+};
+

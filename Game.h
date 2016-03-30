@@ -22,7 +22,7 @@
 #define GAME_ENGINE (GameEngine::GetSingleton())
 
 #define SMW_ENABLE_JUMP_TO true
-#define SMW_JUMP_TO_POS_X 2400
+#define SMW_JUMP_TO_POS_X 4500
 
 class Game : public AbstractGame
 {
@@ -41,12 +41,16 @@ public:
 	virtual void GameTick(double deltaTime);
 	virtual void GamePaint();
 
-	//static const int SCALE = 3;
-
 	static Font *Font16Ptr;
 	static Font *Font24Ptr;
 
 private:
+	// NOTE: This is used to create a scaling matrix to zoom in
+	// however much we want, the other classes shouldn't have to think about
+	// scale, just paint at 1x zoom and we'll zoom in on that.
+	// TODO: Change this to the biggest possible whole number on window resize.
+	static const int SCALE = 1;
+	
 	void WriteSessionInfoToFile();
 	std::string ReadSessionInfoFromFile();
 

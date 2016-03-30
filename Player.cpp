@@ -27,7 +27,7 @@ Player::~Player()
 
 void Player::Reset()
 {
-	m_ActPtr->SetPosition(DOUBLE2(60, 740));
+	m_ActPtr->SetPosition(DOUBLE2(30, 370));
 	m_ActPtr->SetLinearVelocity(DOUBLE2(0, 0));
 
 	m_IsOnGround = false;
@@ -39,6 +39,11 @@ void Player::Reset()
 	m_Lives = 5;
 	m_Stars = 0;
 	m_DragonCoins = 0;
+
+	m_PowerupState = POWERUP_STATE::NORMAL;
+	m_AnimationState = ANIMATION_STATE::WAITING;
+	m_DirFacing = FACING_DIRECTION::RIGHT;
+	m_DirLooking = LOOKING_DIRECTION::MIDDLE;
 }
 
 RECT2 Player::GetCameraRect()
@@ -58,46 +63,45 @@ bool Player::Tick(double deltaTime, Level *levelPtr)
 #if SMW_ENABLE_JUMP_TO
 	if (GAME_ENGINE->IsKeyboardKeyPressed('O'))
 	{
-		m_ActPtr->SetPosition(DOUBLE2(SMW_JUMP_TO_POS_X, 740));
+		m_ActPtr->SetPosition(DOUBLE2(SMW_JUMP_TO_POS_X, 365));
 	}
 #endif
 
+	HandleKeyboardInput(deltaTime, levelPtr);
+
+
+	TickAnimations(deltaTime);
+
+	return false;
+}
+
+void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
+{
+	if (m_AnimationState == ANIMATION_STATE::DYING)
+	{
+		return; // NOTE: The player can't do much now...
+	}
+
 	// TODO: Move these variables to the end of the method
-	double jumpVelocity = -32000.0;
-	// How much to add each addintional frame 'jump' is held down
-	double jumpHeightBoostVelocity = -0.0001;
+	double jumpVelocity = -16000;
 
 	// TODO: Use a variable run speed (with acceleration)
-	double walkVel = 13000.0;
-	double runVel = 21000.0;
+	double walkVel = 6500;
+	double runVel = 10500;
 	double horizontalVel = 0.0;
 
 	m_IsOnGround = levelPtr->IsOnGround(m_ActPtr);
-	//if (!m_IsOnGround)
-	//{
-	//	m_FramesSpentInAir++;
-	//	// When the player is still rising (yv < 0) they can hold jump to go higher
-	//	if (m_ActPtr->GetLinearVelocity().y < 0.0 && (GAME_ENGINE->IsKeyboardKeyDown('Z') || GAME_ENGINE->IsKeyboardKeyDown('X')))
-	//	{
-	//		if (m_FramesSpentInAir <= 15)
-	//		{
-	//			double amountOfYvToRemoveThisFrame = 1000.0 * deltaTime;
-	//			m_ActPtr->SetLinearVelocity(DOUBLE2(m_ActPtr->GetLinearVelocity().x, 
-	//				m_ActPtr->GetLinearVelocity().y + amountOfYvToRemoveThisFrame));
-	//		}
-	//	}
-	//}
 
 	if (m_IsOnGround)
 	{
-		if (GAME_ENGINE->IsKeyboardKeyPressed('Z')) // Regular jump
+		if (GAME_ENGINE->IsKeyboardKeyPressed('Z')) // NOTE: Regular jump
 		{
 			m_AnimationState = ANIMATION_STATE::JUMPING;
 			m_IsOnGround = false;
 			m_ActPtr->SetLinearVelocity(DOUBLE2(m_ActPtr->GetLinearVelocity().x, jumpVelocity * deltaTime));
 			m_FramesSpentInAir = 0;
 		}
-		else if (GAME_ENGINE->IsKeyboardKeyPressed('X')) // Spin jump
+		else if (GAME_ENGINE->IsKeyboardKeyPressed('X')) // NOTE: Spin jump
 		{
 			m_AnimationState = ANIMATION_STATE::SPIN_JUMPING;
 			m_IsOnGround = false;
@@ -111,12 +115,34 @@ bool Player::Tick(double deltaTime, Level *levelPtr)
 	}
 	else
 	{
-		if (m_ActPtr->GetLinearVelocity().y > 0.01)
+		m_FramesSpentInAir++;
+
+		// NOTE: The player is still rising and can hold down the jump key to jump higher
+		if (m_ActPtr->GetLinearVelocity().y <= 0.01)
+		{
+			if (GAME_ENGINE->IsKeyboardKeyDown('Z') ||
+				GAME_ENGINE->IsKeyboardKeyDown('X'))
+			{
+				// NOTE: gravityScale is close to 1 at the start of the jump
+				// and goes towards 0 near the apex
+				double gravityScale = (m_FramesSpentInAir / 12.0) * 0.7;
+
+				// NOTE: This ensures gravityScale is in the range [0, 0.98]
+				gravityScale = max(0.0, min(0.98, gravityScale));
+
+				m_ActPtr->SetGravityScale(gravityScale);
+			}
+			else
+			{
+				m_ActPtr->SetGravityScale(0.98);
+			}
+		}
+		else
 		{
 			m_AnimationState = ANIMATION_STATE::FALLING;
 		}
 	}
-	
+
 	if (m_IsOnGround)
 	{
 		if (GAME_ENGINE->IsKeyboardKeyDown('A') || GAME_ENGINE->IsKeyboardKeyDown('S')) // Running
@@ -153,7 +179,7 @@ bool Player::Tick(double deltaTime, Level *levelPtr)
 			horizontalVel = walkVel;
 		}
 		m_ActPtr->SetLinearVelocity(DOUBLE2(horizontalVel * deltaTime, m_ActPtr->GetLinearVelocity().y));
-		m_DirFacing = FACING_DIRECTION::RIGHT; 
+		m_DirFacing = FACING_DIRECTION::RIGHT;
 		if (m_AnimationState != ANIMATION_STATE::JUMPING &&
 			m_AnimationState != ANIMATION_STATE::SPIN_JUMPING &&
 			horizontalVel != runVel &&
@@ -166,7 +192,7 @@ bool Player::Tick(double deltaTime, Level *levelPtr)
 	// Only look up if we aren't moving horizontally or vertically
 	if (GAME_ENGINE->IsKeyboardKeyDown(VK_UP))
 	{
-		if (abs(m_ActPtr->GetLinearVelocity().x) < 0.01 && 
+		if (abs(m_ActPtr->GetLinearVelocity().x) < 0.01 &&
 			abs(m_ActPtr->GetLinearVelocity().y) < 0.01)
 		{
 			m_DirLooking = LOOKING_DIRECTION::UP;
@@ -188,7 +214,7 @@ bool Player::Tick(double deltaTime, Level *levelPtr)
 	}
 
 	// If we're not moving:
-	if (abs(m_ActPtr->GetLinearVelocity().x) < 0.01 && 
+	if (abs(m_ActPtr->GetLinearVelocity().x) < 0.01 &&
 		abs(m_ActPtr->GetLinearVelocity().y) < 0.01)
 	{
 		// And not ducking:
@@ -210,10 +236,6 @@ bool Player::Tick(double deltaTime, Level *levelPtr)
 			m_AnimationState = ANIMATION_STATE::FALLING;
 		}
 	}
-
-	TickAnimations(deltaTime);
-
-	return false;
 }
 
 void Player::TickAnimations(double deltaTime)
@@ -264,6 +286,10 @@ void Player::TickAnimations(double deltaTime)
 			// NOTE: 1 frame animation
 			m_AnimInfo.frameNumber = 1;
 		} break;
+		default:
+		{
+			OutputDebugString(String("ERROR: Unhandled animation state in Player::TickAnimations()\n"));
+		} break;
 		}
 	}
 }
@@ -283,20 +309,17 @@ void Player::Paint()
 		GAME_ENGINE->SetWorldMatrix(matTranslate.Inverse() * matReflect * matTranslate * matPrevWorld);
 	}
 
-	RECT2 srcRect = CalculateAnimationFrame();
-	m_SpriteSheetPtr->Paint(centerX, centerY + 22 - HEIGHT, srcRect);
+	DOUBLE2 spriteTile = CalculateAnimationFrame();
+	m_SpriteSheetPtr->Paint(centerX, centerY - HEIGHT / 2 + 3, spriteTile.x, spriteTile.y);
 
 	GAME_ENGINE->SetWorldMatrix(matPrevWorld);
 
-	GAME_ENGINE->DrawString(AnimationStateToString(m_AnimationState), centerX + 25, centerY - 25);
+	GAME_ENGINE->DrawString(AnimationStateToString(m_AnimationState), centerX + 15, centerY - 15);
 }
 
-RECT2 Player::CalculateAnimationFrame()
+DOUBLE2 Player::CalculateAnimationFrame()
 {
-	double tileWidth = m_SpriteSheetPtr->GetTileWidth();
-	double tileHeight = m_SpriteSheetPtr->GetTileHeight();
-
-	double srcX = 2 * tileWidth;
+	double srcX = 2;
 	double srcY = 0;
 
 	switch (m_AnimationState)
@@ -305,54 +328,53 @@ RECT2 Player::CalculateAnimationFrame()
 	{
 		if (m_DirLooking == LOOKING_DIRECTION::UP)
 		{
-			srcX -= 2 * tileWidth;
+			srcX -= 2;
 		}
 		else if (m_DirLooking == LOOKING_DIRECTION::DOWN)
 		{
-			srcX -= tileWidth;
+			srcX -= 1;
 		}
 	} break;
 	case ANIMATION_STATE::WALKING:
 	{
-		srcX += m_AnimInfo.frameNumber * tileWidth;
+		srcX += m_AnimInfo.frameNumber;
 	} break;
 	case ANIMATION_STATE::RUNNING:
 	{
-		srcX += m_AnimInfo.frameNumber * tileWidth + 2 * tileWidth;
+		srcX += m_AnimInfo.frameNumber + 2;
 	} break;
 	case ANIMATION_STATE::JUMPING:
 	{
 		srcX = 0;
-		srcY = 2 * tileHeight;
+		srcY = 2;
 	} break;
 	case ANIMATION_STATE::SPIN_JUMPING:
 	{
-		srcX = 3 * tileWidth + m_AnimInfo.frameNumber * tileWidth;
-		srcY = 2 * tileHeight;
+		srcX = 3 + m_AnimInfo.frameNumber;
+		srcY = 2;
 	} break;
 	case ANIMATION_STATE::FALLING:
 	{
-		srcX = tileWidth;
-		srcY = 2 * tileHeight;
+		srcX = 1;
+		srcY = 2;
 	} break;
 	case ANIMATION_STATE::FAST_FALLING:
 	{
-		srcX = 2 * tileWidth;
-		srcY = 2 * tileHeight;
+		srcX = 2;
+		srcY = 2;
 	} break;
 	case ANIMATION_STATE::DUCKING:
 	{
-		srcX -= tileWidth;
+		srcX -= 1;
 	} break;
 	case ANIMATION_STATE::DYING:
 	{
-		srcX = 6 * tileWidth;
-		srcY = 1 * tileHeight;
+		srcX = 6;
+		srcY = 1;
 	} break;
 	}
 
-	// srcY+1 to get rid of small black line (should probably find a better way to fix that though)
-	return RECT2(srcX, srcY + 1, srcX + tileWidth, srcY + tileHeight - 1);
+	return DOUBLE2(srcX, srcY);
 }
 
 void Player::OnItemPickup(Item* item)
@@ -417,6 +439,15 @@ void Player::AddDragonCoin()
 void Player::AddLife()
 {
 	m_Lives++;
+	// LATER: Play sound here
+}
+
+void Player::Die()
+{
+	m_Lives--;
+
+	m_AnimationState = ANIMATION_STATE::DYING;
+
 	// LATER: Play sound here
 }
 
@@ -516,5 +547,5 @@ String Player::AnimationStateToString(ANIMATION_STATE state)
 	case ANIMATION_STATE::CLIMBING:
 		return String("climbing");
 	}
-	return String("unknown state: ") + String(int(state));
+	return String("unknown state passed to Player::AnimationStateToString: ") + String(int(state));
 }
