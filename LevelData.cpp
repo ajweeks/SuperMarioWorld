@@ -28,7 +28,7 @@ LevelData::LevelData(String platforms, String pipes, String items)
 		DOUBLE2 topLeft = StringToDOUBLE2(line.substr(0, closeBracket + 1));
 		DOUBLE2 bottomRight = StringToDOUBLE2(line.substr(closeBracket + 1));
 
-		m_PipesPtrArr.push_back(new Pipe(topLeft, bottomRight, COLOUR::YELLOW, false));
+		m_PipesPtrArr.push_back(new Pipe(topLeft, bottomRight, false));
 	}
 
 	std::stringstream itemsStream = std::stringstream(items.C_str());
@@ -37,7 +37,18 @@ LevelData::LevelData(String platforms, String pipes, String items)
 		int closeBracket = line.find(']');
 
 		DOUBLE2 topLeft = StringToDOUBLE2(line.substr(0, closeBracket + 1));
-		int itemType = std::stoi(line.substr(closeBracket+1).c_str());
+		int space = line.find(' ', closeBracket);
+		int itemType;
+		String messageString;
+		if (space == -1)
+		{
+			itemType = std::stoi(line.substr(closeBracket+1).c_str());
+		}
+		else
+		{
+			itemType = std::stoi(line.substr(closeBracket + 1, space - closeBracket).c_str());
+			messageString = String(line.substr(space + 1).c_str());
+		}
 
 		switch (itemType)
 		{
@@ -59,7 +70,7 @@ LevelData::LevelData(String platforms, String pipes, String items)
 		} break;
 		case int(Item::TYPE::MESSAGE_BLOCK):
 		{
-			m_ItemsPtrArr.push_back(new MessageBlock(topLeft, String("Messagge!!!! Woo")));
+			m_ItemsPtrArr.push_back(new MessageBlock(topLeft, messageString));
 		} break;
 		case int(Item::TYPE::ROTATING_BLOCK):
 		{
@@ -69,10 +80,11 @@ LevelData::LevelData(String platforms, String pipes, String items)
 		{
 			m_ItemsPtrArr.push_back(new PSwitch(topLeft, COLOUR::BLUE));
 		} break;
-		case int(Item::TYPE::ONE_UP_MUSHROOM):
-		{
-			m_ItemsPtrArr.push_back(new OneUpMushroom(topLeft));
-		} break;
+		// NOTE: I don't think 1-UP mushrooms are ever spawned at the start of level..
+		//case int(Item::TYPE::ONE_UP_MUSHROOM):
+		//{
+		//	m_ItemsPtrArr.push_back(new OneUpMushroom(topLeft));
+		//} break;
 		case int(Item::TYPE::THREE_UP_MOON):
 		{
 			m_ItemsPtrArr.push_back(new ThreeUpMoon(topLeft));
@@ -124,37 +136,6 @@ LevelData::~LevelData()
 	}
 }
 
-void LevelData::Unload()
-{
-	delete m_LevelOnePtr;
-}
-
-void LevelData::TogglePaused(bool paused)
-{
-	for (size_t i = 0; i < m_ItemsPtrArr.size(); ++i)
-	{
-		if (m_ItemsPtrArr[i] != nullptr)
-		{
-			m_ItemsPtrArr[i]->TogglePaused(paused);
-		}
-	}
-}
-
-std::vector<Platform*> LevelData::GetPlatforms()
-{
-	return m_PlatformsPtrArr;
-}
-
-std::vector<Pipe*> LevelData::GetPipes()
-{
-	return m_PipesPtrArr;
-}
-
-std::vector<Item*> LevelData::GetItems()
-{
-	return m_ItemsPtrArr;
-}
-
 LevelData* LevelData::GetLevel(int levelIndex)
 {
 	// LATER: Add more levels in here
@@ -192,7 +173,8 @@ LevelData* LevelData::GenerateLevel(int levelIndex)
 	{
 	case 1:
 	{
-		// TODO: Make this cleaner/more efficient
+		// TODO: Make this cleaner/more efficient, maybe use xml or json? (probably xml cause it's easier to parse manually)
+		// Definitely store in an external file
 		platformsStream << "[" << 305 << "," << 337 << "]";
 		platformsStream << "[" << 559 << "," << 342 << "]";
 		platformsStream << "\n";
@@ -213,27 +195,21 @@ LevelData* LevelData::GenerateLevel(int levelIndex)
 
 		pipesStream << "[" << 2705 << "," << 337 << "]";
 		pipesStream << "[" << 2733 << "," << 384 << "]";
-		pipesStream << std::string(Pipe::ColourNames[int(COLOUR::YELLOW)]);
 		pipesStream << "\n";
 		pipesStream << "[" << 2737 << "," << 321 << "]";
 		pipesStream << "[" << 2767 << "," << 384 << "]";
-		pipesStream << std::string(Pipe::ColourNames[int(COLOUR::YELLOW)]);
 		pipesStream << "\n";
 		pipesStream << "[" << 3873 << "," << 353 << "]";
 		pipesStream << "[" << 3902 << "," << 383 << "]";
-		pipesStream << std::string(Pipe::ColourNames[int(COLOUR::BLUE)]);
 		pipesStream << "\n";
 		pipesStream << "[" << 4049 << "," << 337 << "]";
 		pipesStream << "[" << 4078 << "," << 383 << "]";
-		pipesStream << std::string(Pipe::ColourNames[int(COLOUR::BLUE)]);
 		pipesStream << "\n";
 		pipesStream << "[" << 4321 << "," << 353 << "]";
 		pipesStream << "[" << 4350 << "," << 383 << "]";
-		pipesStream << std::string(Pipe::ColourNames[int(COLOUR::GREY)]);
 		pipesStream << "\n";
 		pipesStream << "[" << 4369 << "," << 337 << "]";
 		pipesStream << "[" << 4398 << "," << 383 << "]";
-		pipesStream << std::string(Pipe::ColourNames[int(COLOUR::GREEN)]);
 
 		itemsStream << "[" << 609 << "," << 320 << "]";
 		itemsStream << int(Item::TYPE::PRIZE_BLOCK) << "\n";
@@ -247,6 +223,10 @@ LevelData* LevelData::GenerateLevel(int levelIndex)
 		itemsStream << "[" << 865 << "," << 335 << "]";
 		itemsStream << int(Item::TYPE::PRIZE_BLOCK) << "\n";
 
+		itemsStream << "[" << 1024 << "," << 337 << "]";
+		itemsStream << int(Item::TYPE::MESSAGE_BLOCK) << " ";
+		itemsStream << "Resources/levels/01/message_box_01.png" << "\n";
+
 		itemsStream << "[" << 1240 << "," << 320 << "]";
 		itemsStream << int(Item::TYPE::COIN) << "\n";
 		itemsStream << "[" << 1250 << "," << 300 << "]";
@@ -259,7 +239,8 @@ LevelData* LevelData::GenerateLevel(int levelIndex)
 		itemsStream << int(Item::TYPE::COIN) << "\n";
 
 		itemsStream << "[" << 2511 << "," << 336 << "]";
-		itemsStream << int(Item::TYPE::MESSAGE_BLOCK) << "\n";
+		itemsStream << int(Item::TYPE::MESSAGE_BLOCK) << " ";
+		itemsStream << "Resources/levels/01/message_box_02.png" << "\n";
 
 		itemsStream << "[" << 2850 << "," << 336 << "]";
 		itemsStream << int(Item::TYPE::PRIZE_BLOCK) << "\n";
@@ -281,23 +262,23 @@ LevelData* LevelData::GenerateLevel(int levelIndex)
 		itemsStream << int(Item::TYPE::EXCLAMATION_MARK_BLOCK) << "\n";
 
 		itemsStream << "[" << 4498 << "," << 257 << "]";
-		itemsStream << int(Item::TYPE::EXCLAMATION_MARK_BLOCK) << "\n";
+		itemsStream << int(Item::TYPE::ROTATING_BLOCK) << "\n";
 		itemsStream << "[" << 4514 << "," << 257 << "]";
-		itemsStream << int(Item::TYPE::EXCLAMATION_MARK_BLOCK)  << "\n";
+		itemsStream << int(Item::TYPE::ROTATING_BLOCK)  << "\n";
 		itemsStream << "[" << 4530 << "," << 257 << "]";
-		itemsStream << int(Item::TYPE::EXCLAMATION_MARK_BLOCK) << "\n";
+		itemsStream << int(Item::TYPE::ROTATING_BLOCK) << "\n";
 		itemsStream << "[" << 4498 << "," << 273 << "]";
-		itemsStream << int(Item::TYPE::EXCLAMATION_MARK_BLOCK) << "\n";
+		itemsStream << int(Item::TYPE::ROTATING_BLOCK) << "\n";
 		itemsStream << "[" << 4514 << "," << 273 << "]";
 		itemsStream << int(Item::TYPE::P_SWITCH) << "\n";
 		itemsStream << "[" << 4530 << "," << 273 << "]";
-		itemsStream << int(Item::TYPE::EXCLAMATION_MARK_BLOCK) << "\n";
+		itemsStream << int(Item::TYPE::ROTATING_BLOCK) << "\n";
 		itemsStream << "[" << 4498 << "," << 289 << "]";
-		itemsStream << int(Item::TYPE::EXCLAMATION_MARK_BLOCK) << "\n";
+		itemsStream << int(Item::TYPE::ROTATING_BLOCK) << "\n";
 		itemsStream << "[" << 4514 << "," << 289 << "]";
-		itemsStream << int(Item::TYPE::EXCLAMATION_MARK_BLOCK) << "\n";
+		itemsStream << int(Item::TYPE::ROTATING_BLOCK) << "\n";
 		itemsStream << "[" << 4530 << "," << 289 << "]";
-		itemsStream << int(Item::TYPE::EXCLAMATION_MARK_BLOCK) << "\n";
+		itemsStream << int(Item::TYPE::ROTATING_BLOCK) << "\n";
 
 	} break;
 	default:
@@ -342,6 +323,7 @@ void LevelData::RemoveItem(Item* itemPtr)
 	}
 
 	OutputDebugString(String("ERROR: Could not delete item in LevelData::RemoveItem\n"));
+	assert(false);
 }
 
 void LevelData::RemoveItem(int itemIndex)
@@ -375,4 +357,35 @@ void LevelData::PaintItems()
 			m_ItemsPtrArr[i]->Paint();
 		}
 	}
+}
+
+void LevelData::Unload()
+{
+	delete m_LevelOnePtr;
+}
+
+void LevelData::TogglePaused(bool paused)
+{
+	for (size_t i = 0; i < m_ItemsPtrArr.size(); ++i)
+	{
+		if (m_ItemsPtrArr[i] != nullptr)
+		{
+			m_ItemsPtrArr[i]->TogglePaused(paused);
+		}
+	}
+}
+
+std::vector<Platform*> LevelData::GetPlatforms()
+{
+	return m_PlatformsPtrArr;
+}
+
+std::vector<Pipe*> LevelData::GetPipes()
+{
+	return m_PipesPtrArr;
+}
+
+std::vector<Item*> LevelData::GetItems()
+{
+	return m_ItemsPtrArr;
 }

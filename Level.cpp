@@ -73,6 +73,19 @@ void Level::Reset()
 
 void Level::Tick(double deltaTime)
 {
+	if (m_Paused != m_WasPaused)
+	{
+		TogglePaused(m_Paused);
+	}
+
+	if (GAME_ENGINE->IsKeyboardKeyPressed(' '))
+	{
+		m_Paused = !m_Paused;
+		// TODO: Find a better way to pause the world
+		TogglePaused(m_Paused);
+	}
+	if (m_Paused) return;
+
 	m_SecondsElapsed += (deltaTime);
 
 	if (m_NewCoinPos != DOUBLE2())
@@ -96,6 +109,8 @@ void Level::Tick(double deltaTime)
 	m_PlayerPtr->Tick(deltaTime, this);
 
 	m_LevelDataPtr->TickItems(deltaTime, this);
+
+	m_WasPaused = m_Paused;
 }
 
 void Level::Paint()
@@ -129,6 +144,12 @@ void Level::Paint()
 	GAME_ENGINE->SetViewMatrix(Game::matIdentity);
 
 	PaintHUD();
+
+	if (m_Paused)
+	{
+		GAME_ENGINE->SetColor(COLOR(255, 255, 255));
+		GAME_ENGINE->DrawRect(0, 0, Game::WIDTH, Game::HEIGHT, 6);
+	}
 
 #if 0
 	m_Camera->DEBUGPaint();
@@ -352,40 +373,16 @@ RECT2 Level::GetLargeSingleNumberSrcRect(int number)
 	GAME_ENGINE->SetViewMatrix(matCameraView);
 }
 
-bool Level::IsOnGround(PhysicsActor *otherActPtr)
+bool Level::IsPlayerOnGround()
 {
 	return m_IsPlayerOnGround;
-	/*bool onGround = m_ActLevelPtr->IsOverlapping(otherActPtr);
-	if (onGround) return true;
-
-	bool onPlatform = false;
-	for (size_t i = 0; i < m_PlatformsPtrArr.size(); ++i)
-	{
-		if (m_PlatformsPtrArr[i]->IsOverlapping(otherActPtr))
-		{
-			onPlatform = true;
-			break;
-		}
-	}
-	if (onPlatform) return true;
-
-	bool onPipe = false;
-	for (size_t i = 0; i < m_PipesPtrArr.size(); ++i)
-	{
-		if (m_PipesPtrArr[i]->IsOverlapping(otherActPtr))
-		{
-			onPipe = true;
-			break;
-		}
-	}
-	if (onPipe) return true;
-
-	return false;*/
 }
 
 void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool & enableContactRef)
 {
-	if (actOtherPtr->GetUserData() == int(ActorId::PLAYER))
+	switch (actOtherPtr->GetUserData())
+	{
+	case int(ActorId::PLAYER):
 	{
 		bool rising = actOtherPtr->GetLinearVelocity().y < 0;
 		bool belowThis = (actOtherPtr->GetPosition().y + Player::HEIGHT / 2) > actThisPtr->GetPosition().y;
@@ -412,35 +409,19 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 
 			}
 		} break;
-		case int(ActorId::ITEM):
-		{
-			Item* item = (Item*)actThisPtr->GetUserPointer();
-			switch (item->GetType())
-			{
-			case Item::TYPE::PRIZE_BLOCK:
-			{
-				// They be bonkin their head on us
-				if (actOtherPtr->GetLinearVelocity().y < 0.0 &&
-					actOtherPtr->GetPosition().y > actThisPtr->GetPosition().y + Block::WIDTH / 2)
-				{
-					m_NewCoinPos = ((PrizeBlock*)item)->Hit();
-				}
-			} break;
-			}
-		} break;
 		}
-	}
-	else if (actOtherPtr->GetUserData() == int(ActorId::ITEM))
+	} break;
+	case int(ActorId::ITEM):
 	{
-		if (actThisPtr->GetUserData() == int(ActorId::ITEM))
+		// FIXME: IMPORTANT: TODO: Find out how tf to know when to use 'actThis'
+		// vs. 'actOther', it sure seems like black magic
+		Item* otherItem = (Item*)actOtherPtr->GetUserPointer();
+		if(otherItem->GetType() == Item::TYPE::P_SWITCH)
 		{
-			Item* thisItem = (Item*)actThisPtr->GetUserPointer();
-			switch (thisItem->GetType())
+			if (actThisPtr->GetUserData() == int(ActorId::ITEM))
 			{
-			case Item::TYPE::ROTATING_BLOCK:
-			{
-				Item* otherItem = (Item*)actThisPtr->GetUserPointer();
-				if (otherItem->GetType() == Item::TYPE::P_SWITCH)
+				Item* thisItem = (Item*)actThisPtr->GetUserPointer();
+				if (thisItem->GetType() == Item::TYPE::ROTATING_BLOCK)
 				{
 					// Only let it fall through if the rotating block is spinning
 					if (((RotatingBlock*)thisItem)->IsRotating())
@@ -448,9 +429,9 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 						enableContactRef = false;
 					}
 				}
-			} break;
 			}
 		}
+	} break;
 	}
 }
 
@@ -458,19 +439,24 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 {
 	if (actOtherPtr->GetUserData() == int(ActorId::PLAYER))
 	{
-		if (actThisPtr->GetUserData() == int(ActorId::PLATFORM) ||
-			actThisPtr->GetUserData() == int(ActorId::PIPE))
+		bool playerIsRising = actOtherPtr->GetLinearVelocity().y < 0.0;
+		bool playerIsBelow = actOtherPtr->GetPosition().y > (actThisPtr->GetPosition().y + Block::WIDTH / 2);
+
+		switch (actThisPtr->GetUserData()) 
+		{
+		case int(ActorId::PLATFORM):
+		case int(ActorId::PIPE):
 		{
 			if (actOtherPtr->GetPosition().y < actThisPtr->GetPosition().y)
 			{
 				m_IsPlayerOnGround = true;
 			}
-		}
-		else if (actThisPtr->GetUserData() == int(ActorId::LEVEL))
+		} break;
+		case int(ActorId::LEVEL):
 		{
 			m_IsPlayerOnGround = true;
-		}
-		else if (actThisPtr->GetUserData() == int(ActorId::ITEM))
+		} break;
+		case int(ActorId::ITEM):
 		{
 			Item* item = (Item*)actThisPtr->GetUserPointer();
 			switch (item->GetType())
@@ -489,7 +475,30 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 				((Player*)actOtherPtr->GetUserPointer())->OnItemPickup(item);
 				m_ItemToBeRemoved = item;
 			} break;
+			case Item::TYPE::PRIZE_BLOCK:
+			{
+				if (playerIsRising && playerIsBelow)
+				{
+					m_NewCoinPos = ((PrizeBlock*)item)->Hit();
+				}
+			} break;
+			case Item::TYPE::ROTATING_BLOCK:
+			{
+				if (playerIsRising && playerIsBelow)
+				{
+					((RotatingBlock*)item)->Hit();
+				}
+			} break;
+			case Item::TYPE::MESSAGE_BLOCK:
+			{
+				if (playerIsRising && playerIsBelow)
+				{
+					((MessageBlock*)item)->Hit();
+					m_Paused = true;
+				}
+			} break;
 			}
+		} break;
 		}
 	}
 }
@@ -517,3 +526,8 @@ double Level::GetHeight()
 {
 	return m_Height;
 }
+
+//bool Level::IsPaused()
+//{
+//	return m_Paused;
+//}

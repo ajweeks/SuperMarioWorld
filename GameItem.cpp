@@ -2,6 +2,7 @@
 
 #include "stdafx.h"
 
+#include "Game.h"
 #include "GameItem.h"
 #include "Enumerations.h"
 #include "SpriteSheetManager.h"
@@ -31,8 +32,7 @@ void Platform::AddContactListener(ContactListener* listener)
 
 
 // ___PIPE___
-Pipe::Pipe(DOUBLE2 topLeft, DOUBLE2 bottomRight, COLOUR colour, bool canAccess) :
-	m_Colour(colour), m_CanAccess(canAccess)
+Pipe::Pipe(DOUBLE2 topLeft, DOUBLE2 bottomRight, bool canAccess) : m_CanAccess(canAccess)
 {
 	m_Bounds = RECT2(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
 	double width = bottomRight.x - topLeft.x;
@@ -58,8 +58,7 @@ Item::Item(DOUBLE2 topLeft,TYPE type, BodyType bodyType, int width, int height) 
 {
 	m_ActPtr->AddBoxFixture(width, height, 0.0);
 	m_ActPtr->SetUserData(int(ActorId::ITEM));
-	// TODO: Figure out if all items have a fixed rotation
-	//m_ActPtr->SetFixedRotation(true);
+	m_ActPtr->SetFixedRotation(true);
 }
 void Item::AddContactListener(ContactListener* listener)
 {
@@ -145,7 +144,7 @@ void DragonCoin::Paint()
 
 // ___P SWITCH___
 PSwitch::PSwitch(DOUBLE2 topLeft, COLOUR colour) :
-	Item(topLeft, Item::TYPE::P_SWITCH, BodyType::KINEMATIC), m_Colour(colour)
+	Item(topLeft, Item::TYPE::P_SWITCH, BodyType::DYNAMIC), m_Colour(colour)
 {
 }
 bool PSwitch::Tick(double deltaTime, Level* levelPtr)
@@ -264,6 +263,7 @@ Block::Block(DOUBLE2 topLeft, TYPE type) :
 	Item(topLeft, type, BodyType::STATIC, WIDTH, HEIGHT)
 {
 }
+Block::~Block() {}
 
 // ___PRIZE BLOCK___
 PrizeBlock::PrizeBlock(DOUBLE2 topLeft) :
@@ -376,11 +376,13 @@ bool RotatingBlock::Tick(double deltaTime, Level* levelPtr)
 			m_Rotations++;
 			if (m_Rotations > MAX_ROTATIONS)
 			{
-				m_Rotations = 0;
 				m_IsRotating = false;
+				m_Rotations = 0;
+				m_AnimInfo.frameNumber = 0;
 			}
 		}
 	}
+
 	return false;
 }
 void RotatingBlock::Paint()
@@ -391,16 +393,25 @@ void RotatingBlock::Paint()
 	double top = m_ActPtr->GetPosition().y;
 	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
 }
+void RotatingBlock::Hit()
+{
+	m_IsRotating = true;
+}
 bool RotatingBlock::IsRotating()
 {
 	return m_IsRotating;
 }
 
 // ___MESSAGE BLOCK___
-MessageBlock::MessageBlock(DOUBLE2 topLeft, String message) :
-	Block(topLeft, TYPE::MESSAGE_BLOCK), m_Message(message)
+MessageBlock::MessageBlock(DOUBLE2 topLeft, String filePath) :
+	Block(topLeft, TYPE::MESSAGE_BLOCK)
 {
+	m_BmpPtr = new Bitmap(filePath);
 	m_AnimInfo.frameNumber = 0;
+}
+MessageBlock::~MessageBlock()
+{
+	delete m_BmpPtr;
 }
 void MessageBlock::Paint()
 {
@@ -409,9 +420,29 @@ void MessageBlock::Paint()
 	double left = m_ActPtr->GetPosition().x;
 	double top = m_ActPtr->GetPosition().y;
 	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
+
+	if (m_IsShowing)
+	{
+		m_FramesShowing++;
+
+		MATRIX3X2 matViewPrev = GAME_ENGINE->GetViewMatrix();
+		GAME_ENGINE->SetViewMatrix(Game::matIdentity);
+
+		double x = Game::WIDTH / 2 - m_BmpPtr->GetWidth() / 2;
+		double y = 25;
+		GAME_ENGINE->DrawBitmap(m_BmpPtr, x, 42);
+
+		GAME_ENGINE->SetViewMatrix(matViewPrev);
+	}
 }
 bool MessageBlock::Tick(double deltaTime, Level* levelPtr)
 {
-
+	// We know that once Tick is called, the user has "unpaused" and wants to resume playing
+	m_IsShowing = false;
 	return false;
+}
+void MessageBlock::Hit()
+{
+	m_IsShowing = true;
+	m_FramesShowing = 0;
 }

@@ -8,6 +8,9 @@ Bitmap* SpriteSheetManager::levelOneForeground = nullptr;
 
 Bitmap* SpriteSheetManager::hud = nullptr;
 
+Bitmap* SpriteSheetManager::messageBox_01 = nullptr;
+Bitmap* SpriteSheetManager::messageBox_02 = nullptr;
+
 SpriteSheet* SpriteSheetManager::smallMario = nullptr;
 SpriteSheet* SpriteSheetManager::superMario = nullptr;
 
@@ -36,6 +39,9 @@ void SpriteSheetManager::Load()
 
 	hud = new Bitmap(String("Resources/hud.png"));
 	//hud->SetTransparencyColor(COLOR(255,0,255));
+
+	messageBox_01 = new Bitmap(String("Resources/levels/01/message_box_01.png"));
+	messageBox_02 = new Bitmap(String("Resources/levels/01/message_box_02.png"));
 }
 
 void SpriteSheetManager::Unload()
@@ -49,4 +55,7 @@ void SpriteSheetManager::Unload()
 	delete generalTiles;
 
 	delete hud;
+
+	delete messageBox_01;
+	delete messageBox_02;
 }

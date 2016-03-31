@@ -25,14 +25,13 @@ struct Pipe
 {
 	static const std::string ColourNames[];
 
-	Pipe(DOUBLE2 topLeft, DOUBLE2 bottomRight, COLOUR colour, bool canAccess);
+	Pipe(DOUBLE2 topLeft, DOUBLE2 bottomRight, bool canAccess);
 	virtual ~Pipe();
 	void AddContactListener(ContactListener* listener);
 
 private:
 	PhysicsActor* m_ActPtr = nullptr;
 	RECT2 m_Bounds;
-	COLOUR m_Colour;
 	// If true mario can enter this pipe
 	bool m_CanAccess;
 
@@ -147,7 +146,7 @@ struct Block : public Item
 	static const int HEIGHT = 16;
 
 	Block(DOUBLE2 topLeft, Item::TYPE type);
-
+	virtual ~Block();
 	virtual bool Tick(double deltaTime, Level* levelPtr) = 0;
 	virtual void Paint() = 0;
 };
@@ -187,21 +186,29 @@ struct RotatingBlock : public Block
 	RotatingBlock(DOUBLE2 topLeft);
 	bool Tick(double deltaTime, Level* levelPtr);
 	void Paint();
-	
+	void Hit();
 	bool IsRotating();
 
-	static const int MAX_ROTATIONS = 8;
+	static const int MAX_ROTATIONS = 25;
 
 private:
 	int m_Rotations = -1;
-	bool m_IsRotating;
+	bool m_IsRotating = false;
 };
 struct MessageBlock : public Block
 {
-	MessageBlock(DOUBLE2 topLeft, String message);
+	MessageBlock(DOUBLE2 topLeft, String filePath);
+	virtual ~MessageBlock();
 	bool Tick(double deltaTime, Level* levelPtr);
 	void Paint();
+	void Hit();
 
 private:
-	String m_Message;
+	// LATER: Make message boxes render their text manually?
+	//String m_Message;
+	Bitmap* m_BmpPtr = nullptr;
+	bool m_IsShowing = false;
+	// NOTE: Used to animate message popup, when == -1 there is no message showing
+	// When != -1 the game is paused and the message is being painted (by the message block itself)
+	int m_FramesShowing = -1;
 };

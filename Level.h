@@ -27,9 +27,9 @@ public:
 	double GetWidth();
 	double GetHeight();
 
-	bool IsOnGround(PhysicsActor *otherActPtr);
+	bool IsPlayerOnGround();
 
-	void TogglePaused(bool paused);
+	//bool IsPaused();
 
 private:
 	void PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool & enableContactRef);
@@ -48,15 +48,25 @@ private:
 	void ReadLevelData(int levelIndex);
 	LevelData* m_LevelDataPtr = nullptr;
 
+	void TogglePaused(bool paused);
+
 	DOUBLE2 m_NewCoinPos = DOUBLE2();
 	Item* m_ItemToBeRemoved = nullptr;
 
 	PhysicsActor* m_ActLevelPtr = nullptr;
 
-	int m_TotalTime;
-	double m_SecondsElapsed = 0.0;
+	bool m_Paused = false;
+	// NOTE: This stupid variable is only here because
+	// Box2D won't let us set all the actors to inactive during a PreSolve OR a BeginContact
+	// so we need to save the state and update it next tick instead....
+	bool m_WasPaused = false; 
 
+	int m_TotalTime; // How long the player has to complete this level
+	double m_SecondsElapsed = 0.0; // How many real-time seconds have elapsed
+
+	// How many pixels wide the foreground of the level is
 	double m_Width;
+	// How many pixels high the foreground of the level is
 	double m_Height;
 
 	// TODO(AJ): Rename this to Mario? What about Luigi? Add player 2?
