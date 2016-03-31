@@ -69,6 +69,10 @@ bool Player::Tick(double deltaTime, Level *levelPtr)
 
 	HandleKeyboardInput(deltaTime, levelPtr);
 
+	if (++m_FramesOfPowerupTransitionElapsed > TOTAL_FRAMES_OF_POWERUP_TRANSITION)
+	{
+		m_FramesOfPowerupTransitionElapsed = -1;
+	}
 
 	TickAnimations(deltaTime);
 
@@ -393,7 +397,20 @@ void Player::OnItemPickup(Item* item)
 	} break;
 	case Item::TYPE::SUPER_MUSHROOM:
 	{
-
+		m_SpriteSheetPtr = SpriteSheetManager::superMario;
+		ChangePowerupState(POWERUP_STATE::SUPER);
+	} break;
+	case Item::TYPE::CAPE_FEATHER:
+	{
+		ChangePowerupState(POWERUP_STATE::CAPE);
+	} break;
+	case Item::TYPE::FIRE_FLOWER:
+	{
+		ChangePowerupState(POWERUP_STATE::FIRE);
+	} break;
+	case Item::TYPE::POWER_BALLOON:
+	{
+		ChangePowerupState(POWERUP_STATE::BALLOON);
 	} break;
 	case Item::TYPE::ONE_UP_MUSHROOM:
 	{
@@ -407,6 +424,27 @@ void Player::OnItemPickup(Item* item)
 	{
 		OutputDebugString(String("ERROR: Unhandled item passed to Player::OnItemPickup\n"));
 	} break;
+	}
+}
+
+void Player::ChangePowerupState(POWERUP_STATE newPowerupState, bool isUpgrade)
+{
+	m_PrevPowerupState = m_PowerupState;
+
+	m_PowerupState = newPowerupState;
+
+	m_FramesOfPowerupTransitionElapsed = 0;
+
+	if (isUpgrade)
+	{
+		// TODO: Play sound effect here
+		// NOTE: Sound effect changes based on what state you were in before!
+	}
+	else
+	{
+		m_SpriteSheetPtr = SpriteSheetManager::smallMario;
+		// TODO: Play sound effect here
+		// NOTE: Sound effect changes based on what state you were in before!
 	}
 }
 
@@ -449,6 +487,41 @@ void Player::Die()
 	m_AnimationState = ANIMATION_STATE::DYING;
 
 	// LATER: Play sound here
+}
+
+void Player::TakeDamage()
+{
+	switch (m_PowerupState)
+	{
+	case POWERUP_STATE::NORMAL:
+	{
+		// Die
+	} break;
+	case POWERUP_STATE::SUPER:
+	{
+		ChangePowerupState(POWERUP_STATE::NORMAL, false);
+	} break;
+	case POWERUP_STATE::FIRE:
+	{
+		ChangePowerupState(POWERUP_STATE::NORMAL, false);
+	} break;
+	case POWERUP_STATE::CAPE:
+	{
+		ChangePowerupState(POWERUP_STATE::NORMAL, false);
+	} break;
+	case POWERUP_STATE::BALLOON:
+	{
+		ChangePowerupState(POWERUP_STATE::NORMAL, false);
+	} break;
+	case POWERUP_STATE::STAR:
+	{
+		// NOTE: We're invincible! :D
+	} break;
+	default:
+	{
+		OutputDebugString(String("ERROR: Unhandled powerup state in Player::TakeDamage()\n"));
+	} break;
+	}
 }
 
 bool Player::IsOnGround()

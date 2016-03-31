@@ -81,6 +81,15 @@ private:
 	void AddLife();
 
 	void Die();
+
+	void ChangePowerupState(POWERUP_STATE newPowerupState, bool isUpgrade = true);
+
+	void TakeDamage();
+
+	static const int TOTAL_FRAMES_OF_POWERUP_TRANSITION = 50;
+	int m_FramesOfPowerupTransitionElapsed = -1; // NOTE: Perhaps this variable name is a tad long...
+	POWERUP_STATE m_PrevPowerupState; // This is used to transition between states upon state change
+
 	Item* m_ExtraItemPtr = nullptr; // This is the extra item slot mario has at the top of the screen
 
 	String AnimationStateToString(ANIMATION_STATE state);
