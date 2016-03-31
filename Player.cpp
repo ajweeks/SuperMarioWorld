@@ -90,7 +90,7 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 	double runVel = 10500;
 	double horizontalVel = 0.0;
 
-	m_IsOnGround = levelPtr->IsOnGround(m_ActPtr);
+	m_IsOnGround = levelPtr->IsPlayerOnGround();
 
 	if (m_IsOnGround)
 	{

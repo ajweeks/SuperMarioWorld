@@ -20,7 +20,7 @@ MATRIX3X2 Camera::GetViewMatrix(Player* playerPtr, Level* levelPtr)
 #if SMW_ENABLE_JUMP_TO
 	if (GAME_ENGINE->IsKeyboardKeyPressed('O'))
 	{
-		m_PrevTranslation.x = SMW_JUMP_TO_POS_X - GAME_ENGINE->GetWidth()/2;
+		m_PrevTranslation.x = SMW_JUMP_TO_POS_X - Game::WIDTH / 2;
 	}
 #endif
 
@@ -74,23 +74,28 @@ MATRIX3X2 Camera::GetViewMatrix(Player* playerPtr, Level* levelPtr)
 	}
 
 	// TODO: Adjust camera's y differently?
-	// newTranslation.y = playerPos.y - GAME_ENGINE->GetHeight() / 2;
+	// newTranslation.y = playerPos.y - Game::HEIGHT / 2;
 
+	newTranslation.y = 550;
 	Clamp(newTranslation, levelPtr);
 
 	m_PrevTranslation = newTranslation;
 	
-	// NOTE: Negative position instead of .Inverse()
+	// NOTE: Use negative position instead of .Inverse()
 	MATRIX3X2 matCameraTranslation = MATRIX3X2::CreateTranslationMatrix(-newTranslation);
+
+	//double rx = Game::WIDTH / m_Width;
+	//double ry = Game::HEIGHT / m_Height;
+	//MATRIX3X2 matCameraZoom = MATRIX3X2::CreateScalingMatrix(rx, ry);
 
 	return matCameraTranslation;
 }
 
-/* Paints extra debug info about the camera (Expects view matrix to be identity) */
+/* Paints extra debug info about the camera (Expects view matrix to be Game::matIdentity) */
 void Camera::DEBUGPaint()
 {
 	//GAME_ENGINE->SetColor(COLOR(250, 20, 20));
-	//GAME_ENGINE->DrawLine(m_XOffset, 0, m_XOffset, GAME_ENGINE->GetHeight());
+	//GAME_ENGINE->DrawLine(m_XOffset, 0, m_XOffset, Game::HEIGHT);
 
 	double centerX = m_Width / 2;
 	double x = 0;

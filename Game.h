@@ -44,13 +44,17 @@ public:
 	static Font *Font16Ptr;
 	static Font *Font24Ptr;
 
+	// How many pixels we have to work with, not how large the final window will be necessarily
+	static const int WIDTH = 256;
+	static const int HEIGHT = 224;
+
+	static const int WINDOW_SCALE = 2;
+	// NOTE: Use this matrix as the base for all other matricies,
+	// the hud should be drawn with just this as the view matrix
+	// This matrix will be updated any time the screen size changes
+	static MATRIX3X2 matIdentity;
+
 private:
-	// NOTE: This is used to create a scaling matrix to zoom in
-	// however much we want, the other classes shouldn't have to think about
-	// scale, just paint at 1x zoom and we'll zoom in on that.
-	// TODO: Change this to the biggest possible whole number on window resize.
-	static const int SCALE = 1;
-	
 	void WriteSessionInfoToFile();
 	std::string ReadSessionInfoFromFile();
 
@@ -66,7 +70,6 @@ private:
 	int GetNumberOfSessions(std::string allSessionInfo);
 
 	bool m_RenderDebugOverlay;
-	bool m_Paused = false;
 
 	Level *m_LevelPtr = nullptr;
 };

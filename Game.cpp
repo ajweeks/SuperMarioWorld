@@ -16,6 +16,9 @@
 Font* Game::Font16Ptr = nullptr;
 Font* Game::Font24Ptr = nullptr;
 
+// Not actually what this matrix will contain, unless Game::WINDOW_SCALE is set to 1
+MATRIX3X2 Game::matIdentity = MATRIX3X2::CreateIdentityMatrix();
+
 Game::Game()
 {
 }
@@ -28,9 +31,8 @@ void Game::GameInitialize(GameSettings &gameSettingsRef)
 {
 	gameSettingsRef.SetWindowTitle(String("Super Mario World - Weeks, Andrew - 1DAE06"));
 
-	const int SCALE = 1;
-	gameSettingsRef.SetWindowWidth(256 * SCALE);
-	gameSettingsRef.SetWindowHeight(224 * SCALE);
+	gameSettingsRef.SetWindowWidth(WIDTH * WINDOW_SCALE);
+	gameSettingsRef.SetWindowHeight(HEIGHT * WINDOW_SCALE);
 
 	gameSettingsRef.EnableConsole(false);
 	gameSettingsRef.EnableAntiAliasing(false);
@@ -45,6 +47,8 @@ void Game::GameStart()
 	// TODO: Add mario fonts
 	Game::Font16Ptr = new Font(String("consolas"), 16);
 	Game::Font24Ptr = new Font(String("consolas"), 24);
+
+	matIdentity = MATRIX3X2::CreateScalingMatrix(WINDOW_SCALE);
 
 	m_LevelPtr = new Level();
 
@@ -70,14 +74,6 @@ void Game::GameEnd()
 
 void Game::GameTick(double deltaTime)
 {
-	if (GAME_ENGINE->IsKeyboardKeyPressed(VK_ESCAPE))
-	{
-		m_Paused = !m_Paused;
-		// TODO: Find a better way to pause the world
-		m_LevelPtr->TogglePaused(m_Paused);
-	}
-	if (m_Paused) return;
-
 	m_LevelPtr->Tick(deltaTime);
 
 	if (GAME_ENGINE->IsKeyboardKeyPressed('P'))
@@ -120,21 +116,13 @@ void Game::GameTick(double deltaTime)
 
 void Game::GamePaint()
 {
-	MATRIX3X2 matZoom = MATRIX3X2::CreateScalingMatrix(1.0 / SCALE);
-	GAME_ENGINE->SetViewMatrix(matZoom);
-
 	m_LevelPtr->Paint();
 
 	MATRIX3X2 matPrevious = GAME_ENGINE->GetViewMatrix();
-	GAME_ENGINE->SetViewMatrix(MATRIX3X2::CreateIdentityMatrix());
-	if (m_Paused)
-	{
-		GAME_ENGINE->SetColor(COLOR(255, 255, 255));
-		GAME_ENGINE->DrawRect(0, 0, GAME_ENGINE->GetWidth(), GAME_ENGINE->GetHeight(), 6);
-	}
+	GAME_ENGINE->SetViewMatrix(matIdentity);
 	if (m_ShowingSessionInfo)
 	{
-		int x = GAME_ENGINE->GetWidth() - 107;
+		int x = Game::WIDTH - 107;
 		int y = 40;
 	
 		GAME_ENGINE->SetColor(COLOR(10, 10, 10, 160));

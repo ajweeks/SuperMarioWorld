@@ -23,7 +23,7 @@ Level::Level()
 	m_Width = SpriteSheetManager::levelOneForeground->GetWidth();
 	m_Height = SpriteSheetManager::levelOneForeground->GetHeight();
 
-	m_Camera = new Camera(256, 224, this);
+	m_Camera = new Camera(Game::WIDTH, Game::HEIGHT, this);
 
 	Reset();
 
@@ -108,12 +108,12 @@ void Level::Paint()
 	MATRIX3X2 matPreviousView = GAME_ENGINE->GetViewMatrix();
 
 	MATRIX3X2 matCameraView = m_Camera->GetViewMatrix(m_PlayerPtr, this);
-	MATRIX3X2 matTotalView = matPreviousView * matCameraView;
+	MATRIX3X2 matTotalView = matCameraView *  Game::matIdentity;
 	GAME_ENGINE->SetViewMatrix(matTotalView);
 
 	int bgWidth = SpriteSheetManager::levelOneBackground->GetWidth();
 	double cameraX = -matCameraView.orig.x;
-	double parallax = (1.0 - 0.65); // 65% of the speed of the camera
+	double parallax = (1.0 - 0.50); // 50% of the speed of the camera
 	int xo = int(cameraX * parallax);
 	xo += (int(cameraX - xo) / bgWidth) * bgWidth;
 
@@ -126,7 +126,7 @@ void Level::Paint()
 
 	m_PlayerPtr->Paint();
 	
-	GAME_ENGINE->SetViewMatrix(MATRIX3X2::CreateIdentityMatrix());
+	GAME_ENGINE->SetViewMatrix(Game::matIdentity);
 
 	PaintHUD();
 
@@ -134,11 +134,11 @@ void Level::Paint()
 	m_Camera->DEBUGPaint();
 #endif
 
-#if 0
+#if 1
 	GAME_ENGINE->SetColor(COLOR(0, 0, 0));
 	GAME_ENGINE->SetFont(Game::Font16Ptr);
-	GAME_ENGINE->DrawString(String("Player pos: ") + m_PlayerPtr->GetPosition().ToString(), 10, 10);
-	GAME_ENGINE->DrawString(String("Player vel: ") + m_PlayerPtr->GetLinearVelocity().ToString(), 10, 25);
+	//GAME_ENGINE->DrawString(String("Player pos: ") + m_PlayerPtr->GetPosition().ToString(), 10, 10);
+	//GAME_ENGINE->DrawString(String("Player vel: ") + m_PlayerPtr->GetLinearVelocity().ToString(), 10, 25);
 	GAME_ENGINE->DrawString(String("Player onGround: ") + String(m_PlayerPtr->IsOnGround() ? "true" : "false"), 10, 40);
 #endif
 
@@ -155,7 +155,8 @@ void Level::PaintHUD()
 	int playerScore = m_PlayerPtr->GetScore();
 	Item::TYPE playerExtraItemType = m_PlayerPtr->GetExtraItemType();
 
-	int timeRemaining = m_TotalTime - int(m_SecondsElapsed);
+	// NOTE: 1 second in SMW is 2/3 of a real life second!
+	int timeRemaining = m_TotalTime - (int(m_SecondsElapsed * 1.5)); 
 
 	int x = 15;
 	int y = 15;
@@ -340,10 +341,10 @@ RECT2 Level::GetLargeSingleNumberSrcRect(int number)
 	// Draw camera outline
 	GAME_ENGINE->SetWorldMatrix(matCameraView.Inverse());
 	GAME_ENGINE->SetColor(COLOR(20, 20, 200));
-	GAME_ENGINE->DrawRect(5, 5, GAME_ENGINE->GetWidth() - 5, GAME_ENGINE->GetHeight() - 5, 5);
-	GAME_ENGINE->SetWorldMatrix(MATRIX3X2::CreateIdentityMatrix());
+	GAME_ENGINE->DrawRect(5, 5, Game::WIDTH - 5, Game::HEIGHT - 5, 5);
+	GAME_ENGINE->SetWorldMatrix(Game::matIdentity);
 
-	GAME_ENGINE->SetViewMatrix(MATRIX3X2::CreateIdentityMatrix());
+	GAME_ENGINE->SetViewMatrix(Game::matIdentity);
 
 	GAME_ENGINE->SetColor(COLOR(0, 0, 0));
 	GAME_ENGINE->DrawString(String("Player pos: ") + m_PlayerPtr->GetPosition().ToString(), 10, 10);
