@@ -20,9 +20,9 @@ public:
 
 private:
 	// NOTE: How close to either side of the screen the player can get
-	static const int MAX_OFFSET = 280;
+	static const int MAX_OFFSET = 140;
 	// NOTE: How much the player can walk backwards before triggering a camera transition
-	static const int MAX_BACKTRACK_DISTANCE = 55;
+	static const int MAX_BACKTRACK_DISTANCE = 26;
 
 	void Clamp(DOUBLE2& posRef, Level* levelPtr);
 

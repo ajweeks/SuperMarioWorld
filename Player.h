@@ -13,13 +13,13 @@ class Player : public Entity
 public:
 	enum class POWERUP_STATE
 	{
-		NORMAL, SUPER, FIRE, CAPE, BALLOON
+		NORMAL, SUPER, FIRE, CAPE, BALLOON, STAR
 	};
 	enum class ANIMATION_STATE
 	{
 		// NOTE: FAST_FALLING is when mario is running full speed and has a 
 		// positive y vel, not faster falling downwards
-		WAITING, WALKING, RUNNING, JUMPING, SPIN_JUMPING, FALLING, FAST_FALLING, DYING, DUCKING, CLIMBING
+		WAITING, WALKING, RUNNING, JUMPING, SPIN_JUMPING, FALLING, FAST_FALLING, DYING, DUCKING, CLIMBING, CHANGING_DIRECTIONS
 	};
 
 	Player();
@@ -34,7 +34,6 @@ public:
 	void TickAnimations(double deltaTime);
 
 	void Paint();
-	RECT2 CalculateAnimationFrame();
 
 	void Reset();
 	
@@ -57,8 +56,8 @@ public:
 
 	void TogglePaused(bool paused);
 
-	static const int WIDTH = 18;
-	static const int HEIGHT = 35;
+	static const int WIDTH = 9;
+	static const int HEIGHT = 17;
 
 private:
 	static const double WALK_SPEED;
@@ -72,11 +71,16 @@ private:
 	int m_DragonCoins;
 	int m_Stars;
 	int m_Score;
+	
+	DOUBLE2 CalculateAnimationFrame();
+
+	void HandleKeyboardInput(double deltaTime, Level* levelPtr);
 
 	void AddCoin(bool playSound = true);
 	void AddDragonCoin();
 	void AddLife();
 
+	void Die();
 	Item* m_ExtraItemPtr = nullptr; // This is the extra item slot mario has at the top of the screen
 
 	String AnimationStateToString(ANIMATION_STATE state);

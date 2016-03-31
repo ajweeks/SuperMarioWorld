@@ -23,21 +23,16 @@ private:
 
 struct Pipe
 {
-	enum class Colour
-	{
-		GREEN, YELLOW, BLUE, ORANGE, GREY
-	};
-
 	static const std::string ColourNames[];
 
-	Pipe(DOUBLE2 topLeft, DOUBLE2 bottomRight, Colour colour, bool canAccess);
+	Pipe(DOUBLE2 topLeft, DOUBLE2 bottomRight, COLOUR colour, bool canAccess);
 	virtual ~Pipe();
 	void AddContactListener(ContactListener* listener);
 
 private:
 	PhysicsActor* m_ActPtr = nullptr;
 	RECT2 m_Bounds;
-	Colour m_Colour;
+	COLOUR m_Colour;
 	// If true mario can enter this pipe
 	bool m_CanAccess;
 
@@ -49,14 +44,14 @@ struct Item : public Entity
 {
 	enum class TYPE
 	{
-		COIN, DRAGON_COIN, BERRY, KEY, KEYHOLE, SWITCH_BLOCK,
+		COIN, DRAGON_COIN, BERRY, KEY, KEYHOLE, P_SWITCH,
 		ONE_UP_MUSHROOM, THREE_UP_MOON,
-		SUPER_MUSHROOM, FIRE_FLOWER, CAPE_FEATHER, POWER_BALLOON, STAR,
+		SUPER_MUSHROOM, FIRE_FLOWER, CAPE_FEATHER, STAR, POWER_BALLOON,
 		PRIZE_BLOCK, USED_BLOCK, MESSAGE_BLOCK, ROTATING_BLOCK, EXCLAMATION_MARK_BLOCK
 	};
 
-	Item(DOUBLE2 topLeft, DOUBLE2 bottomRight, TYPE type, BodyType bodyType = BodyType::KINEMATIC);
-	virtual ~Item();
+	Item(DOUBLE2 topLeft, TYPE type, BodyType bodyType = BodyType::STATIC, int width = 16, int height = 16);
+
 	void AddContactListener(ContactListener* listener);
 
 	virtual bool Tick(double deltaTime, Level* levelPtr) = 0;
@@ -66,6 +61,9 @@ struct Item : public Entity
 
 	TYPE GetType();
 
+protected:
+	const int WIDTH;
+	const int HEIGHT;
 	ANIMATION_INFO m_AnimInfo;
 	RECT2 m_Bounds;
 private:
@@ -76,17 +74,18 @@ private:
 
 struct Coin : public Item
 {
-	static const int WIDTH = 32;
-	static const int HEIGHT = 32;
-
 	Coin(DOUBLE2 topLeft, int life, Item::TYPE type = Item::TYPE::COIN, DOUBLE2 size = DOUBLE2(WIDTH, HEIGHT));
 
 	virtual bool Tick(double deltaTime, Level* levelPtr);
 	void Paint();
 
+protected:
+	static const int WIDTH = 16;
+	static const int HEIGHT = 16;
+
 private:
 	int m_Life;
-	static const int LIFETIME = 50;
+	static const int LIFETIME = 38;
 };
 
 struct DragonCoin : public Coin
@@ -95,16 +94,60 @@ struct DragonCoin : public Coin
 	bool Tick(double deltaTime, Level* levelPtr);
 	void Paint();
 
-	static const int WIDTH = 32;
-	static const int HEIGHT = 52;
+	static const int WIDTH = 16;
+	static const int HEIGHT = 16;
+};
+
+struct PSwitch : public Item
+{
+	PSwitch(DOUBLE2 topLeft, COLOUR colour);
+
+	bool Tick(double deltaTime, Level* levelPtr);
+	void Paint();
+
+private:
+	COLOUR m_Colour;
+	bool m_IsPressed = false;
+};
+
+struct OneUpMushroom : public Item
+{
+	OneUpMushroom(DOUBLE2 topLeft);
+	bool Tick(double deltaTime, Level* levelPtr);
+	void Paint();
+};
+struct ThreeUpMoon : public Item
+{
+	ThreeUpMoon(DOUBLE2 topLeft);
+	bool Tick(double deltaTime, Level* levelPtr);
+	void Paint();
+};
+struct SuperMushroom : public Item
+{
+	SuperMushroom(DOUBLE2 topLeft);
+	bool Tick(double deltaTime, Level* levelPtr);
+	void Paint();
+};
+struct FireFlower : public Item
+{
+	FireFlower(DOUBLE2 topLeft);
+	bool Tick(double deltaTime, Level* levelPtr);
+	void Paint();
+};
+struct CapeFeather : public Item
+{
+	CapeFeather(DOUBLE2 topLeft);
+	bool Tick(double deltaTime, Level* levelPtr);
+	void Paint();
 };
 
 struct Block : public Item
 {
-	static const int WIDTH = 16 * 2;
-	static const int HEIGHT = 16 * 2;
+	static const int WIDTH = 16;
+	static const int HEIGHT = 16;
 
 	Block(DOUBLE2 topLeft, Item::TYPE type);
+
 	virtual bool Tick(double deltaTime, Level* levelPtr) = 0;
 	virtual void Paint() = 0;
 };
@@ -121,17 +164,12 @@ struct PrizeBlock : public Block
 
 private:
 	int m_CurrentFrameOfBumpAnimation = -1;
-	int m_FramesOfBumpAnimation = 8;
+	int m_FramesOfBumpAnimation = 14;
 	int m_yo = 0; // NOTE: Used for the bump animation
 	bool m_IsUsed = false;
 };
 struct ExclamationMarkBlock : public Block
 {
-	enum class COLOUR
-	{
-		YELLOW, GREEN, RED, BLUE
-	};
-
 	ExclamationMarkBlock(DOUBLE2 topLeft, COLOUR colour, bool isSolid);
 	bool Tick(double deltaTime, Level* levelPtr);
 	void Paint();
@@ -149,6 +187,9 @@ struct RotatingBlock : public Block
 	RotatingBlock(DOUBLE2 topLeft);
 	bool Tick(double deltaTime, Level* levelPtr);
 	void Paint();
+	
+	bool IsRotating();
+
 	static const int MAX_ROTATIONS = 8;
 
 private:
@@ -158,6 +199,7 @@ private:
 struct MessageBlock : public Block
 {
 	MessageBlock(DOUBLE2 topLeft, String message);
+	bool Tick(double deltaTime, Level* levelPtr);
 	void Paint();
 
 private:

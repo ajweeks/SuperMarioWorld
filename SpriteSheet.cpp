@@ -14,8 +14,11 @@ SpriteSheet::~SpriteSheet()
 	delete m_BmpSpriteSheetPtr;
 }
 
-void SpriteSheet::Paint(double centerX, double centerY, RECT2 srcRect)
+void SpriteSheet::Paint(double centerX, double centerY, double col, double row)
 {
+	assert(col >= 0 && col < m_TilesWide && row >= 0 && row < m_TilesHigh);
+
+	RECT2 srcRect(col * m_TileWidth, row * m_TileHeight, col * m_TileWidth + m_TileWidth, row * m_TileHeight + m_TileHeight);
 	GAME_ENGINE->DrawBitmap(m_BmpSpriteSheetPtr, centerX - m_TileWidth / 2, centerY - m_TileHeight / 2, srcRect);
 }
 

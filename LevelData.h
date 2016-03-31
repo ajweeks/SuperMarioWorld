@@ -1,4 +1,5 @@
 #pragma once
+
 #include "Enumerations.h"
 #include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
