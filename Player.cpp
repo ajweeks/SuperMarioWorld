@@ -27,7 +27,7 @@ Player::~Player()
 
 void Player::Reset()
 {
-	m_ActPtr->SetPosition(DOUBLE2(30, 370));
+	m_ActPtr->SetPosition(DOUBLE2(30, 367));
 	m_ActPtr->SetLinearVelocity(DOUBLE2(0, 0));
 
 	m_IsOnGround = false;
@@ -129,7 +129,7 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 			{
 				// NOTE: gravityScale is close to 1 at the start of the jump
 				// and goes towards 0 near the apex
-				double gravityScale = (m_FramesSpentInAir / 12.0) * 0.7;
+				double gravityScale = (m_FramesSpentInAir / 12.0) * 0.5;
 
 				// NOTE: This ensures gravityScale is in the range [0, 0.98]
 				gravityScale = max(0.0, min(0.98, gravityScale));

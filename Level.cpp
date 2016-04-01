@@ -157,10 +157,10 @@ void Level::Paint()
 
 #if 1
 	GAME_ENGINE->SetColor(COLOR(0, 0, 0));
-	GAME_ENGINE->SetFont(Game::Font16Ptr);
+	GAME_ENGINE->SetFont(Game::Font12Ptr);
 	//GAME_ENGINE->DrawString(String("Player pos: ") + m_PlayerPtr->GetPosition().ToString(), 10, 10);
 	//GAME_ENGINE->DrawString(String("Player vel: ") + m_PlayerPtr->GetLinearVelocity().ToString(), 10, 25);
-	GAME_ENGINE->DrawString(String("Player onGround: ") + String(m_PlayerPtr->IsOnGround() ? "true" : "false"), 10, 40);
+	GAME_ENGINE->DrawString(String("onGround: ") + String(m_PlayerPtr->IsOnGround() ? "true" : "false"), 10, 205);
 #endif
 
 	GAME_ENGINE->SetViewMatrix(matTotalView);
@@ -462,15 +462,14 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			switch (item->GetType())
 			{
 			case Item::TYPE::COIN:
-			{
-				assert(m_ItemToBeRemoved == nullptr);
-
-				((Player*)actOtherPtr->GetUserPointer())->OnItemPickup(item);
-				m_ItemToBeRemoved = item;
-			} break;
 			case Item::TYPE::DRAGON_COIN:
 			{
-				assert(m_ItemToBeRemoved == nullptr);
+				if (m_ItemToBeRemoved != nullptr)
+				{
+					// The player is collecting two (or more) coins this tick, just return and let the 
+					// previous coin be collected, we'll almost definitely be colliding with this one again next tick
+					break;
+				}
 
 				((Player*)actOtherPtr->GetUserPointer())->OnItemPickup(item);
 				m_ItemToBeRemoved = item;

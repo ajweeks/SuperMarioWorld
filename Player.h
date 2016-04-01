@@ -29,7 +29,7 @@ public:
 	Player(const Player&) = delete;
 
 	RECT2 GetCameraRect();
-
+	
 	bool Tick(double deltaTime, Level *levelPtr);
 	void TickAnimations(double deltaTime);
 

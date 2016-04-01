@@ -175,41 +175,41 @@ LevelData* LevelData::GenerateLevel(int levelIndex)
 	{
 		// TODO: Make this cleaner/more efficient, maybe use xml or json? (probably xml cause it's easier to parse manually)
 		// Definitely store in an external file
-		platformsStream << "[" << 305 << "," << 337 << "]";
-		platformsStream << "[" << 559 << "," << 342 << "]";
+		platformsStream << "[" << 305 << "," << 329 << "]";
+		platformsStream << "[" << 559 << "," << 334 << "]";
 		platformsStream << "\n";
-		platformsStream << "[" << 705 << "," << 321 << "]";
-		platformsStream << "[" << 815 << "," << 326 << "]";
+		platformsStream << "[" << 705 << "," << 313 << "]";
+		platformsStream << "[" << 815 << "," << 318 << "]";
 		platformsStream << "\n";
-		platformsStream << "[" << 2993 << "," << 337 << "]";
-		platformsStream << "[" << 3070 << "," << 342 << "]";
+		platformsStream << "[" << 2993 << "," << 329 << "]";
+		platformsStream << "[" << 3070 << "," << 334 << "]";
 		platformsStream << "\n";
-		platformsStream << "[" << 3025 << "," << 289 << "]";
-		platformsStream << "[" << 3150 << "," << 294 << "]";
+		platformsStream << "[" << 3025 << "," << 281 << "]";
+		platformsStream << "[" << 3150 << "," << 286 << "]";
 		platformsStream << "\n";
-		platformsStream << "[" << 3121 << "," << 337 << "]";
-		platformsStream << "[" << 3214 << "," << 342 << "]";
+		platformsStream << "[" << 3121 << "," << 329 << "]";
+		platformsStream << "[" << 3214 << "," << 334 << "]";
 		platformsStream << "\n";
-		platformsStream << "[" << 3393 << "," << 305 << "]";
-		platformsStream << "[" << 3550 << "," << 310 << "]";
+		platformsStream << "[" << 3393 << "," << 297 << "]";
+		platformsStream << "[" << 3550 << "," << 302 << "]";
 
-		pipesStream << "[" << 2705 << "," << 337 << "]";
-		pipesStream << "[" << 2733 << "," << 384 << "]";
+		pipesStream << "[" << 2704 << "," << 329 << "]";
+		pipesStream << "[" << 2734 << "," << 376 << "]";
 		pipesStream << "\n";
-		pipesStream << "[" << 2737 << "," << 321 << "]";
-		pipesStream << "[" << 2767 << "," << 384 << "]";
+		pipesStream << "[" << 2736 << "," << 313 << "]";
+		pipesStream << "[" << 2767 << "," << 376 << "]";
 		pipesStream << "\n";
-		pipesStream << "[" << 3873 << "," << 353 << "]";
-		pipesStream << "[" << 3902 << "," << 383 << "]";
+		pipesStream << "[" << 3872 << "," << 345 << "]";
+		pipesStream << "[" << 3903 << "," << 375 << "]";
 		pipesStream << "\n";
-		pipesStream << "[" << 4049 << "," << 337 << "]";
-		pipesStream << "[" << 4078 << "," << 383 << "]";
+		pipesStream << "[" << 4048 << "," << 329 << "]";
+		pipesStream << "[" << 4079 << "," << 375 << "]";
 		pipesStream << "\n";
-		pipesStream << "[" << 4321 << "," << 353 << "]";
-		pipesStream << "[" << 4350 << "," << 383 << "]";
+		pipesStream << "[" << 4320 << "," << 345 << "]";
+		pipesStream << "[" << 4351 << "," << 375 << "]";
 		pipesStream << "\n";
-		pipesStream << "[" << 4369 << "," << 337 << "]";
-		pipesStream << "[" << 4398 << "," << 383 << "]";
+		pipesStream << "[" << 4368 << "," << 329 << "]";
+		pipesStream << "[" << 4399 << "," << 375 << "]";
 
 		itemsStream << "[" << 609 << "," << 320 << "]";
 		itemsStream << int(Item::TYPE::PRIZE_BLOCK) << "\n";
@@ -227,20 +227,32 @@ LevelData* LevelData::GenerateLevel(int levelIndex)
 		itemsStream << int(Item::TYPE::MESSAGE_BLOCK) << " ";
 		itemsStream << "Resources/levels/01/message_box_01.png" << "\n";
 
-		itemsStream << "[" << 1240 << "," << 320 << "]";
+		itemsStream << "[" << 1234 << "," << 320 << "]";
 		itemsStream << int(Item::TYPE::COIN) << "\n";
-		itemsStream << "[" << 1250 << "," << 300 << "]";
+		itemsStream << "[" << 1250 << "," << 306 << "]";
 		itemsStream << int(Item::TYPE::COIN) << "\n";
-		itemsStream << "[" << 1266 << "," << 280 << "]";
+		itemsStream << "[" << 1268 << "," << 298 << "]";
 		itemsStream << int(Item::TYPE::DRAGON_COIN) << "\n";
-		itemsStream << "[" << 1288 << "," << 300 << "]";
+		itemsStream << "[" << 1285 << "," << 306 << "]";
 		itemsStream << int(Item::TYPE::COIN) << "\n";
-		itemsStream << "[" << 1302 << "," << 320 << "]";
+		itemsStream << "[" << 1300 << "," << 320 << "]";
 		itemsStream << int(Item::TYPE::COIN) << "\n";
+
+		itemsStream << "[" << 1727 << "," << 280 << "]";
+		itemsStream << int(Item::TYPE::DRAGON_COIN) << "\n";
 
 		itemsStream << "[" << 2511 << "," << 336 << "]";
 		itemsStream << int(Item::TYPE::MESSAGE_BLOCK) << " ";
 		itemsStream << "Resources/levels/01/message_box_02.png" << "\n";
+
+		itemsStream << "[" << 2285 << "," << 256 << "]";
+		itemsStream << int(Item::TYPE::COIN) << "\n";
+		itemsStream << "[" << 2300 << "," << 240 << "]";
+		itemsStream << int(Item::TYPE::COIN) << "\n";
+		itemsStream << "[" << 2315 << "," << 240 << "]";
+		itemsStream << int(Item::TYPE::COIN) << "\n";
+		itemsStream << "[" << 2330 << "," << 233 << "]";
+		itemsStream << int(Item::TYPE::DRAGON_COIN) << "\n";
 
 		itemsStream << "[" << 2850 << "," << 336 << "]";
 		itemsStream << int(Item::TYPE::PRIZE_BLOCK) << "\n";
@@ -253,6 +265,15 @@ LevelData* LevelData::GenerateLevel(int levelIndex)
 		itemsStream << int(Item::TYPE::ROTATING_BLOCK) << "\n";
 		itemsStream << "[" << 3201 << "," << 257 << "]";
 		itemsStream << int(Item::TYPE::ROTATING_BLOCK) << "\n";
+
+		itemsStream << "[" << 3439 << "," << 240 << "]";
+		itemsStream << int(Item::TYPE::COIN) << "\n";
+		itemsStream << "[" << 3454 << "," << 240 << "]";
+		itemsStream << int(Item::TYPE::COIN) << "\n";
+		itemsStream << "[" << 3470 << "," << 240 << "]";
+		itemsStream << int(Item::TYPE::COIN) << "\n";
+		itemsStream << "[" << 3501 << "," << 227 << "]";
+		itemsStream << int(Item::TYPE::DRAGON_COIN) << "\n";
 
 		itemsStream << "[" << 3575 << "," << 288 << "]";
 		itemsStream << int(Item::TYPE::EXCLAMATION_MARK_BLOCK) << "\n";
@@ -279,6 +300,41 @@ LevelData* LevelData::GenerateLevel(int levelIndex)
 		itemsStream << int(Item::TYPE::ROTATING_BLOCK) << "\n";
 		itemsStream << "[" << 4530 << "," << 289 << "]";
 		itemsStream << int(Item::TYPE::ROTATING_BLOCK) << "\n";
+
+		int coin_xo = 15;
+		int coin_yo = -15;
+		int x = 4556;
+		int y = 330;
+		itemsStream << "[" << x << "," << y << "]";
+		itemsStream << int(Item::TYPE::COIN) << "\n";
+		itemsStream << "[" << x + coin_xo * 1 << "," << y + coin_yo * 1 << "]";
+		itemsStream << int(Item::TYPE::COIN) << "\n";
+		itemsStream << "[" << x + coin_xo * 2 << "," << y + coin_yo * 2 << "]";
+		itemsStream << int(Item::TYPE::COIN) << "\n";
+		itemsStream << "[" << x + coin_xo * 3 << "," << y + coin_yo * 3 << "]";
+		itemsStream << int(Item::TYPE::COIN) << "\n";
+		y += coin_yo * 3;
+		itemsStream << "[" << x + coin_xo * 4 << "," << y << "]";
+		itemsStream << int(Item::TYPE::COIN) << "\n";
+		itemsStream << "[" << x + coin_xo * 5 << "," << y << "]";
+		itemsStream << int(Item::TYPE::COIN) << "\n";
+		itemsStream << "[" << x + coin_xo * 6 << "," << y << "]";
+		itemsStream << int(Item::TYPE::COIN) << "\n";
+		itemsStream << "[" << x + coin_xo * 7 << "," << y << "]";
+		itemsStream << int(Item::TYPE::COIN) << "\n";
+		itemsStream << "[" << x + coin_xo * 8 << "," << y << "]";
+		itemsStream << int(Item::TYPE::COIN) << "\n";
+		itemsStream << "[" << x + coin_xo * 9 << "," << y << "]";
+		itemsStream << int(Item::TYPE::COIN) << "\n";
+		itemsStream << "[" << x + coin_xo * 10 << "," << y << "]";
+		itemsStream << int(Item::TYPE::COIN) << "\n";
+		itemsStream << "[" << x + coin_xo * 11 << "," << y << "]";
+		itemsStream << int(Item::TYPE::COIN) << "\n";
+		itemsStream << "[" << x + coin_xo * 12 << "," << y << "]";
+		itemsStream << int(Item::TYPE::COIN) << "\n";
+		itemsStream << "[" << x + coin_xo * 13 << "," << y << "]";
+		itemsStream << int(Item::TYPE::COIN) << "\n";
+
 
 	} break;
 	default:

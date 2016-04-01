@@ -13,8 +13,7 @@
 #include "SpriteSheetManager.h"
 #include "LevelData.h"
 
-Font* Game::Font16Ptr = nullptr;
-Font* Game::Font24Ptr = nullptr;
+Font* Game::Font12Ptr = nullptr;
 
 // Not actually what this matrix will contain, unless Game::WINDOW_SCALE is set to 1
 MATRIX3X2 Game::matIdentity = MATRIX3X2::CreateIdentityMatrix();
@@ -38,6 +37,15 @@ void Game::GameInitialize(GameSettings &gameSettingsRef)
 	gameSettingsRef.EnableAntiAliasing(false);
 
 	gameSettingsRef.EnableVSync(true);
+
+	// TODO: find out how to customize the icon in the menu bar
+	//WORD wIcon;
+
+	// NOTE: This line makes the sprites render without an ugly 
+	// black line around the edges, BUT the original game seems
+	// to have used some amount of blurring, so this does make it 
+	// look a little too crisp.
+	GAME_ENGINE->SetBitmapInterpolationModeNearestNeighbor();
 }
 
 void Game::GameStart()
@@ -45,8 +53,7 @@ void Game::GameStart()
 	SpriteSheetManager::Load();
 
 	// TODO: Add mario fonts
-	Game::Font16Ptr = new Font(String("consolas"), 16);
-	Game::Font24Ptr = new Font(String("consolas"), 24);
+	Game::Font12Ptr = new Font(String("consolas"), 12);
 
 	matIdentity = MATRIX3X2::CreateScalingMatrix(WINDOW_SCALE);
 
@@ -63,8 +70,7 @@ void Game::GameEnd()
 {
 	delete m_LevelPtr;
 
-	delete Font16Ptr;
-	delete Font24Ptr;
+	delete Font12Ptr;
 
 	WriteSessionInfoToFile();
 
@@ -125,6 +131,7 @@ void Game::GamePaint()
 		int x = Game::WIDTH - 107;
 		int y = 40;
 	
+		GAME_ENGINE->SetFont(Font12Ptr);
 		GAME_ENGINE->SetColor(COLOR(10, 10, 10, 160));
 		GAME_ENGINE->FillRect(x - 5, y - 5, x + 106, y + 140);
 

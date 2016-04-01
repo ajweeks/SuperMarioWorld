@@ -22,7 +22,7 @@
 #define GAME_ENGINE (GameEngine::GetSingleton())
 
 #define SMW_ENABLE_JUMP_TO true
-#define SMW_JUMP_TO_POS_X 4500
+#define SMW_JUMP_TO_POS_X 4642
 
 class Game : public AbstractGame
 {
@@ -41,8 +41,7 @@ public:
 	virtual void GameTick(double deltaTime);
 	virtual void GamePaint();
 
-	static Font *Font16Ptr;
-	static Font *Font24Ptr;
+	static Font *Font12Ptr;
 
 	// How many pixels we have to work with, not how large the final window will be necessarily
 	static const int WIDTH = 256;

@@ -84,6 +84,8 @@ Coin::Coin(DOUBLE2 topLeft, int life, TYPE type, DOUBLE2 size) :
 	m_ActPtr->SetFixedRotation(true);
 	m_ActPtr->SetSensor(true);
 
+	m_AnimInfo.msPerFrame = 0.15;
+
 	if (life > -1)
 	{
 		// This coin shoots up, then falls down, then disapears
