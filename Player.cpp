@@ -27,7 +27,7 @@ Player::~Player()
 
 void Player::Reset()
 {
-	m_ActPtr->SetPosition(DOUBLE2(30, 367));
+	m_ActPtr->SetPosition(DOUBLE2(30, 366.6));
 	m_ActPtr->SetLinearVelocity(DOUBLE2(0, 0));
 
 	m_IsOnGround = false;
@@ -122,11 +122,12 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 		m_FramesSpentInAir++;
 
 		// NOTE: The player is still rising and can hold down the jump key to jump higher
-		if (m_ActPtr->GetLinearVelocity().y <= 0.01)
+		if (m_ActPtr->GetLinearVelocity().y < -100.0)
 		{
 			if (GAME_ENGINE->IsKeyboardKeyDown('Z') ||
 				GAME_ENGINE->IsKeyboardKeyDown('X'))
 			{
+				OutputDebugString(m_ActPtr->GetLinearVelocity().ToString() + String("\n"));
 				// NOTE: gravityScale is close to 1 at the start of the jump
 				// and goes towards 0 near the apex
 				double gravityScale = (m_FramesSpentInAir / 12.0) * 0.5;
@@ -143,6 +144,7 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 		}
 		else
 		{
+			m_ActPtr->SetGravityScale(0.98);
 			m_AnimationState = ANIMATION_STATE::FALLING;
 		}
 	}
@@ -551,6 +553,11 @@ int Player::GetHeight()
 DOUBLE2 Player::GetLinearVelocity()
 {
 	return m_ActPtr->GetLinearVelocity();
+}
+
+void Player::SetLinearVelocity(const DOUBLE2& newLinearVelRef)
+{
+	m_ActPtr->SetLinearVelocity(newLinearVelRef);
 }
 
 void Player::TogglePaused(bool paused)

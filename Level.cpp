@@ -158,9 +158,9 @@ void Level::Paint()
 #if 1
 	GAME_ENGINE->SetColor(COLOR(0, 0, 0));
 	GAME_ENGINE->SetFont(Game::Font12Ptr);
-	//GAME_ENGINE->DrawString(String("Player pos: ") + m_PlayerPtr->GetPosition().ToString(), 10, 10);
-	//GAME_ENGINE->DrawString(String("Player vel: ") + m_PlayerPtr->GetLinearVelocity().ToString(), 10, 25);
-	GAME_ENGINE->DrawString(String("onGround: ") + String(m_PlayerPtr->IsOnGround() ? "true" : "false"), 10, 205);
+	GAME_ENGINE->DrawString(String("pos: ") + m_PlayerPtr->GetPosition().ToString(), 10, 193);
+	GAME_ENGINE->DrawString(String("vel: ") + m_PlayerPtr->GetLinearVelocity().ToString(), 10, 203);
+	GAME_ENGINE->DrawString(String("onGround: ") + String(m_PlayerPtr->IsOnGround() ? "true" : "false"), 10, 213);
 #endif
 
 	GAME_ENGINE->SetViewMatrix(matTotalView);
@@ -384,14 +384,13 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 	{
 	case int(ActorId::PLAYER):
 	{
-		bool rising = actOtherPtr->GetLinearVelocity().y < 0;
-		bool belowThis = (actOtherPtr->GetPosition().y + Player::HEIGHT / 2) > actThisPtr->GetPosition().y;
+		bool rising = actOtherPtr->GetLinearVelocity().y < -0.001;
 
 		switch (actThisPtr->GetUserData())
 		{
 		case int(ActorId::PLATFORM):
 		{
-			if (rising || belowThis)
+			if (rising)
 			{
 				enableContactRef = false;
 			}
@@ -403,10 +402,6 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 			{
 				actOtherPtr->SetLinearVelocity(DOUBLE2(0, actOtherPtr->GetLinearVelocity().y));
 				enableContactRef = false;
-			}
-			else
-			{
-
 			}
 		} break;
 		}
@@ -439,13 +434,14 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 {
 	if (actOtherPtr->GetUserData() == int(ActorId::PLAYER))
 	{
-		bool playerIsRising = actOtherPtr->GetLinearVelocity().y < 0.0;
-		bool playerIsBelow = actOtherPtr->GetPosition().y > (actThisPtr->GetPosition().y + Block::WIDTH / 2);
+		bool playerIsRising = actOtherPtr->GetLinearVelocity().y < -0.001;
+		bool playerIsBelow = actOtherPtr->GetPosition().y >(actThisPtr->GetPosition().y + Block::HEIGHT / 2);
+		bool playerIsAbove = actOtherPtr->GetPosition().y < (actThisPtr->GetPosition().y - Block::HEIGHT / 2);
+		DOUBLE2 playerFeet = DOUBLE2(actOtherPtr->GetPosition().x, actOtherPtr->GetPosition().y + Player::HEIGHT / 2 + 6);
 
 		switch (actThisPtr->GetUserData()) 
 		{
 		case int(ActorId::PLATFORM):
-		case int(ActorId::PIPE):
 		{
 			if (actOtherPtr->GetPosition().y < actThisPtr->GetPosition().y)
 			{
@@ -453,7 +449,9 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			}
 		} break;
 		case int(ActorId::LEVEL):
+		case int(ActorId::PIPE):
 		{
+			// TODO: Prevent player from jumping when running sideways into a vertical section of the level
 			m_IsPlayerOnGround = true;
 		} break;
 		case int(ActorId::ITEM):
@@ -479,6 +477,11 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 				if (playerIsRising && playerIsBelow)
 				{
 					m_NewCoinPos = ((PrizeBlock*)item)->Hit();
+					m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetLinearVelocity().x, 0.0));
+				}
+				else if (playerIsAbove)
+				{
+					m_IsPlayerOnGround = true;
 				}
 			} break;
 			case Item::TYPE::ROTATING_BLOCK:
@@ -486,6 +489,12 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 				if (playerIsRising && playerIsBelow)
 				{
 					((RotatingBlock*)item)->Hit();
+					// NOTE: This line prevents the player from slowly floating down after hitting a block
+					m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetLinearVelocity().x, 0.0));
+				}
+				else if (playerIsAbove)
+				{
+					m_IsPlayerOnGround = true;
 				}
 			} break;
 			case Item::TYPE::MESSAGE_BLOCK:
@@ -493,7 +502,12 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 				if (playerIsRising && playerIsBelow)
 				{
 					((MessageBlock*)item)->Hit();
+					m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetLinearVelocity().x, 0.0));
 					m_Paused = true;
+				}
+				else if (playerIsAbove)
+				{
+					m_IsPlayerOnGround = true;
 				}
 			} break;
 			}
@@ -504,9 +518,14 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 
 void Level::EndContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 {
+	bool isOverlapping = actThisPtr->IsOverlapping(actOtherPtr);
 	if (actOtherPtr->GetUserData() == int(ActorId::PLAYER))
 	{
-		m_IsPlayerOnGround = false;
+		//if (abs(actOtherPtr->GetLinearVelocity().y) > 0.01)
+		if (!isOverlapping)
+		{
+			m_IsPlayerOnGround = false;
+		}
 	}
 }
 

@@ -48,6 +48,7 @@ public:
 	Item::TYPE GetExtraItemType();
 
 	DOUBLE2 GetLinearVelocity();
+	void SetLinearVelocity(const DOUBLE2& newLinearVelRef);
 	DOUBLE2 GetPosition();
 	FACING_DIRECTION GetDirectionFacing();
 	bool IsOnGround();

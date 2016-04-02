@@ -327,7 +327,7 @@ DOUBLE2 PrizeBlock::Hit()
 		return DOUBLE2(m_ActPtr->GetPosition().x - WIDTH/2, m_ActPtr->GetPosition().y - HEIGHT);
 	}
 
-	// TODO: return a better null value?
+	// TODO: Return a better null value?
 	return DOUBLE2();
 }
 

@@ -47,7 +47,7 @@ public:
 	static const int WIDTH = 256;
 	static const int HEIGHT = 224;
 
-	static const int WINDOW_SCALE = 2;
+	static const int WINDOW_SCALE = 4;
 	// NOTE: Use this matrix as the base for all other matricies,
 	// the hud should be drawn with just this as the view matrix
 	// This matrix will be updated any time the screen size changes
@@ -71,4 +71,6 @@ private:
 	bool m_RenderDebugOverlay;
 
 	Level *m_LevelPtr = nullptr;
+
+	double m_SecondsElapsed = 0.0;
 };
