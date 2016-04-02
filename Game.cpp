@@ -12,6 +12,7 @@
 #include "Game.h"		
 #include "SpriteSheetManager.h"
 #include "LevelData.h"
+#include "SoundManager.h"
 
 Font* Game::Font12Ptr = nullptr;
 
@@ -36,7 +37,8 @@ void Game::GameInitialize(GameSettings &gameSettingsRef)
 	gameSettingsRef.EnableConsole(false);
 	gameSettingsRef.EnableAntiAliasing(false);
 
-	gameSettingsRef.EnableVSync(true);
+	// NOTE: false prevents screen tearing
+	gameSettingsRef.EnableVSync(false);
 
 	// TODO: find out how to customize the icon in the menu bar
 	//WORD wIcon;
@@ -51,6 +53,8 @@ void Game::GameInitialize(GameSettings &gameSettingsRef)
 void Game::GameStart()
 {
 	SpriteSheetManager::Load();
+
+	SoundManager::InitialzeSounds();
 
 	// TODO: Add mario fonts
 	Game::Font12Ptr = new Font(String("consolas"), 12);
@@ -76,6 +80,8 @@ void Game::GameEnd()
 
 	LevelData::Unload();
 	SpriteSheetManager::Unload();
+
+	SoundManager::UnloadSounds();
 }
 
 void Game::GameTick(double deltaTime)

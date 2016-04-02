@@ -9,6 +9,7 @@
 #include "SpriteSheet.h"
 #include "LevelData.h"
 #include "Level.h"
+#include "SoundManager.h"
 
 
 // ___PLATFORM___
@@ -318,6 +319,8 @@ void PrizeBlock::Paint()
 }
 DOUBLE2 PrizeBlock::Hit()
 {
+	SoundManager::PlaySound(SoundManager::blockHitSndPtr);
+
 	if (m_IsUsed == false)
 	{
 		m_IsUsed = true;
@@ -397,6 +400,7 @@ void RotatingBlock::Paint()
 }
 void RotatingBlock::Hit()
 {
+	SoundManager::PlaySound(SoundManager::blockHitSndPtr);
 	m_IsRotating = true;
 }
 bool RotatingBlock::IsRotating()
@@ -445,6 +449,10 @@ bool MessageBlock::Tick(double deltaTime, Level* levelPtr)
 }
 void MessageBlock::Hit()
 {
+	SoundManager::PlaySound(SoundManager::blockHitSndPtr);
+
 	m_IsShowing = true;
 	m_FramesShowing = 0;
+
+	// LATER: Play additional sound here
 }

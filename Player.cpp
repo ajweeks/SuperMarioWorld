@@ -5,6 +5,7 @@
 #include "Enumerations.h"
 #include "SpriteSheetManager.h"
 #include "Entity.h"
+#include "SoundManager.h"
 
 #define ENTITY_MANAGER (EntityManager::GetInstance())
 
@@ -102,6 +103,7 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 		{
 			m_AnimationState = ANIMATION_STATE::JUMPING;
 			m_IsOnGround = false;
+			SoundManager::PlaySound(SoundManager::playerJumpSndPtr);
 			m_ActPtr->SetLinearVelocity(DOUBLE2(m_ActPtr->GetLinearVelocity().x, jumpVelocity * deltaTime));
 			m_FramesSpentInAir = 0;
 		}
@@ -109,6 +111,7 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 		{
 			m_AnimationState = ANIMATION_STATE::SPIN_JUMPING;
 			m_IsOnGround = false;
+			SoundManager::PlaySound(SoundManager::playerSpinJumpSndPtr);
 			m_ActPtr->SetLinearVelocity(DOUBLE2(m_ActPtr->GetLinearVelocity().x, jumpVelocity * deltaTime));
 			m_FramesSpentInAir = 0;
 		}
@@ -453,6 +456,11 @@ void Player::ChangePowerupState(POWERUP_STATE newPowerupState, bool isUpgrade)
 void Player::AddCoin(bool playSound)
 {
 	m_Coins++;
+
+	if (playSound)
+	{
+		SoundManager::PlaySound(SoundManager::coinCollectSndPtr);
+	}
 	
 	if (m_Coins > 99)
 	{
@@ -467,7 +475,7 @@ void Player::AddDragonCoin()
 	AddCoin(false);
 	m_DragonCoins++;
 
-	// LATER:: Play sound here
+	SoundManager::PlaySound(SoundManager::dragonCoinCollectSndPtr);
 
 	if (m_DragonCoins >= 5)
 	{
