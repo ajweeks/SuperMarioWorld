@@ -10,11 +10,6 @@ enum class FACING_DIRECTION
 	LEFT, RIGHT
 };
 
-enum class LOOKING_DIRECTION
-{
-	UP, MIDDLE, DOWN
-};
-
 struct ANIMATION_INFO
 {
 	double msThisFrame = 0.0;

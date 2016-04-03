@@ -29,8 +29,6 @@ public:
 
 	bool IsPlayerOnGround();
 
-	//bool IsPaused();
-
 private:
 	void PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool & enableContactRef);
 	void BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr);
@@ -48,7 +46,7 @@ private:
 	void ReadLevelData(int levelIndex);
 	LevelData* m_LevelDataPtr = nullptr;
 
-	void TogglePaused(bool paused);
+	void TogglePaused();
 
 	DOUBLE2 m_NewCoinPos = DOUBLE2();
 	Item* m_ItemToBeRemoved = nullptr;
@@ -69,7 +67,7 @@ private:
 	// How many pixels high the foreground of the level is
 	double m_Height;
 
-	// TODO(AJ): Rename this to Mario? What about Luigi? Add player 2?
+	// TODO: Rename this to Mario? What about Luigi? Add player 2?
 	Player *m_PlayerPtr = nullptr;
 	bool m_IsPlayerOnGround = false;
 

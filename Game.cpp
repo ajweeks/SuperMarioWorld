@@ -55,6 +55,7 @@ void Game::GameStart()
 	SpriteSheetManager::Load();
 
 	SoundManager::InitialzeSounds();
+	SoundManager::SetMuted(false);
 
 	// TODO: Add mario fonts
 	Game::Font12Ptr = new Font(String("consolas"), 12);
@@ -66,6 +67,7 @@ void Game::GameStart()
 	m_AllSessionInfo = ReadSessionInfoFromFile();
 	m_TotalSessionsWithInfo = GetNumberOfSessions(m_AllSessionInfo);
 	m_CurrentSessionInfo = GetReadableSessionInfo(m_CurrentSessionInfoShowingIndex);
+
 
 	GetSystemTime(&m_StartTime);
 }
@@ -92,6 +94,11 @@ void Game::GameTick(double deltaTime)
 	{
 		m_RenderDebugOverlay = !m_RenderDebugOverlay;
 		GAME_ENGINE->EnablePhysicsDebugRendering(m_RenderDebugOverlay);
+	}
+
+	if (GAME_ENGINE->IsKeyboardKeyPressed('M'))
+	{
+		SoundManager::ToggleMuted();
 	}
 
 	if (GAME_ENGINE->IsKeyboardKeyPressed('R'))

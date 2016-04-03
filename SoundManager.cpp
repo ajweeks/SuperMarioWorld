@@ -1,15 +1,11 @@
 #include "stdafx.h"
 #include "SoundManager.h"
 
-FmodSound* SoundManager::playerJumpSndPtr = nullptr;
-FmodSound* SoundManager::playerSpinJumpSndPtr = nullptr;
+FmodSound* SoundManager::sounds[];
+FmodSound* SoundManager::songs[];
 
-FmodSound* SoundManager::coinCollectSndPtr = nullptr;
-FmodSound* SoundManager::dragonCoinCollectSndPtr = nullptr;
-
-FmodSound* SoundManager::blockHitSndPtr = nullptr;
-
-FmodSound* SoundManager::superMushroomSpawnSndPtr = nullptr;
+bool SoundManager::muted = false;
+double SoundManager::globalVolumeLevel = 1.0;
 
 SoundManager::SoundManager()
 {
@@ -21,39 +17,95 @@ SoundManager::~SoundManager()
 
 void SoundManager::InitialzeSounds()
 {
-	playerJumpSndPtr = new FmodSound();
-	playerJumpSndPtr->CreateSound(String("Resources/sound/player-jump.wav"));
+	songs[int(SONG::OVERWORLD_BGM)] = new FmodSound();
+	songs[int(SONG::OVERWORLD_BGM)]->CreateStream(String("Resources/sound/music/overworld-bgm.wav"), true);
 
-	playerSpinJumpSndPtr = new FmodSound();
-	playerSpinJumpSndPtr->CreateSound(String("Resources/sound/player-spin-jump.wav"));
+	songs[int(SONG::OVERWORLD_BGM_FAST)] = new FmodSound();
+	songs[int(SONG::OVERWORLD_BGM_FAST)]->CreateStream(String("Resources/sound/music/overworld-bgm-fast.wav"), true);
 
-	coinCollectSndPtr = new FmodSound();
-	coinCollectSndPtr->CreateSound(String("Resources/sound/coin-collect.wav"));
+	sounds[int(SOUND::GAME_PAUSE)] = new FmodSound();
+	sounds[int(SOUND::GAME_PAUSE)]->CreateSound(String("Resources/sound/game-pause.wav"));
 
-	dragonCoinCollectSndPtr = new FmodSound();
-	dragonCoinCollectSndPtr->CreateSound(String("Resources/sound/dragon-coin-collect.wav"));
+	sounds[int(SOUND::PLAYER_JUMP)] = new FmodSound();
+	sounds[int(SOUND::PLAYER_JUMP)]->CreateSound(String("Resources/sound/player-jump.wav"));
 
-	blockHitSndPtr = new FmodSound();
-	blockHitSndPtr->CreateSound(String("Resources/sound/block-hit.wav"));
+	sounds[int(SOUND::PLAYER_SPIN_JUMP)] = new FmodSound();
+	sounds[int(SOUND::PLAYER_SPIN_JUMP)]->CreateSound(String("Resources/sound/player-spin-jump.wav"));
 
-	superMushroomSpawnSndPtr = new FmodSound();
-	superMushroomSpawnSndPtr->CreateSound(String("Resources/sound/super-mushroom-spawn.wav"));
+	sounds[int(SOUND::COIN_COLLECT)] = new FmodSound();
+	sounds[int(SOUND::COIN_COLLECT)]->CreateSound(String("Resources/sound/coin-collect.wav"));
 
+	sounds[int(SOUND::DRAGON_COIN_COLLECT)] = new FmodSound();
+	sounds[int(SOUND::DRAGON_COIN_COLLECT)]->CreateSound(String("Resources/sound/dragon-coin-collect.wav"));
+
+	sounds[int(SOUND::BLOCK_HIT)] = new FmodSound();
+	sounds[int(SOUND::BLOCK_HIT)]->CreateSound(String("Resources/sound/block-hit.wav"));
+
+	sounds[int(SOUND::SUPER_MUSHROOM_SPAWN)] = new FmodSound();
+	sounds[int(SOUND::SUPER_MUSHROOM_SPAWN)]->CreateSound(String("Resources/sound/super-mushroom-spawn.wav"));
 }
 
 void SoundManager::UnloadSounds()
 {
 	// TODO: Find out if we should be stopping the sounds before we delete them
-	delete playerJumpSndPtr;
-	delete playerSpinJumpSndPtr;
-	delete coinCollectSndPtr;
-	delete dragonCoinCollectSndPtr;
-	delete blockHitSndPtr;
-	delete superMushroomSpawnSndPtr;
+	for (int i = 0; i < int(SONG::LAST_ELEMENT); ++i)
+	{
+		delete songs[i];
+	}
+	for (int i = 0; i < int(SOUND::LAST_ELEMENT); ++i)
+	{
+		delete sounds[i];
+	}
 }
 
-void SoundManager::PlaySound(FmodSound* sound)
+void SoundManager::PlaySound(SOUND sound)
 {
-	//sound->SetPosition(0);
-	sound->Play();
+	if (muted) return;
+
+	sounds[int(sound)]->Play();
+}
+
+void SoundManager::SetSoundPaused(SOUND sound, bool paused)
+{
+	sounds[int(sound)]->SetPaused(paused);
+}
+
+void SoundManager::PlaySong(SONG song)
+{
+	if (muted) return;
+
+	songs[int(song)]->Play();
+}
+
+void SoundManager::SetSongPaused(SONG song, bool paused)
+{
+	songs[int(song)]->SetPaused(paused);
+}
+
+void SoundManager::SetVolume(double volume)
+{
+	globalVolumeLevel = volume;
+
+	for (int i = 0; i < int(SONG::LAST_ELEMENT) - 1; ++i)
+	{
+		songs[i]->SetVolume(globalVolumeLevel);
+	}
+	for (int i = 0; i < int(SOUND::LAST_ELEMENT) - 1; ++i)
+	{
+		sounds[i]->SetVolume(globalVolumeLevel);
+	}
+}
+
+void SoundManager::SetMuted(bool soundMuted)
+{
+	if (muted == soundMuted) return;
+
+	muted = soundMuted;
+	if (muted) SetVolume(0.0);
+	else SetVolume(1.0);
+}
+
+void SoundManager::ToggleMuted()
+{
+	SetMuted(!muted);
 }

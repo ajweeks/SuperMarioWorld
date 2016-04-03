@@ -55,7 +55,7 @@ MATRIX3X2 Camera::GetViewMatrix(Player* playerPtr, Level* levelPtr)
 	}
 
 	double epsilon = 0.001;
-	double panSpeed = 8;
+	double panSpeed = 0.25;
 	double difference = abs(m_PrevTranslation.x - m_TargetOffset.x);
 	if (difference < panSpeed)
 	{

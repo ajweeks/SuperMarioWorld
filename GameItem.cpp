@@ -319,7 +319,7 @@ void PrizeBlock::Paint()
 }
 DOUBLE2 PrizeBlock::Hit()
 {
-	SoundManager::PlaySound(SoundManager::blockHitSndPtr);
+	SoundManager::PlaySound(SoundManager::SOUND::BLOCK_HIT);
 
 	if (m_IsUsed == false)
 	{
@@ -400,7 +400,7 @@ void RotatingBlock::Paint()
 }
 void RotatingBlock::Hit()
 {
-	SoundManager::PlaySound(SoundManager::blockHitSndPtr);
+	SoundManager::PlaySound(SoundManager::SOUND::BLOCK_HIT);
 	m_IsRotating = true;
 }
 bool RotatingBlock::IsRotating()
@@ -449,7 +449,7 @@ bool MessageBlock::Tick(double deltaTime, Level* levelPtr)
 }
 void MessageBlock::Hit()
 {
-	SoundManager::PlaySound(SoundManager::blockHitSndPtr);
+	SoundManager::PlaySound(SoundManager::SOUND::BLOCK_HIT);
 
 	m_IsShowing = true;
 	m_FramesShowing = 0;

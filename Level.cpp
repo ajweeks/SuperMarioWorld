@@ -5,6 +5,7 @@
 #include "Camera.h"
 #include "LevelData.h"
 #include "SpriteSheetManager.h"
+#include "SoundManager.h"
 
 #define GAME_ENGINE (GameEngine::GetSingleton())
 
@@ -28,6 +29,8 @@ Level::Level()
 	Reset();
 
 	ReadLevelData(1);
+
+	SoundManager::PlaySong(SoundManager::SONG::OVERWORLD_BGM);
 }
 
 Level::~Level()
@@ -75,14 +78,16 @@ void Level::Tick(double deltaTime)
 {
 	if (m_Paused != m_WasPaused)
 	{
-		TogglePaused(m_Paused);
+		// NOTE: m_Paused was used as a flag, now we need to set it back to m_WasPaused
+		// so that TogglePaused() can set it back to m_Paused. Perhaps a little convoluted...
+		m_Paused = m_WasPaused;
+		TogglePaused();
 	}
 
 	if (GAME_ENGINE->IsKeyboardKeyPressed(' '))
 	{
-		m_Paused = !m_Paused;
-		// TODO: Find a better way to pause the world
-		TogglePaused(m_Paused);
+		TogglePaused();
+		m_WasPaused = m_Paused;
 	}
 	if (m_Paused) return;
 
@@ -529,10 +534,18 @@ void Level::EndContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 	}
 }
 
-void Level::TogglePaused(bool paused)
+void Level::TogglePaused()
 {
-	m_PlayerPtr->TogglePaused(paused);
-	m_LevelDataPtr->TogglePaused(paused);
+	m_Paused = !m_Paused;
+	// TODO: Find a better way to pause the world
+	m_PlayerPtr->TogglePaused(m_Paused);
+	m_LevelDataPtr->TogglePaused(m_Paused);
+
+	SoundManager::PlaySound(SoundManager::SOUND::GAME_PAUSE);
+
+	// LATER: Figure out how to pause the music only once the game pause sound is done playing
+	// (if only we had callbacks...)
+	SoundManager::SetSongPaused(SoundManager::SONG::OVERWORLD_BGM, m_Paused);
 }
 
 double Level::GetWidth()
@@ -544,8 +557,3 @@ double Level::GetHeight()
 {
 	return m_Height;
 }
-
-//bool Level::IsPaused()
-//{
-//	return m_Paused;
-//}
