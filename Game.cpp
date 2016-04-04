@@ -55,7 +55,7 @@ void Game::GameStart()
 	SpriteSheetManager::Load();
 
 	SoundManager::InitialzeSounds();
-	SoundManager::SetMuted(false);
+	SoundManager::SetMuted(true);
 
 	// TODO: Add mario fonts
 	Game::Font12Ptr = new Font(String("consolas"), 12);
@@ -101,6 +101,7 @@ void Game::GameTick(double deltaTime)
 
 	if (GAME_ENGINE->IsKeyboardKeyPressed('P'))
 	{
+		// TODO: Find out why the game is so laggy when physics debug overlay is rendering
 		m_RenderDebugOverlay = !m_RenderDebugOverlay;
 		GAME_ENGINE->EnablePhysicsDebugRendering(m_RenderDebugOverlay);
 	}

@@ -204,12 +204,16 @@ void ThreeUpMoon::Paint()
 	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
 }
 // ___SUPER MUSHROOM___
-SuperMushroom::SuperMushroom(DOUBLE2 topLeft) :
-	Item(topLeft, TYPE::SUPER_MUSHROOM)
+SuperMushroom::SuperMushroom(DOUBLE2 topLeft, int horizontalDir) :
+	Item(topLeft, TYPE::SUPER_MUSHROOM, BodyType::DYNAMIC)
 {
+	assert(horizontalDir == 1 || horizontalDir == -1);
+
+	m_ActPtr->SetLinearVelocity(DOUBLE2(m_HorizontalSpeed * horizontalDir, 0));
 }
 bool SuperMushroom::Tick(double deltaTime, Level* levelPtr)
 {
+	m_ActPtr->SetLinearVelocity(DOUBLE2(m_HorizontalSpeed, m_ActPtr->GetLinearVelocity().y));
 	return false;
 }
 void SuperMushroom::Paint()
@@ -275,6 +279,14 @@ PrizeBlock::PrizeBlock(DOUBLE2 topLeft) :
 }
 bool PrizeBlock::Tick(double deltaTime, Level* levelPtr)
 {
+	if (m_ShouldSpawnCoin)
+	{
+		Item* newItem = new Coin(DOUBLE2(m_ActPtr->GetPosition().x - WIDTH / 2, m_ActPtr->GetPosition().y - HEIGHT), 15);
+		levelPtr->AddItem(newItem);
+
+		m_ShouldSpawnCoin = false;
+	}
+
 	if (m_CurrentFrameOfBumpAnimation > -1)
 	{
 		// NOTE: I *think* what happens during the bump animation is
@@ -317,7 +329,7 @@ void PrizeBlock::Paint()
 	double top = m_ActPtr->GetPosition().y + m_yo * 3;
 	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
 }
-DOUBLE2 PrizeBlock::Hit()
+void PrizeBlock::Hit()
 {
 	SoundManager::PlaySound(SoundManager::SOUND::BLOCK_HIT);
 
@@ -327,11 +339,8 @@ DOUBLE2 PrizeBlock::Hit()
 		m_CurrentFrameOfBumpAnimation = 2;
 		m_yo = 0;
 
-		return DOUBLE2(m_ActPtr->GetPosition().x - WIDTH/2, m_ActPtr->GetPosition().y - HEIGHT);
+		m_ShouldSpawnCoin = true;
 	}
-
-	// TODO: Return a better null value?
-	return DOUBLE2();
 }
 
 // ___EXCLAMATION MARK BLOCK___
@@ -343,6 +352,37 @@ ExclamationMarkBlock::ExclamationMarkBlock(DOUBLE2 topLeft, COLOUR colour, bool 
 }
 bool ExclamationMarkBlock::Tick(double deltaTime, Level* levelPtr)
 {
+	if (m_ShouldSpawnSuperMushroom)
+	{
+		Item* newItem = new SuperMushroom(m_ActPtr->GetPosition() - DOUBLE2(WIDTH/2, 1.5*HEIGHT));
+		newItem->AddContactListener(levelPtr);
+		levelPtr->AddItem(newItem);
+
+		m_ShouldSpawnSuperMushroom = false;
+	}
+
+	if (m_CurrentFrameOfBumpAnimation > -1)
+	{
+		// NOTE: I *think* what happens during the bump animation is
+		//		 the block renders the normal question mark (not spinning)
+		//       and moves up then down around 3 or 5 pixels.
+		//		 Then the block is "used" and renders the brown used block texture
+
+		m_yo = m_CurrentFrameOfBumpAnimation;
+		if (m_yo > m_FramesOfBumpAnimation / 2)
+		{
+			m_yo = (m_FramesOfBumpAnimation / 2) - (m_yo - (m_FramesOfBumpAnimation / 2));
+		}
+		m_yo = int(m_yo * -0.5);
+
+		m_CurrentFrameOfBumpAnimation++;
+		if (m_CurrentFrameOfBumpAnimation > m_FramesOfBumpAnimation)
+		{
+			m_CurrentFrameOfBumpAnimation = -1;
+			m_yo = 0;
+		}
+	}
+
 	return false;
 }
 void ExclamationMarkBlock::Paint()
@@ -353,9 +393,15 @@ void ExclamationMarkBlock::Paint()
 	{
 		srcRow -= 1;
 	}
+
+	if (m_IsUsed)
+	{
+		srcRow = 4;
+		srcCol = 4;
+	}
 	
 	double left = m_ActPtr->GetPosition().x;
-	double top = m_ActPtr->GetPosition().y;
+	double top = m_ActPtr->GetPosition().y + m_yo * 3;
 	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
 }
 void ExclamationMarkBlock::SetSolid(bool solid)
@@ -363,7 +409,19 @@ void ExclamationMarkBlock::SetSolid(bool solid)
 	m_IsSolid = solid;
 	m_ActPtr->SetSensor(!solid);
 }
+void ExclamationMarkBlock::Hit()
+{
+	SoundManager::PlaySound(SoundManager::SOUND::BLOCK_HIT);
 
+	if (m_IsUsed == false)
+	{
+		m_IsUsed = true;
+		m_CurrentFrameOfBumpAnimation = 2;
+		m_yo = 0;
+
+		m_ShouldSpawnSuperMushroom = true;
+	}
+}
 
 // ___ROTATING BLOCK___
 RotatingBlock::RotatingBlock(DOUBLE2 topLeft) :

@@ -58,7 +58,8 @@ LevelData::LevelData(String platforms, String pipes, String items)
 		} break;
 		case int(Item::TYPE::EXCLAMATION_MARK_BLOCK):
 		{
-			m_ItemsPtrArr.push_back(new ExclamationMarkBlock(topLeft, COLOUR::YELLOW, false));
+			// LATER: Check if the yellow p-switch has been pressed to determine if ! blocks are solid or not
+			m_ItemsPtrArr.push_back(new ExclamationMarkBlock(topLeft, COLOUR::YELLOW, true));
 		} break;
 		case int(Item::TYPE::COIN):
 		{
@@ -211,16 +212,16 @@ LevelData* LevelData::GenerateLevel(int levelIndex)
 		pipesStream << "[" << 4368 << "," << 329 << "]";
 		pipesStream << "[" << 4399 << "," << 375 << "]";
 
-		itemsStream << "[" << 609 << "," << 320 << "]";
+		itemsStream << "[" << 609 << "," << 312 << "]";
 		itemsStream << int(Item::TYPE::PRIZE_BLOCK) << "\n";
-		itemsStream << "[" << 625 << "," << 320 << "]";
+		itemsStream << "[" << 625 << "," << 312 << "]";
 		itemsStream << int(Item::TYPE::EXCLAMATION_MARK_BLOCK) << "\n";
-		itemsStream << "[" << 641 << "," << 320 << "]";
+		itemsStream << "[" << 641 << "," << 312 << "]";
 		itemsStream << int(Item::TYPE::PRIZE_BLOCK) << "\n";
 
-		itemsStream << "[" << 849 << "," << 335 << "]";
+		itemsStream << "[" << 849 << "," << 328 << "]";
 		itemsStream << int(Item::TYPE::PRIZE_BLOCK) << "\n";
-		itemsStream << "[" << 865 << "," << 335 << "]";
+		itemsStream << "[" << 865 << "," << 328 << "]";
 		itemsStream << int(Item::TYPE::PRIZE_BLOCK) << "\n";
 
 		itemsStream << "[" << 1024 << "," << 337 << "]";

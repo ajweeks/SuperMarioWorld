@@ -123,9 +123,12 @@ struct ThreeUpMoon : public Item
 };
 struct SuperMushroom : public Item
 {
-	SuperMushroom(DOUBLE2 topLeft);
+	// horizontalDir is either 1 or -1, signifying which direction to move in (1:right, -1:left)
+	SuperMushroom(DOUBLE2 topLeft, int horizontalDir = 1);
 	bool Tick(double deltaTime, Level* levelPtr);
 	void Paint();
+private:
+	double m_HorizontalSpeed = 80;
 };
 struct FireFlower : public Item
 {
@@ -149,6 +152,7 @@ struct Block : public Item
 	virtual ~Block();
 	virtual bool Tick(double deltaTime, Level* levelPtr) = 0;
 	virtual void Paint() = 0;
+	virtual void Hit() = 0;
 };
 struct PrizeBlock : public Block
 {
@@ -156,16 +160,17 @@ struct PrizeBlock : public Block
 	PrizeBlock(DOUBLE2 topLeft);
 	bool Tick(double deltaTime, Level* levelPtr);
 	void Paint();
-	// I think Box2D prevents you from adding physics actors during preSolve, therefore
+	// NOTE: I think Box2D prevents you from adding physics actors during preSolve, therefore
 	// we need to set a flag when the player hits a prize block and generate the coin in the next tick,
 	// or at least after pre-solve
-	DOUBLE2 Hit(); // Returns the position of the coin to be generated, or empty DOUBLE2() for no coin (0,0)
+	void Hit();
 
 private:
 	int m_CurrentFrameOfBumpAnimation = -1;
 	int m_FramesOfBumpAnimation = 14;
 	int m_yo = 0; // NOTE: Used for the bump animation
 	bool m_IsUsed = false;
+	bool m_ShouldSpawnCoin = false;
 };
 struct ExclamationMarkBlock : public Block
 {
@@ -173,12 +178,18 @@ struct ExclamationMarkBlock : public Block
 	bool Tick(double deltaTime, Level* levelPtr);
 	void Paint();
 	void SetSolid(bool solid);
+	void Hit();
 
 private:
 	COLOUR m_Colour;
+	int m_CurrentFrameOfBumpAnimation = -1;
+	int m_FramesOfBumpAnimation = 14;
+	int m_yo = 0; // NOTE: Used for the bump animation
 	// NOTE: This is set to true for every ! block when the player hits the
-	// yellow switch palace switch block dohickey
+	// yellow switch palace switch block
 	bool m_IsSolid = false;
+	bool m_IsUsed = false;
+	bool m_ShouldSpawnSuperMushroom = false;
 };
 
 struct RotatingBlock : public Block

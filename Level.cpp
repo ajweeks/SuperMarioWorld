@@ -92,23 +92,12 @@ void Level::Tick(double deltaTime)
 	if (m_Paused) return;
 
 	m_SecondsElapsed += (deltaTime);
-
-	if (m_NewCoinPos != DOUBLE2())
-	{
-		// There is a coin we need to generate
-		Coin* newCoin = new Coin(m_NewCoinPos, 15);
-		m_LevelDataPtr->AddItem(newCoin);
-
-		// TODO: Test that this works in all cases, it may 
-		//be slightly janky since the player isn't actually touching the coin
-		m_PlayerPtr->OnItemPickup(newCoin); 
-		m_NewCoinPos = DOUBLE2();
-	}
-	if (m_ItemToBeRemoved != nullptr)
+	
+	if (m_ItemToBeRemovedPtr != nullptr)
 	{
 		// The player collided with a coin during begin-contact, we need to remove it now
-		m_LevelDataPtr->RemoveItem(m_ItemToBeRemoved);
-		m_ItemToBeRemoved = nullptr;
+		m_LevelDataPtr->RemoveItem(m_ItemToBeRemovedPtr);
+		m_ItemToBeRemovedPtr = nullptr;
 	}
 
 	m_PlayerPtr->Tick(deltaTime, this);
@@ -116,6 +105,11 @@ void Level::Tick(double deltaTime)
 	m_LevelDataPtr->TickItems(deltaTime, this);
 
 	m_WasPaused = m_Paused;
+}
+
+void Level::AddItem(Item* newItem)
+{
+	m_LevelDataPtr->AddItem(newItem);
 }
 
 void Level::Paint()
@@ -416,7 +410,7 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 		// FIXME: IMPORTANT: TODO: Find out how tf to know when to use 'actThis'
 		// vs. 'actOther', it sure seems like black magic
 		Item* otherItem = (Item*)actOtherPtr->GetUserPointer();
-		if(otherItem->GetType() == Item::TYPE::P_SWITCH)
+		if (otherItem->GetType() == Item::TYPE::P_SWITCH)
 		{
 			if (actThisPtr->GetUserData() == int(ActorId::ITEM))
 			{
@@ -437,14 +431,16 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 
 void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 {
-	if (actOtherPtr->GetUserData() == int(ActorId::PLAYER))
+	switch (actOtherPtr->GetUserData())
+	{
+	case int(ActorId::PLAYER):
 	{
 		bool playerIsRising = actOtherPtr->GetLinearVelocity().y < -0.001;
-		bool playerIsBelow = actOtherPtr->GetPosition().y >(actThisPtr->GetPosition().y + Block::HEIGHT / 2);
+		bool playerIsBelow = actOtherPtr->GetPosition().y > (actThisPtr->GetPosition().y + Block::HEIGHT / 2);
 		bool playerIsAbove = actOtherPtr->GetPosition().y < (actThisPtr->GetPosition().y - Block::HEIGHT / 2);
 		DOUBLE2 playerFeet = DOUBLE2(actOtherPtr->GetPosition().x, actOtherPtr->GetPosition().y + Player::HEIGHT / 2 + 6);
 
-		switch (actThisPtr->GetUserData()) 
+		switch (actThisPtr->GetUserData())
 		{
 		case int(ActorId::PLATFORM):
 		{
@@ -466,8 +462,15 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			{
 			case Item::TYPE::COIN:
 			case Item::TYPE::DRAGON_COIN:
+			case Item::TYPE::SUPER_MUSHROOM:
+			case Item::TYPE::STAR:
+			case Item::TYPE::FIRE_FLOWER:
+			case Item::TYPE::CAPE_FEATHER:
+			case Item::TYPE::POWER_BALLOON:
+			case Item::TYPE::ONE_UP_MUSHROOM:
+			case Item::TYPE::THREE_UP_MOON:
 			{
-				if (m_ItemToBeRemoved != nullptr)
+				if (m_ItemToBeRemovedPtr != nullptr)
 				{
 					// The player is collecting two (or more) coins this tick, just return and let the 
 					// previous coin be collected, we'll almost definitely be colliding with this one again next tick
@@ -475,40 +478,19 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 				}
 
 				((Player*)actOtherPtr->GetUserPointer())->OnItemPickup(item);
-				m_ItemToBeRemoved = item;
+				m_ItemToBeRemovedPtr = item;
 			} break;
 			case Item::TYPE::PRIZE_BLOCK:
-			{
-				if (playerIsRising && playerIsBelow)
-				{
-					m_NewCoinPos = ((PrizeBlock*)item)->Hit();
-					m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetLinearVelocity().x, 0.0));
-				}
-				else if (playerIsAbove)
-				{
-					m_IsPlayerOnGround = true;
-				}
-			} break;
+			case Item::TYPE::EXCLAMATION_MARK_BLOCK:
+			case Item::TYPE::MESSAGE_BLOCK:
 			case Item::TYPE::ROTATING_BLOCK:
 			{
 				if (playerIsRising && playerIsBelow)
 				{
-					((RotatingBlock*)item)->Hit();
+					((Block*)item)->Hit();
+
 					// NOTE: This line prevents the player from slowly floating down after hitting a block
 					m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetLinearVelocity().x, 0.0));
-				}
-				else if (playerIsAbove)
-				{
-					m_IsPlayerOnGround = true;
-				}
-			} break;
-			case Item::TYPE::MESSAGE_BLOCK:
-			{
-				if (playerIsRising && playerIsBelow)
-				{
-					((MessageBlock*)item)->Hit();
-					m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetLinearVelocity().x, 0.0));
-					m_Paused = true;
 				}
 				else if (playerIsAbove)
 				{
@@ -518,6 +500,27 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			}
 		} break;
 		}
+	} break;
+	case int(ActorId::ITEM):
+	{
+		if (actThisPtr->GetUserData() == int(ActorId::LEVEL))
+		{
+			switch (((Item*)actOtherPtr->GetUserPointer())->GetType())
+			{
+			case Item::TYPE::SUPER_MUSHROOM:
+			{
+				// TODO: FIXME: For some reason svg bodies don't seem to ever return true on IsPointInActor()
+				DOUBLE2 point(DOUBLE2(actOtherPtr->GetPosition().x + 32, actOtherPtr->GetPosition().y));
+				if (actThisPtr->IsPointInActor(point))
+				{
+					actOtherPtr->SetLinearVelocity(DOUBLE2(
+						-actOtherPtr->GetLinearVelocity().x, 
+						actOtherPtr->GetLinearVelocity().y));
+				}
+			} break;
+			}
+		}
+	} break;
 	}
 }
 

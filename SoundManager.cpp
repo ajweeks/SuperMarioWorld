@@ -17,6 +17,7 @@ SoundManager::~SoundManager()
 
 void SoundManager::InitialzeSounds()
 {
+	// TODO: Only repeat middle section of song, not intro
 	songs[int(SONG::OVERWORLD_BGM)] = new FmodSound();
 	songs[int(SONG::OVERWORLD_BGM)]->CreateStream(String("Resources/sound/music/overworld-bgm.wav"), true);
 

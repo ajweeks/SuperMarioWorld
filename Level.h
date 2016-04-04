@@ -24,6 +24,8 @@ public:
 
 	void Reset();
 
+	void AddItem(Item* newItem);
+
 	double GetWidth();
 	double GetHeight();
 
@@ -48,8 +50,10 @@ private:
 
 	void TogglePaused();
 
-	DOUBLE2 m_NewCoinPos = DOUBLE2();
-	Item* m_ItemToBeRemoved = nullptr;
+	// NOTE: We *could* make this an array, in case the player tries to collect two items
+	// in the same frame, but that isn't very likely and will be caught in the next frame
+	// anyways, so this should be just fine
+	Item* m_ItemToBeRemovedPtr = nullptr;
 
 	PhysicsActor* m_ActLevelPtr = nullptr;
 
