@@ -68,8 +68,17 @@ void Game::GameStart()
 	m_TotalSessionsWithInfo = GetNumberOfSessions(m_AllSessionInfo);
 	m_CurrentSessionInfo = GetReadableSessionInfo(m_CurrentSessionInfoShowingIndex);
 
-
 	GetSystemTime(&m_StartTime);
+}
+
+void Game::GameSetSleeping(bool sleeping)
+{
+	SoundManager::SetMuted(sleeping);
+}
+
+void Game::GameWindowResize(int width, int height)
+{
+	// TODO: Fix window resizing
 }
 
 void Game::GameEnd()

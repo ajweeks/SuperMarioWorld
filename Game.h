@@ -41,6 +41,9 @@ public:
 	virtual void GameTick(double deltaTime);
 	virtual void GamePaint();
 
+	virtual void GameSetSleeping(bool sleeping);
+	virtual void GameWindowResize(int width, int height);
+
 	static Font *Font12Ptr;
 
 	// How many pixels we have to work with, not how large the final window will be necessarily

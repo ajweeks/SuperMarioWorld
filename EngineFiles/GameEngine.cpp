@@ -345,7 +345,8 @@ bool GameEngine::RegisterWindowClass()
 bool GameEngine::OpenWindow(int iCmdShow)
 {
 	// Calculate the window size and position based upon the game size
-	DWORD windowStyle = WS_POPUPWINDOW | WS_CAPTION | WS_MINIMIZEBOX | WS_CLIPCHILDREN;
+	// NOTE(AJ): WS_THICKFRAME|WS_OVERLAPPEDWINDOW allows the window to be resized
+	DWORD windowStyle = WS_POPUPWINDOW | WS_CAPTION | WS_MINIMIZEBOX | WS_CLIPCHILDREN | WS_THICKFRAME | WS_OVERLAPPEDWINDOW;
 	RECT R = { 0, 0, m_iWidth, m_iHeight };
 	AdjustWindowRect(&R, windowStyle, false);
 	int iWindowWidth = R.right - R.left;
@@ -1068,7 +1069,15 @@ void GameEngine::SetHeight(int iHeight)
 void GameEngine::SetSleep(bool bSleep)
 {
 	if (m_GameTickTimerPtr == nullptr)
+	{
 		return;
+	}
+
+	{
+		// NOTE(AJ): This seems like the only place to catch activate events...
+		m_GamePtr->GameSetSleeping(bSleep);
+		//
+	}
 
 	m_bSleep = bSleep;
 	if (bSleep)m_GameTickTimerPtr->Stop();
@@ -1268,6 +1277,34 @@ LRESULT GameEngine::HandleEvent(HWND hWindow, UINT msg, WPARAM wParam, LPARAM lP
 			SetWindowPos(m_hWindow, 0, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED);
 			return 0;
 		}
+
+
+
+		{
+			// NOTE(AJ): Not sure where else I can field this event...
+			int width = lParam & 0xFFFF, 
+				height = (lParam >> 16) & 0xFFFF;
+			m_GamePtr->GameWindowResize(width, height);
+
+			DWORD windowStyle = WS_POPUPWINDOW | WS_CAPTION | WS_MINIMIZEBOX | WS_CLIPCHILDREN | WS_THICKFRAME | WS_OVERLAPPEDWINDOW;
+			RECT R = { 0, 0, m_iWidth, m_iHeight };
+			AdjustWindowRect(&R, windowStyle, false);
+			int iWindowWidth = R.right - R.left;
+			int iWindowHeight = R.bottom - R.top;
+			int iXWindowPos = (GetSystemMetrics(SM_CXSCREEN) - iWindowWidth) / 2;
+			int iYWindowPos = (GetSystemMetrics(SM_CYSCREEN) - iWindowHeight) / 2;
+		
+			// NOTE(AJ): None of the following seem to work
+			// The window stops painting once you resize
+			//SetWindowPos(m_hWindow, 0, 0, 0, width, height, SWP_NOMOVE | SWP_FRAMECHANGED);
+			//MoveWindow(m_hWindow, iXWindowPos, iYWindowPos, 250, 350, true);
+
+			//GameEngine::GetSingleton()->SetWidth(width);
+			//GameEngine::GetSingleton()->SetHeight(height);
+			UpdateWindow(m_hWindow);
+		}
+
+
 		return 0;
 
 		//case WM_KEYUP:

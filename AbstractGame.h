@@ -36,4 +36,8 @@ public :
 	virtual void GameEnd(void) = 0;
 	virtual void GamePaint() = 0;
 	virtual void GameTick(double deltaTime) = 0;
+
+	// NOTE(AJ): I added the following functions to this class
+	virtual void GameSetSleeping(bool sleeping) = 0;
+	virtual void GameWindowResize(int width, int height) = 0;
 };
