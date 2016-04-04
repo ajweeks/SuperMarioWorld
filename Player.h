@@ -19,7 +19,8 @@ public:
 	{
 		// NOTE: FAST_FALLING is when mario is running full speed and has a 
 		// positive y vel, not faster falling downwards
-		WAITING, WALKING, RUNNING, JUMPING, SPIN_JUMPING, FALLING, FAST_FALLING, DYING, DUCKING, CLIMBING, CHANGING_DIRECTIONS
+		WAITING, WALKING, RUNNING, JUMPING, SPIN_JUMPING, DUCKING, LOOKING_UPWARDS, 
+		FALLING, FAST_FALLING, DYING, CLIMBING, CHANGING_DIRECTIONS
 	};
 
 	Player();
@@ -65,6 +66,7 @@ private:
 	static const double RUN_SPEED;
 
 	bool m_IsOnGround = true;
+	bool m_WasOnGround = true;
 	int m_FramesSpentInAir = -1;
 
 	int m_Lives;
@@ -96,7 +98,6 @@ private:
 	String AnimationStateToString(ANIMATION_STATE state);
 
 	FACING_DIRECTION m_DirFacing = FACING_DIRECTION::RIGHT;
-	LOOKING_DIRECTION m_DirLooking = LOOKING_DIRECTION::MIDDLE;
 
 	POWERUP_STATE m_PowerupState = POWERUP_STATE::NORMAL;
 	ANIMATION_STATE m_AnimationState = ANIMATION_STATE::WAITING;

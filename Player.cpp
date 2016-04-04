@@ -41,10 +41,11 @@ void Player::Reset()
 	m_Stars = 0;
 	m_DragonCoins = 0;
 
+	m_SpriteSheetPtr = SpriteSheetManager::smallMario;
+
 	m_PowerupState = POWERUP_STATE::NORMAL;
 	m_AnimationState = ANIMATION_STATE::WAITING;
 	m_DirFacing = FACING_DIRECTION::RIGHT;
-	m_DirLooking = LOOKING_DIRECTION::MIDDLE;
 }
 
 RECT2 Player::GetCameraRect()
@@ -87,33 +88,48 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 		return; // NOTE: The player can't do much now...
 	}
 
-	// TODO: Move these variables to the end of the method
 	double jumpVelocity = -16000;
+	double verticalVel = 0.0;
 
 	// TODO: Use a variable run speed (with acceleration)
 	double walkVel = 6500;
 	double runVel = 10500;
 	double horizontalVel = 0.0;
 
-	m_IsOnGround = levelPtr->IsPlayerOnGround();
+	if (m_AnimationState == ANIMATION_STATE::DUCKING && 
+		GAME_ENGINE->IsKeyboardKeyDown(VK_DOWN) == false)
+	{
+		m_AnimationState = ANIMATION_STATE::WAITING;
+	}
 
+	// IsPlayerOnGround() may or may not be entirely accurate atm...
+	m_IsOnGround = levelPtr->IsPlayerOnGround();
 	if (m_IsOnGround)
 	{
+		if (m_WasOnGround == false)
+		{
+			m_AnimationState = ANIMATION_STATE::WAITING;
+		}
+
 		if (GAME_ENGINE->IsKeyboardKeyPressed('Z')) // NOTE: Regular jump
 		{
 			m_AnimationState = ANIMATION_STATE::JUMPING;
 			m_IsOnGround = false;
-			SoundManager::PlaySound(SoundManager::playerJumpSndPtr);
-			m_ActPtr->SetLinearVelocity(DOUBLE2(m_ActPtr->GetLinearVelocity().x, jumpVelocity * deltaTime));
+			SoundManager::PlaySound(SoundManager::SOUND::PLAYER_JUMP);
 			m_FramesSpentInAir = 0;
+			verticalVel = jumpVelocity;
+			// NOTE: This line is slightly hacky, but it prevents stupid Box2D from 
+			// thinking we're on the ground even on the frame after we jump
+			m_ActPtr->SetPosition(m_ActPtr->GetPosition() - DOUBLE2(0, 1));
 		}
 		else if (GAME_ENGINE->IsKeyboardKeyPressed('X')) // NOTE: Spin jump
 		{
 			m_AnimationState = ANIMATION_STATE::SPIN_JUMPING;
 			m_IsOnGround = false;
-			SoundManager::PlaySound(SoundManager::playerSpinJumpSndPtr);
-			m_ActPtr->SetLinearVelocity(DOUBLE2(m_ActPtr->GetLinearVelocity().x, jumpVelocity * deltaTime));
+			SoundManager::PlaySound(SoundManager::SOUND::PLAYER_SPIN_JUMP);
 			m_FramesSpentInAir = 0;
+			verticalVel = jumpVelocity;
+			m_ActPtr->SetPosition(m_ActPtr->GetPosition() - DOUBLE2(0, 1));
 		}
 		else
 		{
@@ -130,7 +146,6 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 			if (GAME_ENGINE->IsKeyboardKeyDown('Z') ||
 				GAME_ENGINE->IsKeyboardKeyDown('X'))
 			{
-				OutputDebugString(m_ActPtr->GetLinearVelocity().ToString() + String("\n"));
 				// NOTE: gravityScale is close to 1 at the start of the jump
 				// and goes towards 0 near the apex
 				double gravityScale = (m_FramesSpentInAir / 12.0) * 0.5;
@@ -148,53 +163,60 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 		else
 		{
 			m_ActPtr->SetGravityScale(0.98);
-			m_AnimationState = ANIMATION_STATE::FALLING;
-		}
-	}
-
-	if (m_IsOnGround)
-	{
-		if (GAME_ENGINE->IsKeyboardKeyDown('A') || GAME_ENGINE->IsKeyboardKeyDown('S')) // Running
-		{
-			m_AnimationState = ANIMATION_STATE::RUNNING;
-			horizontalVel = runVel;
+			if (m_AnimationState != ANIMATION_STATE::SPIN_JUMPING &&  
+				m_AnimationState != ANIMATION_STATE::DUCKING &&
+				m_AnimationState != ANIMATION_STATE::RUNNING)
+			{
+				m_AnimationState = ANIMATION_STATE::FALLING;
+			}
 		}
 	}
 
 	if (GAME_ENGINE->IsKeyboardKeyDown(VK_LEFT))
 	{
-		if (horizontalVel == 0.0)
-		{
-			horizontalVel = -walkVel;
-		}
-		else
-		{
-			horizontalVel = -horizontalVel;
-		}
-		m_ActPtr->SetLinearVelocity(DOUBLE2(horizontalVel * deltaTime, m_ActPtr->GetLinearVelocity().y));
 		m_DirFacing = FACING_DIRECTION::LEFT;
 		if (m_AnimationState != ANIMATION_STATE::JUMPING &&
 			m_AnimationState != ANIMATION_STATE::SPIN_JUMPING &&
-			horizontalVel != -runVel &&
+			m_AnimationState != ANIMATION_STATE::DUCKING &&
+			m_AnimationState != ANIMATION_STATE::RUNNING &&
 			m_AnimationState != ANIMATION_STATE::FALLING)
 		{
 			m_AnimationState = ANIMATION_STATE::WALKING;
 		}
+		horizontalVel = walkVel;
 	}
 	else if (GAME_ENGINE->IsKeyboardKeyDown(VK_RIGHT))
 	{
-		if (horizontalVel == 0.0)
-		{
-			horizontalVel = walkVel;
-		}
-		m_ActPtr->SetLinearVelocity(DOUBLE2(horizontalVel * deltaTime, m_ActPtr->GetLinearVelocity().y));
 		m_DirFacing = FACING_DIRECTION::RIGHT;
 		if (m_AnimationState != ANIMATION_STATE::JUMPING &&
 			m_AnimationState != ANIMATION_STATE::SPIN_JUMPING &&
-			horizontalVel != runVel &&
+			m_AnimationState != ANIMATION_STATE::DUCKING &&
+			m_AnimationState != ANIMATION_STATE::RUNNING &&
 			m_AnimationState != ANIMATION_STATE::FALLING)
 		{
 			m_AnimationState = ANIMATION_STATE::WALKING;
+		}
+		horizontalVel = walkVel;
+	}
+	//else
+	//{
+	//	horizontalVel = 0.0; // No x input means no horizontal velocity
+	//}
+
+	if (horizontalVel != 0.0)
+	{
+		if (GAME_ENGINE->IsKeyboardKeyDown('A') || GAME_ENGINE->IsKeyboardKeyDown('S')) // Running
+		{
+			if (m_AnimationState != ANIMATION_STATE::DUCKING)
+			{
+				if (m_IsOnGround &&
+					m_AnimationState != ANIMATION_STATE::SPIN_JUMPING &&
+					m_AnimationState != ANIMATION_STATE::JUMPING)
+				{
+					m_AnimationState = ANIMATION_STATE::RUNNING;
+				}
+				horizontalVel = runVel;
+			}
 		}
 	}
 
@@ -204,47 +226,61 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 		if (abs(m_ActPtr->GetLinearVelocity().x) < 0.01 &&
 			abs(m_ActPtr->GetLinearVelocity().y) < 0.01)
 		{
-			m_DirLooking = LOOKING_DIRECTION::UP;
+			m_AnimationState = ANIMATION_STATE::LOOKING_UPWARDS;
 		}
 	}
 	else if (GAME_ENGINE->IsKeyboardKeyDown(VK_DOWN))
 	{
-		if (m_AnimationState != ANIMATION_STATE::JUMPING &&
+		if (m_IsOnGround &&
+			m_AnimationState != ANIMATION_STATE::JUMPING &&
 			m_AnimationState != ANIMATION_STATE::SPIN_JUMPING &&
 			m_AnimationState != ANIMATION_STATE::CLIMBING)
 		{
-			m_DirLooking = LOOKING_DIRECTION::DOWN;
 			m_AnimationState = ANIMATION_STATE::DUCKING;
+			horizontalVel = 0.0;
 		}
-	}
-	else
-	{
-		m_DirLooking = LOOKING_DIRECTION::MIDDLE;
 	}
 
 	// If we're not moving:
-	if (abs(m_ActPtr->GetLinearVelocity().x) < 0.01 &&
-		abs(m_ActPtr->GetLinearVelocity().y) < 0.01)
+	if (horizontalVel == 0.0 &&
+		verticalVel == 0.0 && 
+		abs(m_ActPtr->GetLinearVelocity().x) < 0.001 &&
+		abs(m_ActPtr->GetLinearVelocity().y) < 0.001)
 	{
-		// And not ducking:
-		if (m_AnimationState != ANIMATION_STATE::DUCKING)
+		if (m_AnimationState != ANIMATION_STATE::DUCKING &&
+			m_AnimationState != ANIMATION_STATE::JUMPING &&
+			m_AnimationState != ANIMATION_STATE::SPIN_JUMPING &&
+			m_AnimationState != ANIMATION_STATE::LOOKING_UPWARDS)
 		{
 			// We're waiting
 			m_AnimationState = ANIMATION_STATE::WAITING;
 		}
 	}
-	else if (m_AnimationState == ANIMATION_STATE::FALLING)
+	else if (verticalVel > 0.0 && m_AnimationState != ANIMATION_STATE::SPIN_JUMPING)
 	{
-		// TODO: make this more robust
-		if (horizontalVel == runVel)
+		if (m_AnimationState == ANIMATION_STATE::RUNNING)
 		{
 			m_AnimationState = ANIMATION_STATE::FAST_FALLING;
 		}
 		else
 		{
-			m_AnimationState = ANIMATION_STATE::FALLING;
+			m_AnimationState = ANIMATION_STATE::FAST_FALLING;
 		}
 	}
+
+	DOUBLE2 newVel = m_ActPtr->GetLinearVelocity();
+	if (horizontalVel != 0.0) 
+	{
+		if (m_DirFacing == FACING_DIRECTION::LEFT) horizontalVel = -horizontalVel;
+		newVel.x = horizontalVel * deltaTime;
+	}
+	if (verticalVel != 0.0) 
+	{
+		newVel.y = verticalVel * deltaTime;
+	}
+	m_ActPtr->SetLinearVelocity(newVel);
+
+	m_WasOnGround = m_IsOnGround;
 }
 
 void Player::TickAnimations(double deltaTime)
@@ -258,6 +294,13 @@ void Player::TickAnimations(double deltaTime)
 		switch (m_AnimationState)
 		{
 		case ANIMATION_STATE::WAITING:
+		case ANIMATION_STATE::CHANGING_DIRECTIONS:
+		case ANIMATION_STATE::JUMPING:
+		case ANIMATION_STATE::DYING:
+		case ANIMATION_STATE::DUCKING:
+		case ANIMATION_STATE::FAST_FALLING:
+		case ANIMATION_STATE::FALLING:
+		case ANIMATION_STATE::LOOKING_UPWARDS:
 		{
 			// NOTE: 1 frame animation
 			m_AnimInfo.frameNumber = 1;
@@ -270,30 +313,9 @@ void Player::TickAnimations(double deltaTime)
 		{
 			m_AnimInfo.frameNumber %= 2;
 		} break;
-		case ANIMATION_STATE::JUMPING:
-		{
-			// NOTE: 1 frame animation
-			m_AnimInfo.frameNumber = 1;
-		} break;
 		case ANIMATION_STATE::SPIN_JUMPING:
 		{
 			m_AnimInfo.frameNumber %= 4;
-		} break;
-		case ANIMATION_STATE::FAST_FALLING:
-		case ANIMATION_STATE::FALLING:
-		{
-			// NOTE: 1 frame animation
-			m_AnimInfo.frameNumber = 1;
-		} break;
-		case ANIMATION_STATE::DUCKING:
-		{
-			// NOTE: 1 frame animation
-			m_AnimInfo.frameNumber = 1;
-		} break;
-		case ANIMATION_STATE::DYING:
-		{
-			// NOTE: 1 frame animation
-			m_AnimInfo.frameNumber = 1;
 		} break;
 		default:
 		{
@@ -335,22 +357,15 @@ DOUBLE2 Player::CalculateAnimationFrame()
 	{
 	case ANIMATION_STATE::WAITING:
 	{
-		if (m_DirLooking == LOOKING_DIRECTION::UP)
-		{
-			srcX -= 2;
-		}
-		else if (m_DirLooking == LOOKING_DIRECTION::DOWN)
-		{
-			srcX -= 1;
-		}
+		// Default (2, 0)	
 	} break;
 	case ANIMATION_STATE::WALKING:
 	{
-		srcX += m_AnimInfo.frameNumber;
+		srcX = 2 + m_AnimInfo.frameNumber;
 	} break;
 	case ANIMATION_STATE::RUNNING:
 	{
-		srcX += m_AnimInfo.frameNumber + 2;
+		srcX = 4 + m_AnimInfo.frameNumber;
 	} break;
 	case ANIMATION_STATE::JUMPING:
 	{
@@ -374,7 +389,13 @@ DOUBLE2 Player::CalculateAnimationFrame()
 	} break;
 	case ANIMATION_STATE::DUCKING:
 	{
-		srcX -= 1;
+		srcX = 1;
+		srcY = 0;
+	} break;
+	case ANIMATION_STATE::LOOKING_UPWARDS:
+	{
+		srcX = 0;
+		srcY = 0;
 	} break;
 	case ANIMATION_STATE::DYING:
 	{
@@ -459,7 +480,7 @@ void Player::AddCoin(bool playSound)
 
 	if (playSound)
 	{
-		SoundManager::PlaySound(SoundManager::coinCollectSndPtr);
+		SoundManager::PlaySound(SoundManager::SOUND::COIN_COLLECT);
 	}
 	
 	if (m_Coins > 99)
@@ -475,7 +496,7 @@ void Player::AddDragonCoin()
 	AddCoin(false);
 	m_DragonCoins++;
 
-	SoundManager::PlaySound(SoundManager::dragonCoinCollectSndPtr);
+	SoundManager::PlaySound(SoundManager::SOUND::DRAGON_COIN_COLLECT);
 
 	if (m_DragonCoins >= 5)
 	{
@@ -632,8 +653,12 @@ String Player::AnimationStateToString(ANIMATION_STATE state)
 		return String("dying");
 	case ANIMATION_STATE::DUCKING:
 		return String("ducking");
+	case ANIMATION_STATE::LOOKING_UPWARDS:
+		return String("looking up");
 	case ANIMATION_STATE::CLIMBING:
 		return String("climbing");
+	case ANIMATION_STATE::CHANGING_DIRECTIONS:
+		return String("changing directions");
 	}
 	return String("unknown state passed to Player::AnimationStateToString: ") + String(int(state));
 }
