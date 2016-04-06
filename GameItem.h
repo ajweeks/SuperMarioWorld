@@ -73,10 +73,12 @@ private:
 
 struct Coin : public Item
 {
-	Coin(DOUBLE2 topLeft, int life, Item::TYPE type = Item::TYPE::COIN, DOUBLE2 size = DOUBLE2(WIDTH, HEIGHT));
+	Coin(DOUBLE2 topLeft, int life = -1, Item::TYPE type = Item::TYPE::COIN, DOUBLE2 size = DOUBLE2(WIDTH, HEIGHT));
 
 	virtual bool Tick(double deltaTime, Level* levelPtr);
 	void Paint();
+
+	static const int LIFETIME = 25;
 
 protected:
 	static const int WIDTH = 16;
@@ -84,7 +86,6 @@ protected:
 
 private:
 	int m_Life;
-	static const int LIFETIME = 38;
 };
 
 struct DragonCoin : public Coin
@@ -152,7 +153,7 @@ struct Block : public Item
 	virtual ~Block();
 	virtual bool Tick(double deltaTime, Level* levelPtr) = 0;
 	virtual void Paint() = 0;
-	virtual void Hit() = 0;
+	virtual void Hit(Level* levelPtr) = 0;
 };
 struct PrizeBlock : public Block
 {
@@ -163,7 +164,7 @@ struct PrizeBlock : public Block
 	// NOTE: I think Box2D prevents you from adding physics actors during preSolve, therefore
 	// we need to set a flag when the player hits a prize block and generate the coin in the next tick,
 	// or at least after pre-solve
-	void Hit();
+	void Hit(Level* levelPtr);
 
 private:
 	int m_CurrentFrameOfBumpAnimation = -1;
@@ -178,7 +179,7 @@ struct ExclamationMarkBlock : public Block
 	bool Tick(double deltaTime, Level* levelPtr);
 	void Paint();
 	void SetSolid(bool solid);
-	void Hit();
+	void Hit(Level* levelPtr);
 
 private:
 	COLOUR m_Colour;
@@ -197,7 +198,7 @@ struct RotatingBlock : public Block
 	RotatingBlock(DOUBLE2 topLeft);
 	bool Tick(double deltaTime, Level* levelPtr);
 	void Paint();
-	void Hit();
+	void Hit(Level* levelPtr);
 	bool IsRotating();
 
 	static const int MAX_ROTATIONS = 25;
@@ -212,14 +213,21 @@ struct MessageBlock : public Block
 	virtual ~MessageBlock();
 	bool Tick(double deltaTime, Level* levelPtr);
 	void Paint();
-	void Hit();
+	void Hit(Level* levelPtr);
 
 private:
+	static int m_BitmapWidth;
+	static int m_BitmapHeight;
+
 	// LATER: Make message boxes render their text manually?
 	//String m_Message;
 	Bitmap* m_BmpPtr = nullptr;
-	bool m_IsShowing = false;
+	// NOTE: In the original game, after hitting a message block, the game doesn't pause for a second or so
+	int m_FramesUntilPause = -1;
+	static const int FRAMES_TO_WAIT = 12;
 	// NOTE: Used to animate message popup, when == -1 there is no message showing
 	// When != -1 the game is paused and the message is being painted (by the message block itself)
-	int m_FramesShowing = -1;
+	int m_FramesOfIntroAnimation = -1;
+	int m_FramesOfOutroAnimation = -1;
+	static const int FRAMES_OF_ANIMATION = 360;
 };

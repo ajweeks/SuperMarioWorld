@@ -60,6 +60,8 @@ private:
 	void WriteSessionInfoToFile();
 	std::string ReadSessionInfoFromFile();
 
+	void Reset();
+
 	SYSTEMTIME m_StartTime;
 	bool m_ShowingSessionInfo = false; // 'i' toggles info overlay
 	std::string m_AllSessionInfo;

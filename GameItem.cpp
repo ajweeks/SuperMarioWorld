@@ -78,7 +78,7 @@ void Item::TogglePaused(bool paused)
 // ___COIN___
 // NOTE: There are two types of regular coins, those spawned at the start of the game,
 // which have an infinite lifetime, and those which are spawned from prize blocks, which are only visible for 
-// a few frames. If m_LifeTicks == -1, this coin is the former, otherwise it is the latter
+// a few frames. If m_Life == -1, this coin is the former, otherwise it is the latter with LIFETIME ticks in its life
 Coin::Coin(DOUBLE2 topLeft, int life, TYPE type, DOUBLE2 size) :
 	Item(topLeft, type, BodyType::STATIC, int(size.x), int(size.y)), m_Life(life)
 {
@@ -101,7 +101,12 @@ bool Coin::Tick(double deltaTime, Level* levelPtr)
 
 	if (m_Life > -1)
 	{
-		if (++m_Life > LIFETIME)
+		if (m_Life == LIFETIME)
+		{
+			// NOTE: Give the player the coin right away so that the sound effect play now
+			levelPtr->GiveItemToPlayer(this);
+		}
+		if (--m_Life <= 0)
 		{
 			m_Life = -1; // Not really necesary... right?
 			return true;
@@ -281,7 +286,7 @@ bool PrizeBlock::Tick(double deltaTime, Level* levelPtr)
 {
 	if (m_ShouldSpawnCoin)
 	{
-		Item* newItem = new Coin(DOUBLE2(m_ActPtr->GetPosition().x - WIDTH / 2, m_ActPtr->GetPosition().y - HEIGHT), 15);
+		Item* newItem = new Coin(DOUBLE2(m_ActPtr->GetPosition().x - WIDTH / 2, m_ActPtr->GetPosition().y - HEIGHT), Coin::LIFETIME);
 		levelPtr->AddItem(newItem);
 
 		m_ShouldSpawnCoin = false;
@@ -329,9 +334,9 @@ void PrizeBlock::Paint()
 	double top = m_ActPtr->GetPosition().y + m_yo * 3;
 	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
 }
-void PrizeBlock::Hit()
+void PrizeBlock::Hit(Level* levelPtr)
 {
-	SoundManager::PlaySound(SoundManager::SOUND::BLOCK_HIT);
+	SoundManager::PlaySoundEffect(SoundManager::SOUND::BLOCK_HIT);
 
 	if (m_IsUsed == false)
 	{
@@ -409,9 +414,9 @@ void ExclamationMarkBlock::SetSolid(bool solid)
 	m_IsSolid = solid;
 	m_ActPtr->SetSensor(!solid);
 }
-void ExclamationMarkBlock::Hit()
+void ExclamationMarkBlock::Hit(Level* levelPtr)
 {
-	SoundManager::PlaySound(SoundManager::SOUND::BLOCK_HIT);
+	SoundManager::PlaySoundEffect(SoundManager::SOUND::BLOCK_HIT);
 
 	if (m_IsUsed == false)
 	{
@@ -456,9 +461,9 @@ void RotatingBlock::Paint()
 	double top = m_ActPtr->GetPosition().y;
 	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
 }
-void RotatingBlock::Hit()
+void RotatingBlock::Hit(Level* levelPtr)
 {
-	SoundManager::PlaySound(SoundManager::SOUND::BLOCK_HIT);
+	SoundManager::PlaySoundEffect(SoundManager::SOUND::BLOCK_HIT);
 	m_IsRotating = true;
 }
 bool RotatingBlock::IsRotating()
@@ -467,15 +472,44 @@ bool RotatingBlock::IsRotating()
 }
 
 // ___MESSAGE BLOCK___
+int MessageBlock::m_BitmapWidth = -1;
+int MessageBlock::m_BitmapHeight = -1;
 MessageBlock::MessageBlock(DOUBLE2 topLeft, String filePath) :
 	Block(topLeft, TYPE::MESSAGE_BLOCK)
 {
 	m_BmpPtr = new Bitmap(filePath);
+	m_BitmapWidth = m_BmpPtr->GetWidth();
+	m_BitmapHeight = m_BmpPtr->GetHeight();
 	m_AnimInfo.frameNumber = 0;
 }
 MessageBlock::~MessageBlock()
 {
 	delete m_BmpPtr;
+}
+bool MessageBlock::Tick(double deltaTime, Level* levelPtr)
+{
+	if (m_FramesUntilPause != -1 && --m_FramesUntilPause <= 0)
+	{
+		levelPtr->SetShowingMessage(true);
+		m_FramesUntilPause = -1;
+		m_FramesOfIntroAnimation = 0;
+	}
+
+	if (m_FramesOfIntroAnimation > -1)
+	{
+		if (levelPtr->IsShowingMessage() == false)
+		{
+			m_FramesOfIntroAnimation = -1;
+			m_FramesOfOutroAnimation = 0;
+		}
+	}
+
+	if (m_FramesOfOutroAnimation > FRAMES_OF_ANIMATION)
+	{
+		m_FramesOfOutroAnimation = -1;
+	}
+
+	return false;
 }
 void MessageBlock::Paint()
 {
@@ -485,32 +519,53 @@ void MessageBlock::Paint()
 	double top = m_ActPtr->GetPosition().y;
 	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
 
-	if (m_IsShowing)
+	int yo = 32;
+	GAME_ENGINE->SetColor(COLOR(0, 0, 0));
+	MATRIX3X2 matViewPrevious = GAME_ENGINE->GetViewMatrix();
+	GAME_ENGINE->SetViewMatrix(Game::matIdentity);
+
+	if (m_FramesOfIntroAnimation > -1)
 	{
-		m_FramesShowing++;
+		m_FramesOfIntroAnimation++;
 
-		MATRIX3X2 matViewPrev = GAME_ENGINE->GetViewMatrix();
-		GAME_ENGINE->SetViewMatrix(Game::matIdentity);
-
-		double x = Game::WIDTH / 2 - m_BmpPtr->GetWidth() / 2;
-		double y = 25;
-		GAME_ENGINE->DrawBitmap(m_BmpPtr, x, 42);
-
-		GAME_ENGINE->SetViewMatrix(matViewPrev);
+		// NOTE: Paints a growing rectangle for the first 'FRAMES_OF_ANIMATION' frames
+		if (m_FramesOfIntroAnimation < FRAMES_OF_ANIMATION)
+		{
+			double width = m_FramesOfIntroAnimation * (m_BitmapWidth / FRAMES_OF_ANIMATION);
+			double height = m_FramesOfIntroAnimation * (m_BitmapHeight / FRAMES_OF_ANIMATION);
+			double x = Game::WIDTH / 2 - width / 2;
+			double y = Game::HEIGHT / 2 - height / 2 - yo;
+			GAME_ENGINE->FillRect(RECT2(x, y, x + width, y + height));
+		}
+		else
+		{
+			double x = Game::WIDTH / 2 - m_BmpPtr->GetWidth() / 2;
+			double y = 25;
+			GAME_ENGINE->DrawBitmap(m_BmpPtr, x, Game::HEIGHT / 2 - m_BmpPtr->GetHeight() / 2 - yo);
+		}
 	}
-}
-bool MessageBlock::Tick(double deltaTime, Level* levelPtr)
-{
-	// We know that once Tick is called, the user has "unpaused" and wants to resume playing
-	m_IsShowing = false;
-	return false;
-}
-void MessageBlock::Hit()
-{
-	SoundManager::PlaySound(SoundManager::SOUND::BLOCK_HIT);
+	else if (m_FramesOfOutroAnimation > -1)
+	{
+		m_FramesOfOutroAnimation++;
 
-	m_IsShowing = true;
-	m_FramesShowing = 0;
+		// NOTE: Paints a shrinking rectangle for 'FRAMES_OF_ANIMATION' frames
+		if (m_FramesOfOutroAnimation < FRAMES_OF_ANIMATION)
+		{
+			double width = m_BitmapWidth - m_FramesOfOutroAnimation * (m_BitmapWidth / FRAMES_OF_ANIMATION);
+			double height = m_BitmapHeight - m_FramesOfOutroAnimation * (m_BitmapHeight / FRAMES_OF_ANIMATION);
+			double x = Game::WIDTH / 2 - width / 2;
+			double y = Game::HEIGHT / 2 - height / 2 - yo;
+			GAME_ENGINE->FillRect(RECT2(x, y, x + width, y + height));
+		}
+	}
 
-	// LATER: Play additional sound here
+	GAME_ENGINE->SetViewMatrix(matViewPrevious);
+}
+void MessageBlock::Hit(Level* levelPtr)
+{
+	SoundManager::PlaySoundEffect(SoundManager::SOUND::BLOCK_HIT);
+
+	m_FramesUntilPause = FRAMES_TO_WAIT;
+
+	SoundManager::PlaySoundEffect(SoundManager::SOUND::MESSAGE_BLOCK_HIT);
 }

@@ -1,11 +1,11 @@
 #include "stdafx.h"
 #include "SoundManager.h"
 
-FmodSound* SoundManager::sounds[];
-FmodSound* SoundManager::songs[];
+FmodSound* SoundManager::m_SoundsPtrArr[];
+FmodSound* SoundManager::m_SongsPtrArr[];
 
-bool SoundManager::muted = false;
-double SoundManager::globalVolumeLevel = 1.0;
+bool SoundManager::m_Muted = false;
+double SoundManager::m_GlobalVolumeLevel = 1.0;
 
 SoundManager::SoundManager()
 {
@@ -15,98 +15,115 @@ SoundManager::~SoundManager()
 {
 }
 
-void SoundManager::InitialzeSounds()
+void SoundManager::InitialzeSoundsAndSongs()
 {
 	// TODO: Only repeat middle section of song, not intro
-	songs[int(SONG::OVERWORLD_BGM)] = new FmodSound();
-	songs[int(SONG::OVERWORLD_BGM)]->CreateStream(String("Resources/sound/music/overworld-bgm.wav"), true);
+	m_SongsPtrArr[int(SONG::OVERWORLD_BGM)] = new FmodSound();
+	m_SongsPtrArr[int(SONG::OVERWORLD_BGM)]->CreateStream(String("Resources/sound/music/overworld-bgm.wav"), true);
 
-	songs[int(SONG::OVERWORLD_BGM_FAST)] = new FmodSound();
-	songs[int(SONG::OVERWORLD_BGM_FAST)]->CreateStream(String("Resources/sound/music/overworld-bgm-fast.wav"), true);
+	m_SongsPtrArr[int(SONG::OVERWORLD_BGM_FAST)] = new FmodSound();
+	m_SongsPtrArr[int(SONG::OVERWORLD_BGM_FAST)]->CreateStream(String("Resources/sound/music/overworld-bgm-fast.wav"), true);
 
-	sounds[int(SOUND::GAME_PAUSE)] = new FmodSound();
-	sounds[int(SOUND::GAME_PAUSE)]->CreateSound(String("Resources/sound/game-pause.wav"));
+	m_SoundsPtrArr[int(SOUND::GAME_PAUSE)] = new FmodSound();
+	m_SoundsPtrArr[int(SOUND::GAME_PAUSE)]->CreateSound(String("Resources/sound/game-pause.wav"));
 
-	sounds[int(SOUND::PLAYER_JUMP)] = new FmodSound();
-	sounds[int(SOUND::PLAYER_JUMP)]->CreateSound(String("Resources/sound/player-jump.wav"));
+	m_SoundsPtrArr[int(SOUND::PLAYER_JUMP)] = new FmodSound();
+	m_SoundsPtrArr[int(SOUND::PLAYER_JUMP)]->CreateSound(String("Resources/sound/player-jump.wav"));
 
-	sounds[int(SOUND::PLAYER_SPIN_JUMP)] = new FmodSound();
-	sounds[int(SOUND::PLAYER_SPIN_JUMP)]->CreateSound(String("Resources/sound/player-spin-jump.wav"));
+	m_SoundsPtrArr[int(SOUND::PLAYER_SPIN_JUMP)] = new FmodSound();
+	m_SoundsPtrArr[int(SOUND::PLAYER_SPIN_JUMP)]->CreateSound(String("Resources/sound/player-spin-jump.wav"));
 
-	sounds[int(SOUND::COIN_COLLECT)] = new FmodSound();
-	sounds[int(SOUND::COIN_COLLECT)]->CreateSound(String("Resources/sound/coin-collect.wav"));
+	m_SoundsPtrArr[int(SOUND::PLAYER_SUPER_MUSHROOM_COLLECT)] = new FmodSound();
+	m_SoundsPtrArr[int(SOUND::PLAYER_SUPER_MUSHROOM_COLLECT)]->CreateSound(String("Resources/sound/player-super-mushroom-collect.wav"));
 
-	sounds[int(SOUND::DRAGON_COIN_COLLECT)] = new FmodSound();
-	sounds[int(SOUND::DRAGON_COIN_COLLECT)]->CreateSound(String("Resources/sound/dragon-coin-collect.wav"));
+	m_SoundsPtrArr[int(SOUND::COIN_COLLECT)] = new FmodSound();
+	m_SoundsPtrArr[int(SOUND::COIN_COLLECT)]->CreateSound(String("Resources/sound/coin-collect.wav"));
 
-	sounds[int(SOUND::BLOCK_HIT)] = new FmodSound();
-	sounds[int(SOUND::BLOCK_HIT)]->CreateSound(String("Resources/sound/block-hit.wav"));
+	m_SoundsPtrArr[int(SOUND::DRAGON_COIN_COLLECT)] = new FmodSound();
+	m_SoundsPtrArr[int(SOUND::DRAGON_COIN_COLLECT)]->CreateSound(String("Resources/sound/dragon-coin-collect.wav"));
 
-	sounds[int(SOUND::SUPER_MUSHROOM_SPAWN)] = new FmodSound();
-	sounds[int(SOUND::SUPER_MUSHROOM_SPAWN)]->CreateSound(String("Resources/sound/super-mushroom-spawn.wav"));
+	m_SoundsPtrArr[int(SOUND::BLOCK_HIT)] = new FmodSound();
+	m_SoundsPtrArr[int(SOUND::BLOCK_HIT)]->CreateSound(String("Resources/sound/block-hit.wav"));
+
+	m_SoundsPtrArr[int(SOUND::SUPER_MUSHROOM_SPAWN)] = new FmodSound();
+	m_SoundsPtrArr[int(SOUND::SUPER_MUSHROOM_SPAWN)]->CreateSound(String("Resources/sound/super-mushroom-spawn.wav"));
+
+	m_SoundsPtrArr[int(SOUND::MESSAGE_BLOCK_HIT)] = new FmodSound();
+	m_SoundsPtrArr[int(SOUND::MESSAGE_BLOCK_HIT)]->CreateSound(String("Resources/sound/message-block-hit.wav"));
 }
 
-void SoundManager::UnloadSounds()
+void SoundManager::RestartSongs()
+{
+	for (int i = 0; i < int(SONG::LAST_ELEMENT); ++i)
+	{
+		if (m_SongsPtrArr[i]->IsPlaying())
+		{
+			m_SongsPtrArr[i]->SetPosition(0);
+		}
+	}
+}
+
+void SoundManager::UnloadSoundsAndSongs()
 {
 	// TODO: Find out if we should be stopping the sounds before we delete them
 	for (int i = 0; i < int(SONG::LAST_ELEMENT); ++i)
 	{
-		delete songs[i];
+		delete m_SongsPtrArr[i];
 	}
 	for (int i = 0; i < int(SOUND::LAST_ELEMENT); ++i)
 	{
-		delete sounds[i];
+		delete m_SoundsPtrArr[i];
 	}
 }
 
-void SoundManager::PlaySound(SOUND sound)
+void SoundManager::PlaySoundEffect(SOUND sound)
 {
-	if (muted) return;
+	if (m_Muted) return;
 
-	sounds[int(sound)]->Play();
+	m_SoundsPtrArr[int(sound)]->Play();
 }
 
 void SoundManager::SetSoundPaused(SOUND sound, bool paused)
 {
-	sounds[int(sound)]->SetPaused(paused);
+	m_SoundsPtrArr[int(sound)]->SetPaused(paused);
 }
 
 void SoundManager::PlaySong(SONG song)
 {
-	if (muted) return;
+	if (m_Muted) return;
 
-	songs[int(song)]->Play();
+	m_SongsPtrArr[int(song)]->Play();
 }
 
 void SoundManager::SetSongPaused(SONG song, bool paused)
 {
-	songs[int(song)]->SetPaused(paused);
+	m_SongsPtrArr[int(song)]->SetPaused(paused);
 }
 
 void SoundManager::SetVolume(double volume)
 {
-	globalVolumeLevel = volume;
+	m_GlobalVolumeLevel = volume;
 
 	for (int i = 0; i < int(SONG::LAST_ELEMENT) - 1; ++i)
 	{
-		songs[i]->SetVolume(globalVolumeLevel);
+		m_SongsPtrArr[i]->SetVolume(m_GlobalVolumeLevel);
 	}
 	for (int i = 0; i < int(SOUND::LAST_ELEMENT) - 1; ++i)
 	{
-		sounds[i]->SetVolume(globalVolumeLevel);
+		m_SoundsPtrArr[i]->SetVolume(m_GlobalVolumeLevel);
 	}
 }
 
 void SoundManager::SetMuted(bool soundMuted)
 {
-	if (muted == soundMuted) return;
+	if (m_Muted == soundMuted) return;
 
-	muted = soundMuted;
-	if (muted) SetVolume(0.0);
+	m_Muted = soundMuted;
+	if (m_Muted) SetVolume(0.0);
 	else SetVolume(1.0);
 }
 
 void SoundManager::ToggleMuted()
 {
-	SetMuted(!muted);
+	SetMuted(!m_Muted);
 }

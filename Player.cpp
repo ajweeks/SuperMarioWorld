@@ -15,15 +15,45 @@ const double Player::RUN_SPEED = 50.0;
 
 Player::Player() : Entity(DOUBLE2(), SpriteSheetManager::smallMario, BodyType::DYNAMIC, this)
 {
-	m_ActPtr->AddBoxFixture(WIDTH, HEIGHT, 0.0);
+	Reset();
+
+	m_ActPtr->AddBoxFixture(GetWidth(), GetHeight(), 0.0);
 	m_ActPtr->SetFixedRotation(true);
 	m_ActPtr->SetUserData(int(ActorId::PLAYER));
-
-	Reset();
 }
 
 Player::~Player()
 {
+}
+
+int Player::GetWidth()
+{
+	static const int SMALL_WIDTH = 9;
+	static const int LARGE_WIDTH = 9;
+
+	if (m_PowerupState == POWERUP_STATE::NORMAL)
+	{
+		return SMALL_WIDTH;
+	}
+	else
+	{
+		return LARGE_WIDTH;
+	}
+}
+
+int Player::GetHeight()
+{
+	static const int SMALL_HEIGHT = 15;
+	static const int LARGE_HEIGHT = 23;
+
+	if (m_PowerupState == POWERUP_STATE::NORMAL)
+	{
+		return SMALL_HEIGHT;
+	}
+	else
+	{
+		return LARGE_HEIGHT;
+	}
 }
 
 void Player::Reset()
@@ -42,6 +72,7 @@ void Player::Reset()
 	m_DragonCoins = 0;
 
 	m_SpriteSheetPtr = SpriteSheetManager::smallMario;
+	m_NeedsNewFixture = true;
 
 	m_PowerupState = POWERUP_STATE::NORMAL;
 	m_AnimationState = ANIMATION_STATE::WAITING;
@@ -52,10 +83,10 @@ RECT2 Player::GetCameraRect()
 {
 	RECT2 result;
 
-	result.left = m_ActPtr->GetPosition().x - WIDTH / 2;
-	result.top = m_ActPtr->GetPosition().y - HEIGHT / 2;
-	result.right = result.left + WIDTH;
-	result.bottom = result.top + HEIGHT;
+	result.left = m_ActPtr->GetPosition().x - GetWidth() / 2;
+	result.top = m_ActPtr->GetPosition().y - GetHeight() / 2;
+	result.right = result.left + GetWidth();
+	result.bottom = result.top + GetHeight();
 
 	return result;
 }
@@ -68,6 +99,20 @@ bool Player::Tick(double deltaTime, Level *levelPtr)
 		m_ActPtr->SetPosition(DOUBLE2(SMW_JUMP_TO_POS_X, 365));
 	}
 #endif
+
+	if (m_NeedsNewFixture)
+	{
+		b2Fixture* fixturePtr = m_ActPtr->GetBody()->GetFixtureList();
+		while (fixturePtr != nullptr)
+		{
+			b2Fixture* nextFixturePtr = fixturePtr->GetNext();
+			m_ActPtr->GetBody()->DestroyFixture(fixturePtr);
+			fixturePtr = nextFixturePtr;
+		} 
+		m_ActPtr->AddBoxFixture(GetWidth(), GetHeight(), 0.0);
+
+		m_NeedsNewFixture = false;
+	}
 
 	HandleKeyboardInput(deltaTime, levelPtr);
 
@@ -115,7 +160,7 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 		{
 			m_AnimationState = ANIMATION_STATE::JUMPING;
 			m_IsOnGround = false;
-			SoundManager::PlaySound(SoundManager::SOUND::PLAYER_JUMP);
+			SoundManager::PlaySoundEffect(SoundManager::SOUND::PLAYER_JUMP);
 			m_FramesSpentInAir = 0;
 			verticalVel = jumpVelocity;
 			// NOTE: This line is slightly hacky, but it prevents stupid Box2D from 
@@ -126,7 +171,7 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 		{
 			m_AnimationState = ANIMATION_STATE::SPIN_JUMPING;
 			m_IsOnGround = false;
-			SoundManager::PlaySound(SoundManager::SOUND::PLAYER_SPIN_JUMP);
+			SoundManager::PlaySoundEffect(SoundManager::SOUND::PLAYER_SPIN_JUMP);
 			m_FramesSpentInAir = 0;
 			verticalVel = jumpVelocity;
 			m_ActPtr->SetPosition(m_ActPtr->GetPosition() - DOUBLE2(0, 1));
@@ -341,11 +386,14 @@ void Player::Paint()
 	}
 
 	DOUBLE2 spriteTile = CalculateAnimationFrame();
-	m_SpriteSheetPtr->Paint(centerX, centerY - HEIGHT / 2 + 3, spriteTile.x, spriteTile.y);
+	int yo = GetHeight() / 2 - (m_PowerupState == POWERUP_STATE::NORMAL ? 6 : 2);
+	m_SpriteSheetPtr->Paint(centerX, centerY - GetHeight() / 2 + yo, spriteTile.x, spriteTile.y);
+
+	// Paint extra item
 
 	GAME_ENGINE->SetWorldMatrix(matPrevWorld);
 
-	GAME_ENGINE->DrawString(AnimationStateToString(m_AnimationState), centerX + 15, centerY - 15);
+	//GAME_ENGINE->DrawString(AnimationStateToString(m_AnimationState), centerX + 15, centerY - 15);
 }
 
 DOUBLE2 Player::CalculateAnimationFrame()
@@ -407,9 +455,9 @@ DOUBLE2 Player::CalculateAnimationFrame()
 	return DOUBLE2(srcX, srcY);
 }
 
-void Player::OnItemPickup(Item* item)
+void Player::OnItemPickup(Item* itemPtr)
 {
-	switch (item->GetType())
+	switch (itemPtr->GetType())
 	{
 	case Item::TYPE::COIN:
 	{
@@ -423,8 +471,23 @@ void Player::OnItemPickup(Item* item)
 	} break;
 	case Item::TYPE::SUPER_MUSHROOM:
 	{
-		m_SpriteSheetPtr = SpriteSheetManager::superMario;
-		ChangePowerupState(POWERUP_STATE::SUPER);
+		switch (m_PowerupState)
+		{
+		case POWERUP_STATE::NORMAL:
+		{
+			SoundManager::PlaySoundEffect(SoundManager::SOUND::PLAYER_SUPER_MUSHROOM_COLLECT);
+			m_SpriteSheetPtr = SpriteSheetManager::superMario;
+			ChangePowerupState(POWERUP_STATE::SUPER);
+		} break;
+		case POWERUP_STATE::SUPER:
+		case POWERUP_STATE::FIRE:
+		case POWERUP_STATE::BALLOON:
+		case POWERUP_STATE::CAPE:
+		case POWERUP_STATE::STAR:
+		{
+			m_ExtraItemPtr = itemPtr;
+		} break;
+		}
 	} break;
 	case Item::TYPE::CAPE_FEATHER:
 	{
@@ -469,9 +532,12 @@ void Player::ChangePowerupState(POWERUP_STATE newPowerupState, bool isUpgrade)
 	else
 	{
 		m_SpriteSheetPtr = SpriteSheetManager::smallMario;
+
 		// TODO: Play sound effect here
 		// NOTE: Sound effect changes based on what state you were in before!
 	}
+	
+	m_NeedsNewFixture = true;
 }
 
 void Player::AddCoin(bool playSound)
@@ -480,7 +546,7 @@ void Player::AddCoin(bool playSound)
 
 	if (playSound)
 	{
-		SoundManager::PlaySound(SoundManager::SOUND::COIN_COLLECT);
+		SoundManager::PlaySoundEffect(SoundManager::SOUND::COIN_COLLECT);
 	}
 	
 	if (m_Coins > 99)
@@ -496,7 +562,7 @@ void Player::AddDragonCoin()
 	AddCoin(false);
 	m_DragonCoins++;
 
-	SoundManager::PlaySound(SoundManager::SOUND::DRAGON_COIN_COLLECT);
+	SoundManager::PlaySoundEffect(SoundManager::SOUND::DRAGON_COIN_COLLECT);
 
 	if (m_DragonCoins >= 5)
 	{
@@ -567,16 +633,6 @@ DOUBLE2 Player::GetPosition()
 FACING_DIRECTION Player::GetDirectionFacing()
 {
 	return m_DirFacing;
-}
-
-int Player::GetWidth()
-{
-	return WIDTH;
-}
-
-int Player::GetHeight()
-{
-	return HEIGHT;
 }
 
 DOUBLE2 Player::GetLinearVelocity()

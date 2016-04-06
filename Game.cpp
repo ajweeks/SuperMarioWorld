@@ -54,8 +54,8 @@ void Game::GameStart()
 {
 	SpriteSheetManager::Load();
 
-	SoundManager::InitialzeSounds();
-	SoundManager::SetMuted(true);
+	SoundManager::InitialzeSoundsAndSongs();
+	SoundManager::SetMuted(false);
 
 	// TODO: Add mario fonts
 	Game::Font12Ptr = new Font(String("consolas"), 12);
@@ -68,7 +68,24 @@ void Game::GameStart()
 	m_TotalSessionsWithInfo = GetNumberOfSessions(m_AllSessionInfo);
 	m_CurrentSessionInfo = GetReadableSessionInfo(m_CurrentSessionInfoShowingIndex);
 
+	Reset();
+
 	GetSystemTime(&m_StartTime);
+}
+
+void Game::Reset()
+{
+	m_LevelPtr->Reset();
+
+	m_SecondsElapsed = 0.0;
+
+	m_CurrentSessionInfoShowingIndex = 0;
+	m_CurrentSessionInfo = GetReadableSessionInfo(m_CurrentSessionInfoShowingIndex);
+
+	m_ShowingSessionInfo = false;
+
+	m_RenderDebugOverlay = false;
+	GAME_ENGINE->EnablePhysicsDebugRendering(m_RenderDebugOverlay);
 }
 
 void Game::GameSetSleeping(bool sleeping)
@@ -92,7 +109,7 @@ void Game::GameEnd()
 	LevelData::Unload();
 	SpriteSheetManager::Unload();
 
-	SoundManager::UnloadSounds();
+	SoundManager::UnloadSoundsAndSongs();
 }
 
 void Game::GameTick(double deltaTime)
@@ -113,7 +130,7 @@ void Game::GameTick(double deltaTime)
 
 	if (GAME_ENGINE->IsKeyboardKeyPressed('R'))
 	{
-		m_LevelPtr->Reset();
+		Reset();
 	}
 
 	if (GAME_ENGINE->IsKeyboardKeyPressed('I'))

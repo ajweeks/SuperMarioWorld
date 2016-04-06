@@ -37,9 +37,6 @@ public:
 	void Paint();
 
 	void Reset();
-	
-	int GetWidth();
-	int GetHeight();
 
 	int GetLives();
 	int GetCoinsCollected();
@@ -54,27 +51,14 @@ public:
 	FACING_DIRECTION GetDirectionFacing();
 	bool IsOnGround();
 
-	void OnItemPickup(Item* item);
+	void OnItemPickup(Item* itemPtr);
 
 	void TogglePaused(bool paused);
 
-	static const int WIDTH = 9;
-	static const int HEIGHT = 17;
+	int GetWidth();
+	int GetHeight();
 
 private:
-	static const double WALK_SPEED;
-	static const double RUN_SPEED;
-
-	bool m_IsOnGround = true;
-	bool m_WasOnGround = true;
-	int m_FramesSpentInAir = -1;
-
-	int m_Lives;
-	int m_Coins;
-	int m_DragonCoins;
-	int m_Stars;
-	int m_Score;
-	
 	DOUBLE2 CalculateAnimationFrame();
 
 	void HandleKeyboardInput(double deltaTime, Level* levelPtr);
@@ -88,6 +72,20 @@ private:
 	void ChangePowerupState(POWERUP_STATE newPowerupState, bool isUpgrade = true);
 
 	void TakeDamage();
+
+	static const double WALK_SPEED;
+	static const double RUN_SPEED;
+
+	bool m_IsOnGround = true;
+	bool m_WasOnGround = true;
+	int m_FramesSpentInAir = -1;
+
+	int m_Lives;
+	int m_Coins;
+	int m_DragonCoins;
+	int m_Stars;
+	int m_Score;
+	bool m_NeedsNewFixture = false;
 
 	static const int TOTAL_FRAMES_OF_POWERUP_TRANSITION = 50;
 	int m_FramesOfPowerupTransitionElapsed = -1; // NOTE: Perhaps this variable name is a tad long...

@@ -40,6 +40,24 @@ Level::~Level()
 	delete m_Camera;
 }
 
+void Level::Reset()
+{
+	m_PlayerPtr->Reset();
+	m_Camera->Reset();
+
+	m_WasPaused = false;
+	m_Paused = false;
+	m_ShowingMessage = false;
+
+	m_TotalTime = 400; // This changes for every level, TODO: Put this info in the level save
+	m_SecondsElapsed = 0.0;
+
+	m_LevelDataPtr->RegenerateLevel(1);
+	ReadLevelData(1);
+
+	SoundManager::RestartSongs();
+}
+
 void Level::ReadLevelData(int levelIndex)
 {
 	m_LevelDataPtr = LevelData::GetLevel(levelIndex);
@@ -62,18 +80,6 @@ void Level::ReadLevelData(int levelIndex)
 	}
 }
 
-void Level::Reset()
-{
-	m_PlayerPtr->Reset();
-	m_Camera->Reset();
-
-	m_LevelDataPtr->RegenerateLevel(1);
-	ReadLevelData(1);
-
-	m_TotalTime = 400; // This changes for every level, TODO: Put this info in the level save
-	m_SecondsElapsed = 0.0;
-}
-
 void Level::Tick(double deltaTime)
 {
 	if (m_Paused != m_WasPaused)
@@ -84,12 +90,24 @@ void Level::Tick(double deltaTime)
 		TogglePaused();
 	}
 
-	if (GAME_ENGINE->IsKeyboardKeyPressed(' '))
+	if (m_ShowingMessage &&
+		(GAME_ENGINE->IsKeyboardKeyPressed('A') ||
+		GAME_ENGINE->IsKeyboardKeyPressed('S') ||
+		GAME_ENGINE->IsKeyboardKeyPressed('Z') ||
+		GAME_ENGINE->IsKeyboardKeyPressed('X') ||
+		GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE)))
+	{
+		m_ShowingMessage = false;
+		// NOTE: Return here so that the input isn't registered as movement input
+		return;
+	}
+	else if (GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE))
 	{
 		TogglePaused();
 		m_WasPaused = m_Paused;
+		SoundManager::PlaySoundEffect(SoundManager::SOUND::GAME_PAUSE);
 	}
-	if (m_Paused) return;
+	if (m_Paused || m_ShowingMessage) return;
 
 	m_SecondsElapsed += (deltaTime);
 	
@@ -438,7 +456,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 		bool playerIsRising = actOtherPtr->GetLinearVelocity().y < -0.001;
 		bool playerIsBelow = actOtherPtr->GetPosition().y > (actThisPtr->GetPosition().y + Block::HEIGHT / 2);
 		bool playerIsAbove = actOtherPtr->GetPosition().y < (actThisPtr->GetPosition().y - Block::HEIGHT / 2);
-		DOUBLE2 playerFeet = DOUBLE2(actOtherPtr->GetPosition().x, actOtherPtr->GetPosition().y + Player::HEIGHT / 2 + 6);
+		DOUBLE2 playerFeet = DOUBLE2(actOtherPtr->GetPosition().x, actOtherPtr->GetPosition().y + ((Player*)actOtherPtr)->GetHeight() / 2 + 6);
 
 		switch (actThisPtr->GetUserData())
 		{
@@ -472,8 +490,8 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			{
 				if (m_ItemToBeRemovedPtr != nullptr)
 				{
-					// The player is collecting two (or more) coins this tick, just return and let the 
-					// previous coin be collected, we'll almost definitely be colliding with this one again next tick
+					// The player is collecting two (or more) items this tick, just return and let the 
+					// previous item be collected, we'll almost definitely be colliding with this one again next tick
 					break;
 				}
 
@@ -487,7 +505,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			{
 				if (playerIsRising && playerIsBelow)
 				{
-					((Block*)item)->Hit();
+					((Block*)item)->Hit(this);
 
 					// NOTE: This line prevents the player from slowly floating down after hitting a block
 					m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetLinearVelocity().x, 0.0));
@@ -514,7 +532,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 				if (actThisPtr->IsPointInActor(point))
 				{
 					actOtherPtr->SetLinearVelocity(DOUBLE2(
-						-actOtherPtr->GetLinearVelocity().x, 
+						-actOtherPtr->GetLinearVelocity().x,
 						actOtherPtr->GetLinearVelocity().y));
 				}
 			} break;
@@ -537,6 +555,11 @@ void Level::EndContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 	}
 }
 
+void Level::GiveItemToPlayer(Item* itemPtr)
+{
+	m_PlayerPtr->OnItemPickup(itemPtr);
+}
+
 void Level::TogglePaused()
 {
 	m_Paused = !m_Paused;
@@ -544,11 +567,24 @@ void Level::TogglePaused()
 	m_PlayerPtr->TogglePaused(m_Paused);
 	m_LevelDataPtr->TogglePaused(m_Paused);
 
-	SoundManager::PlaySound(SoundManager::SOUND::GAME_PAUSE);
-
 	// LATER: Figure out how to pause the music only once the game pause sound is done playing
 	// (if only we had callbacks...)
 	SoundManager::SetSongPaused(SoundManager::SONG::OVERWORLD_BGM, m_Paused);
+}
+
+void Level::SetPaused(bool paused)
+{
+	m_Paused = paused;
+}
+
+void Level::SetShowingMessage(bool showingMessage)
+{
+	m_ShowingMessage = showingMessage;
+}
+
+bool Level::IsShowingMessage()
+{
+	return m_ShowingMessage;
 }
 
 double Level::GetWidth()

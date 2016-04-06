@@ -63,7 +63,7 @@ LevelData::LevelData(String platforms, String pipes, String items)
 		} break;
 		case int(Item::TYPE::COIN):
 		{
-			m_ItemsPtrArr.push_back(new Coin(topLeft, -1));
+			m_ItemsPtrArr.push_back(new Coin(topLeft));
 		} break;
 		case int(Item::TYPE::DRAGON_COIN):
 		{
@@ -224,7 +224,7 @@ LevelData* LevelData::GenerateLevel(int levelIndex)
 		itemsStream << "[" << 865 << "," << 328 << "]";
 		itemsStream << int(Item::TYPE::PRIZE_BLOCK) << "\n";
 
-		itemsStream << "[" << 1024 << "," << 337 << "]";
+		itemsStream << "[" << 1024 << "," << 330 << "]";
 		itemsStream << int(Item::TYPE::MESSAGE_BLOCK) << " ";
 		itemsStream << "Resources/levels/01/message_box_01.png" << "\n";
 

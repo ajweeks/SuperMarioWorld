@@ -31,6 +31,11 @@ public:
 
 	bool IsPlayerOnGround();
 
+	void SetShowingMessage(bool showingMessage);
+	bool IsShowingMessage();
+
+	void GiveItemToPlayer(Item* itemPtr);
+
 private:
 	void PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool & enableContactRef);
 	void BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr);
@@ -45,10 +50,11 @@ private:
 	RECT2 GetSmallSingleNumberSrcRect(int number, bool yellow);
 	RECT2 GetLargeSingleNumberSrcRect(int number);
 
+	void TogglePaused();
+	void SetPaused(bool paused);
+
 	void ReadLevelData(int levelIndex);
 	LevelData* m_LevelDataPtr = nullptr;
-
-	void TogglePaused();
 
 	// NOTE: We *could* make this an array, in case the player tries to collect two items
 	// in the same frame, but that isn't very likely and will be caught in the next frame
@@ -61,7 +67,9 @@ private:
 	// NOTE: This stupid variable is only here because
 	// Box2D won't let us set all the actors to inactive during a PreSolve OR a BeginContact
 	// so we need to save the state and update it next tick instead....
-	bool m_WasPaused = false; 
+	bool m_WasPaused = false;
+
+	bool m_ShowingMessage = false;
 
 	int m_TotalTime; // How long the player has to complete this level
 	double m_SecondsElapsed = 0.0; // How many real-time seconds have elapsed
