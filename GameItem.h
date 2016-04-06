@@ -43,6 +43,7 @@ struct Item : public Entity
 {
 	enum class TYPE
 	{
+		NONE,
 		COIN, DRAGON_COIN, BERRY, KEY, KEYHOLE, P_SWITCH,
 		ONE_UP_MUSHROOM, THREE_UP_MOON,
 		SUPER_MUSHROOM, FIRE_FLOWER, CAPE_FEATHER, STAR, POWER_BALLOON,
@@ -125,11 +126,12 @@ struct ThreeUpMoon : public Item
 struct SuperMushroom : public Item
 {
 	// horizontalDir is either 1 or -1, signifying which direction to move in (1:right, -1:left)
-	SuperMushroom(DOUBLE2 topLeft, int horizontalDir = 1);
+	SuperMushroom(DOUBLE2 topLeft, int horizontalDir = 1, bool isStatic = false);
 	bool Tick(double deltaTime, Level* levelPtr);
 	void Paint();
 private:
 	double m_HorizontalSpeed = 80;
+	bool m_IsStatic;
 };
 struct FireFlower : public Item
 {
@@ -229,5 +231,5 @@ private:
 	// When != -1 the game is paused and the message is being painted (by the message block itself)
 	int m_FramesOfIntroAnimation = -1;
 	int m_FramesOfOutroAnimation = -1;
-	static const int FRAMES_OF_ANIMATION = 360;
+	static const int FRAMES_OF_ANIMATION;
 };

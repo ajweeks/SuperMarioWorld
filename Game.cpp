@@ -90,7 +90,7 @@ void Game::Reset()
 
 void Game::GameSetSleeping(bool sleeping)
 {
-	SoundManager::SetMuted(sleeping);
+	//SoundManager::SetMuted(sleeping);
 }
 
 void Game::GameWindowResize(int width, int height)

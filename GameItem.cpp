@@ -209,16 +209,32 @@ void ThreeUpMoon::Paint()
 	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
 }
 // ___SUPER MUSHROOM___
-SuperMushroom::SuperMushroom(DOUBLE2 topLeft, int horizontalDir) :
-	Item(topLeft, TYPE::SUPER_MUSHROOM, BodyType::DYNAMIC)
+SuperMushroom::SuperMushroom(DOUBLE2 topLeft, int horizontalDir, bool isStatic) :
+	Item(topLeft, TYPE::SUPER_MUSHROOM, BodyType::DYNAMIC), m_IsStatic(isStatic)
 {
 	assert(horizontalDir == 1 || horizontalDir == -1);
 
-	m_ActPtr->SetLinearVelocity(DOUBLE2(m_HorizontalSpeed * horizontalDir, 0));
+	if (m_IsStatic)
+	{
+		m_ActPtr->SetActive(false);
+	}
+	else
+	{
+		m_ActPtr->SetLinearVelocity(DOUBLE2(m_HorizontalSpeed * horizontalDir, 0));
+	}
 }
 bool SuperMushroom::Tick(double deltaTime, Level* levelPtr)
 {
-	m_ActPtr->SetLinearVelocity(DOUBLE2(m_HorizontalSpeed, m_ActPtr->GetLinearVelocity().y));
+	if (m_IsStatic)
+	{
+		double xPos = levelPtr->GetCameraOffset().x + Game::WIDTH / 2;
+		double yPos = levelPtr->GetCameraOffset().y + 25;
+		m_ActPtr->SetPosition(DOUBLE2(xPos, yPos));
+	}
+	else
+	{
+		m_ActPtr->SetLinearVelocity(DOUBLE2(m_HorizontalSpeed, m_ActPtr->GetLinearVelocity().y));
+	}
 	return false;
 }
 void SuperMushroom::Paint()
@@ -474,6 +490,7 @@ bool RotatingBlock::IsRotating()
 // ___MESSAGE BLOCK___
 int MessageBlock::m_BitmapWidth = -1;
 int MessageBlock::m_BitmapHeight = -1;
+const int MessageBlock::FRAMES_OF_ANIMATION = 360;
 MessageBlock::MessageBlock(DOUBLE2 topLeft, String filePath) :
 	Block(topLeft, TYPE::MESSAGE_BLOCK)
 {
@@ -531,8 +548,8 @@ void MessageBlock::Paint()
 		// NOTE: Paints a growing rectangle for the first 'FRAMES_OF_ANIMATION' frames
 		if (m_FramesOfIntroAnimation < FRAMES_OF_ANIMATION)
 		{
-			double width = m_FramesOfIntroAnimation * (m_BitmapWidth / FRAMES_OF_ANIMATION);
-			double height = m_FramesOfIntroAnimation * (m_BitmapHeight / FRAMES_OF_ANIMATION);
+			double width = double(m_FramesOfIntroAnimation) * (double(m_BitmapWidth) / double(FRAMES_OF_ANIMATION));
+			double height = double(m_FramesOfIntroAnimation) * (double(m_BitmapHeight) / double(FRAMES_OF_ANIMATION));
 			double x = Game::WIDTH / 2 - width / 2;
 			double y = Game::HEIGHT / 2 - height / 2 - yo;
 			GAME_ENGINE->FillRect(RECT2(x, y, x + width, y + height));
@@ -551,8 +568,8 @@ void MessageBlock::Paint()
 		// NOTE: Paints a shrinking rectangle for 'FRAMES_OF_ANIMATION' frames
 		if (m_FramesOfOutroAnimation < FRAMES_OF_ANIMATION)
 		{
-			double width = m_BitmapWidth - m_FramesOfOutroAnimation * (m_BitmapWidth / FRAMES_OF_ANIMATION);
-			double height = m_BitmapHeight - m_FramesOfOutroAnimation * (m_BitmapHeight / FRAMES_OF_ANIMATION);
+			double width = m_BitmapWidth - double(m_FramesOfOutroAnimation) * (double(m_BitmapWidth) / double(FRAMES_OF_ANIMATION));
+			double height = m_BitmapHeight - double(m_FramesOfOutroAnimation) * (double(m_BitmapHeight) / double(FRAMES_OF_ANIMATION));
 			double x = Game::WIDTH / 2 - width / 2;
 			double y = Game::HEIGHT / 2 - height / 2 - yo;
 			GAME_ENGINE->FillRect(RECT2(x, y, x + width, y + height));

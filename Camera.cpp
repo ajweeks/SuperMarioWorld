@@ -14,8 +14,14 @@ Camera::~Camera()
 {
 }
 
-// TODO: Add yo functionality for certain levels
-MATRIX3X2 Camera::GetViewMatrix(Player* playerPtr, Level* levelPtr)
+void Camera::Reset()
+{
+	m_PrevTranslation = DOUBLE2(0.0, m_Height);
+	m_TargetOffset = DOUBLE2(0.0, 0.0);
+	m_XOffset = 0;
+}
+
+DOUBLE2 Camera::GetOffset(Player* playerPtr, Level* levelPtr)
 {
 #if SMW_ENABLE_JUMP_TO
 	if (GAME_ENGINE->IsKeyboardKeyPressed('O'))
@@ -30,7 +36,6 @@ MATRIX3X2 Camera::GetViewMatrix(Player* playerPtr, Level* levelPtr)
 
 	if (playerPtr->GetDirectionFacing() == FACING_DIRECTION::LEFT)
 	{
-		// TODO:This hacky af but it works, change it later perhaps
 		if (m_XOffset == MAX_OFFSET)
 		{
 			m_TargetOffset.x = playerPos.x - MAX_OFFSET;
@@ -40,7 +45,7 @@ MATRIX3X2 Camera::GetViewMatrix(Player* playerPtr, Level* levelPtr)
 			m_TargetOffset.x = playerPos.x - MAX_OFFSET;
 			m_XOffset = MAX_OFFSET;
 		}
-	} 
+	}
 	else // The player is facing right
 	{
 		if (m_XOffset == -(MAX_OFFSET - m_Width))
@@ -56,7 +61,7 @@ MATRIX3X2 Camera::GetViewMatrix(Player* playerPtr, Level* levelPtr)
 
 	double epsilon = 0.001;
 	double panSpeed = 0.25;
-	double difference = abs(m_PrevTranslation.x - m_TargetOffset.x);
+	double difference = abs(m_TargetOffset.x - m_PrevTranslation.x);
 	if (difference < panSpeed)
 	{
 		panSpeed = difference;
@@ -73,20 +78,24 @@ MATRIX3X2 Camera::GetViewMatrix(Player* playerPtr, Level* levelPtr)
 		}
 	}
 
-	// TODO: Adjust camera's y differently?
+	// TODO: Adjust camera's y
 	// newTranslation.y = playerPos.y - Game::HEIGHT / 2;
 
 	newTranslation.y = 550;
 	Clamp(newTranslation, levelPtr);
 
 	m_PrevTranslation = newTranslation;
-	
-	// NOTE: Use negative position instead of .Inverse()
-	MATRIX3X2 matCameraTranslation = MATRIX3X2::CreateTranslationMatrix(-newTranslation);
 
-	//double rx = Game::WIDTH / m_Width;
-	//double ry = Game::HEIGHT / m_Height;
-	//MATRIX3X2 matCameraZoom = MATRIX3X2::CreateScalingMatrix(rx, ry);
+	return newTranslation;
+}
+
+// TODO: Add yo functionality for certain levels
+MATRIX3X2 Camera::GetViewMatrix(Player* playerPtr, Level* levelPtr)
+{
+	DOUBLE2 newTranslation = GetOffset(playerPtr, levelPtr);
+	
+	// NOTE: Uses negative position instead of .Inverse()
+	MATRIX3X2 matCameraTranslation = MATRIX3X2::CreateTranslationMatrix(-newTranslation);
 
 	return matCameraTranslation;
 }
@@ -94,9 +103,6 @@ MATRIX3X2 Camera::GetViewMatrix(Player* playerPtr, Level* levelPtr)
 /* Paints extra debug info about the camera (Expects view matrix to be Game::matIdentity) */
 void Camera::DEBUGPaint()
 {
-	//GAME_ENGINE->SetColor(COLOR(250, 20, 20));
-	//GAME_ENGINE->DrawLine(m_XOffset, 0, m_XOffset, Game::HEIGHT);
-
 	double centerX = m_Width / 2;
 	double x = 0;
 
@@ -132,11 +138,4 @@ void Camera::Clamp(DOUBLE2& posRef, Level* levelPtr)
 	{
 		posRef.y = levelPtr->GetHeight() - m_Height;
 	}
-}
-
-void Camera::Reset()
-{
-	m_PrevTranslation = DOUBLE2(0.0, m_Height);
-	m_TargetOffset = DOUBLE2(0.0, 0.0);
-	m_XOffset = 0;
 }

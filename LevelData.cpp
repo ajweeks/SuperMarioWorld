@@ -242,7 +242,7 @@ LevelData* LevelData::GenerateLevel(int levelIndex)
 		itemsStream << "[" << 1727 << "," << 280 << "]";
 		itemsStream << int(Item::TYPE::DRAGON_COIN) << "\n";
 
-		itemsStream << "[" << 2511 << "," << 336 << "]";
+		itemsStream << "[" << 2511 << "," << 330 << "]";
 		itemsStream << int(Item::TYPE::MESSAGE_BLOCK) << " ";
 		itemsStream << "Resources/levels/01/message_box_02.png" << "\n";
 
@@ -255,11 +255,11 @@ LevelData* LevelData::GenerateLevel(int levelIndex)
 		itemsStream << "[" << 2330 << "," << 233 << "]";
 		itemsStream << int(Item::TYPE::DRAGON_COIN) << "\n";
 
-		itemsStream << "[" << 2850 << "," << 336 << "]";
+		itemsStream << "[" << 2850 << "," << 330 << "]";
 		itemsStream << int(Item::TYPE::PRIZE_BLOCK) << "\n";
-		itemsStream << "[" << 2866 << "," << 336 << "]";
+		itemsStream << "[" << 2866 << "," << 330 << "]";
 		itemsStream << int(Item::TYPE::PRIZE_BLOCK) << "\n";
-		itemsStream << "[" << 2882 << "," << 336 << "]";
+		itemsStream << "[" << 2882 << "," << 330 << "]";
 		itemsStream << int(Item::TYPE::PRIZE_BLOCK) << "\n";
 
 		itemsStream << "[" << 3185 << "," << 257 << "]";

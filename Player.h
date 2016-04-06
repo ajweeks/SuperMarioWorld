@@ -91,6 +91,9 @@ private:
 	int m_FramesOfPowerupTransitionElapsed = -1; // NOTE: Perhaps this variable name is a tad long...
 	POWERUP_STATE m_PrevPowerupState; // This is used to transition between states upon state change
 
+	// NOTE: If this is set to something other than NONE, then at the start of Tick() we will create 
+	// a new item with this type and assign it to m_ExtraItemPtr
+	Item::TYPE m_ExtraItemToBeSpawnedType = Item::TYPE::NONE;
 	Item* m_ExtraItemPtr = nullptr; // This is the extra item slot mario has at the top of the screen
 
 	String AnimationStateToString(ANIMATION_STATE state);

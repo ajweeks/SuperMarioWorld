@@ -36,6 +36,8 @@ public:
 
 	void GiveItemToPlayer(Item* itemPtr);
 
+	DOUBLE2 GetCameraOffset();
+
 private:
 	void PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool & enableContactRef);
 	void BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr);
@@ -83,5 +85,5 @@ private:
 	Player *m_PlayerPtr = nullptr;
 	bool m_IsPlayerOnGround = false;
 
-	Camera* m_Camera = nullptr;
+	Camera* m_CameraPtr = nullptr;
 };

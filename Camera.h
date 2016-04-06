@@ -12,6 +12,7 @@ public:
 	Camera(const Camera&) = delete;
 	Camera& operator=(const Camera&) = delete;
 
+	DOUBLE2 GetOffset(Player* playerPtr, Level* levelPtr);
 	MATRIX3X2 GetViewMatrix(Player* playerPtr, Level* levelPtr);
 
 	void Reset();

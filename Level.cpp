@@ -24,7 +24,7 @@ Level::Level()
 	m_Width = SpriteSheetManager::levelOneForeground->GetWidth();
 	m_Height = SpriteSheetManager::levelOneForeground->GetHeight();
 
-	m_Camera = new Camera(Game::WIDTH, Game::HEIGHT, this);
+	m_CameraPtr = new Camera(Game::WIDTH, Game::HEIGHT, this);
 
 	Reset();
 
@@ -37,13 +37,13 @@ Level::~Level()
 {
 	delete m_ActLevelPtr;
 	delete m_PlayerPtr;
-	delete m_Camera;
+	delete m_CameraPtr;
 }
 
 void Level::Reset()
 {
 	m_PlayerPtr->Reset();
-	m_Camera->Reset();
+	m_CameraPtr->Reset();
 
 	m_WasPaused = false;
 	m_Paused = false;
@@ -139,12 +139,12 @@ void Level::Paint()
 
 	MATRIX3X2 matPreviousView = GAME_ENGINE->GetViewMatrix();
 
-	MATRIX3X2 matCameraView = m_Camera->GetViewMatrix(m_PlayerPtr, this);
+	MATRIX3X2 matCameraView = m_CameraPtr->GetViewMatrix(m_PlayerPtr, this);
 	MATRIX3X2 matTotalView = matCameraView *  Game::matIdentity;
 	GAME_ENGINE->SetViewMatrix(matTotalView);
 
 	int bgWidth = SpriteSheetManager::levelOneBackground->GetWidth();
-	double cameraX = -matCameraView.orig.x;
+	double cameraX = m_CameraPtr->GetOffset(m_PlayerPtr, this).x;
 	double parallax = (1.0 - 0.50); // 50% of the speed of the camera
 	int xo = int(cameraX * parallax);
 	xo += (int(cameraX - xo) / bgWidth) * bgWidth;
@@ -349,7 +349,7 @@ RECT2 Level::GetLargeSingleNumberSrcRect(int number)
 
  void Level::DEBUGPaintZoomedOut()
 {
-	MATRIX3X2 matCameraView = m_Camera->GetViewMatrix(m_PlayerPtr, this);
+	MATRIX3X2 matCameraView = m_CameraPtr->GetViewMatrix(m_PlayerPtr, this);
 	MATRIX3X2 matZoom = MATRIX3X2::CreateScalingMatrix(0.25);
 	MATRIX3X2 matCenterTranslate = MATRIX3X2::CreateTranslationMatrix(150, 160);
 	GAME_ENGINE->SetViewMatrix(matCameraView * matZoom * matCenterTranslate);
@@ -553,6 +553,11 @@ void Level::EndContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			m_IsPlayerOnGround = false;
 		}
 	}
+}
+
+DOUBLE2 Level::GetCameraOffset()
+{
+	return m_CameraPtr->GetOffset(m_PlayerPtr, this);
 }
 
 void Level::GiveItemToPlayer(Item* itemPtr)

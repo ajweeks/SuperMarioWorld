@@ -100,6 +100,21 @@ bool Player::Tick(double deltaTime, Level *levelPtr)
 	}
 #endif
 
+	if (m_ExtraItemToBeSpawnedType != Item::TYPE::NONE)
+	{
+		m_ExtraItemToBeSpawnedType = Item::TYPE::NONE;
+
+		// NOTE: It doesn't matter where we spawn it because it will correct its pos in the next tick
+		SuperMushroom* extraSuperMushroomPtr = new SuperMushroom(DOUBLE2(), 1, true);
+
+		m_ExtraItemPtr = extraSuperMushroomPtr;
+	}
+
+	if (m_ExtraItemPtr != nullptr)
+	{
+		m_ExtraItemPtr->Tick(deltaTime, levelPtr);
+	}
+
 	if (m_NeedsNewFixture)
 	{
 		b2Fixture* fixturePtr = m_ActPtr->GetBody()->GetFixtureList();
@@ -389,9 +404,12 @@ void Player::Paint()
 	int yo = GetHeight() / 2 - (m_PowerupState == POWERUP_STATE::NORMAL ? 6 : 2);
 	m_SpriteSheetPtr->Paint(centerX, centerY - GetHeight() / 2 + yo, spriteTile.x, spriteTile.y);
 
-	// Paint extra item
-
 	GAME_ENGINE->SetWorldMatrix(matPrevWorld);
+
+	if (m_ExtraItemPtr != nullptr)
+	{
+		m_ExtraItemPtr->Paint();	
+	}
 
 	//GAME_ENGINE->DrawString(AnimationStateToString(m_AnimationState), centerX + 15, centerY - 15);
 }
@@ -485,7 +503,7 @@ void Player::OnItemPickup(Item* itemPtr)
 		case POWERUP_STATE::CAPE:
 		case POWERUP_STATE::STAR:
 		{
-			m_ExtraItemPtr = itemPtr;
+			m_ExtraItemToBeSpawnedType = itemPtr->GetType();
 		} break;
 		}
 	} break;
