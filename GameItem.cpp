@@ -15,13 +15,12 @@
 
 
 // ___PLATFORM___
-Platform::Platform(DOUBLE2 topLeft, DOUBLE2 bottomRight)
+Platform::Platform(double left, double top, double right)
 {
-	m_Bounds = RECT2(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
-	double width = bottomRight.x - topLeft.x;
-	double height = bottomRight.y - topLeft.y;
-	m_ActPtr = new PhysicsActor(topLeft + DOUBLE2(width / 2, height / 2), 0, BodyType::STATIC);
-	m_ActPtr->AddBoxFixture(width, height, 0.0);
+	m_Width = right - left;
+
+	m_ActPtr = new PhysicsActor(DOUBLE2(left + m_Width / 2, top + HEIGHT / 2), 0, BodyType::STATIC);
+	m_ActPtr->AddBoxFixture(m_Width, HEIGHT, 0.0);
 	m_ActPtr->SetUserData(int(ActorId::PLATFORM));
 	m_ActPtr->SetUserPointer(this);
 }
@@ -35,11 +34,11 @@ void Platform::AddContactListener(ContactListener* listener)
 }
 double Platform::GetWidth()
 {
-	return (m_Bounds.right - m_Bounds.left);
+	return m_Width;
 }
 double Platform::GetHeight()
 {
-	return (m_Bounds.bottom - m_Bounds.top);
+	return HEIGHT;
 }
 
 
