@@ -88,9 +88,8 @@ void Item::TogglePaused(bool paused)
 
 
 // ___COIN___
-// NOTE: There are two types of regular coins, those spawned at the start of the game,
-// which have an infinite lifetime, and those which are spawned from prize blocks, which are only visible for 
-// a few frames. If m_LifeTicks == -1, this coin is the former, otherwise it is the latter
+// NOTE: If 'life == -1', this coin has an infinite lifetime (until the player picks it up), 
+// otherwise it lives for 'life' ticks before it is removed
 Coin::Coin(DOUBLE2 topLeft, Level* levelPtr, int life, TYPE type, DOUBLE2 size) :
 	Item(topLeft, type, levelPtr, BodyType::STATIC, int(size.x), int(size.y)), 
 	m_Life(life)

@@ -296,13 +296,14 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 	}
 	else if (GAME_ENGINE->IsKeyboardKeyDown(VK_DOWN))
 	{
-		if (m_IsOnGround &&
-			m_AnimationState != ANIMATION_STATE::JUMPING &&
-			m_AnimationState != ANIMATION_STATE::SPIN_JUMPING &&
-			m_AnimationState != ANIMATION_STATE::CLIMBING)
+		if (m_IsOnGround)
 		{
 			m_AnimationState = ANIMATION_STATE::DUCKING;
 			horizontalVel = 0.0;
+		}
+		else if (m_AnimationState == ANIMATION_STATE::JUMPING)
+		{
+			m_AnimationState = ANIMATION_STATE::DUCKING;
 		}
 	}
 
@@ -612,6 +613,8 @@ void Player::Die()
 
 	m_AnimationState = ANIMATION_STATE::DYING;
 
+	// TODO: Pause player input
+
 	// LATER: Play sound here
 }
 
@@ -621,7 +624,7 @@ void Player::TakeDamage()
 	{
 	case POWERUP_STATE::NORMAL:
 	{
-		// Die
+		Die();
 	} break;
 	case POWERUP_STATE::SUPER:
 	{
@@ -642,6 +645,7 @@ void Player::TakeDamage()
 	case POWERUP_STATE::STAR:
 	{
 		// NOTE: We're invincible! :D
+		// TODO: Remove item we hit
 	} break;
 	default:
 	{

@@ -16,8 +16,7 @@
 
 Font* Game::Font12Ptr = nullptr;
 
-// Not actually what this matrix will contain, unless Game::WINDOW_SCALE is set to 1
-MATRIX3X2 Game::matIdentity = MATRIX3X2::CreateIdentityMatrix();
+MATRIX3X2 Game::matIdentity;
 
 Game::Game()
 {
