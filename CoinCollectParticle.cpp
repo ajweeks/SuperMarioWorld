@@ -7,7 +7,7 @@
 
 CoinCollectParticle::CoinCollectParticle(DOUBLE2& positionRef) : Particle(LIFETIME, positionRef)
 {
-	m_AnimInfo.msPerFrame = 0.055;
+	m_AnimInfo.secondsPerFrame = 0.055;
 }
 
 CoinCollectParticle::~CoinCollectParticle()

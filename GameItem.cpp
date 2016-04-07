@@ -98,7 +98,7 @@ Coin::Coin(DOUBLE2 topLeft, Level* levelPtr, int life, TYPE type, DOUBLE2 size) 
 	m_ActPtr->SetFixedRotation(true);
 	m_ActPtr->SetSensor(true);
 
-	m_AnimInfo.msPerFrame = 0.15;
+	m_AnimInfo.secondsPerFrame = 0.15;
 
 	if (life > -1)
 	{

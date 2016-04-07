@@ -351,10 +351,10 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 
 void Player::TickAnimations(double deltaTime)
 {
-	m_AnimInfo.msThisFrame += deltaTime;
-	if (m_AnimInfo.msThisFrame > m_AnimInfo.msPerFrame)
+	m_AnimInfo.secondsElapsedThisFrame += deltaTime;
+	if (m_AnimInfo.secondsElapsedThisFrame > m_AnimInfo.secondsPerFrame)
 	{
-		m_AnimInfo.msThisFrame -= m_AnimInfo.msPerFrame;
+		m_AnimInfo.secondsElapsedThisFrame -= m_AnimInfo.secondsPerFrame;
 		m_AnimInfo.frameNumber++;
 
 		switch (m_AnimationState)

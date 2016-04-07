@@ -12,25 +12,26 @@ enum class FACING_DIRECTION
 
 struct ANIMATION_INFO
 {
-	double msThisFrame = 0.0;
+	double secondsElapsedThisFrame = 0.0;
 	int frameNumber = 0;
-	double msPerFrame = 0.065;
+	// TODO: Wait a minute, isn't deltaTime given in seconds? This should be secondsPerFrame, right?
+	double secondsPerFrame = 0.065;
 
 	void Tick(double deltaTime)
 	{
-		msThisFrame += deltaTime;
-		if (msThisFrame > msPerFrame)
+		secondsElapsedThisFrame += deltaTime;
+		if (secondsElapsedThisFrame > secondsPerFrame)
 		{
-			msThisFrame -= msPerFrame;
+			secondsElapsedThisFrame -= secondsPerFrame;
 			++frameNumber;
 		}
 	}
 
 	void Reset()
 	{
-		msThisFrame = 0.0;
+		secondsElapsedThisFrame = 0.0;
 		frameNumber = 0;
-		msPerFrame = 0.065;
+		secondsPerFrame = 0.065;
 	}
 };
 
