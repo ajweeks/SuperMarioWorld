@@ -3,7 +3,7 @@
 #include "Particle.h"
 #include "Game.h"
 
-Particle::Particle(int lifetime, DOUBLE2 position) : m_LifeRemaining(lifetime), m_Position(position)
+Particle::Particle(int lifetime, DOUBLE2& positionRef) : m_LifeRemaining(lifetime), m_Position(positionRef)
 {
 }
 

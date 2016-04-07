@@ -170,10 +170,10 @@ void Level::Paint()
 
 	m_LevelDataPtr->PaintItems();
 
-	m_ParticleManagerPtr->Paint();
-
 	m_PlayerPtr->Paint();
 	
+	m_ParticleManagerPtr->Paint();
+
 	GAME_ENGINE->SetViewMatrix(Game::matIdentity);
 
 	PaintHUD();

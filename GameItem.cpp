@@ -11,6 +11,7 @@
 #include "Level.h"
 #include "SoundManager.h"
 #include "NumberParticle.h"
+#include "CoinCollectParticle.h"
 
 
 // ___PLATFORM___
@@ -131,8 +132,11 @@ int Coin::GetLifeRemaining()
 }
 void Coin::GenerateParticles()
 {
-	NumberParticle* numberParticlePtr = new NumberParticle(10, m_ActPtr->GetPosition());
+	NumberParticle* numberParticlePtr = new NumberParticle(10, m_ActPtr->GetPosition() + DOUBLE2(5, -12));
+	CoinCollectParticle* coinParticlePtr = new CoinCollectParticle(m_ActPtr->GetPosition() + DOUBLE2(0, -5));
+
 	m_LevelPtr->AddParticle(numberParticlePtr);
+	m_LevelPtr->AddParticle(coinParticlePtr);
 }
 void Coin::Paint()
 {

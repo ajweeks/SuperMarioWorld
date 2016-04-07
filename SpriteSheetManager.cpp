@@ -16,7 +16,9 @@ SpriteSheet* SpriteSheetManager::superMario = nullptr;
 
 SpriteSheet* SpriteSheetManager::generalTiles = nullptr;
 
+SpriteSheet* SpriteSheetManager::coinCollectParticle = nullptr;
 SpriteSheet* SpriteSheetManager::runningDustCloudParticle = nullptr;
+SpriteSheet* SpriteSheetManager::numberParticle = nullptr;
 
 SpriteSheetManager::SpriteSheetManager()
 {
@@ -44,7 +46,10 @@ void SpriteSheetManager::Load()
 
 	messageBox_01 = new Bitmap(String("Resources/levels/01/message_box_01.png"));
 	messageBox_02 = new Bitmap(String("Resources/levels/01/message_box_02.png"));
+
+	coinCollectParticle = new SpriteSheet(String("Resources/coin-collect-particle.png"), 10, 1, 16, 28);
 	runningDustCloudParticle = new SpriteSheet(String("Resources/dust-cloud-particle.png"), 4, 1, 8, 12);
+	numberParticle = new SpriteSheet(String("Resources/number-particle.png"), 10, 1, 4, 7);
 }
 
 void SpriteSheetManager::Unload()
@@ -61,5 +66,8 @@ void SpriteSheetManager::Unload()
 
 	delete messageBox_01;
 	delete messageBox_02;
+
+	delete coinCollectParticle;
 	delete runningDustCloudParticle;
+	delete numberParticle;
 }

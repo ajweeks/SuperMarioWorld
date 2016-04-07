@@ -6,7 +6,7 @@
 class DustParticle : public Particle
 {
 public:
-	DustParticle(DOUBLE2 position);
+	DustParticle(DOUBLE2& positionRef);
 	virtual ~DustParticle();
 
 	bool Tick(double deltaTime);
@@ -14,8 +14,6 @@ public:
 
 private:
 	static const int LIFETIME = 4; // NOTE: Once we show our four frames, we're gone
-
-	ANIMATION_INFO m_AnimInfo;
 
 };
 

@@ -25,7 +25,10 @@ public:
 	static SpriteSheet* superMario;
 	static SpriteSheet* generalTiles;
 
+	static SpriteSheet* coinCollectParticle;
 	static SpriteSheet* runningDustCloudParticle;
+	static SpriteSheet* numberParticle;
+
 private:
 	SpriteSheetManager();
 

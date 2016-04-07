@@ -4,8 +4,6 @@
 
 class NumberParticle : public Particle
 {
-	friend void PaintSeveralDigitNumber();
-
 public:
 	NumberParticle(int value, DOUBLE2 position);
 	virtual ~NumberParticle();
@@ -14,7 +12,7 @@ public:
 	void Paint();
 
 private:
-	static const int LIFETIME = 25;
+	static const int LIFETIME = 38;
 
 	int m_Value;
 	DOUBLE2 m_Velocity;
