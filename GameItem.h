@@ -9,15 +9,19 @@ class LevelData;
 
 struct Platform
 {
-	Platform(DOUBLE2 topLeft, DOUBLE2 bottomRight);
+	// NOTE: All platforms have the same height, this prevents too thin or thick 
+	// of platforms from accidentally being made
+	Platform(double left, double top, double right);
 	virtual ~Platform();
 	void AddContactListener(ContactListener* listener);
 	double GetWidth();
 	double GetHeight();
 
+	static const int HEIGHT = 8;
+
 private:
 	PhysicsActor* m_ActPtr = nullptr;
-	RECT2 m_Bounds;
+	double m_Width;
 
 	// TODO: Add angled platforms
 	// TODO: Add moving platforms

@@ -12,12 +12,16 @@ LevelData::LevelData(String platforms, String pipes, String items, Level* levelP
 	std::stringstream platformsStream = std::stringstream(platforms.C_str());
 	while (std::getline(platformsStream, line))
 	{
-		int closeBracket = line.find(']');
+		int openBracketIndex = line.find('[');
+		int closeBracketIndex = line.find(']', openBracketIndex);
+		int firstCommaIndex = line.find(',', openBracketIndex + 1);
+		int secondCommaIndex = line.find(',', firstCommaIndex + 1);
 
-		DOUBLE2 topLeft = StringToDOUBLE2(line.substr(0, closeBracket + 1));
-		DOUBLE2 bottomRight = StringToDOUBLE2(line.substr(closeBracket + 1));
+		int left = stoi(line.substr(openBracketIndex + 1, firstCommaIndex - openBracketIndex - 1));
+		int top = stoi(line.substr(firstCommaIndex + 1, secondCommaIndex - firstCommaIndex - 1));
+		int right = stoi(line.substr(secondCommaIndex + 1, closeBracketIndex - secondCommaIndex - 1));
 
-		m_PlatformsPtrArr.push_back(new Platform(topLeft, bottomRight));
+		m_PlatformsPtrArr.push_back(new Platform(left, top, right));
 	}
 
 	std::stringstream pipesStream = std::stringstream(pipes.C_str());
@@ -176,23 +180,12 @@ LevelData* LevelData::GenerateLevelData(int levelIndex, Level* levelPtr)
 	{
 		// TODO: Make this cleaner/more efficient, maybe use xml or json? (probably xml cause it's easier to parse manually)
 		// Definitely store in an external file
-		platformsStream << "[" << 305 << "," << 329 << "]";
-		platformsStream << "[" << 559 << "," << 334 << "]";
-		platformsStream << "\n";
-		platformsStream << "[" << 705 << "," << 313 << "]";
-		platformsStream << "[" << 815 << "," << 318 << "]";
-		platformsStream << "\n";
-		platformsStream << "[" << 2993 << "," << 329 << "]";
-		platformsStream << "[" << 3070 << "," << 334 << "]";
-		platformsStream << "\n";
-		platformsStream << "[" << 3025 << "," << 281 << "]";
-		platformsStream << "[" << 3150 << "," << 286 << "]";
-		platformsStream << "\n";
-		platformsStream << "[" << 3121 << "," << 329 << "]";
-		platformsStream << "[" << 3214 << "," << 334 << "]";
-		platformsStream << "\n";
-		platformsStream << "[" << 3393 << "," << 297 << "]";
-		platformsStream << "[" << 3550 << "," << 302 << "]";
+		platformsStream << "[" << 305 << "," << 329 << "," << 559 << "]" << "\n";
+		platformsStream << "[" << 705 << "," << 313 << "," << 815 << "]" << "\n";
+		platformsStream << "[" << 2993 << "," << 329 << "," << 3070 << "]" << "\n";
+		platformsStream << "[" << 3025 << "," << 281 << "," << 3150 << "]" << "\n";
+		platformsStream << "[" << 3121 << "," << 329 << "," << 3214 << "]" << "\n";
+		platformsStream << "[" << 3393 << "," << 297 << "," << 3550 << "]";
 
 		pipesStream << "[" << 2704 << "," << 329 << "]";
 		pipesStream << "[" << 2734 << "," << 376 << "]";
