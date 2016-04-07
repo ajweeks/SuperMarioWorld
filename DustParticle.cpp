@@ -2,9 +2,11 @@
 
 #include "DustParticle.h"
 #include "Game.h"
+#include "SpriteSheetManager.h"
 
 DustParticle::DustParticle(DOUBLE2 position) : Particle(LIFETIME, position)
 {
+	m_AnimInfo.msPerFrame = 0.11;
 }
 
 DustParticle::~DustParticle()
@@ -13,14 +15,13 @@ DustParticle::~DustParticle()
 
 bool DustParticle::Tick(double deltaTime)
 {
-	m_LifeRemaining--;
-
 	m_AnimInfo.Tick(deltaTime);
+	m_LifeRemaining = LIFETIME - m_AnimInfo.frameNumber - 1;
 
 	return (m_LifeRemaining <= 0);
 }
 
 void DustParticle::Paint()
 {
-	GAME_ENGINE->FillRect(m_Position - DOUBLE2(3, 3), m_Position + DOUBLE2(6, 6));
+	SpriteSheetManager::runningDustCloudParticle->Paint(m_Position.x, m_Position.y, m_AnimInfo.frameNumber, 0);
 }

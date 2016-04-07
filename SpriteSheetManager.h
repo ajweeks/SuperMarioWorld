@@ -25,6 +25,7 @@ public:
 	static SpriteSheet* superMario;
 	static SpriteSheet* generalTiles;
 
+	static SpriteSheet* runningDustCloudParticle;
 private:
 	SpriteSheetManager();
 

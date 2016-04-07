@@ -13,7 +13,7 @@ public:
 	void Paint();
 
 private:
-	static const int LIFETIME = 20;
+	static const int LIFETIME = 4; // NOTE: Once we show our four frames, we're gone
 
 	ANIMATION_INFO m_AnimInfo;
 
