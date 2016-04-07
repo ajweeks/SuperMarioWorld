@@ -6,6 +6,8 @@
 #include "LevelData.h"
 #include "SpriteSheetManager.h"
 #include "SoundManager.h"
+#include "Particle.h"
+#include "ParticleManager.h"
 
 #define GAME_ENGINE (GameEngine::GetSingleton())
 
@@ -26,6 +28,8 @@ Level::Level()
 
 	m_CameraPtr = new Camera(Game::WIDTH, Game::HEIGHT, this);
 
+	m_ParticleManagerPtr = new ParticleManager();
+
 	Reset();
 
 	ReadLevelData(1);
@@ -38,6 +42,7 @@ Level::~Level()
 	delete m_ActLevelPtr;
 	delete m_PlayerPtr;
 	delete m_CameraPtr;
+	delete m_ParticleManagerPtr;
 }
 
 void Level::Reset()
@@ -54,6 +59,8 @@ void Level::Reset()
 
 	m_LevelDataPtr->RegenerateLevel(1, this);
 	ReadLevelData(1);
+
+	m_ParticleManagerPtr->Reset();
 
 	SoundManager::RestartSongs();
 }
@@ -120,6 +127,7 @@ void Level::Tick(double deltaTime)
 
 	m_PlayerPtr->Tick(deltaTime);
 
+	m_ParticleManagerPtr->Tick(deltaTime);
 
 	m_LevelDataPtr->TickItems(deltaTime, this);
 
@@ -161,6 +169,8 @@ void Level::Paint()
 	GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneForeground);
 
 	m_LevelDataPtr->PaintItems();
+
+	m_ParticleManagerPtr->Paint();
 
 	m_PlayerPtr->Paint();
 	
@@ -283,7 +293,7 @@ void Level::PaintHUD()
 
 // TODO: Just set a world matrix to print these instead of passing numbers
 // NOTE: The x coordinate specifies the placement of the right-most digit
-void Level::PaintSeveralDigitNumber(int x, int y, int number, bool yellow)
+void PaintSeveralDigitNumber(int x, int y, int number, bool yellow)
 {
 	number = abs(number);
 
@@ -305,7 +315,7 @@ unsigned int Level::GetNumberOfDigits(unsigned int i)
 
 // NOTE: If yellow is true, this returns the rect for a yellow number, otherwise for a white number
 // TODO: Fix slight issue with bitmap (6 appears to close to the left of the number next to it)
-RECT2 Level::GetSmallSingleNumberSrcRect(int number, bool yellow)
+RECT2 GetSmallSingleNumberSrcRect(int number, bool yellow)
 {
 	assert(number >= 0 && number <= 9);
 
@@ -323,7 +333,7 @@ RECT2 Level::GetSmallSingleNumberSrcRect(int number, bool yellow)
 	return result;
 }
 
-void Level::PaintSeveralDigitLargeNumber(int x, int y, int number)
+void PaintSeveralDigitLargeNumber(int x, int y, int number)
 {
 	number = abs(number);
 
@@ -337,7 +347,7 @@ void Level::PaintSeveralDigitLargeNumber(int x, int y, int number)
 	} while (number > 0);
 }
 
-RECT2 Level::GetLargeSingleNumberSrcRect(int number)
+RECT2 GetLargeSingleNumberSrcRect(int number)
 {
 	assert(number >= 0 && number <= 9);
 
@@ -565,6 +575,11 @@ void Level::EndContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			m_IsPlayerOnGround = false;
 		}
 	}
+}
+
+void Level::AddParticle(Particle* particlePtr)
+{
+	m_ParticleManagerPtr->AddParticle(particlePtr);
 }
 
 DOUBLE2 Level::GetCameraOffset()

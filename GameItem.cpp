@@ -10,6 +10,7 @@
 #include "LevelData.h"
 #include "Level.h"
 #include "SoundManager.h"
+#include "NumberParticle.h"
 
 
 // ___PLATFORM___
@@ -21,6 +22,7 @@ Platform::Platform(DOUBLE2 topLeft, DOUBLE2 bottomRight)
 	m_ActPtr = new PhysicsActor(topLeft + DOUBLE2(width / 2, height / 2), 0, BodyType::STATIC);
 	m_ActPtr->AddBoxFixture(width, height, 0.0);
 	m_ActPtr->SetUserData(int(ActorId::PLATFORM));
+	m_ActPtr->SetUserPointer(this);
 }
 Platform::~Platform()
 {
@@ -49,6 +51,7 @@ Pipe::Pipe(DOUBLE2 topLeft, DOUBLE2 bottomRight, bool canAccess) : m_CanAccess(c
 	m_ActPtr = new PhysicsActor(topLeft + DOUBLE2(width / 2, height / 2), 0, BodyType::STATIC);
 	m_ActPtr->AddBoxFixture(width, height, 0.0);
 	m_ActPtr->SetUserData(int(ActorId::PIPE));
+	m_ActPtr->SetUserPointer(this);
 }
 Pipe::~Pipe()
 {
@@ -118,9 +121,19 @@ void Coin::Tick(double deltaTime)
 		}
 		if (--m_Life <= 0)
 		{
+			GenerateParticles();
 			m_LevelPtr->RemoveItem(this);
 		}
 	}
+}
+int Coin::GetLifeRemaining()
+{
+	return m_Life;
+}
+void Coin::GenerateParticles()
+{
+	NumberParticle* numberParticlePtr = new NumberParticle(10, m_ActPtr->GetPosition());
+	m_LevelPtr->AddParticle(numberParticlePtr);
 }
 void Coin::Paint()
 {

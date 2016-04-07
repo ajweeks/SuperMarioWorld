@@ -29,8 +29,6 @@ public:
 	Player& operator=(const Player&) = delete;
 	Player(const Player&) = delete;
 
-	RECT2 GetCameraRect();
-	
 	void Tick(double deltaTime);
 	void TickAnimations(double deltaTime);
 
@@ -78,7 +76,7 @@ private:
 
 	bool m_IsOnGround = true;
 	bool m_WasOnGround = true;
-	int m_FramesSpentInAir = -1;
+	int m_FramesSpentInAir;
 
 	int m_Lives;
 	int m_Coins;
@@ -88,19 +86,20 @@ private:
 	bool m_NeedsNewFixture = false;
 
 	static const int TOTAL_FRAMES_OF_POWERUP_TRANSITION = 50;
-	int m_FramesOfPowerupTransitionElapsed = -1; // NOTE: Perhaps this variable name is a tad long...
+	int m_FramesOfPowerupTransitionElapsed; // NOTE: Perhaps this variable name is a tad long...
 	POWERUP_STATE m_PrevPowerupState; // This is used to transition between states upon state change
 
 	// NOTE: If this is set to something other than NONE, then at the start of Tick() we will create 
 	// a new item with this type and assign it to m_ExtraItemPtr
-	Item::TYPE m_ExtraItemToBeSpawnedType = Item::TYPE::NONE;
+	Item::TYPE m_ExtraItemToBeSpawnedType;
 	Item* m_ExtraItemPtr = nullptr; // This is the extra item slot mario has at the top of the screen
 
 	String AnimationStateToString(ANIMATION_STATE state);
 
-	FACING_DIRECTION m_DirFacing = FACING_DIRECTION::RIGHT;
+	FACING_DIRECTION m_DirFacingLastFrame;
+	FACING_DIRECTION m_DirFacing;
 
-	POWERUP_STATE m_PowerupState = POWERUP_STATE::NORMAL;
-	ANIMATION_STATE m_AnimationState = ANIMATION_STATE::WAITING;
+	POWERUP_STATE m_PowerupState;
+	ANIMATION_STATE m_AnimationState;
 	ANIMATION_INFO m_AnimInfo;
 };

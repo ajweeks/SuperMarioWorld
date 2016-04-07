@@ -6,6 +6,9 @@
 #include "SpriteSheetManager.h"
 #include "Entity.h"
 #include "SoundManager.h"
+#include "Particle.h"
+#include "DustParticle.h"
+#include "NumberParticle.h"
 
 #define ENTITY_MANAGER (EntityManager::GetInstance())
 
@@ -74,21 +77,16 @@ void Player::Reset()
 	m_SpriteSheetPtr = SpriteSheetManager::smallMario;
 	m_NeedsNewFixture = true;
 
+	m_ExtraItemToBeSpawnedType = Item::TYPE::NONE;
+
+	m_FramesSpentInAir = -1;
+	m_FramesOfPowerupTransitionElapsed = -1;
+
 	m_PowerupState = POWERUP_STATE::NORMAL;
+	m_PrevPowerupState = POWERUP_STATE::NORMAL;
 	m_AnimationState = ANIMATION_STATE::WAITING;
 	m_DirFacing = FACING_DIRECTION::RIGHT;
-}
-
-RECT2 Player::GetCameraRect()
-{
-	RECT2 result;
-
-	result.left = m_ActPtr->GetPosition().x - GetWidth() / 2;
-	result.top = m_ActPtr->GetPosition().y - GetHeight() / 2;
-	result.right = result.left + GetWidth();
-	result.bottom = result.top + GetHeight();
-
-	return result;
+	m_DirFacingLastFrame = FACING_DIRECTION::RIGHT;
 }
 
 void Player::Tick(double deltaTime)
@@ -131,6 +129,13 @@ void Player::Tick(double deltaTime)
 
 	HandleKeyboardInput(deltaTime, m_LevelPtr);
 
+	if (m_IsOnGround && 
+		m_DirFacing != m_DirFacingLastFrame)
+	{
+		DustParticle* dustParticlePtr = new DustParticle(m_ActPtr->GetPosition() + DOUBLE2(0, GetHeight() / 2));
+		m_LevelPtr->AddParticle(dustParticlePtr);
+	}
+
 	if (++m_FramesOfPowerupTransitionElapsed > TOTAL_FRAMES_OF_POWERUP_TRANSITION)
 	{
 		m_FramesOfPowerupTransitionElapsed = -1;
@@ -138,6 +143,7 @@ void Player::Tick(double deltaTime)
 
 	TickAnimations(deltaTime);
 
+	m_DirFacingLastFrame = m_DirFacing;
 }
 
 void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
@@ -479,6 +485,12 @@ void Player::OnItemPickup(Item* itemPtr, Level* levelPtr)
 	case Item::TYPE::COIN:
 	{
 		AddCoin(levelPtr);
+		Coin* coinPtr = (Coin*)itemPtr;
+		if (coinPtr->GetLifeRemaining() == -1)
+		{
+			coinPtr->GenerateParticles();
+		}
+
 		m_Score += 10;
 	} break;
 	case Item::TYPE::DRAGON_COIN:

@@ -82,6 +82,8 @@ struct Coin : public Item
 
 	void Tick(double deltaTime);
 	void Paint();
+	int GetLifeRemaining();
+	void GenerateParticles(); // Called when this coin is collected
 
 	static const int LIFETIME = 25;
 

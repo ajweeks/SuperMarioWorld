@@ -9,6 +9,8 @@ struct Pipe;
 struct Item;
 
 class Camera;
+class Particle;
+class ParticleManager;
 
 class Level : public ContactListener
 {
@@ -39,6 +41,8 @@ public:
 
 	DOUBLE2 GetCameraOffset();
 
+	void AddParticle(Particle* particlePtr);
+
 private:
 	void PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool & enableContactRef);
 	void BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr);
@@ -48,10 +52,7 @@ private:
 
 	void PaintHUD();
 	unsigned int GetNumberOfDigits(unsigned int i);
-	void PaintSeveralDigitNumber(int x, int y, int number, bool yellow);
-	void PaintSeveralDigitLargeNumber(int x, int y, int number);
-	RECT2 GetSmallSingleNumberSrcRect(int number, bool yellow);
-	RECT2 GetLargeSingleNumberSrcRect(int number);
+
 
 	void TogglePaused();
 	void SetPaused(bool paused);
@@ -87,4 +88,12 @@ private:
 	bool m_IsPlayerOnGround = false;
 
 	Camera* m_CameraPtr = nullptr;
+
+	ParticleManager* m_ParticleManagerPtr = nullptr;
 };
+
+// TODO: Move this somewhere more global
+void PaintSeveralDigitNumber(int x, int y, int number, bool yellow);
+void PaintSeveralDigitLargeNumber(int x, int y, int number);
+RECT2 GetSmallSingleNumberSrcRect(int number, bool yellow);
+RECT2 GetLargeSingleNumberSrcRect(int number);
