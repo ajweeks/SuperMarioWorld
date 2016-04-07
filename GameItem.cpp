@@ -30,6 +30,14 @@ void Platform::AddContactListener(ContactListener* listener)
 {
 	m_ActPtr->AddContactListener(listener);
 }
+double Platform::GetWidth()
+{
+	return (m_Bounds.right - m_Bounds.left);
+}
+double Platform::GetHeight()
+{
+	return (m_Bounds.bottom - m_Bounds.top);
+}
 
 
 // ___PIPE___

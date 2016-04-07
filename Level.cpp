@@ -413,7 +413,13 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 		{
 		case int(ActorId::PLATFORM):
 		{
-			if (rising)
+			DOUBLE2 playerFeet(m_PlayerPtr->GetPosition().x, m_PlayerPtr->GetPosition().y + m_PlayerPtr->GetHeight() / 2);
+			DOUBLE2 platformPos = actThisPtr->GetPosition();
+			double halfPlatformWidth = ((Platform*)actThisPtr->GetUserPointer())->GetWidth() / 2.0;
+			double halfPlatformHeight = ((Platform*)actThisPtr->GetUserPointer())->GetHeight() / 2.0;
+			if (playerFeet.x < platformPos.x - halfPlatformWidth || 
+				playerFeet.x > platformPos.x + halfPlatformWidth || 
+				playerFeet.y > platformPos.y - halfPlatformHeight)
 			{
 				enableContactRef = false;
 			}
