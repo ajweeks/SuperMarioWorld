@@ -53,14 +53,15 @@ void Pipe::AddContactListener(ContactListener* listener)
 
 
 // ___ITEM___
-Item::Item(DOUBLE2 topLeft,TYPE type, BodyType bodyType, int width, int height) :
+Item::Item(DOUBLE2 topLeft, TYPE type, Level* levelPtr, BodyType bodyType, int width, int height) :
 	Entity(topLeft + DOUBLE2(width / 2, height / 2), 
-		SpriteSheetManager::generalTiles, bodyType, this), m_Type(type), WIDTH(width), HEIGHT(height)
+		SpriteSheetManager::generalTiles, bodyType, levelPtr, this), m_Type(type), WIDTH(width), HEIGHT(height)
 {
 	m_ActPtr->AddBoxFixture(width, height, 0.0);
 	m_ActPtr->SetUserData(int(ActorId::ITEM));
 	m_ActPtr->SetFixedRotation(true);
 }
+Item::~Item() {}
 void Item::AddContactListener(ContactListener* listener)
 {
 	m_ActPtr->AddContactListener(listener);
@@ -78,9 +79,10 @@ void Item::TogglePaused(bool paused)
 // ___COIN___
 // NOTE: There are two types of regular coins, those spawned at the start of the game,
 // which have an infinite lifetime, and those which are spawned from prize blocks, which are only visible for 
-// a few frames. If m_Life == -1, this coin is the former, otherwise it is the latter with LIFETIME ticks in its life
-Coin::Coin(DOUBLE2 topLeft, int life, TYPE type, DOUBLE2 size) :
-	Item(topLeft, type, BodyType::STATIC, int(size.x), int(size.y)), m_Life(life)
+// a few frames. If m_LifeTicks == -1, this coin is the former, otherwise it is the latter
+Coin::Coin(DOUBLE2 topLeft, Level* levelPtr, int life, TYPE type, DOUBLE2 size) :
+	Item(topLeft, type, levelPtr, BodyType::STATIC, int(size.x), int(size.y)), 
+	m_Life(life)
 {
 	m_ActPtr->SetFixedRotation(true);
 	m_ActPtr->SetSensor(true);
@@ -94,7 +96,7 @@ Coin::Coin(DOUBLE2 topLeft, int life, TYPE type, DOUBLE2 size) :
 		m_ActPtr->SetLinearVelocity(DOUBLE2(0, -250));
 	}
 }
-bool Coin::Tick(double deltaTime, Level* levelPtr)
+void Coin::Tick(double deltaTime)
 {
 	m_AnimInfo.Tick(deltaTime);
 	m_AnimInfo.frameNumber %= 4;
@@ -104,16 +106,13 @@ bool Coin::Tick(double deltaTime, Level* levelPtr)
 		if (m_Life == LIFETIME)
 		{
 			// NOTE: Give the player the coin right away so that the sound effect play now
-			levelPtr->GiveItemToPlayer(this);
+			m_LevelPtr->GiveItemToPlayer(this);
 		}
 		if (--m_Life <= 0)
 		{
-			m_Life = -1; // Not really necesary... right?
-			return true;
+			m_LevelPtr->RemoveItem(this);
 		}
 	}
-
-	return false;
 }
 void Coin::Paint()
 {
@@ -126,16 +125,14 @@ void Coin::Paint()
 
 // ___DRAGON COIN___
 // NOTE: Dragon coins always haev infinite life, therefore -1 as life param
-DragonCoin::DragonCoin(DOUBLE2 centerPos) :
-	Coin(centerPos, -1, TYPE::DRAGON_COIN, DOUBLE2(WIDTH, HEIGHT))
+DragonCoin::DragonCoin(DOUBLE2 centerPos, Level* levelPtr) :
+	Coin(centerPos, levelPtr, -1, TYPE::DRAGON_COIN, DOUBLE2(WIDTH, HEIGHT))
 {
 }
-bool DragonCoin::Tick(double deltaTime, Level* levelPtr)
+void DragonCoin::Tick(double deltaTime)
 {
 	m_AnimInfo.Tick(deltaTime);
 	m_AnimInfo.frameNumber %= 6;
-
-	return false;
 }
 void DragonCoin::Paint()
 {
@@ -151,13 +148,12 @@ void DragonCoin::Paint()
 
 
 // ___P SWITCH___
-PSwitch::PSwitch(DOUBLE2 topLeft, COLOUR colour) :
-	Item(topLeft, Item::TYPE::P_SWITCH, BodyType::DYNAMIC), m_Colour(colour)
+PSwitch::PSwitch(DOUBLE2 topLeft, COLOUR colour, Level* levelPtr) :
+	Item(topLeft, Item::TYPE::P_SWITCH, levelPtr, BodyType::DYNAMIC), m_Colour(colour)
 {
 }
-bool PSwitch::Tick(double deltaTime, Level* levelPtr)
+void PSwitch::Tick(double deltaTime)
 {
-	return false;
 }
 void PSwitch::Paint()
 {
@@ -173,13 +169,12 @@ void PSwitch::Paint()
 }
 
 // ___1-UP MUSHROOM___
-OneUpMushroom::OneUpMushroom(DOUBLE2 topLeft) :
-	Item(topLeft, TYPE::ONE_UP_MUSHROOM)
+OneUpMushroom::OneUpMushroom(DOUBLE2 topLeft, Level* levelPtr) :
+	Item(topLeft, TYPE::ONE_UP_MUSHROOM, levelPtr)
 {
 }
-bool OneUpMushroom::Tick(double deltaTime, Level* levelPtr)
+void OneUpMushroom::Tick(double deltaTime)
 {
-	return false;
 }
 void OneUpMushroom::Paint()
 {
@@ -191,13 +186,12 @@ void OneUpMushroom::Paint()
 	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
 }
 // ___3-UP MOON___
-ThreeUpMoon::ThreeUpMoon(DOUBLE2 topLeft) :
-	Item(topLeft, TYPE::THREE_UP_MOON)
+ThreeUpMoon::ThreeUpMoon(DOUBLE2 topLeft, Level* levelPtr) :
+	Item(topLeft, TYPE::THREE_UP_MOON, levelPtr)
 {
 }
-bool ThreeUpMoon::Tick(double deltaTime, Level* levelPtr)
+void ThreeUpMoon::Tick(double deltaTime)
 {
-	return false;
 }
 void ThreeUpMoon::Paint()
 {
@@ -209,8 +203,8 @@ void ThreeUpMoon::Paint()
 	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
 }
 // ___SUPER MUSHROOM___
-SuperMushroom::SuperMushroom(DOUBLE2 topLeft, int horizontalDir, bool isStatic) :
-	Item(topLeft, TYPE::SUPER_MUSHROOM, BodyType::DYNAMIC), m_IsStatic(isStatic)
+SuperMushroom::SuperMushroom(DOUBLE2 topLeft, Level* levelPtr, int horizontalDir, bool isStatic) :
+	Item(topLeft, TYPE::SUPER_MUSHROOM, levelPtr, BodyType::DYNAMIC), m_IsStatic(isStatic)
 {
 	assert(horizontalDir == 1 || horizontalDir == -1);
 
@@ -223,19 +217,18 @@ SuperMushroom::SuperMushroom(DOUBLE2 topLeft, int horizontalDir, bool isStatic) 
 		m_ActPtr->SetLinearVelocity(DOUBLE2(m_HorizontalSpeed * horizontalDir, 0));
 	}
 }
-bool SuperMushroom::Tick(double deltaTime, Level* levelPtr)
+void SuperMushroom::Tick(double deltaTime)
 {
 	if (m_IsStatic)
 	{
-		double xPos = levelPtr->GetCameraOffset().x + Game::WIDTH / 2;
-		double yPos = levelPtr->GetCameraOffset().y + 25;
+		double xPos = m_LevelPtr->GetCameraOffset().x + Game::WIDTH / 2;
+		double yPos = m_LevelPtr->GetCameraOffset().y + 25;
 		m_ActPtr->SetPosition(DOUBLE2(xPos, yPos));
 	}
 	else
 	{
 		m_ActPtr->SetLinearVelocity(DOUBLE2(m_HorizontalSpeed, m_ActPtr->GetLinearVelocity().y));
 	}
-	return false;
 }
 void SuperMushroom::Paint()
 {
@@ -247,13 +240,12 @@ void SuperMushroom::Paint()
 	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
 }
 // ___FIRE FLOWER___
-FireFlower::FireFlower(DOUBLE2 topLeft) :
-	Item(topLeft, TYPE::FIRE_FLOWER)
+FireFlower::FireFlower(DOUBLE2 topLeft, Level* levelPtr) :
+	Item(topLeft, TYPE::FIRE_FLOWER, levelPtr)
 {
 }
-bool FireFlower::Tick(double deltaTime, Level* levelPtr)
+void FireFlower::Tick(double deltaTime)
 {
-	return false;
 }
 void FireFlower::Paint()
 {
@@ -265,16 +257,14 @@ void FireFlower::Paint()
 	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
 }
 // ___CAPE FEATHER___
-CapeFeather::CapeFeather(DOUBLE2 topLeft) :
-	Item(topLeft, TYPE::CAPE_FEATHER)
+CapeFeather::CapeFeather(DOUBLE2 topLeft, Level* levelPtr) :
+	Item(topLeft, TYPE::CAPE_FEATHER, levelPtr)
 {
 }
-bool CapeFeather::Tick(double deltaTime, Level* levelPtr)
+void CapeFeather::Tick(double deltaTime)
 {
 	m_AnimInfo.Tick(deltaTime);
 	m_AnimInfo.frameNumber %= 2;
-
-	return false;
 }
 void CapeFeather::Paint()
 {
@@ -287,23 +277,25 @@ void CapeFeather::Paint()
 }
 
 // ___BLOCK___
-Block::Block(DOUBLE2 topLeft, TYPE type) :
-	Item(topLeft, type, BodyType::STATIC, WIDTH, HEIGHT)
+Block::Block(DOUBLE2 topLeft, TYPE type, Level* levelPtr) :
+	Item(topLeft, type, levelPtr, BodyType::STATIC, WIDTH, HEIGHT)
 {
 }
 Block::~Block() {}
 
 // ___PRIZE BLOCK___
-PrizeBlock::PrizeBlock(DOUBLE2 topLeft) :
-	Block(topLeft, TYPE::PRIZE_BLOCK)
+PrizeBlock::PrizeBlock(DOUBLE2 topLeft, Level* levelPtr) :
+	Block(topLeft, TYPE::PRIZE_BLOCK, levelPtr)
 {
 }
-bool PrizeBlock::Tick(double deltaTime, Level* levelPtr)
+void PrizeBlock::Tick(double deltaTime)
 {
 	if (m_ShouldSpawnCoin)
 	{
-		Item* newItem = new Coin(DOUBLE2(m_ActPtr->GetPosition().x - WIDTH / 2, m_ActPtr->GetPosition().y - HEIGHT), Coin::LIFETIME);
-		levelPtr->AddItem(newItem);
+		Coin* newCoinPtr = new Coin(DOUBLE2(m_ActPtr->GetPosition().x - WIDTH / 2, m_ActPtr->GetPosition().y - HEIGHT),
+			m_LevelPtr,
+			Coin::LIFETIME);
+		m_LevelPtr->AddItem(newCoinPtr);
 
 		m_ShouldSpawnCoin = false;
 	}
@@ -334,7 +326,6 @@ bool PrizeBlock::Tick(double deltaTime, Level* levelPtr)
 		m_AnimInfo.Tick(deltaTime);
 		m_AnimInfo.frameNumber %= 4;
 	}
-	return false;
 }
 void PrizeBlock::Paint()
 {
@@ -365,19 +356,19 @@ void PrizeBlock::Hit(Level* levelPtr)
 }
 
 // ___EXCLAMATION MARK BLOCK___
-ExclamationMarkBlock::ExclamationMarkBlock(DOUBLE2 topLeft, COLOUR colour, bool isSolid) :
-	Block(topLeft, TYPE::EXCLAMATION_MARK_BLOCK), m_Colour(colour)
+ExclamationMarkBlock::ExclamationMarkBlock(DOUBLE2 topLeft, COLOUR colour, bool isSolid, Level* levelPtr) :
+	Block(topLeft, TYPE::EXCLAMATION_MARK_BLOCK, levelPtr), m_Colour(colour)
 {
 	m_AnimInfo.frameNumber = 0;
 	SetSolid(isSolid);
 }
-bool ExclamationMarkBlock::Tick(double deltaTime, Level* levelPtr)
+void ExclamationMarkBlock::Tick(double deltaTime)
 {
 	if (m_ShouldSpawnSuperMushroom)
 	{
-		Item* newItem = new SuperMushroom(m_ActPtr->GetPosition() - DOUBLE2(WIDTH/2, 1.5*HEIGHT));
-		newItem->AddContactListener(levelPtr);
-		levelPtr->AddItem(newItem);
+		Item* newItem = new SuperMushroom(m_ActPtr->GetPosition() - DOUBLE2(WIDTH/2, 1.5*HEIGHT), m_LevelPtr);
+		newItem->AddContactListener(m_LevelPtr);
+		m_LevelPtr->AddItem(newItem);
 
 		m_ShouldSpawnSuperMushroom = false;
 	}
@@ -403,8 +394,6 @@ bool ExclamationMarkBlock::Tick(double deltaTime, Level* levelPtr)
 			m_yo = 0;
 		}
 	}
-
-	return false;
 }
 void ExclamationMarkBlock::Paint()
 {
@@ -445,11 +434,11 @@ void ExclamationMarkBlock::Hit(Level* levelPtr)
 }
 
 // ___ROTATING BLOCK___
-RotatingBlock::RotatingBlock(DOUBLE2 topLeft) :
-	Block(topLeft, TYPE::ROTATING_BLOCK)
+RotatingBlock::RotatingBlock(DOUBLE2 topLeft, Level* levelPtr) :
+	Block(topLeft, TYPE::ROTATING_BLOCK, levelPtr)
 {
 }
-bool RotatingBlock::Tick(double deltaTime, Level* levelPtr)
+void RotatingBlock::Tick(double deltaTime)
 {
 	if (m_IsRotating)
 	{
@@ -466,8 +455,6 @@ bool RotatingBlock::Tick(double deltaTime, Level* levelPtr)
 			}
 		}
 	}
-
-	return false;
 }
 void RotatingBlock::Paint()
 {
@@ -491,10 +478,10 @@ bool RotatingBlock::IsRotating()
 int MessageBlock::m_BitmapWidth = -1;
 int MessageBlock::m_BitmapHeight = -1;
 const int MessageBlock::FRAMES_OF_ANIMATION = 360;
-MessageBlock::MessageBlock(DOUBLE2 topLeft, String filePath) :
-	Block(topLeft, TYPE::MESSAGE_BLOCK)
+MessageBlock::MessageBlock(DOUBLE2 topLeft, String bmpFilePath, Level* levelPtr) :
+	Block(topLeft, TYPE::MESSAGE_BLOCK, levelPtr)
 {
-	m_BmpPtr = new Bitmap(filePath);
+	m_BmpPtr = new Bitmap(bmpFilePath);
 	m_BitmapWidth = m_BmpPtr->GetWidth();
 	m_BitmapHeight = m_BmpPtr->GetHeight();
 	m_AnimInfo.frameNumber = 0;
@@ -503,18 +490,18 @@ MessageBlock::~MessageBlock()
 {
 	delete m_BmpPtr;
 }
-bool MessageBlock::Tick(double deltaTime, Level* levelPtr)
+void MessageBlock::Tick(double deltaTime)
 {
 	if (m_FramesUntilPause != -1 && --m_FramesUntilPause <= 0)
 	{
-		levelPtr->SetShowingMessage(true);
+		m_LevelPtr->SetShowingMessage(true);
 		m_FramesUntilPause = -1;
 		m_FramesOfIntroAnimation = 0;
 	}
 
 	if (m_FramesOfIntroAnimation > -1)
 	{
-		if (levelPtr->IsShowingMessage() == false)
+		if (m_LevelPtr->IsShowingMessage() == false)
 		{
 			m_FramesOfIntroAnimation = -1;
 			m_FramesOfOutroAnimation = 0;
@@ -525,8 +512,6 @@ bool MessageBlock::Tick(double deltaTime, Level* levelPtr)
 	{
 		m_FramesOfOutroAnimation = -1;
 	}
-
-	return false;
 }
 void MessageBlock::Paint()
 {

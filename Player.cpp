@@ -13,7 +13,7 @@
 const double Player::WALK_SPEED = 25.0;
 const double Player::RUN_SPEED = 50.0;
 
-Player::Player() : Entity(DOUBLE2(), SpriteSheetManager::smallMario, BodyType::DYNAMIC, this)
+Player::Player(Level* levelPtr) : Entity(DOUBLE2(), SpriteSheetManager::smallMario, BodyType::DYNAMIC, levelPtr, this)
 {
 	Reset();
 
@@ -91,7 +91,7 @@ RECT2 Player::GetCameraRect()
 	return result;
 }
 
-bool Player::Tick(double deltaTime, Level *levelPtr)
+void Player::Tick(double deltaTime)
 {
 #if SMW_ENABLE_JUMP_TO
 	if (GAME_ENGINE->IsKeyboardKeyPressed('O'))
@@ -105,14 +105,14 @@ bool Player::Tick(double deltaTime, Level *levelPtr)
 		m_ExtraItemToBeSpawnedType = Item::TYPE::NONE;
 
 		// NOTE: It doesn't matter where we spawn it because it will correct its pos in the next tick
-		SuperMushroom* extraSuperMushroomPtr = new SuperMushroom(DOUBLE2(), 1, true);
+		SuperMushroom* extraSuperMushroomPtr = new SuperMushroom(DOUBLE2(), m_LevelPtr, 1, true);
 
 		m_ExtraItemPtr = extraSuperMushroomPtr;
 	}
 
 	if (m_ExtraItemPtr != nullptr)
 	{
-		m_ExtraItemPtr->Tick(deltaTime, levelPtr);
+		m_ExtraItemPtr->Tick(deltaTime);
 	}
 
 	if (m_NeedsNewFixture)
@@ -129,7 +129,7 @@ bool Player::Tick(double deltaTime, Level *levelPtr)
 		m_NeedsNewFixture = false;
 	}
 
-	HandleKeyboardInput(deltaTime, levelPtr);
+	HandleKeyboardInput(deltaTime, m_LevelPtr);
 
 	if (++m_FramesOfPowerupTransitionElapsed > TOTAL_FRAMES_OF_POWERUP_TRANSITION)
 	{
@@ -138,7 +138,6 @@ bool Player::Tick(double deltaTime, Level *levelPtr)
 
 	TickAnimations(deltaTime);
 
-	return false;
 }
 
 void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
@@ -473,18 +472,18 @@ DOUBLE2 Player::CalculateAnimationFrame()
 	return DOUBLE2(srcX, srcY);
 }
 
-void Player::OnItemPickup(Item* itemPtr)
+void Player::OnItemPickup(Item* itemPtr, Level* levelPtr)
 {
 	switch (itemPtr->GetType())
 	{
 	case Item::TYPE::COIN:
 	{
-		AddCoin();
+		AddCoin(levelPtr);
 		m_Score += 10;
 	} break;
 	case Item::TYPE::DRAGON_COIN:
 	{
-		AddDragonCoin();
+		AddDragonCoin(levelPtr);
 		m_Score += 2000; // NOTE: Not quite perfectly accurate, but enough for now
 	} break;
 	case Item::TYPE::SUPER_MUSHROOM:
@@ -558,7 +557,7 @@ void Player::ChangePowerupState(POWERUP_STATE newPowerupState, bool isUpgrade)
 	m_NeedsNewFixture = true;
 }
 
-void Player::AddCoin(bool playSound)
+void Player::AddCoin(Level* levelPtr, bool playSound)
 {
 	m_Coins++;
 
@@ -575,9 +574,9 @@ void Player::AddCoin(bool playSound)
 	}
 }
 
-void Player::AddDragonCoin()
+void Player::AddDragonCoin(Level* levelPtr)
 {
-	AddCoin(false);
+	AddCoin(levelPtr, false);
 	m_DragonCoins++;
 
 	SoundManager::PlaySoundEffect(SoundManager::SOUND::DRAGON_COIN_COLLECT);

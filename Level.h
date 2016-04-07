@@ -24,7 +24,8 @@ public:
 
 	void Reset();
 
-	void AddItem(Item* newItem);
+	void AddItem(Item* newItemPtr);
+	void RemoveItem(Item* itemPtr);
 
 	double GetWidth();
 	double GetHeight();

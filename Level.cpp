@@ -12,7 +12,7 @@
 Level::Level()
 {
 	// TODO: Make player extend Entity
-	m_PlayerPtr = new Player();
+	m_PlayerPtr = new Player(this);
 
 	m_ActLevelPtr = new PhysicsActor(DOUBLE2(0, 0), 0, BodyType::STATIC);
 	m_ActLevelPtr->AddSVGFixture(String("Resources/levels/01/Level01hit.svg"), 0.0);
@@ -52,7 +52,7 @@ void Level::Reset()
 	m_TotalTime = 400; // This changes for every level, TODO: Put this info in the level save
 	m_SecondsElapsed = 0.0;
 
-	m_LevelDataPtr->RegenerateLevel(1);
+	m_LevelDataPtr->RegenerateLevel(1, this);
 	ReadLevelData(1);
 
 	SoundManager::RestartSongs();
@@ -60,7 +60,7 @@ void Level::Reset()
 
 void Level::ReadLevelData(int levelIndex)
 {
-	m_LevelDataPtr = LevelData::GetLevel(levelIndex);
+	m_LevelDataPtr = LevelData::GetLevelData(levelIndex, this);
 
 	std::vector<Platform*> platformsData = m_LevelDataPtr->GetPlatforms();
 	std::vector<Pipe*> pipesData = m_LevelDataPtr->GetPipes();
@@ -118,16 +118,22 @@ void Level::Tick(double deltaTime)
 		m_ItemToBeRemovedPtr = nullptr;
 	}
 
-	m_PlayerPtr->Tick(deltaTime, this);
+	m_PlayerPtr->Tick(deltaTime);
+
 
 	m_LevelDataPtr->TickItems(deltaTime, this);
 
 	m_WasPaused = m_Paused;
 }
 
-void Level::AddItem(Item* newItem)
+void Level::AddItem(Item* newItemPtr)
 {
-	m_LevelDataPtr->AddItem(newItem);
+	m_LevelDataPtr->AddItem(newItemPtr);
+}
+
+void Level::RemoveItem(Item* itemPtr)
+{
+	m_LevelDataPtr->RemoveItem(itemPtr);
 }
 
 void Level::Paint()
@@ -495,7 +501,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 					break;
 				}
 
-				((Player*)actOtherPtr->GetUserPointer())->OnItemPickup(item);
+				((Player*)actOtherPtr->GetUserPointer())->OnItemPickup(item, this);
 				m_ItemToBeRemovedPtr = item;
 			} break;
 			case Item::TYPE::PRIZE_BLOCK:
@@ -562,7 +568,7 @@ DOUBLE2 Level::GetCameraOffset()
 
 void Level::GiveItemToPlayer(Item* itemPtr)
 {
-	m_PlayerPtr->OnItemPickup(itemPtr);
+	m_PlayerPtr->OnItemPickup(itemPtr, this);
 }
 
 void Level::TogglePaused()

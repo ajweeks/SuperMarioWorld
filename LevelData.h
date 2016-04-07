@@ -28,8 +28,8 @@ public:
 	LevelData& operator=(const LevelData&) = delete;
 	LevelData(const LevelData&) = delete;
 
-	static LevelData* GetLevel(int levelIndex);
-	static void RegenerateLevel(int levelIndex);
+	static LevelData* GetLevelData(int levelIndex, Level* levelPtr);
+	static void RegenerateLevel(int levelIndex, Level* levelPtr);
 	static void Unload();
 
 	void AddItem(Item* newItemPtr);
@@ -49,10 +49,12 @@ public:
 	std::vector<Item*> GetItems();
 
 private:
-	LevelData(String platforms, String pipes, String items);
+	LevelData(String platforms, String pipes, String items, Level* levelPtr);
 
-	static LevelData* GenerateLevel(int levelIndex);
-	static LevelData* m_LevelOnePtr;
+	static LevelData* GenerateLevelData(int levelIndex, Level* levelPtr);
+	static LevelData* m_LevelOneDataPtr;
+
+	Level* m_LevelPtr = nullptr;
 
 	DOUBLE2 StringToDOUBLE2(std::string double2String);
 

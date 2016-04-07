@@ -23,7 +23,7 @@ public:
 		FALLING, FAST_FALLING, DYING, CLIMBING, CHANGING_DIRECTIONS
 	};
 
-	Player();
+	Player(Level* levelPtr);
 	virtual ~Player();
 
 	Player& operator=(const Player&) = delete;
@@ -31,7 +31,7 @@ public:
 
 	RECT2 GetCameraRect();
 	
-	bool Tick(double deltaTime, Level *levelPtr);
+	void Tick(double deltaTime);
 	void TickAnimations(double deltaTime);
 
 	void Paint();
@@ -51,7 +51,7 @@ public:
 	FACING_DIRECTION GetDirectionFacing();
 	bool IsOnGround();
 
-	void OnItemPickup(Item* itemPtr);
+	void OnItemPickup(Item* itemPtr, Level* levelPtr);
 
 	void TogglePaused(bool paused);
 
@@ -63,8 +63,8 @@ private:
 
 	void HandleKeyboardInput(double deltaTime, Level* levelPtr);
 
-	void AddCoin(bool playSound = true);
-	void AddDragonCoin();
+	void AddCoin(Level* levelPtr, bool playSound = true);
+	void AddDragonCoin(Level* levelPtr);
 	void AddLife();
 
 	void Die();

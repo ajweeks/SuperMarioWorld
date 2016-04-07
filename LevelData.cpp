@@ -3,9 +3,9 @@
 
 const std::string Pipe::ColourNames[] { "Green", "Yellow", "Blue", "Orange" };
 
-LevelData* LevelData::m_LevelOnePtr = nullptr;
+LevelData* LevelData::m_LevelOneDataPtr = nullptr;
 
-LevelData::LevelData(String platforms, String pipes, String items)
+LevelData::LevelData(String platforms, String pipes, String items, Level* levelPtr) : m_LevelPtr(levelPtr)
 {
 	std::string line;
 
@@ -54,32 +54,32 @@ LevelData::LevelData(String platforms, String pipes, String items)
 		{
 		case int(Item::TYPE::PRIZE_BLOCK):
 		{
-			m_ItemsPtrArr.push_back(new PrizeBlock(topLeft));
+			m_ItemsPtrArr.push_back(new PrizeBlock(topLeft, levelPtr));
 		} break;
 		case int(Item::TYPE::EXCLAMATION_MARK_BLOCK):
 		{
 			// LATER: Check if the yellow p-switch has been pressed to determine if ! blocks are solid or not
-			m_ItemsPtrArr.push_back(new ExclamationMarkBlock(topLeft, COLOUR::YELLOW, true));
+			m_ItemsPtrArr.push_back(new ExclamationMarkBlock(topLeft, COLOUR::YELLOW, true, levelPtr));
 		} break;
 		case int(Item::TYPE::COIN):
 		{
-			m_ItemsPtrArr.push_back(new Coin(topLeft));
+			m_ItemsPtrArr.push_back(new Coin(topLeft, levelPtr));
 		} break;
 		case int(Item::TYPE::DRAGON_COIN):
 		{
-			m_ItemsPtrArr.push_back(new DragonCoin(topLeft));
+			m_ItemsPtrArr.push_back(new DragonCoin(topLeft, levelPtr));
 		} break;
 		case int(Item::TYPE::MESSAGE_BLOCK):
 		{
-			m_ItemsPtrArr.push_back(new MessageBlock(topLeft, messageString));
+			m_ItemsPtrArr.push_back(new MessageBlock(topLeft, messageString, levelPtr));
 		} break;
 		case int(Item::TYPE::ROTATING_BLOCK):
 		{
-			m_ItemsPtrArr.push_back(new RotatingBlock(topLeft));
+			m_ItemsPtrArr.push_back(new RotatingBlock(topLeft, levelPtr));
 		} break;
 		case int(Item::TYPE::P_SWITCH):
 		{
-			m_ItemsPtrArr.push_back(new PSwitch(topLeft, COLOUR::BLUE));
+			m_ItemsPtrArr.push_back(new PSwitch(topLeft, COLOUR::BLUE, levelPtr));
 		} break;
 		// NOTE: I don't think 1-UP mushrooms are ever spawned at the start of level..
 		//case int(Item::TYPE::ONE_UP_MUSHROOM):
@@ -88,7 +88,7 @@ LevelData::LevelData(String platforms, String pipes, String items)
 		//} break;
 		case int(Item::TYPE::THREE_UP_MOON):
 		{
-			m_ItemsPtrArr.push_back(new ThreeUpMoon(topLeft));
+			m_ItemsPtrArr.push_back(new ThreeUpMoon(topLeft, levelPtr));
 		} break;
 		default:
 		{
@@ -137,24 +137,24 @@ LevelData::~LevelData()
 	}
 }
 
-LevelData* LevelData::GetLevel(int levelIndex)
+LevelData* LevelData::GetLevelData(int levelIndex, Level* levelPtr)
 {
 	// LATER: Add more levels in here
-	// TODO: Make m_LevelOnePtr an array with all the levels?
-	if (m_LevelOnePtr == nullptr)
+	// TODO: Make m_LevelOneDataPtr an array with all the levels?
+	if (m_LevelOneDataPtr == nullptr)
 	{
-		m_LevelOnePtr = GenerateLevel(levelIndex);
+		m_LevelOneDataPtr = GenerateLevelData(levelIndex, levelPtr);
 	}
 
-	return m_LevelOnePtr;
+	return m_LevelOneDataPtr;
 }
 
-void LevelData::RegenerateLevel(int levelIndex)
+void LevelData::RegenerateLevel(int levelIndex, Level* levelPtr)
 {
 	if (levelIndex == 1)
 	{
-		delete m_LevelOnePtr;
-		m_LevelOnePtr = GenerateLevel(levelIndex);
+		delete m_LevelOneDataPtr;
+		m_LevelOneDataPtr = GenerateLevelData(levelIndex, levelPtr);
 		return;
 	}
 	else
@@ -164,7 +164,7 @@ void LevelData::RegenerateLevel(int levelIndex)
 	}
 }
 
-LevelData* LevelData::GenerateLevel(int levelIndex)
+LevelData* LevelData::GenerateLevelData(int levelIndex, Level* levelPtr)
 {
 	std::stringstream platformsStream;	// [ DOUBLE2(TOP LEFT, BTM RIGHT) ]
 	std::stringstream pipesStream;		// [ DOUBLE2(TOP LEFT, BTM RIGHT), Color?(color) ]
@@ -349,7 +349,7 @@ LevelData* LevelData::GenerateLevel(int levelIndex)
 	String pipesString = String(pipesStream.str().c_str());
 	String itemsString = String(itemsStream.str().c_str());
 
-	return new LevelData(platformsString, pipesString, itemsString);
+	return new LevelData(platformsString, pipesString, itemsString, levelPtr);
 }
 
 
@@ -397,10 +397,7 @@ void LevelData::TickItems(double deltaTime, Level* levelPtr)
 	{
 		if (m_ItemsPtrArr[i] != nullptr)
 		{
-			if (m_ItemsPtrArr[i]->Tick(deltaTime, levelPtr))
-			{
-				RemoveItem(i);
-			}
+			m_ItemsPtrArr[i]->Tick(deltaTime);
 		}
 	}
 }
@@ -418,7 +415,7 @@ void LevelData::PaintItems()
 
 void LevelData::Unload()
 {
-	delete m_LevelOnePtr;
+	delete m_LevelOneDataPtr;
 }
 
 void LevelData::TogglePaused(bool paused)

@@ -12,7 +12,9 @@ struct Platform
 	Platform(DOUBLE2 topLeft, DOUBLE2 bottomRight);
 	virtual ~Platform();
 	void AddContactListener(ContactListener* listener);
-	
+	double GetWidth();
+	double GetHeight();
+
 private:
 	PhysicsActor* m_ActPtr = nullptr;
 	RECT2 m_Bounds;
@@ -50,11 +52,13 @@ struct Item : public Entity
 		PRIZE_BLOCK, MESSAGE_BLOCK, ROTATING_BLOCK, EXCLAMATION_MARK_BLOCK
 	};
 
-	Item(DOUBLE2 topLeft, TYPE type, BodyType bodyType = BodyType::STATIC, int width = 16, int height = 16);
+	Item(DOUBLE2 topLeft, TYPE type, Level* levelPtr, 
+		BodyType bodyType = BodyType::STATIC, int width = 16, int height = 16);
+	virtual ~Item();
 
 	void AddContactListener(ContactListener* listener);
 
-	virtual bool Tick(double deltaTime, Level* levelPtr) = 0;
+	virtual void Tick(double deltaTime) = 0;
 	virtual void Paint() = 0;
 
 	void TogglePaused(bool paused);
@@ -74,9 +78,9 @@ private:
 
 struct Coin : public Item
 {
-	Coin(DOUBLE2 topLeft, int life = -1, Item::TYPE type = Item::TYPE::COIN, DOUBLE2 size = DOUBLE2(WIDTH, HEIGHT));
+	Coin(DOUBLE2 topLeft, Level* levelPtr, int life = -1, Item::TYPE type = Item::TYPE::COIN, DOUBLE2 size = DOUBLE2(WIDTH, HEIGHT));
 
-	virtual bool Tick(double deltaTime, Level* levelPtr);
+	void Tick(double deltaTime);
 	void Paint();
 
 	static const int LIFETIME = 25;
@@ -86,13 +90,14 @@ protected:
 	static const int HEIGHT = 16;
 
 private:
+
 	int m_Life;
 };
 
 struct DragonCoin : public Coin
 {
-	DragonCoin(DOUBLE2 topLeft);
-	bool Tick(double deltaTime, Level* levelPtr);
+	DragonCoin(DOUBLE2 topLeft, Level* levelPtr);
+	void Tick(double deltaTime);
 	void Paint();
 
 	static const int WIDTH = 16;
@@ -101,9 +106,9 @@ struct DragonCoin : public Coin
 
 struct PSwitch : public Item
 {
-	PSwitch(DOUBLE2 topLeft, COLOUR colour);
+	PSwitch(DOUBLE2 topLeft, COLOUR colour, Level* levelPtr);
 
-	bool Tick(double deltaTime, Level* levelPtr);
+	void Tick(double deltaTime);
 	void Paint();
 
 private:
@@ -113,21 +118,21 @@ private:
 
 struct OneUpMushroom : public Item
 {
-	OneUpMushroom(DOUBLE2 topLeft);
-	bool Tick(double deltaTime, Level* levelPtr);
+	OneUpMushroom(DOUBLE2 topLeft, Level* levelPtr);
+	void Tick(double deltaTime);
 	void Paint();
 };
 struct ThreeUpMoon : public Item
 {
-	ThreeUpMoon(DOUBLE2 topLeft);
-	bool Tick(double deltaTime, Level* levelPtr);
+	ThreeUpMoon(DOUBLE2 topLeft, Level* levelPtr);
+	void Tick(double deltaTime);
 	void Paint();
 };
 struct SuperMushroom : public Item
 {
 	// horizontalDir is either 1 or -1, signifying which direction to move in (1:right, -1:left)
-	SuperMushroom(DOUBLE2 topLeft, int horizontalDir = 1, bool isStatic = false);
-	bool Tick(double deltaTime, Level* levelPtr);
+	SuperMushroom(DOUBLE2 topLeft, Level* levelPtr, int horizontalDir = 1, bool isStatic = false);
+	void Tick(double deltaTime);
 	void Paint();
 private:
 	double m_HorizontalSpeed = 80;
@@ -135,14 +140,14 @@ private:
 };
 struct FireFlower : public Item
 {
-	FireFlower(DOUBLE2 topLeft);
-	bool Tick(double deltaTime, Level* levelPtr);
+	FireFlower(DOUBLE2 topLeft, Level* levelPtr);
+	void Tick(double deltaTime);
 	void Paint();
 };
 struct CapeFeather : public Item
 {
-	CapeFeather(DOUBLE2 topLeft);
-	bool Tick(double deltaTime, Level* levelPtr);
+	CapeFeather(DOUBLE2 topLeft, Level* levelPtr);
+	void Tick(double deltaTime);
 	void Paint();
 };
 
@@ -151,17 +156,17 @@ struct Block : public Item
 	static const int WIDTH = 16;
 	static const int HEIGHT = 16;
 
-	Block(DOUBLE2 topLeft, Item::TYPE type);
+	Block(DOUBLE2 topLeft, Item::TYPE type, Level* levelPtr);
 	virtual ~Block();
-	virtual bool Tick(double deltaTime, Level* levelPtr) = 0;
+	virtual void Tick(double deltaTime) = 0;
 	virtual void Paint() = 0;
 	virtual void Hit(Level* levelPtr) = 0;
 };
 struct PrizeBlock : public Block
 {
 	// LATER: Find out if there are any blocks spawned as used blocks ever in the real game
-	PrizeBlock(DOUBLE2 topLeft);
-	bool Tick(double deltaTime, Level* levelPtr);
+	PrizeBlock(DOUBLE2 topLeft, Level* levelPtr);
+	void Tick(double deltaTime);
 	void Paint();
 	// NOTE: I think Box2D prevents you from adding physics actors during preSolve, therefore
 	// we need to set a flag when the player hits a prize block and generate the coin in the next tick,
@@ -177,8 +182,8 @@ private:
 };
 struct ExclamationMarkBlock : public Block
 {
-	ExclamationMarkBlock(DOUBLE2 topLeft, COLOUR colour, bool isSolid);
-	bool Tick(double deltaTime, Level* levelPtr);
+	ExclamationMarkBlock(DOUBLE2 topLeft, COLOUR colour, bool isSolid, Level* levelPtr);
+	void Tick(double deltaTime);
 	void Paint();
 	void SetSolid(bool solid);
 	void Hit(Level* levelPtr);
@@ -197,8 +202,8 @@ private:
 
 struct RotatingBlock : public Block
 {
-	RotatingBlock(DOUBLE2 topLeft);
-	bool Tick(double deltaTime, Level* levelPtr);
+	RotatingBlock(DOUBLE2 topLeft, Level* levelPtr);
+	void Tick(double deltaTime);
 	void Paint();
 	void Hit(Level* levelPtr);
 	bool IsRotating();
@@ -211,9 +216,9 @@ private:
 };
 struct MessageBlock : public Block
 {
-	MessageBlock(DOUBLE2 topLeft, String filePath);
+	MessageBlock(DOUBLE2 topLeft, String bmpFilePath, Level* levelPtr);
 	virtual ~MessageBlock();
-	bool Tick(double deltaTime, Level* levelPtr);
+	void Tick(double deltaTime);
 	void Paint();
 	void Hit(Level* levelPtr);
 
