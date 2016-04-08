@@ -106,14 +106,14 @@ void Player::Tick(double deltaTime)
 			// NOTE: The player is frozen while they are transforming powerup states
 			// NOTE: This call can't be moved elsewhere since lovly ol' Box2D locks up
 			// during BeginContact
-			TogglePaused(true);
+			SetPaused(true);
 		}
 
 		++m_FramesOfPowerupTransitionElapsed;
 
 		if (m_FramesOfPowerupTransitionElapsed > TOTAL_FRAMES_OF_POWERUP_TRANSITION)
 		{
-			TogglePaused(false);
+			SetPaused(false);
 			m_FramesOfPowerupTransitionElapsed = -1;
 		}
 		else
@@ -740,11 +740,6 @@ DOUBLE2 Player::GetLinearVelocity()
 void Player::SetLinearVelocity(const DOUBLE2& newLinearVelRef)
 {
 	m_ActPtr->SetLinearVelocity(newLinearVelRef);
-}
-
-void Player::TogglePaused(bool paused)
-{
-	m_ActPtr->SetActive(!paused);
 }
 
 int Player::GetLives()

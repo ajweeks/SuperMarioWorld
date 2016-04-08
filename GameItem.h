@@ -60,19 +60,14 @@ struct Item : public Entity
 		BodyType bodyType = BodyType::STATIC, int width = 16, int height = 16);
 	virtual ~Item();
 
-	void AddContactListener(ContactListener* listener);
-
 	virtual void Tick(double deltaTime) = 0;
 	virtual void Paint() = 0;
-
-	void TogglePaused(bool paused);
 
 	TYPE GetType();
 
 protected:
 	const int WIDTH;
 	const int HEIGHT;
-	ANIMATION_INFO m_AnimInfo;
 	RECT2 m_Bounds;
 private:
 	TYPE m_Type;

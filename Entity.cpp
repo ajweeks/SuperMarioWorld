@@ -21,3 +21,13 @@ Entity::~Entity()
 {
 	delete m_ActPtr;
 }
+
+void Entity::SetPaused(bool paused)
+{
+	m_ActPtr->SetActive(!paused);
+}
+
+void Entity::AddContactListener(ContactListener* listener)
+{
+	m_ActPtr->AddContactListener(listener);
+}

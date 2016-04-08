@@ -73,19 +73,10 @@ Item::Item(DOUBLE2 topLeft, TYPE type, Level* levelPtr, BodyType bodyType, int w
 	m_ActPtr->SetFixedRotation(true);
 }
 Item::~Item() {}
-void Item::AddContactListener(ContactListener* listener)
-{
-	m_ActPtr->AddContactListener(listener);
-}
 Item::TYPE Item::GetType()
 {
 	return m_Type;
 }
-void Item::TogglePaused(bool paused)
-{
-	m_ActPtr->SetActive(!paused);
-}
-
 
 // ___COIN___
 // NOTE: If 'life == -1', this coin has an infinite lifetime (until the player picks it up), 

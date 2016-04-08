@@ -51,8 +51,6 @@ public:
 
 	void OnItemPickup(Item* itemPtr, Level* levelPtr);
 
-	void TogglePaused(bool paused);
-
 	int GetWidth();
 	int GetHeight();
 
@@ -102,5 +100,4 @@ private:
 
 	POWERUP_STATE m_PowerupState;
 	ANIMATION_STATE m_AnimationState;
-	ANIMATION_INFO m_AnimInfo;
 };
