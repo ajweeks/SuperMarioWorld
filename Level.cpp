@@ -429,9 +429,17 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 			double halfPlayerWidth = m_PlayerPtr->GetWidth() / 2;
 			double halfPlatformWidth = ((Platform*)actThisPtr->GetUserPointer())->GetWidth() / 2.0;
 			double halfPlatformHeight = ((Platform*)actThisPtr->GetUserPointer())->GetHeight() / 2.0;
-			if (playerFeet.x + halfPlayerWidth < platformPos.x - halfPlatformWidth || 
-				playerFeet.x - halfPlayerWidth > platformPos.x + halfPlatformWidth ||
-				playerFeet.y > platformPos.y + halfPlatformHeight)
+
+			bool playerToLeftOfPlatform = playerFeet.x + halfPlayerWidth < platformPos.x - halfPlatformWidth;
+			bool playerToRightOfPlatform = playerFeet.x + halfPlayerWidth < platformPos.x - halfPlatformWidth;
+			bool playerFeetBelowPlatformBottom = playerFeet.y > platformPos.y + halfPlatformHeight;
+
+			bool playerFeetAreBelowPlatformTop = playerFeet.y > platformPos.y - halfPlatformHeight;
+			bool playerCenterToLeftOfPlatform = playerFeet.x < platformPos.x - halfPlatformWidth;
+			bool playerCenterToRightOfPlatform = playerFeet.x > platformPos.x + halfPlatformWidth;
+
+			if ((playerFeetAreBelowPlatformTop && (playerCenterToLeftOfPlatform || playerCenterToRightOfPlatform)) ||
+				playerToLeftOfPlatform || playerToRightOfPlatform || playerFeetBelowPlatformBottom)
 			{
 				enableContactRef = false;
 			}

@@ -17,7 +17,7 @@ struct Platform
 	double GetWidth();
 	double GetHeight();
 
-	static const int HEIGHT = 8;
+	static const int HEIGHT = 6;
 
 private:
 	PhysicsActor* m_ActPtr = nullptr;
