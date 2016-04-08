@@ -413,23 +413,25 @@ bool Level::IsPlayerOnGround()
 
 void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool & enableContactRef)
 {
+	DOUBLE2 playerFeet(m_PlayerPtr->GetPosition().x, m_PlayerPtr->GetPosition().y + m_PlayerPtr->GetHeight() / 2);
+
 	switch (actOtherPtr->GetUserData())
 	{
 	case int(ActorId::PLAYER):
 	{
-		bool rising = actOtherPtr->GetLinearVelocity().y < -0.001;
+		bool playerIsRising = actOtherPtr->GetLinearVelocity().y < -0.001;
 
 		switch (actThisPtr->GetUserData())
 		{
 		case int(ActorId::PLATFORM):
 		{
-			DOUBLE2 playerFeet(m_PlayerPtr->GetPosition().x, m_PlayerPtr->GetPosition().y + m_PlayerPtr->GetHeight() / 2);
 			DOUBLE2 platformPos = actThisPtr->GetPosition();
+			double halfPlayerWidth = m_PlayerPtr->GetWidth() / 2;
 			double halfPlatformWidth = ((Platform*)actThisPtr->GetUserPointer())->GetWidth() / 2.0;
 			double halfPlatformHeight = ((Platform*)actThisPtr->GetUserPointer())->GetHeight() / 2.0;
-			if (playerFeet.x < platformPos.x - halfPlatformWidth || 
-				playerFeet.x > platformPos.x + halfPlatformWidth || 
-				playerFeet.y > platformPos.y - halfPlatformHeight)
+			if (playerFeet.x + halfPlayerWidth < platformPos.x - halfPlatformWidth || 
+				playerFeet.x - halfPlayerWidth > platformPos.x + halfPlatformWidth ||
+				playerFeet.y > platformPos.y + halfPlatformHeight)
 			{
 				enableContactRef = false;
 			}
@@ -437,10 +439,40 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 		case int(ActorId::LEVEL):
 		case int(ActorId::PIPE):
 		{
-			if (rising)
+			if (playerIsRising)
 			{
 				actOtherPtr->SetLinearVelocity(DOUBLE2(0, actOtherPtr->GetLinearVelocity().y));
 				enableContactRef = false;
+			}
+		} break;
+		case int(ActorId::ITEM):
+		{
+			Item* otherItemPtr = (Item*)actThisPtr->GetUserPointer();
+			switch (otherItemPtr->GetType())
+			{
+			case Item::TYPE::P_SWITCH:
+			{
+				// LATER: Temporarily change all coins into blocks and vice versa
+			} break;
+			case Item::TYPE::PRIZE_BLOCK:
+			case Item::TYPE::MESSAGE_BLOCK:
+			case Item::TYPE::EXCLAMATION_MARK_BLOCK:
+			case Item::TYPE::ROTATING_BLOCK:
+			{
+				DOUBLE2 blockCenterPos = actThisPtr->GetPosition();
+				bool playerIsBesideBlock = (playerFeet.x + m_PlayerPtr->GetWidth() / 2 < blockCenterPos.x - Block::WIDTH / 2) ||
+										   (playerFeet.x - m_PlayerPtr->GetWidth() / 2 > blockCenterPos.x + Block::WIDTH / 2);
+				if (playerIsBesideBlock)
+				{
+					enableContactRef = false;
+
+					bool playersFeetAreBelowTopOfBlock = (playerFeet.y >= blockCenterPos.y - Block::HEIGHT / 2);
+					if (playersFeetAreBelowTopOfBlock)
+					{
+						m_PlayerPtr->SetLinearVelocity(DOUBLE2(0, m_PlayerPtr->GetLinearVelocity().y));
+					}
+				}
+			} break;
 			}
 		} break;
 		}
@@ -449,21 +481,24 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 	{
 		// FIXME: IMPORTANT: TODO: Find out how tf to know when to use 'actThis'
 		// vs. 'actOther', it sure seems like black magic
-		Item* otherItem = (Item*)actOtherPtr->GetUserPointer();
-		if (otherItem->GetType() == Item::TYPE::P_SWITCH)
+		Item* otherItemPtr = (Item*)actOtherPtr->GetUserPointer();
+		switch (otherItemPtr->GetType())
+		{
+		case Item::TYPE::P_SWITCH:
 		{
 			if (actThisPtr->GetUserData() == int(ActorId::ITEM))
 			{
 				Item* thisItem = (Item*)actThisPtr->GetUserPointer();
 				if (thisItem->GetType() == Item::TYPE::ROTATING_BLOCK)
 				{
-					// Only let it fall through if the rotating block is spinning
+					// NOTE: Only let it fall through if the rotating block is spinning
 					if (((RotatingBlock*)thisItem)->IsRotating())
 					{
 						enableContactRef = false;
 					}
 				}
 			}
+		} break;
 		}
 	} break;
 	}
@@ -476,15 +511,14 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 	case int(ActorId::PLAYER):
 	{
 		bool playerIsRising = actOtherPtr->GetLinearVelocity().y < -0.001;
-		bool playerIsBelow = actOtherPtr->GetPosition().y > (actThisPtr->GetPosition().y + Block::HEIGHT / 2);
-		bool playerIsAbove = actOtherPtr->GetPosition().y < (actThisPtr->GetPosition().y - Block::HEIGHT / 2);
-		DOUBLE2 playerFeet = DOUBLE2(actOtherPtr->GetPosition().x, actOtherPtr->GetPosition().y + ((Player*)actOtherPtr)->GetHeight() / 2 + 6);
+		DOUBLE2 playerFeet = DOUBLE2(actOtherPtr->GetPosition().x, actOtherPtr->GetPosition().y + ((Player*)actOtherPtr)->GetHeight() / 2);
 
 		switch (actThisPtr->GetUserData())
 		{
 		case int(ActorId::PLATFORM):
 		{
-			if (actOtherPtr->GetPosition().y < actThisPtr->GetPosition().y)
+			// NOTE: *Add* half of the platform height to catch when the player's feet are inside the platform 
+			if (playerFeet.y <= actThisPtr->GetPosition().y + Platform::HEIGHT/2)
 			{
 				m_IsPlayerOnGround = true;
 			}
@@ -525,14 +559,17 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			case Item::TYPE::MESSAGE_BLOCK:
 			case Item::TYPE::ROTATING_BLOCK:
 			{
-				if (playerIsRising && playerIsBelow)
+				bool playerCenterIsBelowBlock = m_PlayerPtr->GetPosition().y > (actThisPtr->GetPosition().y + Block::HEIGHT / 2);
+				bool playerCenterIsAboveBlock = m_PlayerPtr->GetPosition().y < (actThisPtr->GetPosition().y - Block::HEIGHT / 2);
+
+				if (playerIsRising && playerCenterIsBelowBlock)
 				{
 					((Block*)item)->Hit(this);
 
 					// NOTE: This line prevents the player from slowly floating down after hitting a block
 					m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetLinearVelocity().x, 0.0));
 				}
-				else if (playerIsAbove)
+				else if (playerCenterIsAboveBlock)
 				{
 					m_IsPlayerOnGround = true;
 				}
