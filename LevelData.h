@@ -5,12 +5,13 @@
 #include "SpriteSheet.h"
 #include "Entity.h"
 #include "GameItem.h"
+#include "Enemy.h"
 
 #define GAME_ENGINE (GameEngine::GetSingleton())
 
 /*
 
-This class represents an entire level
+This class stores info about an entire level
 It holds the following information:
 
 - Platforms
@@ -29,29 +30,31 @@ public:
 	LevelData(const LevelData&) = delete;
 
 	static LevelData* GetLevelData(int levelIndex, Level* levelPtr);
-	static void RegenerateLevel(int levelIndex, Level* levelPtr);
+	static void GenerateLevelData(int levelIndex, Level* levelPtr);
 	static void Unload();
 
 	void AddItem(Item* newItemPtr);
 	void RemoveItem(Item* itemPtr);
 	void RemoveItem(int itemIndex);
 
-	// Platforms and pipes don't need to be individually painted or ticked
-	// since they are part of the forground bitmap and static,
-	// therefore only tick and paint the items (TODO: Rename item to entity?)
-	void PaintItems();
-	void TickItems(double deltaTime, Level* levelPtr);
+	void AddEnemy(Enemy* newEnemyPtr);
+	void RemoveEnemy(Enemy* enemyPtr);
+	void RemoveEnemy(int enemyIndex);
 
-	void TogglePaused(bool paused);
+	void PaintItemsAndEnemies();
+	void TickItemsAndEnemies(double deltaTime, Level* levelPtr);
+
+	void SetItemsAndEnemiesPaused(bool paused);
 
 	std::vector<Platform*> GetPlatforms();
 	std::vector<Pipe*> GetPipes();
 	std::vector<Item*> GetItems();
+	std::vector<Enemy*> GetEnemies();
 
 private:
-	LevelData(String platforms, String pipes, String items, Level* levelPtr);
+	LevelData(String platforms, String pipes, String items, String enemies, Level* levelPtr);
 
-	static LevelData* GenerateLevelData(int levelIndex, Level* levelPtr);
+	static LevelData* CreateLevelData(int levelIndex, Level* levelPtr);
 	static LevelData* m_LevelOneDataPtr;
 
 	Level* m_LevelPtr = nullptr;
@@ -61,4 +64,5 @@ private:
 	std::vector<Platform*> m_PlatformsPtrArr;
 	std::vector<Pipe*> m_PipesPtrArr;
 	std::vector<Item*> m_ItemsPtrArr;
+	std::vector<Enemy*> m_EnemiesPtrArr;
 };

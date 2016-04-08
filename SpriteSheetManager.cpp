@@ -20,6 +20,9 @@ SpriteSheet* SpriteSheetManager::coinCollectParticlePtr = nullptr;
 SpriteSheet* SpriteSheetManager::runningDustCloudParticlePtr = nullptr;
 SpriteSheet* SpriteSheetManager::numberParticlePtr = nullptr;
 
+SpriteSheet* SpriteSheetManager::montyMolePtr = nullptr;
+SpriteSheet* SpriteSheetManager::koopaTroopaPtr = nullptr;
+
 SpriteSheetManager::SpriteSheetManager()
 {
 }
@@ -50,6 +53,8 @@ void SpriteSheetManager::Load()
 	runningDustCloudParticlePtr = new SpriteSheet(String("Resources/dust-cloud-particle.png"), 4, 1, 8, 12);
 	numberParticlePtr = new SpriteSheet(String("Resources/number-particle.png"), 10, 1, 4, 7);
 
+	montyMolePtr = new SpriteSheet(String("Resources/monty-mole.png"), 9, 1, 16, 16);
+	koopaTroopaPtr = new SpriteSheet(String("Resources/koopa-troopa.png"), 8, 2, 16, 26);
 }
 
 void SpriteSheetManager::Unload()
@@ -71,4 +76,6 @@ void SpriteSheetManager::Unload()
 	delete runningDustCloudParticlePtr;
 	delete numberParticlePtr;
 
+	delete montyMolePtr;
+	delete koopaTroopaPtr;
 }

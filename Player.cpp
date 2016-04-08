@@ -20,43 +20,12 @@ Player::Player(Level* levelPtr) : Entity(DOUBLE2(), SpriteSheetManager::smallMar
 {
 	Reset();
 
-	m_ActPtr->AddBoxFixture(GetWidth(), GetHeight(), 0.0);
 	m_ActPtr->SetFixedRotation(true);
 	m_ActPtr->SetUserData(int(ActorId::PLAYER));
 }
 
 Player::~Player()
 {
-}
-
-int Player::GetWidth()
-{
-	static const int SMALL_WIDTH = 9;
-	static const int LARGE_WIDTH = 9;
-
-	if (m_PowerupState == POWERUP_STATE::NORMAL)
-	{
-		return SMALL_WIDTH;
-	}
-	else
-	{
-		return LARGE_WIDTH;
-	}
-}
-
-int Player::GetHeight()
-{
-	static const int SMALL_HEIGHT = 15;
-	static const int LARGE_HEIGHT = 23;
-
-	if (m_PowerupState == POWERUP_STATE::NORMAL)
-	{
-		return SMALL_HEIGHT;
-	}
-	else
-	{
-		return LARGE_HEIGHT;
-	}
 }
 
 void Player::Reset()
@@ -88,6 +57,36 @@ void Player::Reset()
 	m_AnimationState = ANIMATION_STATE::WAITING;
 	m_DirFacing = FACING_DIRECTION::RIGHT;
 	m_DirFacingLastFrame = FACING_DIRECTION::RIGHT;
+}
+
+int Player::GetWidth()
+{
+	static const int SMALL_WIDTH = 9;
+	static const int LARGE_WIDTH = 9;
+
+	if (m_PowerupState == POWERUP_STATE::NORMAL)
+	{
+		return SMALL_WIDTH;
+	}
+	else
+	{
+		return LARGE_WIDTH;
+	}
+}
+
+int Player::GetHeight()
+{
+	static const int SMALL_HEIGHT = 15;
+	static const int LARGE_HEIGHT = 23;
+
+	if (m_PowerupState == POWERUP_STATE::NORMAL)
+	{
+		return SMALL_HEIGHT;
+	}
+	else
+	{
+		return LARGE_HEIGHT;
+	}
 }
 
 void Player::Tick(double deltaTime)

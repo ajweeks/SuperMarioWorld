@@ -57,7 +57,7 @@ void Level::Reset()
 	m_TotalTime = 400; // This changes for every level, TODO: Put this info in the level save
 	m_SecondsElapsed = 0.0;
 
-	m_LevelDataPtr->RegenerateLevel(1, this);
+	m_LevelDataPtr->GenerateLevelData(1, this);
 	ReadLevelData(1);
 
 	m_ParticleManagerPtr->Reset();
@@ -72,6 +72,7 @@ void Level::ReadLevelData(int levelIndex)
 	std::vector<Platform*> platformsData = m_LevelDataPtr->GetPlatforms();
 	std::vector<Pipe*> pipesData = m_LevelDataPtr->GetPipes();
 	std::vector<Item*> itemsData = m_LevelDataPtr->GetItems();
+	std::vector<Enemy*> enemiesData = m_LevelDataPtr->GetEnemies();
 	
 	for (size_t i = 0; i < platformsData.size(); ++i)
 	{
@@ -84,6 +85,10 @@ void Level::ReadLevelData(int levelIndex)
 	for (size_t i = 0; i < itemsData.size(); ++i)
 	{
 		itemsData[i]->AddContactListener(this);
+	}
+	for (size_t i = 0; i < enemiesData.size(); ++i)
+	{
+		enemiesData[i]->AddContactListener(this);
 	}
 }
 
@@ -129,7 +134,7 @@ void Level::Tick(double deltaTime)
 
 	m_ParticleManagerPtr->Tick(deltaTime);
 
-	m_LevelDataPtr->TickItems(deltaTime, this);
+	m_LevelDataPtr->TickItemsAndEnemies(deltaTime, this);
 
 	m_WasPaused = m_Paused;
 }
@@ -168,7 +173,7 @@ void Level::Paint()
 
 	GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneForegroundPtr);
 
-	m_LevelDataPtr->PaintItems();
+	m_LevelDataPtr->PaintItemsAndEnemies();
 
 	m_PlayerPtr->Paint();
 	
@@ -641,8 +646,8 @@ void Level::TogglePaused()
 {
 	m_Paused = !m_Paused;
 	// TODO: Find a better way to pause the world
-	m_PlayerPtr->TogglePaused(m_Paused);
-	m_LevelDataPtr->TogglePaused(m_Paused);
+	m_PlayerPtr->SetPaused(m_Paused);
+	m_LevelDataPtr->SetItemsAndEnemiesPaused(m_Paused);
 
 	// LATER: Figure out how to pause the music only once the game pause sound is done playing
 	// (if only we had callbacks...)

@@ -1,11 +1,14 @@
 #include "stdafx.h"
+
 #include "LevelData.h"
+#include "MontyMole.h"
+#include "KoopaTroopa.h"
 
 const std::string Pipe::ColourNames[] { "Green", "Yellow", "Blue", "Orange" };
 
 LevelData* LevelData::m_LevelOneDataPtr = nullptr;
 
-LevelData::LevelData(String platforms, String pipes, String items, Level* levelPtr) : m_LevelPtr(levelPtr)
+LevelData::LevelData(String platforms, String pipes, String items, String enemies, Level* levelPtr) : m_LevelPtr(levelPtr)
 {
 	std::string line;
 
@@ -96,7 +99,41 @@ LevelData::LevelData(String platforms, String pipes, String items, Level* levelP
 		} break;
 		default:
 		{
-			OutputDebugString(String("ERROR: Unhandled item in LevelData(): ") + String(int(itemType)) + String("\n"));
+			OutputDebugString(String("ERROR: Unhandled item passed LevelData(): ") + String(int(itemType)) + String("\n"));
+		} break;
+		}
+	}
+
+	std::stringstream enemiesStream = std::stringstream(enemies.C_str());
+	while (std::getline(enemiesStream, line))
+	{
+		int closeBracket = line.find(']');
+
+		DOUBLE2 topLeft = StringToDOUBLE2(line.substr(0, closeBracket + 1));
+		int enemyType = std::stoi(line.substr(closeBracket + 1).c_str());
+
+		switch (enemyType)
+		{
+			// TODO: Add more enemies
+		case int(Enemy::TYPE::KOOPA_TROOPA):
+		{
+			m_EnemiesPtrArr.push_back(new KoopaTroopa(topLeft, levelPtr));
+		} break;
+		/*case int(Enemy::TYPE::CHARGIN_CHUCK):
+		{
+			m_EnemiesPtrArr.push_back(new CharginChuck(topLeft, levelPtr));
+		} break;*/
+		/*case int(Enemy::TYPE::PIRHANA_PLANT):
+		{
+			m_EnemiesPtrArr.push_back(new PirhanaPlant(topLeft, levelPtr));
+		} break;*/
+		case int(Enemy::TYPE::MONTY_MOLE):
+		{
+			m_EnemiesPtrArr.push_back(new MontyMole(topLeft, levelPtr));
+		} break;
+		default:
+		{
+			OutputDebugString(String("ERROR: Unhandled enemy passed to LevelData(): ") + String(int(enemyType)) + String("\n"));
 		} break;
 		}
 	}
@@ -139,6 +176,10 @@ LevelData::~LevelData()
 	{
 		delete m_ItemsPtrArr[i];
 	}
+	for (size_t i = 0; i < m_EnemiesPtrArr.size(); ++i)
+	{
+		delete m_EnemiesPtrArr[i];
+	}
 }
 
 LevelData* LevelData::GetLevelData(int levelIndex, Level* levelPtr)
@@ -147,18 +188,18 @@ LevelData* LevelData::GetLevelData(int levelIndex, Level* levelPtr)
 	// TODO: Make m_LevelOneDataPtr an array with all the levels?
 	if (m_LevelOneDataPtr == nullptr)
 	{
-		m_LevelOneDataPtr = GenerateLevelData(levelIndex, levelPtr);
+		GenerateLevelData(levelIndex, levelPtr);
 	}
 
 	return m_LevelOneDataPtr;
 }
 
-void LevelData::RegenerateLevel(int levelIndex, Level* levelPtr)
+void LevelData::GenerateLevelData(int levelIndex, Level* levelPtr)
 {
 	if (levelIndex == 1)
 	{
 		delete m_LevelOneDataPtr;
-		m_LevelOneDataPtr = GenerateLevelData(levelIndex, levelPtr);
+		m_LevelOneDataPtr = CreateLevelData(levelIndex, levelPtr);
 		return;
 	}
 	else
@@ -168,11 +209,12 @@ void LevelData::RegenerateLevel(int levelIndex, Level* levelPtr)
 	}
 }
 
-LevelData* LevelData::GenerateLevelData(int levelIndex, Level* levelPtr)
+LevelData* LevelData::CreateLevelData(int levelIndex, Level* levelPtr)
 {
 	std::stringstream platformsStream;	// [ DOUBLE2(TOP LEFT, BTM RIGHT) ]
 	std::stringstream pipesStream;		// [ DOUBLE2(TOP LEFT, BTM RIGHT), Color?(color) ]
 	std::stringstream itemsStream;		// [ DOUBLE2(TOP LEFT, BTM RIGHT), ItemName, ItemProperties... ]
+	std::stringstream enemiesStream;		// [ DOUBLE2(TOP LEFT, BTM RIGHT),
 
 	switch (levelIndex)
 	{
@@ -186,6 +228,8 @@ LevelData* LevelData::GenerateLevelData(int levelIndex, Level* levelPtr)
 		platformsStream << "[" << 3025 << "," << 281 << "," << 3150 << "]" << "\n";
 		platformsStream << "[" << 3121 << "," << 329 << "," << 3214 << "]" << "\n";
 		platformsStream << "[" << 3393 << "," << 297 << "," << 3550 << "]";
+
+		// ------------------------------------------
 
 		pipesStream << "[" << 2704 << "," << 329 << "]";
 		pipesStream << "[" << 2734 << "," << 376 << "]";
@@ -204,6 +248,8 @@ LevelData* LevelData::GenerateLevelData(int levelIndex, Level* levelPtr)
 		pipesStream << "\n";
 		pipesStream << "[" << 4368 << "," << 329 << "]";
 		pipesStream << "[" << 4399 << "," << 375 << "]";
+
+		// ------------------------------------------
 
 		itemsStream << "[" << 609 << "," << 312 << "]";
 		itemsStream << int(Item::TYPE::PRIZE_BLOCK) << "\n";
@@ -329,6 +375,20 @@ LevelData* LevelData::GenerateLevelData(int levelIndex, Level* levelPtr)
 		itemsStream << "[" << x + coin_xo * 13 << "," << y << "]";
 		itemsStream << int(Item::TYPE::COIN) << "\n";
 
+		// ------------------------------------------
+
+		enemiesStream << "[" << 3088 << "," << 300 << "]";
+		enemiesStream << int(Enemy::TYPE::MONTY_MOLE) << "\n";
+		enemiesStream << "[" << 3468 << "," << 346 << "]";
+		enemiesStream << int(Enemy::TYPE::MONTY_MOLE) << "\n";
+
+		enemiesStream << "[" << 480 << "," << 310 << "]";
+		enemiesStream << int(Enemy::TYPE::KOOPA_TROOPA) << "\n";
+		enemiesStream << "[" << 500 << "," << 310 << "]";
+		enemiesStream << int(Enemy::TYPE::KOOPA_TROOPA) << "\n";
+		enemiesStream << "[" << 520 << "," << 310 << "]";
+		enemiesStream << int(Enemy::TYPE::KOOPA_TROOPA) << "\n";
+
 
 	} break;
 	default:
@@ -341,8 +401,9 @@ LevelData* LevelData::GenerateLevelData(int levelIndex, Level* levelPtr)
 	String platformsString = String(platformsStream.str().c_str());
 	String pipesString = String(pipesStream.str().c_str());
 	String itemsString = String(itemsStream.str().c_str());
+	String enemiesString = String(enemiesStream.str().c_str());
 
-	return new LevelData(platformsString, pipesString, itemsString, levelPtr);
+	return new LevelData(platformsString, pipesString, itemsString, enemiesString, levelPtr);
 }
 
 
@@ -384,7 +445,45 @@ void LevelData::RemoveItem(int itemIndex)
 	m_ItemsPtrArr[itemIndex] = nullptr;
 }
 
-void LevelData::TickItems(double deltaTime, Level* levelPtr)
+void LevelData::AddEnemy(Enemy* newEnemyPtr)
+{
+	for (size_t i = 0; i < m_ItemsPtrArr.size(); ++i)
+	{
+		if (m_EnemiesPtrArr[i] == nullptr)
+		{
+			m_EnemiesPtrArr[i] = newEnemyPtr;
+			return;
+		}
+	}
+
+	m_EnemiesPtrArr.push_back(newEnemyPtr);
+}
+
+void LevelData::RemoveEnemy(Enemy* enemyPtr)
+{
+	for (size_t i = 0; i < m_ItemsPtrArr.size(); ++i)
+	{
+		if (m_EnemiesPtrArr[i] == enemyPtr)
+		{
+			delete m_EnemiesPtrArr[i];
+			m_EnemiesPtrArr[i] = nullptr;
+			return;
+		}
+	}
+
+	OutputDebugString(String("ERROR: Could not delete item in LevelData::RemoveItem\n"));
+	assert(false);
+}
+
+void LevelData::RemoveEnemy(int enemyIndex)
+{
+	assert(enemyIndex >= 0 && enemyIndex < int(m_EnemiesPtrArr.size()));
+
+	delete m_EnemiesPtrArr[enemyIndex];
+	m_EnemiesPtrArr[enemyIndex] = nullptr;
+}
+
+void LevelData::TickItemsAndEnemies(double deltaTime, Level* levelPtr)
 {
 	for (size_t i = 0; i < m_ItemsPtrArr.size(); ++i)
 	{
@@ -393,15 +492,31 @@ void LevelData::TickItems(double deltaTime, Level* levelPtr)
 			m_ItemsPtrArr[i]->Tick(deltaTime);
 		}
 	}
+
+	for (size_t i = 0; i < m_EnemiesPtrArr.size(); ++i)
+	{
+		if (m_EnemiesPtrArr[i] != nullptr)
+		{
+			m_EnemiesPtrArr[i]->Tick(deltaTime);
+		}
+	}
 }
 
-void LevelData::PaintItems()
+void LevelData::PaintItemsAndEnemies()
 {
 	for (size_t i = 0; i < m_ItemsPtrArr.size(); ++i)
 	{
 		if (m_ItemsPtrArr[i] != nullptr)
 		{
 			m_ItemsPtrArr[i]->Paint();
+		}
+	}
+
+	for (size_t i = 0; i < m_EnemiesPtrArr.size(); ++i)
+	{
+		if (m_EnemiesPtrArr[i] != nullptr)
+		{
+			m_EnemiesPtrArr[i]->Paint();
 		}
 	}
 }
@@ -411,13 +526,21 @@ void LevelData::Unload()
 	delete m_LevelOneDataPtr;
 }
 
-void LevelData::TogglePaused(bool paused)
+void LevelData::SetItemsAndEnemiesPaused(bool paused)
 {
 	for (size_t i = 0; i < m_ItemsPtrArr.size(); ++i)
 	{
 		if (m_ItemsPtrArr[i] != nullptr)
 		{
-			m_ItemsPtrArr[i]->TogglePaused(paused);
+			m_ItemsPtrArr[i]->SetPaused(paused);
+		}
+	}
+
+	for (size_t i = 0; i < m_EnemiesPtrArr.size(); ++i)
+	{
+		if (m_EnemiesPtrArr[i] != nullptr)
+		{
+			m_EnemiesPtrArr[i]->SetPaused(paused);
 		}
 	}
 }
@@ -435,4 +558,9 @@ std::vector<Pipe*> LevelData::GetPipes()
 std::vector<Item*> LevelData::GetItems()
 {
 	return m_ItemsPtrArr;
+}
+
+std::vector<Enemy*> LevelData::GetEnemies()
+{
+	return m_EnemiesPtrArr;
 }

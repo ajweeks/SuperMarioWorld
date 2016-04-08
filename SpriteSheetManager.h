@@ -29,6 +29,8 @@ public:
 	static SpriteSheet* runningDustCloudParticlePtr;
 	static SpriteSheet* numberParticlePtr;
 
+	static SpriteSheet* montyMolePtr;
+	static SpriteSheet* koopaTroopaPtr;
 
 private:
 	SpriteSheetManager();
