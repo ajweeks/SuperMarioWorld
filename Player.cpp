@@ -140,6 +140,8 @@ void Player::Tick(double deltaTime)
 
 	if (m_NeedsNewFixture)
 	{
+		double oldHalfHeight = GetHeight() / 2;
+
 		b2Fixture* fixturePtr = m_ActPtr->GetBody()->GetFixtureList();
 		while (fixturePtr != nullptr)
 		{
@@ -148,6 +150,11 @@ void Player::Tick(double deltaTime)
 			fixturePtr = nextFixturePtr;
 		} 
 		m_ActPtr->AddBoxFixture(GetWidth(), GetHeight(), 0.0);
+
+		double newHalfHeight = GetHeight() / 2;
+
+		double newCenterY = m_ActPtr->GetPosition().y + (newHalfHeight - oldHalfHeight);
+		m_ActPtr->SetPosition(DOUBLE2(m_ActPtr->GetPosition().x, newCenterY));
 
 		m_NeedsNewFixture = false;
 	}
@@ -430,20 +437,29 @@ void Player::Paint()
 	}
 
 	POWERUP_STATE powerupStateToPaint;
-	//SpriteSheet* spriteSheetToPaint;
-	if (m_FramesOfPowerupTransitionElapsed > -1 && 
-		m_FramesOfPowerupTransitionElapsed % 6 > 3)
+	int yo;
+	if (m_FramesOfPowerupTransitionElapsed > -1)
 	{
-		powerupStateToPaint = m_PrevPowerupState;
+		yo = GetHeight() / 2 - (m_PrevPowerupState == POWERUP_STATE::NORMAL ? 6 : 4);
+		
+		if (m_FramesOfPowerupTransitionElapsed % 12 > 6)
+		{
+			powerupStateToPaint = m_PrevPowerupState;
+		}
+		else
+		{
+			powerupStateToPaint = m_PowerupState;
+		}
 	}
 	else
 	{
 		powerupStateToPaint = m_PowerupState;
+		yo = GetHeight() / 2 - (m_PowerupState == POWERUP_STATE::NORMAL ? 6 : 2);
 	}
 
+	SpriteSheet* spriteSheetToPaint = GetSpriteSheetForPowerupState(powerupStateToPaint);
 	DOUBLE2 spriteTile = CalculateAnimationFrame();
-	int yo = GetHeight() / 2 - (powerupStateToPaint == POWERUP_STATE::NORMAL ? 6 : 2);
-	m_SpriteSheetPtr->Paint(centerX, centerY - GetHeight() / 2 + yo, spriteTile.x, spriteTile.y);
+	spriteSheetToPaint->Paint(centerX, centerY - GetHeight() / 2 + yo, spriteTile.x, spriteTile.y);
 
 	GAME_ENGINE->SetWorldMatrix(matPrevWorld);
 
@@ -586,6 +602,7 @@ void Player::ChangePowerupState(POWERUP_STATE newPowerupState, bool isUpgrade)
 	m_PrevPowerupState = m_PowerupState;
 
 	m_PowerupState = newPowerupState;
+	m_SpriteSheetPtr = GetSpriteSheetForPowerupState(m_PowerupState);
 
 	m_FramesOfPowerupTransitionElapsed = 0;
 
@@ -596,13 +613,25 @@ void Player::ChangePowerupState(POWERUP_STATE newPowerupState, bool isUpgrade)
 	}
 	else
 	{
-		m_SpriteSheetPtr = SpriteSheetManager::smallMario;
-
 		// TODO: Play sound effect here
 		// NOTE: Sound effect changes based on what state you were in before!
 	}
 	
 	m_NeedsNewFixture = true;
+}
+
+SpriteSheet* Player::GetSpriteSheetForPowerupState(POWERUP_STATE powerupState)
+{
+	switch (powerupState)
+	{
+	case POWERUP_STATE::NORMAL:
+		return SpriteSheetManager::smallMario;
+	case POWERUP_STATE::SUPER:
+		return SpriteSheetManager::superMario;
+	default:
+		OutputDebugString(String("Unhandled powerup state passed to Player::GetSpriteSheetForPowerupState!\n"));
+		return nullptr;
+	}
 }
 
 void Player::AddCoin(Level* levelPtr, bool playSound)

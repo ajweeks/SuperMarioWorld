@@ -68,6 +68,7 @@ private:
 	void Die();
 
 	void ChangePowerupState(POWERUP_STATE newPowerupState, bool isUpgrade = true);
+	SpriteSheet* GetSpriteSheetForPowerupState(POWERUP_STATE powerupState);
 
 	void TakeDamage();
 
