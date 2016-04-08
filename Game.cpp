@@ -54,7 +54,7 @@ void Game::GameStart()
 	SpriteSheetManager::Load();
 
 	SoundManager::InitialzeSoundsAndSongs();
-	SoundManager::SetMuted(false);
+	SoundManager::SetMuted(true);
 
 	// TODO: Add mario fonts
 	Game::Font12Ptr = new Font(String("consolas"), 12);

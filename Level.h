@@ -68,9 +68,8 @@ private:
 	PhysicsActor* m_ActLevelPtr = nullptr;
 
 	bool m_Paused = false;
-	// NOTE: This stupid variable is only here because
-	// Box2D won't let us set all the actors to inactive during a PreSolve OR a BeginContact
-	// so we need to save the state and update it next tick instead....
+	// NOTE: Box2D locks all physics actors during PreSolve and BeginContact
+	// so we need to save the paused state and update actors in the next tick instead
 	bool m_WasPaused = false;
 
 	bool m_ShowingMessage = false;

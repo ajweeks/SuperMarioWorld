@@ -63,6 +63,7 @@ void Player::Reset()
 {
 	m_ActPtr->SetPosition(DOUBLE2(30, 366.6));
 	m_ActPtr->SetLinearVelocity(DOUBLE2(0, 0));
+	m_ActPtr->SetActive(true);
 
 	m_IsOnGround = false;
 
@@ -98,6 +99,30 @@ void Player::Tick(double deltaTime)
 	}
 #endif
 
+	if (m_FramesOfPowerupTransitionElapsed > -1)
+	{
+		if (m_FramesOfPowerupTransitionElapsed == 0)
+		{
+			// NOTE: The player is frozen while they are transforming powerup states
+			// NOTE: This call can't be moved elsewhere since lovly ol' Box2D locks up
+			// during BeginContact
+			TogglePaused(true);
+		}
+
+		++m_FramesOfPowerupTransitionElapsed;
+
+		if (m_FramesOfPowerupTransitionElapsed > TOTAL_FRAMES_OF_POWERUP_TRANSITION)
+		{
+			TogglePaused(false);
+			m_FramesOfPowerupTransitionElapsed = -1;
+		}
+		else
+		{
+			// NOTE: The player can't provide any input while they are transforming powerup states
+			return;
+		}
+	}
+
 	if (m_ExtraItemToBeSpawnedType != Item::TYPE::NONE)
 	{
 		m_ExtraItemToBeSpawnedType = Item::TYPE::NONE;
@@ -129,16 +154,14 @@ void Player::Tick(double deltaTime)
 
 	HandleKeyboardInput(deltaTime, m_LevelPtr);
 
+	// TODO: FIXME: Instead of checking if our direction has changed, see what
+	// the diference between our current vel and our target vel is, if it's larger
+	// than a threshold, generate a dust cloud
 	if (m_IsOnGround && 
 		m_DirFacing != m_DirFacingLastFrame)
 	{
 		DustParticle* dustParticlePtr = new DustParticle(m_ActPtr->GetPosition() + DOUBLE2(0, GetHeight() / 2));
 		m_LevelPtr->AddParticle(dustParticlePtr);
-	}
-
-	if (++m_FramesOfPowerupTransitionElapsed > TOTAL_FRAMES_OF_POWERUP_TRANSITION)
-	{
-		m_FramesOfPowerupTransitionElapsed = -1;
 	}
 
 	TickAnimations(deltaTime);
@@ -406,8 +429,20 @@ void Player::Paint()
 		GAME_ENGINE->SetWorldMatrix(matTranslate.Inverse() * matReflect * matTranslate * matPrevWorld);
 	}
 
+	POWERUP_STATE powerupStateToPaint;
+	//SpriteSheet* spriteSheetToPaint;
+	if (m_FramesOfPowerupTransitionElapsed > -1 && 
+		m_FramesOfPowerupTransitionElapsed % 6 > 3)
+	{
+		powerupStateToPaint = m_PrevPowerupState;
+	}
+	else
+	{
+		powerupStateToPaint = m_PowerupState;
+	}
+
 	DOUBLE2 spriteTile = CalculateAnimationFrame();
-	int yo = GetHeight() / 2 - (m_PowerupState == POWERUP_STATE::NORMAL ? 6 : 2);
+	int yo = GetHeight() / 2 - (powerupStateToPaint == POWERUP_STATE::NORMAL ? 6 : 2);
 	m_SpriteSheetPtr->Paint(centerX, centerY - GetHeight() / 2 + yo, spriteTile.x, spriteTile.y);
 
 	GAME_ENGINE->SetWorldMatrix(matPrevWorld);
