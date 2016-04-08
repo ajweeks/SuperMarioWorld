@@ -21,10 +21,10 @@ Level::Level()
 	m_ActLevelPtr->AddContactListener(this);
 	m_ActLevelPtr->SetUserData(int(ActorId::LEVEL));
 
-	SpriteSheetManager::levelOneForeground->SetTransparencyColor(COLOR(255,0,255));
+	SpriteSheetManager::levelOneForegroundPtr->SetTransparencyColor(COLOR(255,0,255));
 
-	m_Width = SpriteSheetManager::levelOneForeground->GetWidth();
-	m_Height = SpriteSheetManager::levelOneForeground->GetHeight();
+	m_Width = SpriteSheetManager::levelOneForegroundPtr->GetWidth();
+	m_Height = SpriteSheetManager::levelOneForegroundPtr->GetHeight();
 
 	m_CameraPtr = new Camera(Game::WIDTH, Game::HEIGHT, this);
 
@@ -157,16 +157,16 @@ void Level::Paint()
 	MATRIX3X2 matTotalView = matCameraView *  Game::matIdentity;
 	GAME_ENGINE->SetViewMatrix(matTotalView);
 
-	int bgWidth = SpriteSheetManager::levelOneBackground->GetWidth();
+	int bgWidth = SpriteSheetManager::levelOneBackgroundPtr->GetWidth();
 	double cameraX = m_CameraPtr->GetOffset(m_PlayerPtr, this).x;
 	double parallax = (1.0 - 0.50); // 50% of the speed of the camera
 	int xo = int(cameraX * parallax);
 	xo += (int(cameraX - xo) / bgWidth) * bgWidth;
 
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneBackground, DOUBLE2(xo, 0));
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneBackground, DOUBLE2(xo + bgWidth, 0));
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneBackgroundPtr, DOUBLE2(xo, 0));
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneBackgroundPtr, DOUBLE2(xo + bgWidth, 0));
 
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneForeground);
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneForegroundPtr);
 
 	m_LevelDataPtr->PaintItems();
 
@@ -219,18 +219,18 @@ void Level::PaintHUD()
 	// LATER: Add luigi here when he's playing
 	// MARIO
 	srcRect = RECT2(1, 1, 41, 9);
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, x, y, srcRect);
 	
 	// X
 	x += 9;
 	y += 8;
 	srcRect = RECT2(10, 61, 10 + 7, 61 + 7);
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, x, y, srcRect);
 
 	// LIVES
 	x += 15;
 	srcRect = GetSmallSingleNumberSrcRect(playerLives, false);
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, x, y, srcRect);
 
 	// DRAGON COINS
 	x += 24;
@@ -238,7 +238,7 @@ void Level::PaintHUD()
 	for (int i = 0; i < playerDragonCoins; ++i)
 	{
 		srcRect = RECT2(1, 60, 1 + 8, 60 + 8);
-		GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
+		GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, x, y, srcRect);
 		x += 8;
 	}
 
@@ -246,13 +246,13 @@ void Level::PaintHUD()
 	y += 8;
 	x = 70;
 	srcRect = RECT2(19, 60, 19 + 8, 60 + 8);
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, x, y, srcRect);
 
 	// X
 	x += 10;
 	y += 2;
 	srcRect = RECT2(10, 61, 10 + 7, 61 + 7);
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, x, y, srcRect);
 
 	// NUMBER OF STARS
 	x += 24;
@@ -263,13 +263,13 @@ void Level::PaintHUD()
 	x += 10;
 	y -= 7;
 	srcRect = RECT2(36, 52, 36 + 28, 52 + 28);
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, x, y, srcRect);
 
 	// TIME
 	x += 37;
 	y = 15;
 	srcRect = RECT2(1, 52, 1 + 24, 52 + 7);
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, x, y, srcRect);
 
 	// TIME VALUE
 	y += 9;
@@ -280,7 +280,7 @@ void Level::PaintHUD()
 	x += 33;
 	y = 15;
 	srcRect = RECT2(1, 60, 1 + 16, 60 + 8);
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, x, y, srcRect);
 
 	// COINS
 	x += 30;
@@ -300,7 +300,7 @@ void PaintSeveralDigitNumber(int x, int y, int number, bool yellow)
 	do {
 		int digit = number % 10;
 		RECT2 srcRect = GetSmallSingleNumberSrcRect(digit, yellow);
-		GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
+		GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, x, y, srcRect);
 
 		x -= 8;
 		number /= 10;
@@ -340,7 +340,7 @@ void PaintSeveralDigitLargeNumber(int x, int y, int number)
 	do {
 		int digit = number % 10;
 		RECT2 srcRect = GetLargeSingleNumberSrcRect(digit);
-		GAME_ENGINE->DrawBitmap(SpriteSheetManager::hud, x, y, srcRect);
+		GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, x, y, srcRect);
 
 		x -= 8;
 		number /= 10;
@@ -370,15 +370,15 @@ RECT2 GetLargeSingleNumberSrcRect(int number)
 	MATRIX3X2 matCenterTranslate = MATRIX3X2::CreateTranslationMatrix(150, 160);
 	GAME_ENGINE->SetViewMatrix(matCameraView * matZoom * matCenterTranslate);
 
-	int bgWidth = SpriteSheetManager::levelOneBackground->GetWidth();
+	int bgWidth = SpriteSheetManager::levelOneBackgroundPtr->GetWidth();
 	double cameraX = -matCameraView.orig.x;
 
 	double parallax = (1.0 - 0.65); // 65% of the speed of the camera
 	int xo = int(cameraX*parallax);
 	xo += (int(cameraX - xo) / bgWidth) * bgWidth;
 
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneBackground, DOUBLE2(xo, 0));
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneBackground, DOUBLE2(xo + bgWidth, 0));
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneBackgroundPtr, DOUBLE2(xo, 0));
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneBackgroundPtr, DOUBLE2(xo + bgWidth, 0));
 
 	int nearestBoundary = int(cameraX - (int(cameraX) % bgWidth));
 	GAME_ENGINE->SetColor(COLOR(200, 20, 20));
@@ -388,7 +388,7 @@ RECT2 GetLargeSingleNumberSrcRect(int number)
 	GAME_ENGINE->SetColor(COLOR(20, 20, 20));
 	GAME_ENGINE->DrawLine(xo + bgWidth, 0, xo + bgWidth, 5000, 5);
 
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneForeground);
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneForegroundPtr);
 
 	m_PlayerPtr->Paint();
 

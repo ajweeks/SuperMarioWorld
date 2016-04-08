@@ -13,21 +13,22 @@ public:
 	static void Load();
 	static void Unload();
 
-	static Bitmap* levelOneBackground;
-	static Bitmap* levelOneForeground;
+	static Bitmap* levelOneBackgroundPtr;
+	static Bitmap* levelOneForegroundPtr;
 
-	static Bitmap* hud;
+	static Bitmap* hudPtr;
 
-	static Bitmap* messageBox_01;
-	static Bitmap* messageBox_02;
+	static Bitmap* messageBox_01Ptr;
+	static Bitmap* messageBox_02Ptr;
 
-	static SpriteSheet* smallMario;
-	static SpriteSheet* superMario;
-	static SpriteSheet* generalTiles;
+	static SpriteSheet* smallMarioPtr;
+	static SpriteSheet* superMarioPtr;
+	static SpriteSheet* generalTilesPtr;
 
-	static SpriteSheet* coinCollectParticle;
-	static SpriteSheet* runningDustCloudParticle;
-	static SpriteSheet* numberParticle;
+	static SpriteSheet* coinCollectParticlePtr;
+	static SpriteSheet* runningDustCloudParticlePtr;
+	static SpriteSheet* numberParticlePtr;
+
 
 private:
 	SpriteSheetManager();

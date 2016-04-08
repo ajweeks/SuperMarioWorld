@@ -16,7 +16,7 @@
 const double Player::WALK_SPEED = 25.0;
 const double Player::RUN_SPEED = 50.0;
 
-Player::Player(Level* levelPtr) : Entity(DOUBLE2(), SpriteSheetManager::smallMario, BodyType::DYNAMIC, levelPtr, this)
+Player::Player(Level* levelPtr) : Entity(DOUBLE2(), SpriteSheetManager::smallMarioPtr, BodyType::DYNAMIC, levelPtr, this)
 {
 	Reset();
 
@@ -75,7 +75,7 @@ void Player::Reset()
 	m_Stars = 0;
 	m_DragonCoins = 0;
 
-	m_SpriteSheetPtr = SpriteSheetManager::smallMario;
+	m_SpriteSheetPtr = SpriteSheetManager::smallMarioPtr;
 	m_NeedsNewFixture = true;
 
 	m_ExtraItemToBeSpawnedType = Item::TYPE::NONE;
@@ -557,7 +557,7 @@ void Player::OnItemPickup(Item* itemPtr, Level* levelPtr)
 		case POWERUP_STATE::NORMAL:
 		{
 			SoundManager::PlaySoundEffect(SoundManager::SOUND::PLAYER_SUPER_MUSHROOM_COLLECT);
-			m_SpriteSheetPtr = SpriteSheetManager::superMario;
+			m_SpriteSheetPtr = SpriteSheetManager::superMarioPtr;
 			ChangePowerupState(POWERUP_STATE::SUPER);
 		} break;
 		case POWERUP_STATE::SUPER:
@@ -625,9 +625,9 @@ SpriteSheet* Player::GetSpriteSheetForPowerupState(POWERUP_STATE powerupState)
 	switch (powerupState)
 	{
 	case POWERUP_STATE::NORMAL:
-		return SpriteSheetManager::smallMario;
+		return SpriteSheetManager::smallMarioPtr;
 	case POWERUP_STATE::SUPER:
-		return SpriteSheetManager::superMario;
+		return SpriteSheetManager::superMarioPtr;
 	default:
 		OutputDebugString(String("Unhandled powerup state passed to Player::GetSpriteSheetForPowerupState!\n"));
 		return nullptr;

@@ -66,7 +66,7 @@ void Pipe::AddContactListener(ContactListener* listener)
 // ___ITEM___
 Item::Item(DOUBLE2 topLeft, TYPE type, Level* levelPtr, BodyType bodyType, int width, int height) :
 	Entity(topLeft + DOUBLE2(width / 2, height / 2), 
-		SpriteSheetManager::generalTiles, bodyType, levelPtr, this), m_Type(type), WIDTH(width), HEIGHT(height)
+		SpriteSheetManager::generalTilesPtr, bodyType, levelPtr, this), m_Type(type), WIDTH(width), HEIGHT(height)
 {
 	m_ActPtr->AddBoxFixture(width, height, 0.0);
 	m_ActPtr->SetUserData(int(ActorId::ITEM));

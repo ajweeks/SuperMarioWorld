@@ -23,5 +23,5 @@ bool DustParticle::Tick(double deltaTime)
 
 void DustParticle::Paint()
 {
-	SpriteSheetManager::runningDustCloudParticle->Paint(m_Position.x, m_Position.y, m_AnimInfo.frameNumber, 0);
+	SpriteSheetManager::runningDustCloudParticlePtr->Paint(m_Position.x, m_Position.y, m_AnimInfo.frameNumber, 0);
 }
