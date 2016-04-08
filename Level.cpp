@@ -32,8 +32,6 @@ Level::Level()
 
 	Reset();
 
-	ReadLevelData(1);
-
 	SoundManager::PlaySong(SoundManager::SONG::OVERWORLD_BGM);
 }
 
@@ -635,6 +633,11 @@ void Level::AddParticle(Particle* particlePtr)
 DOUBLE2 Level::GetCameraOffset()
 {
 	return m_CameraPtr->GetOffset(m_PlayerPtr, this);
+}
+
+Player* Level::GetPlayer()
+{
+	return m_PlayerPtr;
 }
 
 void Level::GiveItemToPlayer(Item* itemPtr)

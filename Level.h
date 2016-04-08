@@ -37,6 +37,7 @@ public:
 	void SetShowingMessage(bool showingMessage);
 	bool IsShowingMessage();
 
+	Player* GetPlayer();
 	void GiveItemToPlayer(Item* itemPtr);
 
 	DOUBLE2 GetCameraOffset();
@@ -52,7 +53,6 @@ private:
 
 	void PaintHUD();
 	unsigned int GetNumberOfDigits(unsigned int i);
-
 
 	void TogglePaused();
 	void SetPaused(bool paused);

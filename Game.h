@@ -46,7 +46,7 @@ public:
 
 	static Font *Font12Ptr;
 
-	// How many pixels we have to work with, not how large the final window will be necessarily
+	// NOTE: How many pixels we have to work with, not how large the final window will be necessarily
 	static const int WIDTH = 256;
 	static const int HEIGHT = 224;
 
@@ -57,12 +57,12 @@ public:
 	static MATRIX3X2 matIdentity;
 
 private:
-	void WriteSessionInfoToFile();
+	void WriteSessionInfoToFile(bool startInfo);
+	std::string GetTagContent(std::string sessionString, std::string tagString, int startPos = 0);
 	std::string ReadSessionInfoFromFile();
 
 	void Reset();
 
-	SYSTEMTIME m_StartTime;
 	bool m_ShowingSessionInfo = false; // 'i' toggles info overlay
 	std::string m_AllSessionInfo;
 	int m_TotalSessionsWithInfo;

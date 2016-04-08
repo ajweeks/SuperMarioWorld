@@ -67,9 +67,9 @@ void Game::GameStart()
 	m_TotalSessionsWithInfo = GetNumberOfSessions(m_AllSessionInfo);
 	m_CurrentSessionInfo = GetReadableSessionInfo(m_CurrentSessionInfoShowingIndex);
 
-	Reset();
+	WriteSessionInfoToFile(true);
 
-	GetSystemTime(&m_StartTime);
+	Reset();
 }
 
 void Game::Reset()
@@ -99,11 +99,11 @@ void Game::GameWindowResize(int width, int height)
 
 void Game::GameEnd()
 {
+	WriteSessionInfoToFile(false);
+
 	delete m_LevelPtr;
 
 	delete Font12Ptr;
-
-	WriteSessionInfoToFile();
 
 	LevelData::Unload();
 	SpriteSheetManager::Unload();
@@ -188,55 +188,55 @@ void Game::GamePaint()
 	GAME_ENGINE->SetViewMatrix(matPrevious);
 }
 
-void Game::WriteSessionInfoToFile()
+void Game::WriteSessionInfoToFile(bool writeStartInfo)
 {
-	if (m_StartTime.wYear == 0)
-	{
-		OutputDebugString(String("ERROR: m_StartTime was not intialized! Can not write useful info to GameSessions.txt"));
-		return;
-	}
-
 	std::ofstream fileOutStream;
 
 	fileOutStream.open("Resources/GameSessions.txt", std::fstream::app);
 
 	if (fileOutStream.fail() == false)
 	{
-		fileOutStream << "<Session>" << std::endl;
-		fileOutStream << "\t<Start>" << std::endl;
-		
-		fileOutStream << std::setfill('0') ;
-		fileOutStream << "\t\t<Date>";
-		fileOutStream << m_StartTime.wYear << ":";
-		fileOutStream << std::setw(2) << m_StartTime.wMonth << ":";
-		fileOutStream << std::setw(2) << m_StartTime.wDay;
-		fileOutStream << "</Date>" << std::endl;
+		int playerLives = m_LevelPtr->GetPlayer()->GetLives();
 
-		fileOutStream << "\t\t<Time>"; 
-		fileOutStream << std::setw(2) << m_StartTime.wHour << ":";
-		fileOutStream << std::setw(2) << m_StartTime.wMinute << ":" ;
-		fileOutStream << std::setw(2) << m_StartTime.wSecond;
-		fileOutStream << "</Time>" << std::endl;
+		SYSTEMTIME currentTime;
+		GetSystemTime(&currentTime);
 
-		fileOutStream << "\t</Start>" << std::endl;
-		fileOutStream << "\t<End>" << std::endl;
-	
-		SYSTEMTIME time;
-		GetSystemTime(&time);
-		fileOutStream << "\t\t<Date>";
-		fileOutStream << time.wYear << ":";
-		fileOutStream << std::setw(2) << time.wMonth << ":";
-		fileOutStream << std::setw(2) << time.wDay;
-		fileOutStream << "</Date>" << std::endl;
+		if (writeStartInfo)
+		{
+			fileOutStream << "<Session>" << std::endl;
+				fileOutStream << "\t<Start>" << std::endl;
+		}
+		else
+		{
+				fileOutStream << "\t<End>" << std::endl;
+		}
 
-		fileOutStream << "\t\t<Time>";
-		fileOutStream << std::setw(2) << time.wHour << ":";
-		fileOutStream << std::setw(2) << time.wMinute << ":";
-		fileOutStream << std::setw(2) << time.wSecond;
-		fileOutStream << "</Time>" << std::endl;
+				fileOutStream << std::setfill('0') ;
+				fileOutStream << "\t\t<Date>";
+				fileOutStream << currentTime.wYear << ":";
+				fileOutStream << std::setw(2) << currentTime.wMonth << ":";
+				fileOutStream << std::setw(2) << currentTime.wDay;
+				fileOutStream << "</Date>" << std::endl;
 
-		fileOutStream << "\t</End>" << std::endl;
-		fileOutStream << "</Session>" << std::endl;
+				fileOutStream << "\t\t<Time>";
+				fileOutStream << std::setw(2) << currentTime.wHour << ":";
+				fileOutStream << std::setw(2) << currentTime.wMinute << ":";
+				fileOutStream << std::setw(2) << currentTime.wSecond;
+				fileOutStream << "</Time>" << std::endl;
+
+				fileOutStream << "\t\t<PlayerLives>";
+				fileOutStream << std::setw(2) << playerLives;
+				fileOutStream << "</PlayerLives>" << std::endl;
+
+		if (writeStartInfo)
+		{
+				fileOutStream << "\t</Start>" << std::endl;
+		}
+		else
+		{
+				fileOutStream << "\t</End>" << std::endl;
+			fileOutStream << "</Session>" << std::endl;
+		}
 	}
 
 	fileOutStream.close();
@@ -289,35 +289,53 @@ std::string Game::GetReadableSessionInfo(int sessionIndex)
 	while (currentIndex != std::string::npos && m_TotalSessionsWithInfo - sessionsFound > sessionIndex);
 
 	sessionTagStart = currentIndex;
+	int sessionTagEnd = m_AllSessionInfo.find("</Session>", sessionTagStart);
 
 	if (sessionTagStart != std::string::npos)
 	{
-		std::string currentSessionRaw = m_AllSessionInfo.substr(sessionTagStart);
+		std::string currentSessionRaw;
+		if (sessionTagEnd != std::string::npos)
+		{
+			currentSessionRaw = m_AllSessionInfo.substr(sessionTagStart, sessionTagEnd - sessionTagStart);
+		}
+		else
+		{
+			currentSessionRaw = m_AllSessionInfo.substr(sessionTagStart);
+		}
 		std::stringstream currentSessionStream;
 		currentSessionStream << "Session " << (m_CurrentSessionInfoShowingIndex + 1) << "/" << m_TotalSessionsWithInfo << ":\n\n";
 
 		int startTag = currentSessionRaw.find("<Start>") + std::string("<Start>").length();
-		currentSessionStream << "Started on:" << "\n";
+		if (startTag != std::string::npos)
+		{
+			currentSessionStream << "Started on:\n";
+			currentSessionStream << GetTagContent(currentSessionRaw, "Date", startTag);
+			currentSessionStream << GetTagContent(currentSessionRaw, "Time", startTag);
 
-		int startDateBegin = currentSessionRaw.find("<Date>", startTag) + std::string("<Date>").length();
-		int startDateEnd = currentSessionRaw.find("</Date>", startDateBegin);
-		currentSessionStream << currentSessionRaw.substr(startDateBegin, startDateEnd - startDateBegin) << "\n";
+			std::string playerLivesString = GetTagContent(currentSessionRaw, "PlayerLives", startTag);
+			if (playerLivesString.length() > 0)
+			{
+				currentSessionStream << "Player lives:\n";
+				currentSessionStream << playerLivesString;
+				currentSessionStream << "\n";
+			}
+		}
 
-		int startTimeBegin = currentSessionRaw.find("<Time>", startTag) + std::string("<Time>").length();
-		int startTimeEnd = currentSessionRaw.find("</Time>", startTimeBegin);
-		currentSessionStream << currentSessionRaw.substr(startTimeBegin, startTimeEnd - startTimeBegin) << "\n\n";
+		int endTag = currentSessionRaw.find("<End>") + std::string("<End>").length();
+		if (endTag != std::string::npos)
+		{
+			currentSessionStream << "Ended on:" << "\n";
+			currentSessionStream << GetTagContent(currentSessionRaw, "Date", endTag);
+			currentSessionStream << GetTagContent(currentSessionRaw, "Time", endTag);
 
-
-		int endTag = currentSessionRaw.find("<End>") + std::string("<Start>").length();
-		currentSessionStream << "Ended on:" << "\n";
-
-		int endDateStart = currentSessionRaw.find("<Date>", endTag) + std::string("<Date>").length();
-		int endDateEnd = currentSessionRaw.find("</Date>", endDateStart);
-		currentSessionStream << currentSessionRaw.substr(endDateStart, endDateEnd - endDateStart) << "\n";
-
-		int endTimeStart = currentSessionRaw.find("<Time>", endTag) + std::string("<Time>").length();
-		int endTimeEnd = currentSessionRaw.find("</Time>", endTimeStart);
-		currentSessionStream << currentSessionRaw.substr(endTimeStart, endTimeEnd - endTimeStart) << "\n";
+			std::string playerLivesString = GetTagContent(currentSessionRaw, "PlayerLives", endTag);
+			if (playerLivesString.length() > 0)
+			{
+				currentSessionStream << "Player lives:\n";
+				currentSessionStream << playerLivesString;
+				currentSessionStream << "\n";
+			}
+		}
 
 		return currentSessionStream.str();
 	}
@@ -325,4 +343,19 @@ std::string Game::GetReadableSessionInfo(int sessionIndex)
 	{
 		return "No session info yet";
 	}
+}
+
+std::string Game::GetTagContent(std::string sessionString, std::string tagString, int startPos)
+{
+	std::string result;
+
+	int attributeBegin = sessionString.find("<" + tagString + ">", startPos) + std::string("<" + tagString + ">").length();
+	int attributeEnd = sessionString.find("</" + tagString + ">", attributeBegin);
+	if (attributeBegin == std::string::npos || attributeEnd == std::string::npos)
+	{
+		return "";
+	}
+	result = sessionString.substr(attributeBegin, attributeEnd - attributeBegin) + "\n";
+
+	return result;
 }
