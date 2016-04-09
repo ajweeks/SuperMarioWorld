@@ -117,7 +117,7 @@ LevelData::LevelData(String platforms, String pipes, String items, String enemie
 			// TODO: Add more enemies
 		case int(Enemy::TYPE::KOOPA_TROOPA):
 		{
-			m_EnemiesPtrArr.push_back(new KoopaTroopa(topLeft, levelPtr));
+			m_EnemiesPtrArr.push_back(new KoopaTroopa(topLeft, levelPtr, COLOUR::RED));
 		} break;
 		/*case int(Enemy::TYPE::CHARGIN_CHUCK):
 		{

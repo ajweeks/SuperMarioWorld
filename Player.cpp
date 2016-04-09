@@ -778,6 +778,11 @@ Item::TYPE Player::GetExtraItemType()
 	}
 }
 
+Player::ANIMATION_STATE Player::GetAnimationState()
+{
+	return m_AnimationState;
+}
+
 String Player::AnimationStateToString(ANIMATION_STATE state)
 {
 	switch (state)

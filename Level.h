@@ -1,16 +1,18 @@
 #pragma once
 
-#include "Player.h"
 #include "ContactListener.h"
 
 class LevelData;
 struct Platform;
 struct Pipe;
 struct Item;
+class Enemy;
+class Player;
 
 class Camera;
 class Particle;
 class ParticleManager;
+class SpriteSheet;
 
 class Level : public ContactListener
 {
@@ -28,6 +30,8 @@ public:
 
 	void AddItem(Item* newItemPtr);
 	void RemoveItem(Item* itemPtr);
+
+	void RemoveEnemy(Enemy* enemyPtr);
 
 	double GetWidth();
 	double GetHeight();

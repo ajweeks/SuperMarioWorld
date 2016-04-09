@@ -147,6 +147,11 @@ void Level::RemoveItem(Item* itemPtr)
 	m_LevelDataPtr->RemoveItem(itemPtr);
 }
 
+void Level::RemoveEnemy(Enemy* enemyPtr)
+{
+	m_LevelDataPtr->RemoveEnemy(enemyPtr);
+}
+
 void Level::Paint()
 {
 #if 0
@@ -458,8 +463,8 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 		} break;
 		case int(ActorId::ITEM):
 		{
-			Item* otherItemPtr = (Item*)actThisPtr->GetUserPointer();
-			switch (otherItemPtr->GetType())
+			Item* itemPtr = (Item*)actThisPtr->GetUserPointer();
+			switch (itemPtr->GetType())
 			{
 			case Item::TYPE::P_SWITCH:
 			{
@@ -584,6 +589,50 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 				{
 					m_IsPlayerOnGround = true;
 				}
+			} break;
+			}
+		} break;
+		case int(ActorId::ENEMY):
+		{
+			Enemy* enemyPtr = (Enemy*)actThisPtr->GetUserPointer();
+			switch (enemyPtr->GetType())
+			{
+			case Enemy::TYPE::KOOPA_TROOPA:
+			{
+				if (playerFeet.y < enemyPtr->GetPosition().y)
+				{
+					if (m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::SPIN_JUMPING)
+					{
+						((KoopaTroopa*)enemyPtr)->Die();
+					}
+					else
+					{
+						((KoopaTroopa*)enemyPtr)->Hit();
+					}
+				}
+				else
+				{
+					if (((KoopaTroopa*)enemyPtr)->GetAnimationState() == KoopaTroopa::ANIMATION_STATE::SHELLESS)
+					{
+						((KoopaTroopa*)enemyPtr)->Die();
+					}
+					else
+					{
+						m_PlayerPtr->Die();
+					}
+				}
+			} break;
+			case Enemy::TYPE::CHARGIN_CHUCK:
+			{
+
+			} break;
+			case Enemy::TYPE::MONTY_MOLE:
+			{
+
+			} break;
+			case Enemy::TYPE::PIRHANA_PLANT:
+			{
+
 			} break;
 			}
 		} break;

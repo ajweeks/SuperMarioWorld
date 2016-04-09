@@ -3,6 +3,7 @@
 #include "NumberParticle.h"
 #include "Game.h"
 #include "SpriteSheetManager.h"
+#include "SpriteSheet.h"
 
 NumberParticle::NumberParticle(int value, DOUBLE2 position) : 
 	Particle(LIFETIME, position), m_Value(value)

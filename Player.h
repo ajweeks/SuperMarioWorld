@@ -50,10 +50,14 @@ public:
 	int GetDirectionFacing();
 	bool IsOnGround();
 
+	void Die();
+
 	void OnItemPickup(Item* itemPtr, Level* levelPtr);
 
 	int GetWidth();
 	int GetHeight();
+
+	ANIMATION_STATE GetAnimationState();
 
 private:
 	DOUBLE2 CalculateAnimationFrame();
@@ -63,8 +67,6 @@ private:
 	void AddCoin(Level* levelPtr, bool playSound = true);
 	void AddDragonCoin(Level* levelPtr);
 	void AddLife();
-
-	void Die();
 
 	void ChangePowerupState(POWERUP_STATE newPowerupState, bool isUpgrade = true);
 	SpriteSheet* GetSpriteSheetForPowerupState(POWERUP_STATE powerupState);
