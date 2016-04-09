@@ -132,11 +132,12 @@ struct ThreeUpMoon : public Item
 struct SuperMushroom : public Item
 {
 	// horizontalDir is either 1 or -1, signifying which direction to move in (1:right, -1:left)
-	SuperMushroom(DOUBLE2 topLeft, Level* levelPtr, int horizontalDir = 1, bool isStatic = false);
+	SuperMushroom(DOUBLE2 topLeft, Level* levelPtr, int directionFacing = 1, bool isStatic = false);
 	void Tick(double deltaTime);
 	void Paint();
 private:
-	double m_HorizontalSpeed = 80;
+	static const int HORIZONTAL_VEL = 80;
+	int m_DirFacing;
 	bool m_IsStatic;
 };
 struct FireFlower : public Item

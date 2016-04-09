@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Entity.h"
+#include "Enumerations.h"
 
 class Enemy : public Entity
 {
@@ -22,4 +23,6 @@ public:
 
 protected:
 	TYPE m_Type;
+	int m_DirFacing;
+
 };

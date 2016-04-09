@@ -5,10 +5,17 @@ enum class ActorId
 	PLAYER, PLATFORM, PIPE, ENEMY, LEVEL, ITEM
 };
 
-enum class FACING_DIRECTION
+struct FacingDirection
 {
-	LEFT, RIGHT
+	static const int LEFT = -1;
+	static const int RIGHT = 1;
+
+	static int OppositeDirection(int direction)
+	{
+		return (direction == RIGHT ? LEFT : RIGHT);
+	}
 };
+
 
 struct ANIMATION_INFO
 {
@@ -37,6 +44,6 @@ struct ANIMATION_INFO
 
 enum class COLOUR
 {
-	GREEN, YELLOW, BLUE, ORANGE, GREY
+	RED, GREEN, YELLOW, BLUE, ORANGE, GREY
 };
 

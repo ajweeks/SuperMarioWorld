@@ -7,6 +7,7 @@
 KoopaTroopa::KoopaTroopa(DOUBLE2& startingPos, Level* levelPtr) :
 	Enemy(TYPE::KOOPA_TROOPA, startingPos, GetWidth(), GetHeight(), SpriteSheetManager::koopaTroopaPtr, BodyType::DYNAMIC, levelPtr, this)
 {
+	m_DirFacing = FacingDirection::RIGHT;
 }
 
 KoopaTroopa::~KoopaTroopa()

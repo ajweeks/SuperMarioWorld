@@ -34,7 +34,7 @@ DOUBLE2 Camera::GetOffset(Player* playerPtr, Level* levelPtr)
 
 	DOUBLE2 playerPos = playerPtr->GetPosition();
 
-	if (playerPtr->GetDirectionFacing() == FACING_DIRECTION::LEFT)
+	if (playerPtr->GetDirectionFacing() == FacingDirection::LEFT)
 	{
 		if (m_XOffset == MAX_OFFSET)
 		{

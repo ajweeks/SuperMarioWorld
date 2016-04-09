@@ -1,4 +1,5 @@
 #pragma once
+
 #include "Enumerations.h"
 #include "SpriteSheet.h"
 #include "Entity.h"
@@ -46,7 +47,7 @@ public:
 	DOUBLE2 GetLinearVelocity();
 	void SetLinearVelocity(const DOUBLE2& newLinearVelRef);
 	DOUBLE2 GetPosition();
-	FACING_DIRECTION GetDirectionFacing();
+	int GetDirectionFacing();
 	bool IsOnGround();
 
 	void OnItemPickup(Item* itemPtr, Level* levelPtr);
@@ -95,8 +96,8 @@ private:
 
 	String AnimationStateToString(ANIMATION_STATE state);
 
-	FACING_DIRECTION m_DirFacingLastFrame;
-	FACING_DIRECTION m_DirFacing;
+	int m_DirFacingLastFrame;
+	int m_DirFacing;
 
 	POWERUP_STATE m_PowerupState;
 	ANIMATION_STATE m_AnimationState;

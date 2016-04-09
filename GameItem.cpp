@@ -8,7 +8,6 @@
 #include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
 #include "LevelData.h"
-#include "Level.h"
 #include "SoundManager.h"
 #include "NumberParticle.h"
 #include "CoinCollectParticle.h"
@@ -217,10 +216,12 @@ void ThreeUpMoon::Paint()
 	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
 }
 // ___SUPER MUSHROOM___
-SuperMushroom::SuperMushroom(DOUBLE2 topLeft, Level* levelPtr, int horizontalDir, bool isStatic) :
-	Item(topLeft, TYPE::SUPER_MUSHROOM, levelPtr, BodyType::DYNAMIC), m_IsStatic(isStatic)
+SuperMushroom::SuperMushroom(DOUBLE2 topLeft, Level* levelPtr, int directionFacing, bool isStatic) :
+	Item(topLeft, TYPE::SUPER_MUSHROOM, levelPtr, BodyType::DYNAMIC, 10, 16), m_IsStatic(isStatic)
 {
-	assert(horizontalDir == 1 || horizontalDir == -1);
+	assert(directionFacing == 1 || directionFacing == -1);
+
+	m_DirFacing = directionFacing;
 
 	if (m_IsStatic)
 	{
@@ -228,7 +229,7 @@ SuperMushroom::SuperMushroom(DOUBLE2 topLeft, Level* levelPtr, int horizontalDir
 	}
 	else
 	{
-		m_ActPtr->SetLinearVelocity(DOUBLE2(m_HorizontalSpeed * horizontalDir, 0));
+		m_ActPtr->SetLinearVelocity(DOUBLE2(m_DirFacing * HORIZONTAL_VEL, m_ActPtr->GetLinearVelocity().y));
 	}
 }
 void SuperMushroom::Tick(double deltaTime)
@@ -241,13 +242,19 @@ void SuperMushroom::Tick(double deltaTime)
 	}
 	else
 	{
-		m_ActPtr->SetLinearVelocity(DOUBLE2(m_HorizontalSpeed, m_ActPtr->GetLinearVelocity().y));
+		double xVel = HORIZONTAL_VEL;
+		if (m_DirFacing == FacingDirection::LEFT)
+		{
+			xVel = -xVel;
+		}
+
+		m_ActPtr->SetLinearVelocity(DOUBLE2(xVel, m_ActPtr->GetLinearVelocity().y));
 	}
 }
 void SuperMushroom::Paint()
 {
 	double left = m_ActPtr->GetPosition().x;
-	double top = m_ActPtr->GetPosition().y;
+	double top = m_ActPtr->GetPosition().y + 2;
 	double srcCol = 2;
 	double srcRow = 12;
 

@@ -55,8 +55,8 @@ void Player::Reset()
 	m_PowerupState = POWERUP_STATE::NORMAL;
 	m_PrevPowerupState = POWERUP_STATE::NORMAL;
 	m_AnimationState = ANIMATION_STATE::WAITING;
-	m_DirFacing = FACING_DIRECTION::RIGHT;
-	m_DirFacingLastFrame = FACING_DIRECTION::RIGHT;
+	m_DirFacing = FacingDirection::RIGHT;
+	m_DirFacingLastFrame = FacingDirection::RIGHT;
 }
 
 int Player::GetWidth()
@@ -268,7 +268,7 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 
 	if (GAME_ENGINE->IsKeyboardKeyDown(VK_LEFT))
 	{
-		m_DirFacing = FACING_DIRECTION::LEFT;
+		m_DirFacing = FacingDirection::LEFT;
 		if (m_AnimationState != ANIMATION_STATE::JUMPING &&
 			m_AnimationState != ANIMATION_STATE::SPIN_JUMPING &&
 			m_AnimationState != ANIMATION_STATE::DUCKING &&
@@ -281,7 +281,7 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 	}
 	else if (GAME_ENGINE->IsKeyboardKeyDown(VK_RIGHT))
 	{
-		m_DirFacing = FACING_DIRECTION::RIGHT;
+		m_DirFacing = FacingDirection::RIGHT;
 		if (m_AnimationState != ANIMATION_STATE::JUMPING &&
 			m_AnimationState != ANIMATION_STATE::SPIN_JUMPING &&
 			m_AnimationState != ANIMATION_STATE::DUCKING &&
@@ -366,7 +366,7 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 	DOUBLE2 newVel = m_ActPtr->GetLinearVelocity();
 	if (horizontalVel != 0.0) 
 	{
-		if (m_DirFacing == FACING_DIRECTION::LEFT) horizontalVel = -horizontalVel;
+		if (m_DirFacing == FacingDirection::LEFT) horizontalVel = -horizontalVel;
 		newVel.x = horizontalVel * deltaTime;
 	}
 	if (verticalVel != 0.0) 
@@ -427,7 +427,7 @@ void Player::Paint()
 	double centerX = m_ActPtr->GetPosition().x;
 	double centerY = m_ActPtr->GetPosition().y;
 
-	if (m_DirFacing == FACING_DIRECTION::LEFT)
+	if (m_DirFacing == FacingDirection::LEFT)
 	{
 		MATRIX3X2 matReflect = MATRIX3X2::CreateScalingMatrix(DOUBLE2(-1, 1));
 		MATRIX3X2 matTranslate = MATRIX3X2::CreateTranslationMatrix(centerX, centerY);
@@ -726,7 +726,7 @@ DOUBLE2 Player::GetPosition()
 	return m_ActPtr->GetPosition();
 }
 
-FACING_DIRECTION Player::GetDirectionFacing()
+int Player::GetDirectionFacing()
 {
 	return m_DirFacing;
 }
