@@ -1,9 +1,9 @@
 #pragma once
 
-#define GAME_ENGINE (GameEngine::GetSingleton())
-
+#include "Game.h"
 #include "Entity.h"
 #include "Enumerations.h"
+#include "Level.h"
 
 class LevelData;
 
@@ -16,6 +16,7 @@ struct Platform
 	void AddContactListener(ContactListener* listener);
 	double GetWidth();
 	double GetHeight();
+	bool Raycast(DOUBLE2 point1, DOUBLE2 point2, DOUBLE2 &intersectionRef, DOUBLE2 &normalRef, double &fractionRef);
 
 	static const int HEIGHT = 6;
 
@@ -34,6 +35,7 @@ struct Pipe
 	Pipe(DOUBLE2 topLeft, DOUBLE2 bottomRight, bool canAccess);
 	virtual ~Pipe();
 	void AddContactListener(ContactListener* listener);
+	bool Raycast(DOUBLE2 point1, DOUBLE2 point2, DOUBLE2 &intersectionRef, DOUBLE2 &normalRef, double &fractionRef);
 
 private:
 	PhysicsActor* m_ActPtr = nullptr;
@@ -139,6 +141,7 @@ private:
 	static const int HORIZONTAL_VEL = 80;
 	int m_DirFacing;
 	bool m_IsStatic;
+	int m_CollisionBits = Level::COLLIDE_WITH_LEVEL | Level::COLLIDE_WITH_PLAYER;
 };
 struct FireFlower : public Item
 {

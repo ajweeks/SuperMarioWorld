@@ -13,3 +13,8 @@ Enemy::Enemy(TYPE type, DOUBLE2& posRef, double width, double height, SpriteShee
 Enemy::~Enemy()
 {
 }
+
+Enemy::TYPE Enemy::GetType()
+{
+	return m_Type;
+}

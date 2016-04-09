@@ -59,6 +59,8 @@ private:
 
 	void ChangeAnimationState(ANIMATION_STATE newAnimationState);
 	DOUBLE2 DetermineAnimationFrame();
+	
+	void ChangeDirections();
 
 	COLOUR m_Color;
 	ANIMATION_STATE m_AnimationState;

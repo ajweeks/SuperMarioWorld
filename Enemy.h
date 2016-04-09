@@ -21,6 +21,8 @@ public:
 	virtual int GetWidth() = 0;
 	virtual int GetHeight() = 0;
 
+	TYPE GetType();
+
 protected:
 	TYPE m_Type;
 	int m_DirFacing;

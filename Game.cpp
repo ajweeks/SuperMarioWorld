@@ -13,6 +13,7 @@
 #include "SpriteSheetManager.h"
 #include "LevelData.h"
 #include "SoundManager.h"
+#include "Player.h"
 
 Font* Game::Font12Ptr = nullptr;
 

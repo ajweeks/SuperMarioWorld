@@ -70,6 +70,16 @@ void KoopaTroopa::Tick(double deltaTime)
 
 	//DOUBLE2 koopaFeet = m_ActPtr->GetPosition() + DOUBLE2(0, GetHeight());
 
+	DOUBLE2 point1 = m_ActPtr->GetPosition();
+	DOUBLE2 point2 = m_ActPtr->GetPosition() + DOUBLE2(m_DirFacing * 8, 0);
+	DOUBLE2 intersection, normal;
+	double fraction = -1.0;
+
+	// If this returns true, the koopa is about to hit an obstacle, let's turn around
+	if (m_LevelPtr->Raycast(point1, point2, m_CollisionBits, intersection, normal, fraction))
+	{
+		ChangeDirections();
+	}
 
 	double xVel = WALK_VEL;
 	if (m_DirFacing == FacingDirection::LEFT)
@@ -80,6 +90,15 @@ void KoopaTroopa::Tick(double deltaTime)
 	m_ActPtr->SetLinearVelocity(DOUBLE2(xVel, m_ActPtr->GetLinearVelocity().y));
 }
 
+void KoopaTroopa::ChangeDirections()
+{
+	m_DirFacing = FacingDirection::OppositeDirection(m_DirFacing);
+
+	// NOTE: Only trigger the turn around animation if we're walking
+	if (m_AnimationState == ANIMATION_STATE::WALKING)
+	{
+		m_FramesSpentTurningAround = 0;
+	}
 }
 
 void KoopaTroopa::Paint()

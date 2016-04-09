@@ -8,6 +8,8 @@
 #include "SoundManager.h"
 #include "Particle.h"
 #include "ParticleManager.h"
+#include "Player.h"
+#include "KoopaTroopa.h"
 
 #define GAME_ENGINE (GameEngine::GetSingleton())
 
@@ -145,6 +147,11 @@ void Level::AddItem(Item* newItemPtr)
 void Level::RemoveItem(Item* itemPtr)
 {
 	m_LevelDataPtr->RemoveItem(itemPtr);
+}
+
+void Level::AddEnemy(Enemy* newEnemyPtr)
+{
+	m_LevelDataPtr->AddEnemy(newEnemyPtr);
 }
 
 void Level::RemoveEnemy(Enemy* enemyPtr)
@@ -475,6 +482,15 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 			case Item::TYPE::EXCLAMATION_MARK_BLOCK:
 			case Item::TYPE::ROTATING_BLOCK:
 			{
+				if (itemPtr->GetType() == Item::TYPE::ROTATING_BLOCK)
+				{
+					if (((RotatingBlock*)itemPtr)->IsRotating())
+					{
+						enableContactRef = false;
+						return;
+					}
+				}
+
 				DOUBLE2 blockCenterPos = actThisPtr->GetPosition();
 				bool playerIsBesideBlock = (playerFeet.x + m_PlayerPtr->GetWidth() / 2 < blockCenterPos.x - Block::WIDTH / 2) ||
 										   (playerFeet.x - m_PlayerPtr->GetWidth() / 2 > blockCenterPos.x + Block::WIDTH / 2);
@@ -672,6 +688,63 @@ void Level::EndContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			m_IsPlayerOnGround = false;
 		}
 	}
+}
+
+// NOTE: This seems like a place where Box2D's filter system would be handy to use
+// however I don't think raycasting listens to that, so we'll just implement our own
+// bitfields
+bool Level::Raycast(DOUBLE2 point1, DOUBLE2 point2, int collisionBits, DOUBLE2 &intersectionRef, DOUBLE2 &normalRef, double &fractionRef)
+{
+	if (collisionBits & COLLIDE_WITH_LEVEL)
+	{
+		if (m_ActLevelPtr->Raycast(point1, point2, intersectionRef, normalRef, fractionRef))
+		{
+			return true;
+		}
+
+		std::vector<Pipe*> pipesPtrArr = m_LevelDataPtr->GetPipes();
+		for (size_t i = 0; i < pipesPtrArr.size(); ++i)
+		{
+			if (pipesPtrArr[i]->Raycast(point1, point2, intersectionRef, normalRef, fractionRef))
+			{
+				return true;
+			}
+		}
+
+		std::vector<Platform*> platformsPtrArr = m_LevelDataPtr->GetPlatforms();
+		for (size_t i = 0; i < platformsPtrArr.size(); ++i)
+		{
+			if (platformsPtrArr[i]->Raycast(point1, point2, intersectionRef, normalRef, fractionRef))
+			{
+				return true;
+			}
+		}
+	}
+
+	if (collisionBits & COLLIDE_WITH_ENEMIES)
+	{
+		std::vector<Enemy*> enemiesPtrArr = m_LevelDataPtr->GetEnemies();
+		for (size_t i = 0; i < enemiesPtrArr.size(); ++i)
+		{
+			if (enemiesPtrArr[i] != nullptr)
+			{
+				if (enemiesPtrArr[i]->Raycast(point1, point2, intersectionRef, normalRef, fractionRef))
+				{
+					return true;
+				}
+			}
+		}
+	}
+
+	if (collisionBits & COLLIDE_WITH_PLAYER)
+	{
+		if (m_PlayerPtr->Raycast(point1, point2, intersectionRef, normalRef, fractionRef))
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void Level::AddParticle(Particle* particlePtr)

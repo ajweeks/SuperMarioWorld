@@ -31,6 +31,7 @@ public:
 	void AddItem(Item* newItemPtr);
 	void RemoveItem(Item* itemPtr);
 
+	void AddEnemy(Enemy* newEnemyPtr);
 	void RemoveEnemy(Enemy* enemyPtr);
 
 	double GetWidth();
@@ -47,6 +48,11 @@ public:
 	DOUBLE2 GetCameraOffset();
 
 	void AddParticle(Particle* particlePtr);
+
+	static const int COLLIDE_WITH_LEVEL		= 0x0001;
+	static const int COLLIDE_WITH_ENEMIES	= 0x0002;
+	static const int COLLIDE_WITH_PLAYER	= 0x0004;
+	bool Raycast(DOUBLE2 point1, DOUBLE2 point2, int collisionBits, DOUBLE2 &intersectionRef, DOUBLE2 &normalRef, double &fractionRef);
 
 private:
 	void PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool & enableContactRef);

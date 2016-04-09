@@ -3,6 +3,7 @@
 #include "DustParticle.h"
 #include "Game.h"
 #include "SpriteSheetManager.h"
+#include "SpriteSheet.h"
 
 DustParticle::DustParticle(DOUBLE2& positionRef) : Particle(LIFETIME, positionRef)
 {

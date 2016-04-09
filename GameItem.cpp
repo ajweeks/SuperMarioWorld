@@ -31,6 +31,10 @@ void Platform::AddContactListener(ContactListener* listener)
 {
 	m_ActPtr->AddContactListener(listener);
 }
+bool Platform::Raycast(DOUBLE2 point1, DOUBLE2 point2, DOUBLE2 &intersectionRef, DOUBLE2 &normalRef, double &fractionRef)
+{
+	return m_ActPtr->Raycast(point1, point2, intersectionRef, normalRef, fractionRef);
+}
 double Platform::GetWidth()
 {
 	return m_Width;
@@ -60,7 +64,10 @@ void Pipe::AddContactListener(ContactListener* listener)
 {
 	m_ActPtr->AddContactListener(listener);
 }
-
+bool Pipe::Raycast(DOUBLE2 point1, DOUBLE2 point2, DOUBLE2 &intersectionRef, DOUBLE2 &normalRef, double &fractionRef)
+{
+	return m_ActPtr->Raycast(point1, point2, intersectionRef, normalRef, fractionRef);
+}
 
 // ___ITEM___
 Item::Item(DOUBLE2 topLeft, TYPE type, Level* levelPtr, BodyType bodyType, int width, int height) :
@@ -242,6 +249,17 @@ void SuperMushroom::Tick(double deltaTime)
 	}
 	else
 	{
+		DOUBLE2 point1 = m_ActPtr->GetPosition();
+		DOUBLE2 point2 = m_ActPtr->GetPosition() + DOUBLE2(m_DirFacing * 7, 0);
+		DOUBLE2 intersection, normal;
+		double fraction = -1.0;
+
+		// If this returns true, the koopa is about to hit an obstacle, let's turn around
+		if (m_LevelPtr->Raycast(point1, point2, m_CollisionBits, intersection, normal, fraction))
+		{
+			m_DirFacing = FacingDirection::OppositeDirection(m_DirFacing);
+		}
+
 		double xVel = HORIZONTAL_VEL;
 		if (m_DirFacing == FacingDirection::LEFT)
 		{

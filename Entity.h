@@ -21,7 +21,11 @@ public:
 	virtual void Paint() = 0;
 	virtual void SetPaused(bool paused);
 
+	DOUBLE2 GetPosition();
+
 	void AddContactListener(ContactListener* listener);
+
+	bool Raycast(DOUBLE2 point1, DOUBLE2 point2, DOUBLE2 &intersectionRef, DOUBLE2 &normalRef, double &fractionRef);
 
 protected:
 	// TODO: Remove spritesheet pointer, only the player class really needs it

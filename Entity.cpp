@@ -22,6 +22,11 @@ Entity::~Entity()
 	delete m_ActPtr;
 }
 
+bool Entity::Raycast(DOUBLE2 point1, DOUBLE2 point2, DOUBLE2 &intersectionRef, DOUBLE2 &normalRef, double &fractionRef)
+{
+	return m_ActPtr->Raycast(point1, point2, intersectionRef, normalRef, fractionRef);
+}
+
 void Entity::SetPaused(bool paused)
 {
 	m_ActPtr->SetActive(!paused);
@@ -30,4 +35,9 @@ void Entity::SetPaused(bool paused)
 void Entity::AddContactListener(ContactListener* listener)
 {
 	m_ActPtr->AddContactListener(listener);
+}
+
+DOUBLE2 Entity::GetPosition()
+{
+	return m_ActPtr->GetPosition();
 }
