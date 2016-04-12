@@ -60,6 +60,7 @@ private:
 	void PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool & enableContactRef);
 	void BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr);
 	void EndContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr);
+	bool ActorCanPassThroughPlatform(PhysicsActor *actPlatformPtr, DOUBLE2& actorPosRef, double actorWidth, double actorHeight);
 
 	void DEBUGPaintZoomedOut();
 

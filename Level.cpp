@@ -416,6 +416,28 @@ bool Level::IsPlayerOnGround()
 	return m_IsPlayerOnGround;
 }
 
+bool Level::ActorCanPassThroughPlatform(PhysicsActor *actPlatformPtr, DOUBLE2& actorPosRef, double actorWidth, double actorHeight)
+{
+	DOUBLE2 actorFeet = DOUBLE2(actorPosRef.x, actorPosRef.y + actorHeight / 2);
+
+	double halfPlatformWidth = ((Platform*)actPlatformPtr->GetUserPointer())->GetWidth() / 2.0;
+	double halfPlatformHeight = ((Platform*)actPlatformPtr->GetUserPointer())->GetHeight() / 2.0;
+
+	DOUBLE2 platformPos = actPlatformPtr->GetPosition();
+	bool actorToLeftOfPlatform = actorFeet.x + actorWidth / 2 < platformPos.x - halfPlatformWidth;
+	bool actorToRightOfPlatform = actorFeet.x + actorWidth / 2 < platformPos.x - halfPlatformWidth;
+	bool actorFeetBelowPlatformBottom = actorFeet.y > platformPos.y + halfPlatformHeight;
+
+	bool actorFeetAreBelowPlatformTop = actorFeet.y > platformPos.y - halfPlatformHeight;
+	bool actorCenterToLeftOfPlatform = actorFeet.x < platformPos.x - halfPlatformWidth;
+	bool actorCenterToRightOfPlatform = actorFeet.x > platformPos.x + halfPlatformWidth;
+
+	return ((actorFeetAreBelowPlatformTop && (actorCenterToLeftOfPlatform || actorCenterToRightOfPlatform)) ||
+		actorToLeftOfPlatform || 
+		actorToRightOfPlatform || 
+		actorFeetBelowPlatformBottom);
+}
+
 void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool & enableContactRef)
 {
 	DOUBLE2 playerFeet(m_PlayerPtr->GetPosition().x, m_PlayerPtr->GetPosition().y + m_PlayerPtr->GetHeight() / 2);
@@ -434,21 +456,7 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 		{
 		case int(ActorId::PLATFORM):
 		{
-			DOUBLE2 platformPos = actThisPtr->GetPosition();
-			double halfPlayerWidth = m_PlayerPtr->GetWidth() / 2;
-			double halfPlatformWidth = ((Platform*)actThisPtr->GetUserPointer())->GetWidth() / 2.0;
-			double halfPlatformHeight = ((Platform*)actThisPtr->GetUserPointer())->GetHeight() / 2.0;
-
-			bool playerToLeftOfPlatform = playerFeet.x + halfPlayerWidth < platformPos.x - halfPlatformWidth;
-			bool playerToRightOfPlatform = playerFeet.x + halfPlayerWidth < platformPos.x - halfPlatformWidth;
-			bool playerFeetBelowPlatformBottom = playerFeet.y > platformPos.y + halfPlatformHeight;
-
-			bool playerFeetAreBelowPlatformTop = playerFeet.y > platformPos.y - halfPlatformHeight;
-			bool playerCenterToLeftOfPlatform = playerFeet.x < platformPos.x - halfPlatformWidth;
-			bool playerCenterToRightOfPlatform = playerFeet.x > platformPos.x + halfPlatformWidth;
-
-			if ((playerFeetAreBelowPlatformTop && (playerCenterToLeftOfPlatform || playerCenterToRightOfPlatform)) ||
-				playerToLeftOfPlatform || playerToRightOfPlatform || playerFeetBelowPlatformBottom)
+			if (ActorCanPassThroughPlatform(actThisPtr, m_PlayerPtr->GetPosition(), m_PlayerPtr->GetWidth(), m_PlayerPtr->GetHeight()))
 			{
 				enableContactRef = false;
 			}
@@ -499,6 +507,21 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 					}
 				}
 			} break;
+			}
+		} break;
+		}
+	} break;
+	case int(ActorId::ENEMY) :
+	{
+		switch (actThisPtr->GetUserData())
+		{
+		case int(ActorId::PLATFORM):
+		{
+			double enemyWidth = ((Enemy*)actOtherPtr->GetUserPointer())->GetWidth();
+			double enemyHeight = ((Enemy*)actOtherPtr->GetUserPointer())->GetHeight();
+			if (ActorCanPassThroughPlatform(actThisPtr, actOtherPtr->GetPosition(), enemyWidth, enemyHeight))
+			{
+				enableContactRef = false;
 			}
 		} break;
 		}
