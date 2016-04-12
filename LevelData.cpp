@@ -129,7 +129,7 @@ LevelData::LevelData(String platforms, String pipes, String items, String enemie
 		} break;*/
 		case int(Enemy::TYPE::MONTY_MOLE):
 		{
-			m_EnemiesPtrArr.push_back(new MontyMole(topLeft, levelPtr));
+			m_EnemiesPtrArr.push_back(new MontyMole(topLeft, levelPtr, MontyMole::SPAWN_LOCATION_TYPE::WALL));
 		} break;
 		default:
 		{

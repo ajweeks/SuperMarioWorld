@@ -10,6 +10,7 @@
 #include "ParticleManager.h"
 #include "Player.h"
 #include "KoopaTroopa.h"
+#include "MontyMole.h"
 
 #define GAME_ENGINE (GameEngine::GetSingleton())
 
@@ -23,7 +24,7 @@ Level::Level()
 	m_ActLevelPtr->AddContactListener(this);
 	m_ActLevelPtr->SetUserData(int(ActorId::LEVEL));
 
-	SpriteSheetManager::levelOneForegroundPtr->SetTransparencyColor(COLOR(255,0,255));
+	SpriteSheetManager::levelOneForegroundPtr->SetTransparencyColor(COLOR(255, 0, 255));
 
 	m_Width = SpriteSheetManager::levelOneForegroundPtr->GetWidth();
 	m_Height = SpriteSheetManager::levelOneForegroundPtr->GetHeight();
@@ -666,7 +667,23 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			} break;
 			case Enemy::TYPE::MONTY_MOLE:
 			{
-
+				if (playerFeet.y < enemyPtr->GetPosition().y)
+				{
+					if (m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::SPIN_JUMPING)
+					{
+						((MontyMole*)enemyPtr)->StompKill();
+					}
+					else
+					{
+						((MontyMole*)enemyPtr)->HeadBonk();
+						// TODO: Create and call Player::Jump here instead?
+						m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetPosition().x, -150));
+					}
+				}
+				else
+				{
+					m_PlayerPtr->Die();
+				}
 			} break;
 			case Enemy::TYPE::PIRHANA_PLANT:
 			{

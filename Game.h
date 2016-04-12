@@ -22,7 +22,10 @@
 #define GAME_ENGINE (GameEngine::GetSingleton())
 
 #define SMW_ENABLE_JUMP_TO true
-#define SMW_JUMP_TO_POS_X 4642
+#define SMW_JUMP_TO_POS_X 3300
+
+#define CLAMP(value, minimum, maximum) (min(maximum, max(value, minimum)))
+//#define CLAMP(value, minimum, maximum) (value < minimum ? minimum : value > maximum ? maximum : value)
 
 class Game : public AbstractGame
 {
