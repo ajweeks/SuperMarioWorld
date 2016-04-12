@@ -28,7 +28,7 @@ void SoundManager::InitialzeSoundsAndSongs()
 	LoadSound(SOUND::PLAYER_JUMP, m_ResourcePath + String("player-jump.wav"));
 	LoadSound(SOUND::PLAYER_SPIN_JUMP, m_ResourcePath + String("player-spin-jump.wav"));
 	LoadSound(SOUND::PLAYER_SUPER_MUSHROOM_COLLECT, m_ResourcePath + String("player-super-mushroom-collect.wav"));
-	LoadSound(SOUND::PLAYER_DEATH, String("player-death.wav"));
+	LoadSound(SOUND::PLAYER_DEATH, m_ResourcePath + String("player-death.wav"));
 
 	LoadSound(SOUND::COIN_COLLECT, m_ResourcePath + String("coin-collect.wav"));
 	LoadSound(SOUND::DRAGON_COIN_COLLECT, m_ResourcePath + String("dragon-coin-collect.wav"));
@@ -45,12 +45,18 @@ void SoundManager::InitialzeSoundsAndSongs()
 
 void SoundManager::LoadSong(SONG song, String filePath)
 {
+	assert(int(song) >= 0 && int(song) < int(SONG::_LAST_ELEMENT));
+	assert(m_SongsPtrArr[int(song)] == nullptr);
+
 	m_SongsPtrArr[int(song)] = new FmodSound();
 	m_SongsPtrArr[int(song)]->CreateStream(filePath, true);
 }
 
 void SoundManager::LoadSound(SOUND sound, String filePath)
 {
+	assert(int(sound) >= 0 && int(sound) < int(SOUND::_LAST_ELEMENT));
+	assert(m_SoundsPtrArr[int(sound)] == nullptr);
+
 	m_SoundsPtrArr[int(sound)] = new FmodSound();
 	m_SoundsPtrArr[int(sound)]->CreateSound(filePath);
 }
