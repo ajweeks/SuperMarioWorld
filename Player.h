@@ -87,6 +87,9 @@ private:
 	int m_Score;
 	bool m_NeedsNewFixture = false;
 
+	static const int FRAMES_OF_DEATH_ANIMATION = 240;
+	int m_FramesOfDeathAnimationElapsed;
+
 	static const int TOTAL_FRAMES_OF_POWERUP_TRANSITION = 50;
 	int m_FramesOfPowerupTransitionElapsed; // NOTE: Perhaps this variable name is a tad long...
 	POWERUP_STATE m_PrevPowerupState; // This is used to transition between states upon state change

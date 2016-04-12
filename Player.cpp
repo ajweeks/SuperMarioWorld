@@ -33,6 +33,7 @@ void Player::Reset()
 	m_ActPtr->SetPosition(DOUBLE2(30, 366.6));
 	m_ActPtr->SetLinearVelocity(DOUBLE2(0, 0));
 	m_ActPtr->SetActive(true);
+	m_ActPtr->SetSensor(false);
 
 	m_IsOnGround = false;
 
@@ -51,6 +52,7 @@ void Player::Reset()
 
 	m_FramesSpentInAir = -1;
 	m_FramesOfPowerupTransitionElapsed = -1;
+	m_FramesOfDeathAnimationElapsed = -1;
 
 	m_PowerupState = POWERUP_STATE::NORMAL;
 	m_PrevPowerupState = POWERUP_STATE::NORMAL;
@@ -97,6 +99,33 @@ void Player::Tick(double deltaTime)
 		m_ActPtr->SetPosition(DOUBLE2(SMW_JUMP_TO_POS_X, 365));
 	}
 #endif
+
+	if (m_AnimationState == ANIMATION_STATE::DYING)
+	{
+		if (m_FramesOfDeathAnimationElapsed == 0)
+		{
+			// NOTE: We couldn't set active = true earlier since Box2D was locked,
+			// this is the next best thing
+			m_LevelPtr->SetPaused(true);
+		}
+
+		++m_FramesOfDeathAnimationElapsed;
+
+		// NOTE: The player doesn't fly upward until after a short delay
+		// LATER: Move all harcoded values out somewhere else
+		if (m_FramesOfDeathAnimationElapsed == 35)
+		{
+			m_ActPtr->SetActive(true);
+			// TODO: Move gravity value out to a static const int
+			//m_ActPtr->SetGravityScale(0.98);
+			m_ActPtr->SetLinearVelocity(DOUBLE2(0, -420));
+		}
+
+		if (m_FramesOfDeathAnimationElapsed > FRAMES_OF_DEATH_ANIMATION)
+		{
+			m_LevelPtr->Reset();
+		}
+	}
 
 	if (m_FramesOfPowerupTransitionElapsed > -1)
 	{
@@ -674,11 +703,15 @@ void Player::Die()
 {
 	m_Lives--;
 
+	m_FramesOfDeathAnimationElapsed = 0;
 	m_AnimationState = ANIMATION_STATE::DYING;
 
-	// TODO: Pause player input
+	m_ActPtr->SetSensor(true);
 
-	// LATER: Play sound here
+	// TODO: Pause player input
+	
+	SoundManager::SetAllSongsPaused(true);
+	SoundManager::PlaySoundEffect(SoundManager::SOUND::PLAYER_DEATH);
 }
 
 void Player::TakeDamage()

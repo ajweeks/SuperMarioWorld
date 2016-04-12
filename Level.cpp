@@ -424,6 +424,10 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 	{
 	case int(ActorId::PLAYER):
 	{
+		if (((Player*)actOtherPtr->GetUserPointer())->GetAnimationState() == Player::ANIMATION_STATE::DYING)
+		{
+			break;
+		}
 		bool playerIsRising = actOtherPtr->GetLinearVelocity().y < -0.001;
 
 		switch (actThisPtr->GetUserData())
@@ -532,6 +536,11 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 	{
 	case int(ActorId::PLAYER):
 	{
+		if (((Player*)actOtherPtr->GetUserPointer())->GetAnimationState() == Player::ANIMATION_STATE::DYING)
+		{
+			break;
+		}
+
 		bool playerIsRising = actOtherPtr->GetLinearVelocity().y < -0.001;
 		DOUBLE2 playerFeet = DOUBLE2(actOtherPtr->GetPosition().x, actOtherPtr->GetPosition().y + ((Player*)actOtherPtr)->GetHeight() / 2);
 
