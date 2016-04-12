@@ -642,18 +642,25 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 				{
 					if (m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::SPIN_JUMPING)
 					{
-						((KoopaTroopa*)enemyPtr)->Die();
+						((KoopaTroopa*)enemyPtr)->StompKill();
 					}
 					else
 					{
-						((KoopaTroopa*)enemyPtr)->Hit();
+						((KoopaTroopa*)enemyPtr)->HeadBonk();
+						// TODO: Create and call Player::Jump here instead?
+						m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetPosition().x, -150));
 					}
 				}
 				else
 				{
+					// NOTE: If the koopa is shelless (aka laying helplessly and crying on the ground) then
+					// all the player needs to do is touch them and they die
+					// Once the shelless koopa starts walking (ANIMATION_STATE::WALKING_SHELLESS) then the player
+					// needs to jump on their head, the player will die if they touch the side of a walking shelless koopa
 					if (((KoopaTroopa*)enemyPtr)->GetAnimationState() == KoopaTroopa::ANIMATION_STATE::SHELLESS)
 					{
-						((KoopaTroopa*)enemyPtr)->Die();
+						// TODO: Rename this method because not only shell hits cause this behaviour
+						((KoopaTroopa*)enemyPtr)->ShellHit();
 					}
 					else
 					{

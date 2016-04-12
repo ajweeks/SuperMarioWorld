@@ -44,16 +44,23 @@ public:
 
 	ANIMATION_STATE GetAnimationState();
 
-	// Called when the player hits this koopa on the head.
+	// Called when the player regular jumps on this koopa's head. (not spin jump)
 	// This causes the koopa to lose its shell, or if it 
-	// already has no shell then it kill it.
-	void Hit();
-	// Called when this koopa is being stomped on, or being
-	// hit by a shell
-	void Die();
+	// already has no shell then to die
+	void HeadBonk();
+
+	// Called when the player spin jumps on this koopa's head
+	// Spawns a cloud paricle
+	void StompKill();
+
+	// Called when this koopa is hit by a shell
+	// This kills the koopa and spawns a shell with a vertical velocity
+	// that is removed once it reaches the bottom of the screen
+	void ShellHit();
+
 
 private:
-	static const int WIDTH = 16;
+	static const int WIDTH = 14;
 
 	static const int WALK_VEL = 35;
 
@@ -64,9 +71,15 @@ private:
 
 	COLOUR m_Color;
 	ANIMATION_STATE m_AnimationState;
+
+	static const int FRAMES_OF_BEING_SHELLESS = 85;
+	int m_FramesSpentBeingShelless = -1;
+
 	static const int FRAMES_OF_TURNAROUND = 8;
 	int m_FramesSpentTurningAround = -1;
-	int m_CollisionBits = Level::COLLIDE_WITH_LEVEL | Level::COLLIDE_WITH_ENEMIES;
+
+	static const int FRAMES_OF_BEING_SQUASHED = 4;
+	int m_FramesSpentBeingSquashed = -1;
 
 	bool m_ShouldBeRemoved = false;
 	bool m_NeedsNewFixture = false;

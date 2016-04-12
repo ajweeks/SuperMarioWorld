@@ -4,12 +4,13 @@
 #include "Game.h"
 #include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
+#include "SoundManager.h"
 
 KoopaTroopa::KoopaTroopa(DOUBLE2& startingPos, Level* levelPtr, COLOUR colour) :
 	Enemy(TYPE::KOOPA_TROOPA, startingPos, GetWidth(), GetHeight(), SpriteSheetManager::koopaTroopaPtr, BodyType::DYNAMIC, levelPtr, this),
 	m_Color(colour)
 {
-	m_DirFacing = FacingDirection::RIGHT;
+	m_DirFacing = FacingDirection::LEFT;
 	m_AnimInfo.secondsPerFrame = 0.14;
 	m_AnimationState = ANIMATION_STATE::WALKING;
 }
@@ -57,9 +58,6 @@ void KoopaTroopa::Tick(double deltaTime)
 		return;
 	}
 
-	m_AnimInfo.Tick(deltaTime);
-	m_AnimInfo.frameNumber %= 2;
-
 	if (m_FramesSpentTurningAround > -1)
 	{
 		if (++m_FramesSpentTurningAround > FRAMES_OF_TURNAROUND)
@@ -68,15 +66,55 @@ void KoopaTroopa::Tick(double deltaTime)
 		}
 	}
 
-	//DOUBLE2 koopaFeet = m_ActPtr->GetPosition() + DOUBLE2(0, GetHeight());
+	if (m_FramesSpentBeingShelless > -1)
+	{
+		if (++m_FramesSpentBeingShelless > FRAMES_OF_BEING_SHELLESS)
+		{
+			m_FramesSpentBeingShelless = -1;
 
+			ChangeAnimationState(ANIMATION_STATE::WALKING_SHELLESS);
+
+			// LATER: Move in the direction of the player
+		}
+	}
+
+	if (m_FramesSpentBeingSquashed> -1)
+	{
+		if (++m_FramesSpentBeingSquashed > FRAMES_OF_BEING_SQUASHED)
+		{
+			m_FramesSpentBeingSquashed = -1;
+			
+			// LATER: Add sound effect here
+
+			 m_LevelPtr->RemoveEnemy(this);
+			 return;
+		}
+	}
+
+	m_AnimInfo.Tick(deltaTime);
+	m_AnimInfo.frameNumber %= 2;
+
+
+	// NOTE: Check if this koopa is near an obstacle, if so turn around
 	DOUBLE2 point1 = m_ActPtr->GetPosition();
-	DOUBLE2 point2 = m_ActPtr->GetPosition() + DOUBLE2(m_DirFacing * 8, 0);
+	DOUBLE2 point2 = m_ActPtr->GetPosition() + DOUBLE2(m_DirFacing * (GetWidth() / 2 + 2), 0);
 	DOUBLE2 intersection, normal;
 	double fraction = -1.0;
+	int collisionBits = Level::COLLIDE_WITH_LEVEL | Level::COLLIDE_WITH_ENEMIES;
 
-	// If this returns true, the koopa is about to hit an obstacle, let's turn around
-	if (m_LevelPtr->Raycast(point1, point2, m_CollisionBits, intersection, normal, fraction))
+	if (m_LevelPtr->Raycast(point1, point2, collisionBits, intersection, normal, fraction))
+	{
+		ChangeDirections();
+	}
+
+
+	// NOTE: Check if this koopa about to walk off an edge, if so turn around
+	point1 = m_ActPtr->GetPosition();
+	point2 = m_ActPtr->GetPosition() + DOUBLE2(m_DirFacing * (GetWidth() / 2 + 2), GetHeight() / 2 + 4);
+	fraction = -1.0;
+	collisionBits = Level::COLLIDE_WITH_LEVEL;
+
+	if (!m_LevelPtr->Raycast(point1, point2, collisionBits, intersection, normal, fraction))
 	{
 		ChangeDirections();
 	}
@@ -128,7 +166,7 @@ void KoopaTroopa::Paint()
 	if (m_AnimationState == ANIMATION_STATE::UPSIDEDOWN_SHELLESS)
 	{
 		yScale = -1;
-		centerY += 10;
+		centerY += 5;
 	}
 
 	if (xScale != 1 || yScale != 1)
@@ -139,7 +177,8 @@ void KoopaTroopa::Paint()
 	}
 
 	DOUBLE2 animationFrame = DetermineAnimationFrame();
-	m_SpriteSheetPtr->Paint(centerX, centerY + 2, animationFrame.x, animationFrame.y);
+	double yo = (m_AnimationState == ANIMATION_STATE::WALKING ? -5 : -5);
+	m_SpriteSheetPtr->Paint(centerX, centerY + yo, animationFrame.x, animationFrame.y);
 
 	// TODO: Add crying particle for shelless koopas
 
@@ -202,25 +241,55 @@ DOUBLE2 KoopaTroopa::DetermineAnimationFrame()
 	return DOUBLE2(col, row);
 }
 
-void KoopaTroopa::Hit()
+void KoopaTroopa::HeadBonk()
 {
+	SoundManager::PlaySoundEffect(SoundManager::SOUND::KOOPA_DEATH);
+
 	switch (m_AnimationState)
 	{
 	case ANIMATION_STATE::WALKING:
 	{
 		ChangeAnimationState(ANIMATION_STATE::SHELLESS);
+		m_FramesSpentBeingShelless = 0;
+
+		// TODO: Spawn a shell with no velocity 
 	} break;
 	case ANIMATION_STATE::SHELLESS:
 	{
 		ChangeAnimationState(ANIMATION_STATE::UPSIDEDOWN_SHELLESS);
-		Die();
+
+		m_ActPtr->SetSensor(true);
+		m_ActPtr->SetLinearVelocity(DOUBLE2(0, -250));
 	} break;
 	case ANIMATION_STATE::WALKING_SHELLESS:
 	{
 		ChangeAnimationState(ANIMATION_STATE::SQUASHED);
-		Die();
+		m_FramesSpentBeingSquashed = 0;
 	} break;
 	}
+}
+
+void KoopaTroopa::ShellHit()
+{
+	// TODO: Spawn shell with upward velocity
+
+	SoundManager::PlaySoundEffect(SoundManager::SOUND::KOOPA_DEATH);
+
+	m_ShouldBeRemoved = true;
+}
+
+void KoopaTroopa::StompKill()
+{
+	// LATER: Spawn following particles:
+	//		    - splat
+	//			- cloud thing?
+	//			- 4 yellow stars
+	//			- score
+
+	SoundManager::PlaySoundEffect(SoundManager::SOUND::ENEMY_HEAD_STOMP_START);
+	SoundManager::PlaySoundEffect(SoundManager::SOUND::ENEMY_HEAD_STOMP_END);
+
+	m_ShouldBeRemoved = true;
 }
 
 void KoopaTroopa::ChangeAnimationState(ANIMATION_STATE newAnimationState)
@@ -230,22 +299,7 @@ void KoopaTroopa::ChangeAnimationState(ANIMATION_STATE newAnimationState)
 
 	m_NeedsNewFixture = true;
 
-	// LATER: Play sound here?
 	// LATER: Add particle?
-}
-
-void KoopaTroopa::Die()
-{
-	if (m_AnimationState == ANIMATION_STATE::UPSIDEDOWN_SHELLESS)
-	{
-		// NOTE: We're already dying!
-		OutputDebugString(String("Koopa Troopa was told to die more than once!\n"));
-		return;
-	}
-	// LATER: Spawn poof particle
-	
-	m_ActPtr->SetSensor(true);
-	m_ActPtr->SetLinearVelocity(DOUBLE2(0, -200));
 }
 
 KoopaTroopa::ANIMATION_STATE KoopaTroopa::GetAnimationState()
@@ -260,9 +314,10 @@ int KoopaTroopa::GetWidth()
 
 int KoopaTroopa::GetHeight()
 {
-	static const int SMALL_HEIGHT = 12;
-	static const int LARGE_HEIGHT = 26;
+	static const int SMALL_HEIGHT = 14;
+	static const int LARGE_HEIGHT = 14;
 
+	// TODO: Remove resizable actor height functionality
 	if (m_AnimationState == ANIMATION_STATE::WALKING)
 	{
 		return LARGE_HEIGHT;

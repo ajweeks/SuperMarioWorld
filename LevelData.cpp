@@ -382,6 +382,16 @@ LevelData* LevelData::CreateLevelData(int levelIndex, Level* levelPtr)
 		enemiesStream << "[" << 3468 << "," << 346 << "]";
 		enemiesStream << int(Enemy::TYPE::MONTY_MOLE) << "\n";
 
+		enemiesStream << "[" << 380 << "," << 310 << "]";
+		enemiesStream << int(Enemy::TYPE::KOOPA_TROOPA) << "\n";
+		enemiesStream << "[" << 400 << "," << 310 << "]";
+		enemiesStream << int(Enemy::TYPE::KOOPA_TROOPA) << "\n";
+		enemiesStream << "[" << 420 << "," << 310 << "]";
+		enemiesStream << int(Enemy::TYPE::KOOPA_TROOPA) << "\n";
+		enemiesStream << "[" << 440 << "," << 310 << "]";
+		enemiesStream << int(Enemy::TYPE::KOOPA_TROOPA) << "\n";
+		enemiesStream << "[" << 460 << "," << 310 << "]";
+		enemiesStream << int(Enemy::TYPE::KOOPA_TROOPA) << "\n";
 		enemiesStream << "[" << 480 << "," << 310 << "]";
 		enemiesStream << int(Enemy::TYPE::KOOPA_TROOPA) << "\n";
 		enemiesStream << "[" << 500 << "," << 310 << "]";
