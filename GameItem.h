@@ -102,6 +102,7 @@ struct DragonCoin : public Coin
 	DragonCoin(DOUBLE2 topLeft, Level* levelPtr);
 	void Tick(double deltaTime);
 	void Paint();
+	void GenerateParticles();
 
 	static const int WIDTH = 16;
 	static const int HEIGHT = 16;

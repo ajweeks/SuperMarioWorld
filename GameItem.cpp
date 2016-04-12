@@ -154,6 +154,14 @@ void DragonCoin::Tick(double deltaTime)
 	m_AnimInfo.Tick(deltaTime);
 	m_AnimInfo.frameNumber %= 6;
 }
+void DragonCoin::GenerateParticles()
+{
+	NumberParticle* numberParticlePtr = new NumberParticle(1000, m_ActPtr->GetPosition() + DOUBLE2(5, -12));
+	CoinCollectParticle* coinParticlePtr = new CoinCollectParticle(m_ActPtr->GetPosition() + DOUBLE2(0, -5));
+
+	m_LevelPtr->AddParticle(numberParticlePtr);
+	m_LevelPtr->AddParticle(coinParticlePtr);
+}
 void DragonCoin::Paint()
 {
 	double srcCol = 0 + m_AnimInfo.frameNumber;

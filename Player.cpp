@@ -577,6 +577,7 @@ void Player::OnItemPickup(Item* itemPtr, Level* levelPtr)
 	{
 		AddDragonCoin(levelPtr);
 		m_Score += 2000; // NOTE: Not quite perfectly accurate, but enough for now
+		((DragonCoin*)itemPtr)->GenerateParticles();
 	} break;
 	case Item::TYPE::SUPER_MUSHROOM:
 	{
