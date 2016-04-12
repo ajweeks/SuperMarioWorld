@@ -5,16 +5,17 @@ class SoundManager
 public:
 	enum class SOUND
 	{
-		GAME_PAUSE, PLAYER_JUMP, PLAYER_SPIN_JUMP, PLAYER_SUPER_MUSHROOM_COLLECT,
+		GAME_PAUSE, PLAYER_JUMP, PLAYER_SPIN_JUMP, PLAYER_SUPER_MUSHROOM_COLLECT, PLAYER_DEATH,
 		COIN_COLLECT, DRAGON_COIN_COLLECT, BLOCK_HIT, SUPER_MUSHROOM_SPAWN, MESSAGE_BLOCK_HIT,
+		KOOPA_DEATH, ENEMY_HEAD_STOMP_START, ENEMY_HEAD_STOMP_END,
 		// NOTE: All entries must be above this line
-		LAST_ELEMENT
+		_LAST_ELEMENT
 	};
 	enum class SONG 
 	{
 		OVERWORLD_BGM, OVERWORLD_BGM_FAST,
 		// NOTE: All entries must be above this line
-		LAST_ELEMENT
+		_LAST_ELEMENT
 	};
 
 	virtual ~SoundManager();
@@ -38,9 +39,14 @@ public:
 
 private:
 	SoundManager();
-	
-	static FmodSound* m_SoundsPtrArr[int(SOUND::LAST_ELEMENT)];
-	static FmodSound* m_SongsPtrArr[int(SONG::LAST_ELEMENT)];
+
+	static void LoadSong(SONG song, String filePath);
+	static void LoadSound(SOUND sound, String filePath);
+
+	static const String m_ResourcePath;
+
+	static FmodSound* m_SoundsPtrArr[int(SOUND::_LAST_ELEMENT)];
+	static FmodSound* m_SongsPtrArr[int(SONG::_LAST_ELEMENT)];
 
 	static double m_GlobalVolumeLevel;
 	static bool m_Muted;
