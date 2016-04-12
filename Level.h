@@ -42,6 +42,8 @@ public:
 	void SetShowingMessage(bool showingMessage);
 	bool IsShowingMessage();
 
+	void SetPaused(bool paused);
+
 	Player* GetPlayer();
 	void GiveItemToPlayer(Item* itemPtr);
 
@@ -65,7 +67,6 @@ private:
 	unsigned int GetNumberOfDigits(unsigned int i);
 
 	void TogglePaused();
-	void SetPaused(bool paused);
 
 	void ReadLevelData(int levelIndex);
 	LevelData* m_LevelDataPtr = nullptr;
@@ -78,9 +79,6 @@ private:
 	PhysicsActor* m_ActLevelPtr = nullptr;
 
 	bool m_Paused = false;
-	// NOTE: Box2D locks all physics actors during PreSolve and BeginContact
-	// so we need to save the paused state and update actors in the next tick instead
-	bool m_WasPaused = false;
 
 	bool m_ShowingMessage = false;
 

@@ -36,6 +36,8 @@ public:
 	static void SetVolume(double volume);
 	static void SetMuted(bool muted);
 	static void ToggleMuted();
+	
+	static void SetAllSongsPaused(bool paused);
 
 private:
 	SoundManager();

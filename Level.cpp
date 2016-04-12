@@ -33,8 +33,6 @@ Level::Level()
 	m_ParticleManagerPtr = new ParticleManager();
 
 	Reset();
-
-	SoundManager::PlaySong(SoundManager::SONG::OVERWORLD_BGM);
 }
 
 Level::~Level()
@@ -50,7 +48,6 @@ void Level::Reset()
 	m_PlayerPtr->Reset();
 	m_CameraPtr->Reset();
 
-	m_WasPaused = false;
 	m_Paused = false;
 	m_ShowingMessage = false;
 
@@ -63,6 +60,8 @@ void Level::Reset()
 	m_ParticleManagerPtr->Reset();
 
 	SoundManager::RestartSongs();
+
+	SoundManager::PlaySong(SoundManager::SONG::OVERWORLD_BGM);
 }
 
 void Level::ReadLevelData(int levelIndex)
@@ -73,7 +72,7 @@ void Level::ReadLevelData(int levelIndex)
 	std::vector<Pipe*> pipesData = m_LevelDataPtr->GetPipes();
 	std::vector<Item*> itemsData = m_LevelDataPtr->GetItems();
 	std::vector<Enemy*> enemiesData = m_LevelDataPtr->GetEnemies();
-	
+
 	for (size_t i = 0; i < platformsData.size(); ++i)
 	{
 		platformsData[i]->AddContactListener(this);
@@ -94,29 +93,22 @@ void Level::ReadLevelData(int levelIndex)
 
 void Level::Tick(double deltaTime)
 {
-	if (m_Paused != m_WasPaused)
+	if (m_ShowingMessage)
 	{
-		// NOTE: m_Paused was used as a flag, now we need to set it back to m_WasPaused
-		// so that TogglePaused() can set it back to m_Paused. Perhaps a little convoluted...
-		m_Paused = m_WasPaused;
-		TogglePaused();
-	}
-
-	if (m_ShowingMessage &&
-		(GAME_ENGINE->IsKeyboardKeyPressed('A') ||
-		GAME_ENGINE->IsKeyboardKeyPressed('S') ||
-		GAME_ENGINE->IsKeyboardKeyPressed('Z') ||
-		GAME_ENGINE->IsKeyboardKeyPressed('X') ||
-		GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE)))
-	{
-		m_ShowingMessage = false;
-		// NOTE: Return here so that the input isn't registered as movement input
-		return;
+		if (GAME_ENGINE->IsKeyboardKeyPressed('A') ||
+			GAME_ENGINE->IsKeyboardKeyPressed('S') ||
+			GAME_ENGINE->IsKeyboardKeyPressed('Z') ||
+			GAME_ENGINE->IsKeyboardKeyPressed('X') ||
+			GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE))
+		{
+			m_ShowingMessage = false;
+			// NOTE: Return here so that the input isn't registered as movement input
+			return;
+		}
 	}
 	else if (GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE))
 	{
 		TogglePaused();
-		m_WasPaused = m_Paused;
 		SoundManager::PlaySoundEffect(SoundManager::SOUND::GAME_PAUSE);
 	}
 	if (m_Paused || m_ShowingMessage) return;
@@ -135,8 +127,6 @@ void Level::Tick(double deltaTime)
 	m_ParticleManagerPtr->Tick(deltaTime);
 
 	m_LevelDataPtr->TickItemsAndEnemies(deltaTime, this);
-
-	m_WasPaused = m_Paused;
 }
 
 void Level::AddItem(Item* newItemPtr)
@@ -193,7 +183,7 @@ void Level::Paint()
 
 	PaintHUD();
 
-	if (m_Paused)
+	if (m_Paused && m_PlayerPtr->GetAnimationState() != Player::ANIMATION_STATE::DYING)
 	{
 		GAME_ENGINE->SetColor(COLOR(255, 255, 255));
 		GAME_ENGINE->DrawRect(0, 0, Game::WIDTH, Game::HEIGHT, 6);
@@ -769,19 +759,17 @@ void Level::GiveItemToPlayer(Item* itemPtr)
 
 void Level::TogglePaused()
 {
-	m_Paused = !m_Paused;
-	// TODO: Find a better way to pause the world
-	m_PlayerPtr->SetPaused(m_Paused);
-	m_LevelDataPtr->SetItemsAndEnemiesPaused(m_Paused);
-
-	// LATER: Figure out how to pause the music only once the game pause sound is done playing
-	// (if only we had callbacks...)
-	SoundManager::SetSongPaused(SoundManager::SONG::OVERWORLD_BGM, m_Paused);
+	SetPaused(!m_Paused);
 }
 
 void Level::SetPaused(bool paused)
 {
 	m_Paused = paused;
+
+	m_PlayerPtr->SetPaused(m_Paused);
+	m_LevelDataPtr->SetItemsAndEnemiesPaused(m_Paused);
+
+	SoundManager::SetAllSongsPaused(m_Paused);
 }
 
 void Level::SetShowingMessage(bool showingMessage)

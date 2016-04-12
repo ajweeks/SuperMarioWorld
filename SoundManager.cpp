@@ -67,6 +67,7 @@ void SoundManager::RestartSongs()
 	{
 		if (m_SongsPtrArr[i]->IsPlaying())
 		{
+			m_SongsPtrArr[i]->SetPaused(true);
 			m_SongsPtrArr[i]->SetPosition(0);
 		}
 	}
@@ -90,6 +91,14 @@ void SoundManager::PlaySoundEffect(SOUND sound)
 	if (m_Muted) return;
 
 	m_SoundsPtrArr[int(sound)]->Play();
+}
+
+void SoundManager::SetAllSongsPaused(bool paused)
+{
+	for (size_t i = 0; i < int(SONG::_LAST_ELEMENT); ++i)
+	{
+		SetSongPaused(SONG(i), paused);
+	}
 }
 
 void SoundManager::SetSoundPaused(SOUND sound, bool paused)
