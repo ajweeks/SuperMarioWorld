@@ -33,6 +33,7 @@ void SoundManager::InitialzeSoundsAndSongs()
 	LoadSound(SOUND::COIN_COLLECT, m_ResourcePath + String("coin-collect.wav"));
 	LoadSound(SOUND::DRAGON_COIN_COLLECT, m_ResourcePath + String("dragon-coin-collect.wav"));
 	LoadSound(SOUND::BLOCK_HIT, m_ResourcePath + String("block-hit.wav"));
+	LoadSound(SOUND::BLOCK_BREAK, m_ResourcePath + String("block-break.wav"));
 
 	LoadSound(SOUND::SUPER_MUSHROOM_SPAWN, m_ResourcePath + String("super-mushroom-spawn.wav"));
 	LoadSound(SOUND::MESSAGE_BLOCK_HIT, m_ResourcePath + String("message-block-hit.wav"));

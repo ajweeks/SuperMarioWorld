@@ -14,6 +14,7 @@ public:
 
 	int GetTileWidth();
 	int GetTileHeight();
+	Bitmap* GetBitmap();
 
 private:
 	Bitmap *m_BmpSpriteSheetPtr;

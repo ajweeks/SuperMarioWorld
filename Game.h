@@ -24,6 +24,8 @@
 #define SMW_ENABLE_JUMP_TO true
 #define SMW_JUMP_TO_POS_X 3300
 
+#define ARRAY_SIZE(array) (sizeof((array))/sizeof((array[0])))
+
 #define CLAMP(value, minimum, maximum) (min(maximum, max(value, minimum)))
 //#define CLAMP(value, minimum, maximum) (value < minimum ? minimum : value > maximum ? maximum : value)
 

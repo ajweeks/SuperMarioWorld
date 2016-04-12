@@ -7,6 +7,8 @@
 #include "Level.h"
 #include "Player.h"
 #include "SoundManager.h"
+#include "DustParticle.h"
+#include "BlockBreakParticle.h"
 
 MontyMole::MontyMole(DOUBLE2& startingPos, Level* levelPtr, SPAWN_LOCATION_TYPE spawnLocationType) :
 	Enemy(TYPE::MONTY_MOLE, startingPos, GetWidth(), GetHeight(), SpriteSheetManager::montyMolePtr, BodyType::DYNAMIC, levelPtr, this),
@@ -48,26 +50,24 @@ void MontyMole::Tick(double deltaTime)
 	} break;
 	case ANIMATION_STATE::IN_GROUND:
 	{
-		// TODO: Remove this redundant check?
-		if (m_FramesSpentWrigglingInTheDirt > -1)
+		if (++m_FramesSpentWrigglingInTheDirt > FRAMES_TO_WRIGGLE_IN_DIRT_FOR)
 		{
-			if (++m_FramesSpentWrigglingInTheDirt > FRAMES_TO_WRIGGLE_IN_DIRT_FOR)
-			{
-				m_FramesSpentWrigglingInTheDirt = -1;
-				m_HaveSpawnedMole = true;
-				m_AnimationState = ANIMATION_STATE::JUMPING_OUT_OF_GROUND;
-				m_ActPtr->SetSensor(false);
-				m_ActPtr->SetActive(true);
-				m_ActPtr->SetLinearVelocity(DOUBLE2(0, -350));
+			m_AnimationState = ANIMATION_STATE::JUMPING_OUT_OF_GROUND;
+			m_ActPtr->SetSensor(false);
+			m_ActPtr->SetActive(true);
+			m_ActPtr->SetLinearVelocity(DOUBLE2(0, -350));
+			m_FramesSpentWrigglingInTheDirt = -1;
+			m_HaveSpawnedMole = true;
 
-				// TODO: Play sound effect here
-				// TODO: Add rock particle
-			}
+			SoundManager::PlaySoundEffect(SoundManager::SOUND::BLOCK_BREAK);
+			
+			BlockBreakParticle* blockBreakParticlePtr = new BlockBreakParticle(DOUBLE2(m_SpawingPosition));
+			m_LevelPtr->AddParticle(blockBreakParticlePtr);
 		}
 	} break;
 	case ANIMATION_STATE::JUMPING_OUT_OF_GROUND:
 	{
-		if (m_ActPtr->GetLinearVelocity().y == 0.0) // LATER: On ground
+		if (m_ActPtr->GetLinearVelocity().y == 0.0)
 		{
 			DOUBLE2 playerPos = m_LevelPtr->GetPlayer()->GetPosition();
 			if (playerPos.x > m_ActPtr->GetPosition().x)
@@ -81,19 +81,30 @@ void MontyMole::Tick(double deltaTime)
 
 			m_TargetX = playerPos.x + m_TargetOffshoot * m_DirFacing;
 			m_AnimationState = ANIMATION_STATE::WALKING;
+
+			m_IsOnGround = true;
 		}
 	} break;
 	case ANIMATION_STATE::WALKING:
 	{
 		DOUBLE2 prevVel = m_ActPtr->GetLinearVelocity();
 		DOUBLE2 playerPos = m_LevelPtr->GetPlayer()->GetPosition();
+		DOUBLE2 molePos = m_ActPtr->GetPosition();
 
 		// NOTE: We're either walking towards the player, or we're walking just past them before we turn around
-		bool passedTargetLeft = ((m_DirFacing == FacingDirection::LEFT && (m_ActPtr->GetPosition().x - m_TargetX) < 0.0));
-		bool passedTargetRight = ((m_DirFacing == FacingDirection::RIGHT && (m_TargetX - m_ActPtr->GetPosition().x) < 0.0));
-		bool targetChange = false;//(m_DirFacing == FacingDirection::RIGHT && m_TargetX < m_ActPtr->GetPosition().x) || 
-						    //(m_DirFacing == FacingDirection::LEFT && m_TargetX > m_ActPtr->GetPosition().x);
-		if (passedTargetLeft || passedTargetRight || targetChange)
+		bool passedTargetLeft = ((m_DirFacing == FacingDirection::LEFT && (molePos.x - m_TargetX) < 0.0));
+		bool passedTargetRight = ((m_DirFacing == FacingDirection::RIGHT && (m_TargetX - molePos.x) < 0.0));
+
+		// The player passed out target x! We should set the x to be father past them
+		bool targetChange = (m_DirFacing == FacingDirection::LEFT && playerPos.x < m_TargetX) ||
+							(m_DirFacing == FacingDirection::RIGHT && playerPos.x > m_TargetX);
+		
+		bool directionChange =	(m_DirFacing == FacingDirection::LEFT && playerPos.x > molePos.x) || 
+								(m_DirFacing == FacingDirection::RIGHT && playerPos.x < molePos.x);
+
+		m_TargetX = playerPos.x + m_TargetOffshoot * m_DirFacing;
+
+		if (passedTargetLeft || passedTargetRight)
 		{
 			// Turn around
 			m_DirFacing = FacingDirection::OppositeDirection(m_DirFacing);
@@ -107,6 +118,13 @@ void MontyMole::Tick(double deltaTime)
 			newXVel = CLAMP(newXVel, -MAX_HORIZONTAL_VEL, MAX_HORIZONTAL_VEL);
 
 			m_ActPtr->SetLinearVelocity(DOUBLE2(newXVel, prevVel.y));
+		}
+
+		if (m_IsOnGround &&
+			m_DirFacing != m_DirFacingLastFrame)
+		{
+			DustParticle* dustParticlePtr = new DustParticle(molePos + DOUBLE2(0, GetHeight() / 2));
+			m_LevelPtr->AddParticle(dustParticlePtr);
 		}
 
 	} break;
@@ -133,6 +151,8 @@ void MontyMole::Tick(double deltaTime)
 		OutputDebugString(String("ERROR: Unhandled animation state in MontyMole::Tick!\n"));
 	} break;
 	}
+
+	m_DirFacingLastFrame = m_DirFacing;
 }
 
 void MontyMole::HeadBonk()
@@ -185,11 +205,13 @@ void MontyMole::Paint()
 
 	DOUBLE2 animationFrame = GetAnimationFrame();
 	m_SpriteSheetPtr->Paint(centerX, centerY + 2, animationFrame.x, animationFrame.y);
+	
+	GAME_ENGINE->SetWorldMatrix(matPrevWorld);
 
+#if 0
 	GAME_ENGINE->SetColor(COLOR(255, 0, 0));
 	GAME_ENGINE->DrawLine(m_TargetX, m_ActPtr->GetPosition().y - 300, m_TargetX, m_ActPtr->GetPosition().y + 300);
-
-	GAME_ENGINE->SetWorldMatrix(matPrevWorld);
+#endif
 }
 
 DOUBLE2 MontyMole::GetAnimationFrame()

@@ -59,8 +59,8 @@ private:
 	static const int WIDTH = 16;
 	static const int HEIGHT = 16;
 
-	static const int WALK_VEL = 1000;
-	static const int MAX_HORIZONTAL_VEL = 120;
+	static const int WALK_VEL = 900;
+	static const int MAX_HORIZONTAL_VEL = 135;
 
 	DOUBLE2 m_SpawingPosition;
 

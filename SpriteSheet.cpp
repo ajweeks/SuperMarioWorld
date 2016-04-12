@@ -27,6 +27,10 @@ void SpriteSheet::SetTransparencyColor(COLOR& colorRef)
 	m_BmpSpriteSheetPtr->SetTransparencyColor(colorRef);
 }
 
+Bitmap* SpriteSheet::GetBitmap()
+{
+	return m_BmpSpriteSheetPtr;
+}
 int SpriteSheet::GetTileWidth()
 {
 	return m_TileWidth;
