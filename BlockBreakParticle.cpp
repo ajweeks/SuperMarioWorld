@@ -72,7 +72,6 @@ bool BlockBreakParticle::Tick(double deltaTime)
 		m_BlockChunkPtrArr[i]->Tick(deltaTime);
 	}
 
-	OutputDebugString(String((m_LifeRemaining < 0)));
 	return (m_LifeRemaining < 0);
 }
 

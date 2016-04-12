@@ -15,10 +15,12 @@ private:
 
 	DOUBLE2 m_Position;
 	DOUBLE2 m_Velocity;
-	double m_BlockType;
-	double m_TypeTimer;
+	int m_BlockType;
+	int m_TypeTimer;
 
 };
+
+
 
 class BlockBreakParticle : public Particle
 {
