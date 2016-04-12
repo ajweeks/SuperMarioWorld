@@ -25,6 +25,10 @@ public:
 
 protected:
 	TYPE m_Type;
+
 	int m_DirFacing;
+	int m_DirFacingLastFrame;
+
+	bool m_IsOnGround;
 
 };
