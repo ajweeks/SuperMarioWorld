@@ -148,3 +148,8 @@ void SoundManager::ToggleMuted()
 {
 	SetMuted(!m_Muted);
 }
+
+bool SoundManager::IsMuted()
+{
+	return m_Muted;
+}

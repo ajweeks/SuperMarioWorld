@@ -33,10 +33,11 @@ public:
 
 	static void RestartSongs();
 
-	static void SetVolume(double volume);
 	static void SetMuted(bool muted);
 	static void ToggleMuted();
 	
+	static bool IsMuted();
+
 	static void SetAllSongsPaused(bool paused);
 
 private:
@@ -44,6 +45,8 @@ private:
 
 	static void LoadSong(SONG song, String filePath);
 	static void LoadSound(SOUND sound, String filePath);
+
+	static void SetVolume(double volume);
 
 	static const String m_ResourcePath;
 

@@ -14,6 +14,7 @@
 
 #define GAME_ENGINE (GameEngine::GetSingleton())
 
+// NOTE: Level::Reset *must* be called upon game initialization!
 Level::Level()
 {
 	// TODO: Make player extend Entity
@@ -32,8 +33,6 @@ Level::Level()
 	m_CameraPtr = new Camera(Game::WIDTH, Game::HEIGHT, this);
 
 	m_ParticleManagerPtr = new ParticleManager();
-
-	Reset();
 }
 
 Level::~Level()

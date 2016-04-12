@@ -55,7 +55,7 @@ void Game::GameStart()
 	SpriteSheetManager::Load();
 
 	SoundManager::InitialzeSoundsAndSongs();
-	SoundManager::SetMuted(true);
+	SoundManager::SetMuted(false);
 
 	// TODO: Add mario fonts
 	Game::Font12Ptr = new Font(String("consolas"), 12);
@@ -90,7 +90,15 @@ void Game::Reset()
 
 void Game::GameSetSleeping(bool sleeping)
 {
-	//SoundManager::SetMuted(sleeping);
+	if (sleeping)
+	{
+		m_WasMuted = SoundManager::IsMuted();
+		SoundManager::SetMuted(sleeping);
+	}
+	else
+	{
+		SoundManager::SetMuted(m_WasMuted);
+	}
 }
 
 void Game::GameWindowResize(int width, int height)

@@ -79,6 +79,9 @@ private:
 	bool m_RenderDebugOverlay;
 
 	Level *m_LevelPtr = nullptr;
+	// This is set to the level's paused field when the window is defocused
+	// so we can set paused back to what it was
+	bool m_WasMuted = false;
 
 	double m_SecondsElapsed = 0.0;
 };
