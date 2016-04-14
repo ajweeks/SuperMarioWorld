@@ -113,7 +113,7 @@ void Player::Tick(double deltaTime)
 
 		// NOTE: The player doesn't fly upward until after a short delay
 		// LATER: Move all harcoded values out somewhere else
-		if (m_FramesOfDeathAnimationElapsed == 35)
+		if (m_FramesOfDeathAnimationElapsed == 40)
 		{
 			m_ActPtr->SetActive(true);
 			// TODO: Move gravity value out to a static const int
@@ -125,6 +125,15 @@ void Player::Tick(double deltaTime)
 		{
 			// LATER: Fix this, when the player dies their death count shoud not be reset
 			m_LevelPtr->Reset();
+		}
+	}
+
+	if (m_FramesUntilEnemyHeadBounceEndSound > -1)
+	{
+		if (--m_FramesUntilEnemyHeadBounceEndSound < 0)
+		{
+			m_FramesUntilEnemyHeadBounceEndSound = -1;
+			SoundManager::PlaySoundEffect(SoundManager::SOUND::ENEMY_HEAD_STOMP_END);
 		}
 	}
 
@@ -473,8 +482,8 @@ void Player::Paint()
 	{
 		MATRIX3X2 matReflect = MATRIX3X2::CreateScalingMatrix(DOUBLE2(-1, 1));
 		MATRIX3X2 matTranslate = MATRIX3X2::CreateTranslationMatrix(centerX, centerY);
-		// TODO: See if creating an inverse matrix here manually would be more performant
-		GAME_ENGINE->SetWorldMatrix(matTranslate.Inverse() * matReflect * matTranslate * matPrevWorld);
+		MATRIX3X2 matTranslateInverse = MATRIX3X2::CreateTranslationMatrix(-centerX, -centerY);
+		GAME_ENGINE->SetWorldMatrix(matTranslateInverse * matReflect * matTranslate * matPrevWorld);
 	}
 
 	POWERUP_STATE powerupStateToPaint;
@@ -826,6 +835,11 @@ Item::TYPE Player::GetExtraItemType()
 Player::ANIMATION_STATE Player::GetAnimationState()
 {
 	return m_AnimationState;
+}
+
+void Player::ResetNumberOfFramesUntilEndStompSound()
+{
+	m_FramesUntilEnemyHeadBounceEndSound = FRAMES_TO_WAIT_BEFORE_PLAYING_KOOPA_HEAD_STOMP_END_SOUND;
 }
 
 String Player::AnimationStateToString(ANIMATION_STATE state)

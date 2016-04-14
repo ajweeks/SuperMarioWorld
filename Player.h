@@ -59,6 +59,11 @@ public:
 
 	ANIMATION_STATE GetAnimationState();
 
+	// NOTE: This should be called every time the player stomps on a KoopaTroopa's head
+	//       Every frames m_FramesUntilEnemyHeadBounceEndSound is decremented, and plays the
+	//		 sound when it reaches 0
+	void ResetNumberOfFramesUntilEndStompSound();
+
 private:
 	DOUBLE2 CalculateAnimationFrame();
 
@@ -106,4 +111,7 @@ private:
 
 	POWERUP_STATE m_PowerupState;
 	ANIMATION_STATE m_AnimationState;
+
+	static const int FRAMES_TO_WAIT_BEFORE_PLAYING_KOOPA_HEAD_STOMP_END_SOUND = 10;
+	int m_FramesUntilEnemyHeadBounceEndSound = -1;
 };

@@ -2,6 +2,7 @@
 
 #include "KoopaTroopa.h"
 #include "Game.h"
+#include "Player.h"
 #include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
 #include "SoundManager.h"
@@ -269,7 +270,7 @@ void KoopaTroopa::StompKill()
 	m_LevelPtr->AddParticle(numberParticlePtr);
 
 	SoundManager::PlaySoundEffect(SoundManager::SOUND::ENEMY_HEAD_STOMP_START);
-	SoundManager::PlaySoundEffect(SoundManager::SOUND::ENEMY_HEAD_STOMP_END);
+	m_LevelPtr->GetPlayer()->ResetNumberOfFramesUntilEndStompSound();
 
 	m_ShouldBeRemoved = true;
 }
