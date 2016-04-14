@@ -91,6 +91,7 @@ void Game::Reset()
 
 void Game::GameSetSleeping(bool sleeping)
 {
+	if (SoundManager::IsInitialized() == false) return;
 	if (sleeping)
 	{
 		m_WasMuted = SoundManager::IsMuted();

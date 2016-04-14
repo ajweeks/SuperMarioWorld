@@ -37,6 +37,7 @@ public:
 	static void ToggleMuted();
 	
 	static bool IsMuted();
+	static bool IsInitialized();
 
 	static void SetAllSongsPaused(bool paused);
 
@@ -47,6 +48,8 @@ private:
 	static void LoadSound(SOUND sound, String filePath);
 
 	static void SetVolume(double volume);
+
+	static bool m_IsInitialized;
 
 	static const String m_ResourcePath;
 

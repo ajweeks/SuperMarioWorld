@@ -9,6 +9,8 @@ double SoundManager::m_GlobalVolumeLevel = 1.0;
 
 const String SoundManager::m_ResourcePath = String("Resources/sound/");
 
+bool SoundManager::m_IsInitialized = false;
+
 SoundManager::SoundManager()
 {
 }
@@ -42,6 +44,8 @@ void SoundManager::InitialzeSoundsAndSongs()
 	LoadSound(SOUND::KOOPA_DEATH, m_ResourcePath + String("koopa-death.wav"));
 	LoadSound(SOUND::ENEMY_HEAD_STOMP_START, m_ResourcePath + String("enemy-head-stomp-start.wav"));
 	LoadSound(SOUND::ENEMY_HEAD_STOMP_END, m_ResourcePath + String("enemy-head-stomp-end.wav"));
+
+	m_IsInitialized = true;
 }
 
 void SoundManager::LoadSong(SONG song, String filePath)
@@ -153,4 +157,9 @@ void SoundManager::ToggleMuted()
 bool SoundManager::IsMuted()
 {
 	return m_Muted;
+}
+
+bool SoundManager::IsInitialized()
+{
+	return m_IsInitialized;
 }
