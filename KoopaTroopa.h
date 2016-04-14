@@ -82,6 +82,5 @@ private:
 	int m_FramesSpentBeingSquashed = -1;
 
 	bool m_ShouldBeRemoved = false;
-	bool m_NeedsNewFixture = false;
 };
 

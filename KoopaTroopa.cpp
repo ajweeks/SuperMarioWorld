@@ -29,27 +29,6 @@ void KoopaTroopa::Tick(double deltaTime)
 		return;
 	}
 
-	if (m_NeedsNewFixture)
-	{
-		double oldHalfHeight = GetHeight() / 2;
-
-		b2Fixture* fixturePtr = m_ActPtr->GetBody()->GetFixtureList();
-		while (fixturePtr != nullptr)
-		{
-			b2Fixture* nextFixturePtr = fixturePtr->GetNext();
-			m_ActPtr->GetBody()->DestroyFixture(fixturePtr);
-			fixturePtr = nextFixturePtr;
-		}
-		m_ActPtr->AddBoxFixture(GetWidth(), GetHeight(), 0.0);
-
-		double newHalfHeight = GetHeight() / 2;
-
-		double newCenterY = m_ActPtr->GetPosition().y + (newHalfHeight - oldHalfHeight);
-		m_ActPtr->SetPosition(DOUBLE2(m_ActPtr->GetPosition().x, newCenterY));
-
-		m_NeedsNewFixture = false;
-	}
-
 	if (m_AnimationState == ANIMATION_STATE::UPSIDEDOWN_SHELLESS)
 	{
 		if (m_ActPtr->GetPosition().y > Game::HEIGHT + GetHeight())
@@ -298,8 +277,6 @@ void KoopaTroopa::ChangeAnimationState(ANIMATION_STATE newAnimationState)
 {
 
 	m_AnimationState = newAnimationState;
-
-	m_NeedsNewFixture = true;
 
 	// LATER: Add particle?
 }
