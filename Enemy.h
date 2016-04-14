@@ -23,6 +23,9 @@ public:
 
 	TYPE GetType();
 
+	static std::string TYPEToString(TYPE type);
+	static TYPE StringToTYPE(std::string string);
+
 protected:
 	TYPE m_Type;
 

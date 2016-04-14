@@ -63,7 +63,6 @@ public:
 
 private:
 	void WriteSessionInfoToFile(bool startInfo);
-	std::string GetTagContent(std::string sessionString, std::string tagString, int startPos = 0);
 	std::string ReadSessionInfoFromFile();
 
 	void Reset();

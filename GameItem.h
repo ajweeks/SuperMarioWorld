@@ -30,8 +30,6 @@ private:
 
 struct Pipe
 {
-	static const std::string ColourNames[];
-
 	Pipe(DOUBLE2 topLeft, DOUBLE2 bottomRight, bool canAccess);
 	virtual ~Pipe();
 	void AddContactListener(ContactListener* listener);
@@ -64,6 +62,9 @@ struct Item : public Entity
 
 	virtual void Tick(double deltaTime) = 0;
 	virtual void Paint() = 0;
+
+	static TYPE StringToTYPE(std::string string);
+	static std::string TYPEToString(TYPE type);
 
 	TYPE GetType();
 

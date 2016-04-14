@@ -3,59 +3,60 @@
 #include "LevelData.h"
 #include "MontyMole.h"
 #include "KoopaTroopa.h"
-
-const std::string Pipe::ColourNames[] { "Green", "Yellow", "Blue", "Orange" };
+#include "Enumerations.h"
 
 LevelData* LevelData::m_LevelOneDataPtr = nullptr;
 
-LevelData::LevelData(String platforms, String pipes, String items, String enemies, Level* levelPtr) : m_LevelPtr(levelPtr)
+LevelData::LevelData(std::string platforms, std::string pipes, std::string items, std::string enemies, Level* levelPtr) : 
+	m_LevelPtr(levelPtr)
 {
 	std::string line;
 
-	std::stringstream platformsStream = std::stringstream(platforms.C_str());
-	while (std::getline(platformsStream, line))
+	// PLATFORMS
+	platforms.erase(std::remove_if(platforms.begin(), platforms.end(), isspace), platforms.end());
+	int platformTagBeginIndex = -1;
+	while ((platformTagBeginIndex = platforms.find("<Platform>", platformTagBeginIndex + 1)) != std::string::npos)
 	{
-		int openBracketIndex = line.find('[');
-		int closeBracketIndex = line.find(']', openBracketIndex);
-		int firstCommaIndex = line.find(',', openBracketIndex + 1);
-		int secondCommaIndex = line.find(',', firstCommaIndex + 1);
+		std::string platformContent = FileIO::GetTagContent(platforms, "Platform", platformTagBeginIndex);
 
-		int left = stoi(line.substr(openBracketIndex + 1, firstCommaIndex - openBracketIndex - 1));
-		int top = stoi(line.substr(firstCommaIndex + 1, secondCommaIndex - firstCommaIndex - 1));
-		int right = stoi(line.substr(secondCommaIndex + 1, closeBracketIndex - secondCommaIndex - 1));
+		int comma1 = platformContent.find(",");
+		int comma2 = platformContent.find(",", comma1 + 1);
+		int left = stoi(platformContent.substr(0, comma1)) * TILE_SIZE;
+		int top = stoi(platformContent.substr(comma1 + 1, comma2 - comma1 - 1)) * TILE_SIZE;
+		int right = stoi(platformContent.substr(comma2 + 1)) * TILE_SIZE;
 
 		m_PlatformsPtrArr.push_back(new Platform(left, top, right));
 	}
 
-	std::stringstream pipesStream = std::stringstream(pipes.C_str());
-	while (std::getline(pipesStream, line))
-	{
-		int closeBracket = line.find(']');
 
-		DOUBLE2 topLeft = StringToDOUBLE2(line.substr(0, closeBracket + 1));
-		DOUBLE2 bottomRight = StringToDOUBLE2(line.substr(closeBracket + 1));
+	// PIPES
+	pipes.erase(std::remove_if(pipes.begin(), pipes.end(), isspace), pipes.end());
+	int pipeTagBeginIndex = -1;
+	while ((pipeTagBeginIndex = pipes.find("<Pipe>", pipeTagBeginIndex + 1)) != std::string::npos)
+	{
+		std::string pipeContent = FileIO::GetTagContent(pipes, "Pipe", pipeTagBeginIndex);
+
+		std::string boundingBoxString = FileIO::GetTagContent(pipeContent, "BoundingBox");
+		RECT2 boundingBox = FileIO::StringToRECT2(boundingBoxString);
+		DOUBLE2 topLeft = DOUBLE2(boundingBox.left, boundingBox.top) * TILE_SIZE;
+		DOUBLE2 bottomRight = DOUBLE2(boundingBox.right, boundingBox.bottom) * TILE_SIZE;
 
 		m_PipesPtrArr.push_back(new Pipe(topLeft, bottomRight, false));
 	}
 
-	std::stringstream itemsStream = std::stringstream(items.C_str());
-	while (std::getline(itemsStream, line))
-	{
-		int closeBracket = line.find(']');
 
-		DOUBLE2 topLeft = StringToDOUBLE2(line.substr(0, closeBracket + 1));
-		int space = line.find(' ', closeBracket);
-		int itemType;
-		String messageString;
-		if (space == -1)
-		{
-			itemType = std::stoi(line.substr(closeBracket+1).c_str());
-		}
-		else
-		{
-			itemType = std::stoi(line.substr(closeBracket + 1, space - closeBracket).c_str());
-			messageString = String(line.substr(space + 1).c_str());
-		}
+	// ITEMS
+	items.erase(std::remove_if(items.begin(), items.end(), isspace), items.end());
+	int itemTagBeginIndex = -1;
+	while ((itemTagBeginIndex = items.find("<Item>", itemTagBeginIndex + 1)) != std::string::npos)
+	{
+		std::string itemContent = FileIO::GetTagContent(items, "Item", itemTagBeginIndex);
+
+		DOUBLE2 topLeft = StringToDOUBLE2(FileIO::GetTagContent(itemContent, "TopLeft")) * TILE_SIZE;
+		int itemType = int(Item::StringToTYPE(FileIO::GetTagContent(itemContent, "Type")));
+		// NOTE: Not all items have the following properties, but there is no harm is seeing if a tag is there
+		COLOUR itemColour = Colour::StringToCOLOUR(FileIO::GetTagContent(itemContent, "Colour"));
+		String messageString = String(FileIO::GetTagContent(itemContent, "BitmapFilePath").c_str());
 
 		switch (itemType)
 		{
@@ -66,7 +67,7 @@ LevelData::LevelData(String platforms, String pipes, String items, String enemie
 		case int(Item::TYPE::EXCLAMATION_MARK_BLOCK):
 		{
 			// LATER: Check if the yellow p-switch has been pressed to determine if ! blocks are solid or not
-			m_ItemsPtrArr.push_back(new ExclamationMarkBlock(topLeft, COLOUR::YELLOW, true, levelPtr));
+			m_ItemsPtrArr.push_back(new ExclamationMarkBlock(topLeft, itemColour, true, levelPtr));
 		} break;
 		case int(Item::TYPE::COIN):
 		{
@@ -86,7 +87,7 @@ LevelData::LevelData(String platforms, String pipes, String items, String enemie
 		} break;
 		case int(Item::TYPE::P_SWITCH):
 		{
-			m_ItemsPtrArr.push_back(new PSwitch(topLeft, COLOUR::BLUE, levelPtr));
+			m_ItemsPtrArr.push_back(new PSwitch(topLeft, itemColour, levelPtr));
 		} break;
 		// NOTE: I don't think 1-UP mushrooms are ever spawned at the start of level..
 		//case int(Item::TYPE::ONE_UP_MUSHROOM):
@@ -104,20 +105,23 @@ LevelData::LevelData(String platforms, String pipes, String items, String enemie
 		}
 	}
 
-	std::stringstream enemiesStream = std::stringstream(enemies.C_str());
-	while (std::getline(enemiesStream, line))
+	// ENEMIES
+	enemies.erase(std::remove_if(enemies.begin(), enemies.end(), isspace), enemies.end());
+	int enemyTagBeginIndex = -1;
+	while ((enemyTagBeginIndex = enemies.find("<Enemy>", enemyTagBeginIndex + 1)) != std::string::npos)
 	{
-		int closeBracket = line.find(']');
+		std::string enemyContent = FileIO::GetTagContent(enemies, "Enemy", enemyTagBeginIndex);
 
-		DOUBLE2 topLeft = StringToDOUBLE2(line.substr(0, closeBracket + 1));
-		int enemyType = std::stoi(line.substr(closeBracket + 1).c_str());
+		DOUBLE2 topLeft = StringToDOUBLE2(FileIO::GetTagContent(enemyContent, "TopLeft")) * TILE_SIZE;
+		int enemyType = int(Enemy::StringToTYPE(FileIO::GetTagContent(enemyContent, "Type")));
+		COLOUR enemyColour = Colour::StringToCOLOUR(FileIO::GetTagContent(enemyContent, "Colour"));
 
 		switch (enemyType)
 		{
 			// TODO: Add more enemies
 		case int(Enemy::TYPE::KOOPA_TROOPA):
 		{
-			m_EnemiesPtrArr.push_back(new KoopaTroopa(topLeft, levelPtr, COLOUR::RED));
+			m_EnemiesPtrArr.push_back(new KoopaTroopa(topLeft, levelPtr, enemyColour));
 		} break;
 		/*case int(Enemy::TYPE::CHARGIN_CHUCK):
 		{
@@ -137,29 +141,6 @@ LevelData::LevelData(String platforms, String pipes, String items, String enemie
 		} break;
 		}
 	}
-}
-
-DOUBLE2 LevelData::StringToDOUBLE2(std::string double2String)
-{
-	DOUBLE2 result;
-
-	int openBracket = double2String.find('[');
-	int closeBracket = double2String.find(']', openBracket);
-	int comma = double2String.find(',', openBracket);
-
-	if (openBracket != std::string::npos &&
-		closeBracket != std::string::npos &&
-		comma != std::string::npos)
-	{
-		result = DOUBLE2(stod(double2String.substr(openBracket + 1, comma - (openBracket + 1))),
-			             stod(double2String.substr(comma + 1, closeBracket - (comma + 1))));
-	}
-	else
-	{
-		OutputDebugString(String("\nERROR: Malformed platform data string: \n") + String(double2String.c_str()) + String("\n"));
-	}
-
-	return result;
 }
 
 LevelData::~LevelData()
@@ -211,211 +192,28 @@ void LevelData::GenerateLevelData(int levelIndex, Level* levelPtr)
 
 LevelData* LevelData::CreateLevelData(int levelIndex, Level* levelPtr)
 {
-	std::stringstream platformsStream;	// [ DOUBLE2(TOP LEFT, BTM RIGHT) ]
-	std::stringstream pipesStream;		// [ DOUBLE2(TOP LEFT, BTM RIGHT), Color?(color) ]
-	std::stringstream itemsStream;		// [ DOUBLE2(TOP LEFT, BTM RIGHT), ItemName, ItemProperties... ]
-	std::stringstream enemiesStream;		// [ DOUBLE2(TOP LEFT, BTM RIGHT),
+	std::ifstream fileInStream;
+	std::stringstream stringStream;
 
-	switch (levelIndex)
+	fileInStream.open("Resources/levels/01/level-data.txt");
+	
+	std::string line;
+	while (fileInStream.eof() == false)
 	{
-	case 1:
-	{
-		// TODO: Make this cleaner/more efficient, maybe use xml or json? (probably xml cause it's easier to parse manually)
-		// Definitely store in an external file
-		platformsStream << "[" << 305 << "," << 329 << "," << 559 << "]" << "\n";
-		platformsStream << "[" << 705 << "," << 313 << "," << 815 << "]" << "\n";
-		platformsStream << "[" << 2993 << "," << 329 << "," << 3070 << "]" << "\n";
-		platformsStream << "[" << 3025 << "," << 281 << "," << 3150 << "]" << "\n";
-		platformsStream << "[" << 3121 << "," << 329 << "," << 3214 << "]" << "\n";
-		platformsStream << "[" << 3393 << "," << 297 << "," << 3550 << "]";
-
-		// ------------------------------------------
-
-		pipesStream << "[" << 2704 << "," << 329 << "]";
-		pipesStream << "[" << 2734 << "," << 376 << "]";
-		pipesStream << "\n";
-		pipesStream << "[" << 2736 << "," << 313 << "]";
-		pipesStream << "[" << 2767 << "," << 376 << "]";
-		pipesStream << "\n";
-		pipesStream << "[" << 3872 << "," << 345 << "]";
-		pipesStream << "[" << 3903 << "," << 375 << "]";
-		pipesStream << "\n";
-		pipesStream << "[" << 4048 << "," << 329 << "]";
-		pipesStream << "[" << 4079 << "," << 375 << "]";
-		pipesStream << "\n";
-		pipesStream << "[" << 4320 << "," << 345 << "]";
-		pipesStream << "[" << 4351 << "," << 375 << "]";
-		pipesStream << "\n";
-		pipesStream << "[" << 4368 << "," << 329 << "]";
-		pipesStream << "[" << 4399 << "," << 375 << "]";
-
-		// ------------------------------------------
-
-		itemsStream << "[" << 609 << "," << 312 << "]";
-		itemsStream << int(Item::TYPE::PRIZE_BLOCK) << "\n";
-		itemsStream << "[" << 625 << "," << 312 << "]";
-		itemsStream << int(Item::TYPE::EXCLAMATION_MARK_BLOCK) << "\n";
-		itemsStream << "[" << 641 << "," << 312 << "]";
-		itemsStream << int(Item::TYPE::PRIZE_BLOCK) << "\n";
-
-		itemsStream << "[" << 849 << "," << 328 << "]";
-		itemsStream << int(Item::TYPE::PRIZE_BLOCK) << "\n";
-		itemsStream << "[" << 865 << "," << 328 << "]";
-		itemsStream << int(Item::TYPE::PRIZE_BLOCK) << "\n";
-
-		itemsStream << "[" << 1024 << "," << 330 << "]";
-		itemsStream << int(Item::TYPE::MESSAGE_BLOCK) << " ";
-		itemsStream << "Resources/levels/01/message_box_01.png" << "\n";
-
-		itemsStream << "[" << 1234 << "," << 320 << "]";
-		itemsStream << int(Item::TYPE::COIN) << "\n";
-		itemsStream << "[" << 1250 << "," << 306 << "]";
-		itemsStream << int(Item::TYPE::COIN) << "\n";
-		itemsStream << "[" << 1268 << "," << 298 << "]";
-		itemsStream << int(Item::TYPE::DRAGON_COIN) << "\n";
-		itemsStream << "[" << 1285 << "," << 306 << "]";
-		itemsStream << int(Item::TYPE::COIN) << "\n";
-		itemsStream << "[" << 1300 << "," << 320 << "]";
-		itemsStream << int(Item::TYPE::COIN) << "\n";
-
-		itemsStream << "[" << 1727 << "," << 280 << "]";
-		itemsStream << int(Item::TYPE::DRAGON_COIN) << "\n";
-
-		itemsStream << "[" << 2511 << "," << 330 << "]";
-		itemsStream << int(Item::TYPE::MESSAGE_BLOCK) << " ";
-		itemsStream << "Resources/levels/01/message_box_02.png" << "\n";
-
-		itemsStream << "[" << 2285 << "," << 256 << "]";
-		itemsStream << int(Item::TYPE::COIN) << "\n";
-		itemsStream << "[" << 2300 << "," << 240 << "]";
-		itemsStream << int(Item::TYPE::COIN) << "\n";
-		itemsStream << "[" << 2315 << "," << 240 << "]";
-		itemsStream << int(Item::TYPE::COIN) << "\n";
-		itemsStream << "[" << 2330 << "," << 233 << "]";
-		itemsStream << int(Item::TYPE::DRAGON_COIN) << "\n";
-
-		itemsStream << "[" << 2850 << "," << 330 << "]";
-		itemsStream << int(Item::TYPE::PRIZE_BLOCK) << "\n";
-		itemsStream << "[" << 2866 << "," << 330 << "]";
-		itemsStream << int(Item::TYPE::PRIZE_BLOCK) << "\n";
-		itemsStream << "[" << 2882 << "," << 330 << "]";
-		itemsStream << int(Item::TYPE::PRIZE_BLOCK) << "\n";
-
-		itemsStream << "[" << 3185 << "," << 257 << "]";
-		itemsStream << int(Item::TYPE::ROTATING_BLOCK) << "\n";
-		itemsStream << "[" << 3201 << "," << 257 << "]";
-		itemsStream << int(Item::TYPE::ROTATING_BLOCK) << "\n";
-
-		itemsStream << "[" << 3439 << "," << 240 << "]";
-		itemsStream << int(Item::TYPE::COIN) << "\n";
-		itemsStream << "[" << 3454 << "," << 240 << "]";
-		itemsStream << int(Item::TYPE::COIN) << "\n";
-		itemsStream << "[" << 3470 << "," << 240 << "]";
-		itemsStream << int(Item::TYPE::COIN) << "\n";
-		itemsStream << "[" << 3501 << "," << 227 << "]";
-		itemsStream << int(Item::TYPE::DRAGON_COIN) << "\n";
-
-		itemsStream << "[" << 3575 << "," << 288 << "]";
-		itemsStream << int(Item::TYPE::EXCLAMATION_MARK_BLOCK) << "\n";
-		itemsStream << "[" << 3648 << "," << 385 << "]";
-		itemsStream << int(Item::TYPE::EXCLAMATION_MARK_BLOCK) << "\n";
-		itemsStream << "[" << 3664 << "," << 385 << "]";
-		itemsStream << int(Item::TYPE::EXCLAMATION_MARK_BLOCK) << "\n";
-
-		itemsStream << "[" << 4498 << "," << 257 << "]";
-		itemsStream << int(Item::TYPE::ROTATING_BLOCK) << "\n";
-		itemsStream << "[" << 4514 << "," << 257 << "]";
-		itemsStream << int(Item::TYPE::ROTATING_BLOCK)  << "\n";
-		itemsStream << "[" << 4530 << "," << 257 << "]";
-		itemsStream << int(Item::TYPE::ROTATING_BLOCK) << "\n";
-		itemsStream << "[" << 4498 << "," << 273 << "]";
-		itemsStream << int(Item::TYPE::ROTATING_BLOCK) << "\n";
-		itemsStream << "[" << 4514 << "," << 273 << "]";
-		itemsStream << int(Item::TYPE::P_SWITCH) << "\n";
-		itemsStream << "[" << 4530 << "," << 273 << "]";
-		itemsStream << int(Item::TYPE::ROTATING_BLOCK) << "\n";
-		itemsStream << "[" << 4498 << "," << 289 << "]";
-		itemsStream << int(Item::TYPE::ROTATING_BLOCK) << "\n";
-		itemsStream << "[" << 4514 << "," << 289 << "]";
-		itemsStream << int(Item::TYPE::ROTATING_BLOCK) << "\n";
-		itemsStream << "[" << 4530 << "," << 289 << "]";
-		itemsStream << int(Item::TYPE::ROTATING_BLOCK) << "\n";
-
-		int coin_xo = 15;
-		int coin_yo = -15;
-		int x = 4556;
-		int y = 330;
-		itemsStream << "[" << x << "," << y << "]";
-		itemsStream << int(Item::TYPE::COIN) << "\n";
-		itemsStream << "[" << x + coin_xo * 1 << "," << y + coin_yo * 1 << "]";
-		itemsStream << int(Item::TYPE::COIN) << "\n";
-		itemsStream << "[" << x + coin_xo * 2 << "," << y + coin_yo * 2 << "]";
-		itemsStream << int(Item::TYPE::COIN) << "\n";
-		itemsStream << "[" << x + coin_xo * 3 << "," << y + coin_yo * 3 << "]";
-		itemsStream << int(Item::TYPE::COIN) << "\n";
-		y += coin_yo * 3;
-		itemsStream << "[" << x + coin_xo * 4 << "," << y << "]";
-		itemsStream << int(Item::TYPE::COIN) << "\n";
-		itemsStream << "[" << x + coin_xo * 5 << "," << y << "]";
-		itemsStream << int(Item::TYPE::COIN) << "\n";
-		itemsStream << "[" << x + coin_xo * 6 << "," << y << "]";
-		itemsStream << int(Item::TYPE::COIN) << "\n";
-		itemsStream << "[" << x + coin_xo * 7 << "," << y << "]";
-		itemsStream << int(Item::TYPE::COIN) << "\n";
-		itemsStream << "[" << x + coin_xo * 8 << "," << y << "]";
-		itemsStream << int(Item::TYPE::COIN) << "\n";
-		itemsStream << "[" << x + coin_xo * 9 << "," << y << "]";
-		itemsStream << int(Item::TYPE::COIN) << "\n";
-		itemsStream << "[" << x + coin_xo * 10 << "," << y << "]";
-		itemsStream << int(Item::TYPE::COIN) << "\n";
-		itemsStream << "[" << x + coin_xo * 11 << "," << y << "]";
-		itemsStream << int(Item::TYPE::COIN) << "\n";
-		itemsStream << "[" << x + coin_xo * 12 << "," << y << "]";
-		itemsStream << int(Item::TYPE::COIN) << "\n";
-		itemsStream << "[" << x + coin_xo * 13 << "," << y << "]";
-		itemsStream << int(Item::TYPE::COIN) << "\n";
-
-		// ------------------------------------------
-
-		enemiesStream << "[" << 3088 << "," << 300 << "]";
-		enemiesStream << int(Enemy::TYPE::MONTY_MOLE) << "\n";
-		enemiesStream << "[" << 3468 << "," << 346 << "]";
-		enemiesStream << int(Enemy::TYPE::MONTY_MOLE) << "\n";
-
-		enemiesStream << "[" << 380 << "," << 310 << "]";
-		enemiesStream << int(Enemy::TYPE::KOOPA_TROOPA) << "\n";
-		enemiesStream << "[" << 400 << "," << 310 << "]";
-		enemiesStream << int(Enemy::TYPE::KOOPA_TROOPA) << "\n";
-		enemiesStream << "[" << 420 << "," << 310 << "]";
-		enemiesStream << int(Enemy::TYPE::KOOPA_TROOPA) << "\n";
-		enemiesStream << "[" << 440 << "," << 310 << "]";
-		enemiesStream << int(Enemy::TYPE::KOOPA_TROOPA) << "\n";
-		enemiesStream << "[" << 460 << "," << 310 << "]";
-		enemiesStream << int(Enemy::TYPE::KOOPA_TROOPA) << "\n";
-		enemiesStream << "[" << 480 << "," << 310 << "]";
-		enemiesStream << int(Enemy::TYPE::KOOPA_TROOPA) << "\n";
-		enemiesStream << "[" << 500 << "," << 310 << "]";
-		enemiesStream << int(Enemy::TYPE::KOOPA_TROOPA) << "\n";
-		enemiesStream << "[" << 520 << "," << 310 << "]";
-		enemiesStream << int(Enemy::TYPE::KOOPA_TROOPA) << "\n";
-
-
-	} break;
-	default:
-	{
-		OutputDebugString(String("ERROR: Unhandled level index in LevelData::GenerateLevel: ") + String(levelIndex) + String("\n"));
-		return nullptr;
-	} break;
+		std::getline(fileInStream, line);
+		stringStream << line << "\n";
 	}
+	fileInStream.close();
 
-	String platformsString = String(platformsStream.str().c_str());
-	String pipesString = String(pipesStream.str().c_str());
-	String itemsString = String(itemsStream.str().c_str());
-	String enemiesString = String(enemiesStream.str().c_str());
+	std::string entireFileContents = stringStream.str();
+	
+	std::string platformsString = FileIO::GetTagContent(entireFileContents, "Platforms");
+	std::string pipesString = FileIO::GetTagContent(entireFileContents, "Pipes");
+	std::string itemsString = FileIO::GetTagContent(entireFileContents, "Items");
+	std::string enemiesString = FileIO::GetTagContent(entireFileContents, "Enemies");
 
 	return new LevelData(platformsString, pipesString, itemsString, enemiesString, levelPtr);
 }
-
 
 void LevelData::AddItem(Item* newItemPtr)
 {
@@ -529,6 +327,24 @@ void LevelData::PaintItemsAndEnemies()
 			m_EnemiesPtrArr[i]->Paint();
 		}
 	}
+}
+
+DOUBLE2 LevelData::StringToDOUBLE2(std::string double2String)
+{
+	DOUBLE2 result;
+
+	int comma = double2String.find(',');
+
+	if (comma != std::string::npos)
+	{
+		result = DOUBLE2(stod(double2String.substr(0, comma)), stod(double2String.substr(comma + 1)));
+	}
+	else
+	{
+		OutputDebugString(String("\nERROR: Malformed platform data string: \n") + String(double2String.c_str()) + String("\n"));
+	}
+
+	return result;
 }
 
 void LevelData::Unload()

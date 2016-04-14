@@ -1,0 +1,343 @@
+
+<LevelData>
+
+	#---------------------------------------------------------------#
+	# NOTE: Platform positions are specified using LEFT,TOP,RIGHT   #
+	#---------------------------------------------------------------#
+	<Platforms>
+		<Platform>19,19,35</Platform>
+		<Platform>44,18,51</Platform>
+		<Platform>187,19,192</Platform>
+		<Platform>189,16,197</Platform>
+		<Platform>195,19,201</Platform>
+		<Platform>212,17,222</Platform>
+	</Platforms>
+	
+	
+	#---------------------------------------------------------------#
+	# Pipe bounding boxes are specified using LEFT,TOP,RIGHT,BOTTOM #
+	#---------------------------------------------------------------#
+	<Pipes>
+		<Pipe>
+			<BoundingBox>169,19,171,22</BoundingBox>
+		</Pipe>
+		<Pipe>
+			<BoundingBox>171,18,173,22</BoundingBox>
+		</Pipe>
+
+		<Pipe>
+			<BoundingBox>242,20,244,22</BoundingBox>
+		</Pipe>
+		<Pipe>
+			<BoundingBox>253,19,255,22</BoundingBox>
+		</Pipe>
+		
+		<Pipe>
+			<BoundingBox>270,20,272,22</BoundingBox>
+		</Pipe>
+		<Pipe>
+			<BoundingBox>273,19,275,22</BoundingBox>
+		</Pipe>
+	</Pipes>
+
+	
+	
+	<Items>
+		<Item>
+			<Type>PrizeBlock</Type>
+			<TopLeft>38,18</TopLeft>
+		</Item>
+		<Item>
+			<Type>ExclamationMarkBlock</Type>
+			<Colour>Yellow</Colour>
+			<TopLeft>39,18</TopLeft>
+		</Item>
+		<Item>
+			<Type>PrizeBlock</Type>
+			<TopLeft>40,18</TopLeft>
+		</Item>
+		
+		<Item>
+			<Type>PrizeBlock</Type>
+			<TopLeft>53,19</TopLeft>
+		</Item>
+		<Item>
+			<Type>PrizeBlock</Type>
+			<TopLeft>54,19</TopLeft>
+		</Item>
+		
+		<Item>
+			<Type>MessageBlock</Type>
+			<TopLeft>64,19</TopLeft>
+			<BitmapFilePath>Resources/levels/01/message_box_01.png</BitmapFilePath>
+		</Item>
+	
+		<Item>
+			<Type>Coin</Type>
+			<TopLeft>77,18</TopLeft>
+		</Item>
+		<Item>
+			<Type>Coin</Type>
+			<TopLeft>78,17</TopLeft>
+		</Item>
+		<Item>
+			<Type>DragonCoin</Type>
+			<TopLeft>79,16</TopLeft>
+		</Item>
+		<Item>
+			<Type>Coin</Type>
+			<TopLeft>80,17</TopLeft>
+		</Item>
+		<Item>
+			<Type>Coin</Type>
+			<TopLeft>81,18</TopLeft>
+		</Item>
+		
+		<Item>
+			<Type>DragonCoin</Type>
+			<TopLeft>108,16</TopLeft>
+		</Item>
+		
+		<Item>
+			<Type>MessageBlock</Type>
+			<TopLeft>157,19</TopLeft>
+			<BitmapFilePath>Resources/levels/01/message_box_02.png</BitmapFilePath>
+		</Item>
+		
+		<Item>
+			<Type>Coin</Type>
+			<TopLeft>143,15</TopLeft>
+		</Item>
+		<Item>
+			<Type>Coin</Type>
+			<TopLeft>144,14</TopLeft>
+		</Item>
+		<Item>
+			<Type>Coin</Type>
+			<TopLeft>145,14</TopLeft>
+		</Item>
+		<Item>
+			<Type>DragonCoin</Type>
+			<TopLeft>146,13</TopLeft>
+		</Item>
+		
+		<Item>
+			<Type>PrizeBlock</Type>
+			<TopLeft>178,19</TopLeft>
+		</Item>
+		<Item>
+			<Type>PrizeBlock</Type>
+			<TopLeft>179,19</TopLeft>
+		</Item>
+		<Item>
+			<Type>PrizeBlock</Type>
+			<TopLeft>180,19</TopLeft>
+		</Item>
+		
+		<Item>
+			<Type>RotatingBlock</Type>
+			<TopLeft>199,14</TopLeft>
+		</Item>
+		<Item>
+			<Type>RotatingBlock</Type>
+			<TopLeft>200,14</TopLeft>
+		</Item>
+		
+		<Item>
+			<Type>Coin</Type>
+			<TopLeft>215,14</TopLeft>
+		</Item>
+		<Item>
+			<Type>Coin</Type>
+			<TopLeft>216,14</TopLeft>
+		</Item>
+		<Item>
+			<Type>Coin</Type>
+			<TopLeft>217,14</TopLeft>
+		</Item>
+		<Item>
+			<Type>DragonCoin</Type>
+			<TopLeft>219,13</TopLeft>
+		</Item>
+		
+		<Item>
+			<Type>ExclamationMarkBlock</Type>
+			<Colour>Yellow</Colour>
+			<TopLeft>223,16</TopLeft>
+		</Item>
+		<Item>
+			<Type>ExclamationMarkBlock</Type>
+			<Colour>Yellow</Colour>
+			<TopLeft>228,22</TopLeft>
+		</Item>
+		<Item>
+			<Type>ExclamationMarkBlock</Type>
+			<Colour>Yellow</Colour>
+			<TopLeft>229,22</TopLeft>
+		</Item>
+		
+		<Item>
+			<Type>RotatingBlock</Type>
+			<TopLeft>281,14</TopLeft>
+		</Item>
+		<Item>
+			<Type>RotatingBlock</Type>
+			<TopLeft>282,14</TopLeft>
+		</Item>
+		<Item>
+			<Type>RotatingBlock</Type>
+			<TopLeft>283,14</TopLeft>
+		</Item>
+		<Item>
+			<Type>RotatingBlock</Type>
+			<TopLeft>281,15</TopLeft>
+		</Item>
+		<Item>
+			<Type>PSwitch</Type>
+			<TopLeft>282,15</TopLeft>
+		</Item>
+		<Item>
+			<Type>RotatingBlock</Type>
+			<TopLeft>283,15</TopLeft>
+		</Item>
+		<Item>
+			<Type>RotatingBlock</Type>
+			<TopLeft>281,16</TopLeft>
+		</Item>
+		<Item>
+			<Type>RotatingBlock</Type>
+			<TopLeft>282,16</TopLeft>
+		</Item>
+		<Item>
+			<Type>RotatingBlock</Type>
+			<TopLeft>283,16</TopLeft>
+		</Item>
+		
+		<Item>
+			<Type>Coin</Type>
+			<TopLeft>285,19</TopLeft>
+		</Item>
+		<Item>
+			<Type>Coin</Type>
+			<TopLeft>286,18</TopLeft>
+		</Item>
+		<Item>
+			<Type>Coin</Type>
+			<TopLeft>287,17</TopLeft>
+		</Item>
+		<Item>
+			<Type>Coin</Type>
+			<TopLeft>288,16</TopLeft>
+		</Item>
+		<Item>
+			<Type>Coin</Type>
+			<TopLeft>289,16</TopLeft>
+		</Item>
+		<Item>
+			<Type>Coin</Type>
+			<TopLeft>290,16</TopLeft>
+		</Item>
+		<Item>
+			<Type>Coin</Type>
+			<TopLeft>291,16</TopLeft>
+		</Item>
+		<Item>
+			<Type>Coin</Type>
+			<TopLeft>292,16</TopLeft>
+		</Item>
+		<Item>
+			<Type>Coin</Type>
+			<TopLeft>293,16</TopLeft>
+		</Item>
+		<Item>
+			<Type>Coin</Type>
+			<TopLeft>294,16</TopLeft>
+		</Item>
+		<Item>
+			<Type>Coin</Type>
+			<TopLeft>295,16</TopLeft>
+		</Item>
+		<Item>
+			<Type>Coin</Type>
+			<TopLeft>296,16</TopLeft>
+		</Item>
+		<Item>
+			<Type>Coin</Type>
+			<TopLeft>297,16</TopLeft>
+		</Item>
+	</Items>
+	
+	
+	
+	<Enemies>
+	
+		<Enemy>
+			<Type>KoopaTroopa</Type>
+			<TopLeft>23,19</TopLeft>
+			<Colour>Red</Colour>
+		</Enemy>
+		<Enemy>
+			<Type>KoopaTroopa</Type>
+			<TopLeft>24,19</TopLeft>
+			<Colour>Red</Colour>
+		</Enemy>
+		<Enemy>
+			<Type>KoopaTroopa</Type>
+			<TopLeft>25,19</TopLeft>
+			<Colour>Red</Colour>
+		</Enemy>
+		<Enemy>
+			<Type>KoopaTroopa</Type>
+			<TopLeft>26,19</TopLeft>
+			<Colour>Red</Colour>
+		</Enemy>
+		<Enemy>
+			<Type>KoopaTroopa</Type>
+			<TopLeft>27,19</TopLeft>
+			<Colour>Red</Colour>
+		</Enemy>
+		<Enemy>
+			<Type>KoopaTroopa</Type>
+			<TopLeft>28,19</TopLeft>
+			<Colour>Red</Colour>
+		</Enemy>
+		<Enemy>
+			<Type>KoopaTroopa</Type>
+			<TopLeft>29,19</TopLeft>
+			<Colour>Red</Colour>
+		</Enemy>
+		<Enemy>
+			<Type>KoopaTroopa</Type>
+			<TopLeft>30,19</TopLeft>
+			<Colour>Red</Colour>
+		</Enemy>
+		
+		<Enemy>
+			<Type>KoopaTroopa</Type>
+			<TopLeft>83,21</TopLeft>
+			<Colour>Red</Colour>
+		</Enemy>
+		<Enemy>
+			<Type>KoopaTroopa</Type>
+			<TopLeft>104,21</TopLeft>
+			<Colour>Green</Colour>
+		</Enemy>
+	
+	<Enemy>
+			<Type>MontyMole</Type>
+			<TopLeft>193,18</TopLeft>
+			<SpawnLocationType>Wall</SpawnLocationType>
+		</Enemy>
+		<Enemy>
+			<Type>MontyMole</Type>
+			<TopLeft>216,21</TopLeft>
+			<SpawnLocationType>Wall</SpawnLocationType>
+		</Enemy>
+	</Enemies>
+	
+</LevelData>
+
+
+
+
+

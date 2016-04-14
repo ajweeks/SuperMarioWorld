@@ -14,6 +14,7 @@
 #include "LevelData.h"
 #include "SoundManager.h"
 #include "Player.h"
+#include "Enumerations.h"
 
 Font* Game::Font12Ptr = nullptr;
 
@@ -318,10 +319,10 @@ std::string Game::GetReadableSessionInfo(int sessionIndex)
 		if (startTag != std::string::npos)
 		{
 			currentSessionStream << "Started on:\n";
-			currentSessionStream << GetTagContent(currentSessionRaw, "Date", startTag);
-			currentSessionStream << GetTagContent(currentSessionRaw, "Time", startTag);
+			currentSessionStream << FileIO::GetTagContent(currentSessionRaw, "Date", startTag);
+			currentSessionStream << FileIO::GetTagContent(currentSessionRaw, "Time", startTag);
 
-			std::string playerLivesString = GetTagContent(currentSessionRaw, "PlayerLives", startTag);
+			std::string playerLivesString = FileIO::GetTagContent(currentSessionRaw, "PlayerLives", startTag);
 			if (playerLivesString.length() > 0)
 			{
 				currentSessionStream << "Player lives:\n";
@@ -334,10 +335,10 @@ std::string Game::GetReadableSessionInfo(int sessionIndex)
 		if (endTag != std::string::npos)
 		{
 			currentSessionStream << "Ended on:" << "\n";
-			currentSessionStream << GetTagContent(currentSessionRaw, "Date", endTag);
-			currentSessionStream << GetTagContent(currentSessionRaw, "Time", endTag);
+			currentSessionStream << FileIO::GetTagContent(currentSessionRaw, "Date", endTag);
+			currentSessionStream << FileIO::GetTagContent(currentSessionRaw, "Time", endTag);
 
-			std::string playerLivesString = GetTagContent(currentSessionRaw, "PlayerLives", endTag);
+			std::string playerLivesString = FileIO::GetTagContent(currentSessionRaw, "PlayerLives", endTag);
 			if (playerLivesString.length() > 0)
 			{
 				currentSessionStream << "Player lives:\n";
@@ -352,19 +353,4 @@ std::string Game::GetReadableSessionInfo(int sessionIndex)
 	{
 		return "No session info yet";
 	}
-}
-
-std::string Game::GetTagContent(std::string sessionString, std::string tagString, int startPos)
-{
-	std::string result;
-
-	int attributeBegin = sessionString.find("<" + tagString + ">", startPos) + std::string("<" + tagString + ">").length();
-	int attributeEnd = sessionString.find("</" + tagString + ">", attributeBegin);
-	if (attributeBegin == std::string::npos || attributeEnd == std::string::npos)
-	{
-		return "";
-	}
-	result = sessionString.substr(attributeBegin, attributeEnd - attributeBegin) + "\n";
-
-	return result;
 }

@@ -52,10 +52,14 @@ public:
 	std::vector<Enemy*> GetEnemies();
 
 private:
-	LevelData(String platforms, String pipes, String items, String enemies, Level* levelPtr);
+	LevelData(std::string platforms, std::string pipes, std::string items, std::string enemies, Level* levelPtr);
 
 	static LevelData* CreateLevelData(int levelIndex, Level* levelPtr);
 	static LevelData* m_LevelOneDataPtr;
+
+	// Everything is stored in terms of tile col/row, we need to multiply by
+	// this scale to get actual world coordinates
+	static const int TILE_SIZE = 16;
 
 	Level* m_LevelPtr = nullptr;
 
