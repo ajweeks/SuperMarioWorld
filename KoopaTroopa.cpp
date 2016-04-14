@@ -5,6 +5,8 @@
 #include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
 #include "SoundManager.h"
+#include "EnemyPoofParticle.h"
+#include "NumberParticle.h"
 
 KoopaTroopa::KoopaTroopa(DOUBLE2& startingPos, Level* levelPtr, COLOUR colour) :
 	Enemy(TYPE::KOOPA_TROOPA, startingPos, GetWidth(), GetHeight(), SpriteSheetManager::koopaTroopaPtr, BodyType::DYNAMIC, levelPtr, this),
@@ -280,11 +282,11 @@ void KoopaTroopa::ShellHit()
 
 void KoopaTroopa::StompKill()
 {
-	// LATER: Spawn following particles:
-	//		    - splat
-	//			- cloud thing?
-	//			- 4 yellow stars
-	//			- score
+	EnemyPoofParticle* poofParticlePtr = new EnemyPoofParticle(m_ActPtr->GetPosition());
+	m_LevelPtr->AddParticle(poofParticlePtr);
+
+	NumberParticle* numberParticlePtr = new NumberParticle(200, m_ActPtr->GetPosition());
+	m_LevelPtr->AddParticle(numberParticlePtr);
 
 	SoundManager::PlaySoundEffect(SoundManager::SOUND::ENEMY_HEAD_STOMP_START);
 	SoundManager::PlaySoundEffect(SoundManager::SOUND::ENEMY_HEAD_STOMP_END);
