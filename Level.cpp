@@ -210,6 +210,11 @@ void Level::Paint()
 	GAME_ENGINE->DrawString(String("pos: ") + m_PlayerPtr->GetPosition().ToString(), 10, 193);
 	GAME_ENGINE->DrawString(String("vel: ") + m_PlayerPtr->GetLinearVelocity().ToString(), 10, 203);
 	GAME_ENGINE->DrawString(String("onGround: ") + String(m_PlayerPtr->IsOnGround() ? "true" : "false"), 10, 213);
+
+	if (SoundManager::IsMuted())
+	{
+		GAME_ENGINE->DrawString(String("m"), 245, 195);
+	}
 #endif
 
 	GAME_ENGINE->SetViewMatrix(matTotalView);

@@ -17,6 +17,7 @@
 #include "Enumerations.h"
 
 Font* Game::Font12Ptr = nullptr;
+Font* Game::Font9Ptr = nullptr;
 
 MATRIX3X2 Game::matIdentity;
 
@@ -60,6 +61,7 @@ void Game::GameStart()
 
 	// TODO: Add mario fonts
 	Game::Font12Ptr = new Font(String("consolas"), 12);
+	Game::Font9Ptr = new Font(String("consolas"), 9);
 
 	matIdentity = MATRIX3X2::CreateScalingMatrix(WINDOW_SCALE);
 
@@ -115,6 +117,7 @@ void Game::GameEnd()
 	delete m_LevelPtr;
 
 	delete Font12Ptr;
+	delete Font9Ptr;
 
 	LevelData::Unload();
 	SpriteSheetManager::Unload();
@@ -181,11 +184,11 @@ void Game::GamePaint()
 		int x = Game::WIDTH - 107;
 		int y = 40;
 	
-		GAME_ENGINE->SetFont(Font12Ptr);
+		GAME_ENGINE->SetFont(Font9Ptr);
 		GAME_ENGINE->SetColor(COLOR(10, 10, 10, 160));
 		GAME_ENGINE->FillRect(x - 5, y - 5, x + 106, y + 140);
 
-		int dy = 15;
+		int dy = 11;
 		GAME_ENGINE->SetColor(COLOR(255,255,255));
 		std::stringstream stringStream(m_CurrentSessionInfo);
 		std::string currentLine;
@@ -320,29 +323,30 @@ std::string Game::GetReadableSessionInfo(int sessionIndex)
 		if (startTag != std::string::npos)
 		{
 			currentSessionStream << "Started on:\n";
-			currentSessionStream << FileIO::GetTagContent(currentSessionRaw, "Date", startTag);
-			currentSessionStream << FileIO::GetTagContent(currentSessionRaw, "Time", startTag);
+			currentSessionStream << FileIO::GetTagContent(currentSessionRaw, "Date", startTag) << "\n";
+			currentSessionStream << FileIO::GetTagContent(currentSessionRaw, "Time", startTag) << "\n";
 
 			std::string playerLivesString = FileIO::GetTagContent(currentSessionRaw, "PlayerLives", startTag);
 			if (playerLivesString.length() > 0)
 			{
-				currentSessionStream << "Player lives:\n";
+				currentSessionStream << "Player lives: ";
 				currentSessionStream << playerLivesString;
 				currentSessionStream << "\n";
 			}
 		}
+		currentSessionStream << "\n";
 
 		int endTag = currentSessionRaw.find("<End>") + std::string("<End>").length();
 		if (endTag != std::string::npos)
 		{
 			currentSessionStream << "Ended on:" << "\n";
-			currentSessionStream << FileIO::GetTagContent(currentSessionRaw, "Date", endTag);
-			currentSessionStream << FileIO::GetTagContent(currentSessionRaw, "Time", endTag);
+			currentSessionStream << FileIO::GetTagContent(currentSessionRaw, "Date", endTag) << "\n";
+			currentSessionStream << FileIO::GetTagContent(currentSessionRaw, "Time", endTag) << "\n";
 
 			std::string playerLivesString = FileIO::GetTagContent(currentSessionRaw, "PlayerLives", endTag);
 			if (playerLivesString.length() > 0)
 			{
-				currentSessionStream << "Player lives:\n";
+				currentSessionStream << "Player lives: ";
 				currentSessionStream << playerLivesString;
 				currentSessionStream << "\n";
 			}

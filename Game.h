@@ -50,6 +50,7 @@ public:
 	virtual void GameWindowResize(int width, int height);
 
 	static Font *Font12Ptr;
+	static Font *Font9Ptr;
 
 	// NOTE: How many pixels we have to work with, not how large the final window will be necessarily
 	static const int WIDTH = 256;
