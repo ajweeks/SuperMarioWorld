@@ -50,7 +50,11 @@ public:
 	int GetDirectionFacing();
 	bool IsOnGround();
 
+	// Called when the player bounces off an enemy's head
+	void Bounce();
+
 	void Die();
+	void TakeDamage();
 
 	void OnItemPickup(Item* itemPtr, Level* levelPtr);
 
@@ -76,13 +80,15 @@ private:
 	void ChangePowerupState(POWERUP_STATE newPowerupState, bool isUpgrade = true);
 	SpriteSheet* GetSpriteSheetForPowerupState(POWERUP_STATE powerupState);
 
-	void TakeDamage();
+	static const double DEFAULT_GRAVITY;
 
 	static const double WALK_SPEED;
 	static const double RUN_SPEED;
 
-	bool m_IsOnGround = true;
-	bool m_WasOnGround = true;
+	static const int BOUNCE_VEL = 150;
+
+	bool m_IsOnGround;
+	bool m_WasOnGround;
 	int m_FramesSpentInAir;
 
 	int m_Lives;

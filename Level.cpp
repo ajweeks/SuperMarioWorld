@@ -17,7 +17,6 @@
 // NOTE: Level::Reset *must* be called upon game initialization!
 Level::Level()
 {
-	// TODO: Make player extend Entity
 	m_PlayerPtr = new Player(this);
 
 	m_ActLevelPtr = new PhysicsActor(DOUBLE2(0, 0), 0, BodyType::STATIC);
@@ -196,7 +195,7 @@ void Level::Paint()
 	}
 
 #if 0
-	m_Camera->DEBUGPaint();
+	m_CameraPtr->DEBUGPaint();
 #endif
 
 #if 1
@@ -210,7 +209,6 @@ void Level::Paint()
 	GAME_ENGINE->SetViewMatrix(matTotalView);
 }
 
-// TODO: Make this scalable
 void Level::PaintHUD()
 {
 	int playerLives = m_PlayerPtr->GetLives();
@@ -302,7 +300,6 @@ void Level::PaintHUD()
 	PaintSeveralDigitNumber(x, y, playerScore, false);
 }
 
-// TODO: Just set a world matrix to print these instead of passing numbers
 // NOTE: The x coordinate specifies the placement of the right-most digit
 void PaintSeveralDigitNumber(int x, int y, int number, bool yellow)
 {
@@ -325,7 +322,6 @@ unsigned int Level::GetNumberOfDigits(unsigned int i)
 }
 
 // NOTE: If yellow is true, this returns the rect for a yellow number, otherwise for a white number
-// TODO: Fix slight issue with bitmap (6 appears to close to the left of the number next to it)
 RECT2 GetSmallSingleNumberSrcRect(int number, bool yellow)
 {
 	assert(number >= 0 && number <= 9);
@@ -377,9 +373,10 @@ RECT2 GetLargeSingleNumberSrcRect(int number)
  void Level::DEBUGPaintZoomedOut()
 {
 	MATRIX3X2 matCameraView = m_CameraPtr->GetViewMatrix(m_PlayerPtr, this);
-	MATRIX3X2 matZoom = MATRIX3X2::CreateScalingMatrix(0.25);
+	MATRIX3X2 matZoom = MATRIX3X2::CreateScalingMatrix(0.75);
 	MATRIX3X2 matCenterTranslate = MATRIX3X2::CreateTranslationMatrix(150, 160);
-	GAME_ENGINE->SetViewMatrix(matCameraView * matZoom * matCenterTranslate);
+	MATRIX3X2 matTotal = matCameraView * matZoom * matCenterTranslate;
+	GAME_ENGINE->SetViewMatrix(matTotal);
 
 	int bgWidth = SpriteSheetManager::levelOneBackgroundPtr->GetWidth();
 	double cameraX = -matCameraView.orig.x;
@@ -402,6 +399,9 @@ RECT2 GetLargeSingleNumberSrcRect(int number)
 	GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneForegroundPtr);
 
 	m_PlayerPtr->Paint();
+	m_LevelDataPtr->PaintItemsAndEnemies();
+	m_PlayerPtr->Paint();
+	m_ParticleManagerPtr->Paint();
 
 	// Draw camera outline
 	GAME_ENGINE->SetWorldMatrix(matCameraView.Inverse());
@@ -414,8 +414,8 @@ RECT2 GetLargeSingleNumberSrcRect(int number)
 	GAME_ENGINE->SetColor(COLOR(0, 0, 0));
 	GAME_ENGINE->DrawString(String("Player pos: ") + m_PlayerPtr->GetPosition().ToString(), 10, 10);
 
-	GAME_ENGINE->SetViewMatrix(matCameraView);
-}
+	GAME_ENGINE->SetViewMatrix(matTotal);
+ }
 
 bool Level::IsPlayerOnGround()
 {
@@ -456,6 +456,7 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 		{
 			break;
 		}
+
 		bool playerIsRising = actOtherPtr->GetLinearVelocity().y < -0.001;
 
 		switch (actThisPtr->GetUserData())
@@ -483,7 +484,7 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 			{
 			case Item::TYPE::P_SWITCH:
 			{
-				// LATER: Temporarily change all coins into blocks and vice versa
+				// TODO: Temporarily change all coins into blocks and vice versa
 			} break;
 			case Item::TYPE::PRIZE_BLOCK:
 			case Item::TYPE::MESSAGE_BLOCK:
@@ -517,7 +518,7 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 		} break;
 		}
 	} break;
-	case int(ActorId::ENEMY) :
+	case int(ActorId::ENEMY):
 	{
 		switch (actThisPtr->GetUserData())
 		{
@@ -586,7 +587,6 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 		case int(ActorId::LEVEL):
 		case int(ActorId::PIPE):
 		{
-			// TODO: Prevent player from jumping when running sideways into a vertical section of the level
 			m_IsPlayerOnGround = true;
 		} break;
 		case int(ActorId::ITEM):
@@ -639,21 +639,22 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 		case int(ActorId::ENEMY):
 		{
 			Enemy* enemyPtr = (Enemy*)actThisPtr->GetUserPointer();
+			DOUBLE2 enemyFeet = enemyPtr->GetPosition() + DOUBLE2(0, enemyPtr->GetHeight() / 2);
 			switch (enemyPtr->GetType())
 			{
 			case Enemy::TYPE::KOOPA_TROOPA:
 			{
-				if (playerFeet.y < enemyPtr->GetPosition().y)
+				if (playerFeet.y < enemyFeet.y)
 				{
 					if (m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::SPIN_JUMPING)
 					{
 						((KoopaTroopa*)enemyPtr)->StompKill();
+						m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetLinearVelocity().x, -55));
 					}
 					else
 					{
 						((KoopaTroopa*)enemyPtr)->HeadBonk();
-						// TODO: Create and call Player::Jump here instead?
-						m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetPosition().x, -150));
+						m_PlayerPtr->Bounce();
 					}
 				}
 				else
@@ -669,7 +670,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 					}
 					else
 					{
-						m_PlayerPtr->Die();
+						m_PlayerPtr->TakeDamage();
 					}
 				}
 			} break;
@@ -684,12 +685,12 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 					if (m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::SPIN_JUMPING)
 					{
 						((MontyMole*)enemyPtr)->StompKill();
+						m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetLinearVelocity().x, 0));
 					}
 					else
 					{
 						((MontyMole*)enemyPtr)->HeadBonk();
-						// TODO: Create and call Player::Jump here instead?
-						m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetPosition().x, -150));
+						m_PlayerPtr->Bounce();
 					}
 				}
 				else
@@ -711,17 +712,6 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 		{
 			switch (((Item*)actOtherPtr->GetUserPointer())->GetType())
 			{
-			case Item::TYPE::SUPER_MUSHROOM:
-			{
-				// TODO: FIXME: For some reason svg bodies don't seem to ever return true on IsPointInActor()
-				DOUBLE2 point(DOUBLE2(actOtherPtr->GetPosition().x + 32, actOtherPtr->GetPosition().y));
-				if (actThisPtr->IsPointInActor(point))
-				{
-					actOtherPtr->SetLinearVelocity(DOUBLE2(
-						-actOtherPtr->GetLinearVelocity().x,
-						actOtherPtr->GetLinearVelocity().y));
-				}
-			} break;
 			}
 		}
 	} break;

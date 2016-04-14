@@ -15,6 +15,7 @@
 // STATIC INITIALIZATIONS
 const double Player::WALK_SPEED = 25.0;
 const double Player::RUN_SPEED = 50.0;
+const double Player::DEFAULT_GRAVITY = 0.98;
 
 Player::Player(Level* levelPtr) : Entity(DOUBLE2(), SpriteSheetManager::smallMarioPtr, BodyType::DYNAMIC, levelPtr, this)
 {
@@ -116,8 +117,6 @@ void Player::Tick(double deltaTime)
 		if (m_FramesOfDeathAnimationElapsed == 40)
 		{
 			m_ActPtr->SetActive(true);
-			// TODO: Move gravity value out to a static const int
-			//m_ActPtr->SetGravityScale(0.98);
 			m_ActPtr->SetLinearVelocity(DOUBLE2(0, -420));
 		}
 
@@ -286,18 +285,18 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 				double gravityScale = (m_FramesSpentInAir / 12.0) * 0.5;
 
 				// NOTE: This ensures gravityScale is in the range [0, 0.98]
-				gravityScale = max(0.0, min(0.98, gravityScale));
+				gravityScale = max(0.0, min(DEFAULT_GRAVITY, gravityScale));
 
 				m_ActPtr->SetGravityScale(gravityScale);
 			}
 			else
 			{
-				m_ActPtr->SetGravityScale(0.98);
+				m_ActPtr->SetGravityScale(DEFAULT_GRAVITY);
 			}
 		}
 		else
 		{
-			m_ActPtr->SetGravityScale(0.98);
+			m_ActPtr->SetGravityScale(DEFAULT_GRAVITY);
 			if (m_AnimationState != ANIMATION_STATE::SPIN_JUMPING &&  
 				m_AnimationState != ANIMATION_STATE::DUCKING &&
 				m_AnimationState != ANIMATION_STATE::RUNNING)
@@ -720,6 +719,11 @@ void Player::AddLife()
 {
 	m_Lives++;
 	// LATER: Play sound here
+}
+
+void Player::Bounce()
+{
+	m_ActPtr->SetLinearVelocity(DOUBLE2(m_ActPtr->GetPosition().x, BOUNCE_VEL));
 }
 
 void Player::Die()
