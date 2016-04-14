@@ -1,11 +1,17 @@
 #include "stdafx.h"
 
-#include "Game.h"
 #include "Level.h"
+#include "Game.h"
 #include "Camera.h"
 #include "LevelData.h"
 #include "SpriteSheetManager.h"
 #include "SoundManager.h"
+
+#include "Platform.h"
+#include "Pipe.h"
+
+#include "Block.h"
+#include "RotatingBlock.h"
 #include "Particle.h"
 #include "ParticleManager.h"
 #include "Player.h"

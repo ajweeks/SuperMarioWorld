@@ -1,14 +1,17 @@
 #include "stdafx.h"
 
-#include "Game.h"
 #include "Player.h"
+#include "Game.h"
 #include "Enumerations.h"
 #include "SpriteSheetManager.h"
-#include "Entity.h"
+
 #include "SoundManager.h"
-#include "Particle.h"
 #include "DustParticle.h"
 #include "NumberParticle.h"
+
+#include "SuperMushroom.h"
+#include "Coin.h"
+#include "DragonCoin.h"
 
 #define ENTITY_MANAGER (EntityManager::GetInstance())
 

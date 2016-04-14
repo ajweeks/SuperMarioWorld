@@ -2,11 +2,9 @@
 
 #include "Enumerations.h"
 #include "SpriteSheet.h"
-#include "Entity.h"
-#include "GameItem.h"
+#include "Item.h"
 
 class Level;
-class SpriteSheet;
 class Entity;
 
 class Player : public Entity

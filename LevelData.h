@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Enumerations.h"
-#include "SpriteSheetManager.h"
-#include "SpriteSheet.h"
-#include "Entity.h"
-#include "GameItem.h"
-#include "Enemy.h"
+class Level;
+class Player;
+class Item;
+class Enemy;
+class Platform;
+class Pipe;
 
 #define GAME_ENGINE (GameEngine::GetSingleton())
 

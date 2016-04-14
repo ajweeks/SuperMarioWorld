@@ -1,9 +1,27 @@
 #include "stdafx.h"
 
 #include "LevelData.h"
+#include "Enumerations.h"
+#include "Level.h"
+
+#include "Entity.h"
+#include "Enemy.h"
 #include "MontyMole.h"
 #include "KoopaTroopa.h"
-#include "Enumerations.h"
+
+#include "Platform.h"
+#include "Pipe.h"
+#include "Item.h"
+#include "PrizeBlock.h"
+#include "RotatingBlock.h"
+#include "ExclamationMarkBlock.h"
+#include "SuperMushroom.h"
+#include "OneUpMushroom.h"
+#include "MessageBlock.h"
+#include "ThreeUpMoon.h"
+#include "Coin.h"
+#include "DragonCoin.h"
+#include "PSwitch.h"
 
 LevelData* LevelData::m_LevelOneDataPtr = nullptr;
 

@@ -3,9 +3,9 @@
 #include "ContactListener.h"
 
 class LevelData;
-struct Platform;
-struct Pipe;
-struct Item;
+class Platform;
+class Pipe;
+class Item;
 class Enemy;
 class Player;
 
