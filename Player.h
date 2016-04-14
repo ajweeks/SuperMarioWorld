@@ -85,7 +85,7 @@ private:
 	int m_DragonCoins;
 	int m_Stars;
 	int m_Score;
-	bool m_NeedsNewFixture = false;
+	bool m_NeedsNewFixture;
 
 	static const int FRAMES_OF_DEATH_ANIMATION = 240;
 	int m_FramesOfDeathAnimationElapsed;

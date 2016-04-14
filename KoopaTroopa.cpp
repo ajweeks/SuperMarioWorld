@@ -154,11 +154,12 @@ void KoopaTroopa::Paint()
 	{
 		MATRIX3X2 matReflect = MATRIX3X2::CreateScalingMatrix(DOUBLE2(xScale, yScale));
 		MATRIX3X2 matTranslate = MATRIX3X2::CreateTranslationMatrix(centerX, centerY);
-		GAME_ENGINE->SetWorldMatrix(matTranslate.Inverse() * matReflect * matTranslate * matPrevWorld);
+		MATRIX3X2 matTranslateInverse = MATRIX3X2::CreateTranslationMatrix(-centerX, -centerY);
+		GAME_ENGINE->SetWorldMatrix(matTranslateInverse * matReflect * matTranslate * matPrevWorld);
 	}
 
 	DOUBLE2 animationFrame = DetermineAnimationFrame();
-	double yo = (m_AnimationState == ANIMATION_STATE::WALKING ? -5 : -5);
+	double yo = -4.5;
 	m_SpriteSheetPtr->Paint(centerX, centerY + yo, animationFrame.x, animationFrame.y);
 
 	// TODO: Add crying particle for shelless koopas
@@ -179,7 +180,7 @@ DOUBLE2 KoopaTroopa::DetermineAnimationFrame()
 		row = 1;
 		break;
 	default:
-		OutputDebugString(String("Unhandled colour in KoopaTroopa::DetermineAnimationFrame\n"));
+		OutputDebugString(String("Unhandled colour in KoopaTroopa::DetermineAnimationFrame:") + String(int(m_Color)) + String("\n"));
 		break;
 	}
 

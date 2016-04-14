@@ -20,6 +20,9 @@ public:
 
 	static Bitmap* messageBox_01Ptr;
 	static Bitmap* messageBox_02Ptr;
+	
+	static Bitmap* starParticlePtr;
+	static Bitmap* splatParticlePtr;
 
 	static SpriteSheet* smallMarioPtr;
 	static SpriteSheet* superMarioPtr;
@@ -28,6 +31,7 @@ public:
 	static SpriteSheet* coinCollectParticlePtr;
 	static SpriteSheet* runningDustCloudParticlePtr;
 	static SpriteSheet* numberParticlePtr;
+	static SpriteSheet* enemyDeathCloudParticlePtr;
 
 	static SpriteSheet* montyMolePtr;
 	static SpriteSheet* koopaTroopaPtr;

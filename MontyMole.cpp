@@ -12,9 +12,8 @@
 
 MontyMole::MontyMole(DOUBLE2& startingPos, Level* levelPtr, SPAWN_LOCATION_TYPE spawnLocationType) :
 	Enemy(TYPE::MONTY_MOLE, startingPos, GetWidth(), GetHeight(), SpriteSheetManager::montyMolePtr, BodyType::DYNAMIC, levelPtr, this),
-	m_SpawnLocationType(spawnLocationType)
+	m_SpawnLocationType(spawnLocationType), m_SpawingPosition(startingPos)
 {
-	m_SpawingPosition = startingPos;
 	m_AnimationState = ANIMATION_STATE::INVISIBLE;
 	m_ActPtr->SetSensor(true);
 	m_ActPtr->SetActive(false);
@@ -40,7 +39,8 @@ void MontyMole::Tick(double deltaTime)
 	{
 	case ANIMATION_STATE::INVISIBLE:
 	{
-		if (abs(m_LevelPtr->GetPlayer()->GetPosition().x - m_SpawingPosition.x) < 50)
+		// TODO: Ensure this check is similar enough to the original's functionality
+		if (abs(m_LevelPtr->GetPlayer()->GetPosition().x - m_SpawingPosition.x) < 150)
 		{
 			m_AnimationState = ANIMATION_STATE::IN_GROUND;
 			
@@ -55,6 +55,7 @@ void MontyMole::Tick(double deltaTime)
 			m_AnimationState = ANIMATION_STATE::JUMPING_OUT_OF_GROUND;
 			m_ActPtr->SetSensor(false);
 			m_ActPtr->SetActive(true);
+			// TODO: Find out why moles only shoot up when the player is nearby them
 			m_ActPtr->SetLinearVelocity(DOUBLE2(0, -350));
 			m_FramesSpentWrigglingInTheDirt = -1;
 			m_HaveSpawnedMole = true;
@@ -142,7 +143,7 @@ void MontyMole::Tick(double deltaTime)
 		{
 			if (!m_HasBeenKilledByPlayer)
 			{
-				// LATER: Check if player is nearby and spawn new actor if so
+				// TODO: Check if player is nearby and spawn new actor if so
 			}
 		}
 	} break;
@@ -199,8 +200,8 @@ void MontyMole::Paint()
 	{
 		MATRIX3X2 matReflect = MATRIX3X2::CreateScalingMatrix(DOUBLE2(-1, 1));
 		MATRIX3X2 matTranslate = MATRIX3X2::CreateTranslationMatrix(centerX, centerY);
-		// TODO: See if creating an inverse matrix here manually would be more performant
-		GAME_ENGINE->SetWorldMatrix(matTranslate.Inverse() * matReflect * matTranslate * matPrevWorld);
+		MATRIX3X2 matTranslateInverse = MATRIX3X2::CreateTranslationMatrix(-centerX, -centerY);
+		GAME_ENGINE->SetWorldMatrix(matTranslateInverse * matReflect * matTranslate * matPrevWorld);
 	}
 
 	DOUBLE2 animationFrame = GetAnimationFrame();

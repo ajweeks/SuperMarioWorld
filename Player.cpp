@@ -30,7 +30,7 @@ Player::~Player()
 
 void Player::Reset()
 {
-	m_ActPtr->SetPosition(DOUBLE2(30, 366.6));
+	m_ActPtr->SetPosition(DOUBLE2(30, 343));
 	m_ActPtr->SetLinearVelocity(DOUBLE2(0, 0));
 	m_ActPtr->SetActive(true);
 	m_ActPtr->SetSensor(false);
@@ -123,6 +123,7 @@ void Player::Tick(double deltaTime)
 
 		if (m_FramesOfDeathAnimationElapsed > FRAMES_OF_DEATH_ANIMATION)
 		{
+			// LATER: Fix this, when the player dies their death count shoud not be reset
 			m_LevelPtr->Reset();
 		}
 	}
@@ -155,6 +156,8 @@ void Player::Tick(double deltaTime)
 	{
 		m_ExtraItemToBeSpawnedType = Item::TYPE::NONE;
 
+		delete m_ExtraItemPtr;
+
 		// NOTE: It doesn't matter where we spawn it because it will correct its pos in the next tick
 		SuperMushroom* extraSuperMushroomPtr = new SuperMushroom(DOUBLE2(), m_LevelPtr, 1, true);
 
@@ -177,7 +180,7 @@ void Player::Tick(double deltaTime)
 			m_ActPtr->GetBody()->DestroyFixture(fixturePtr);
 			fixturePtr = nextFixturePtr;
 		} 
-		m_ActPtr->AddBoxFixture(GetWidth(), GetHeight(), 0.0);
+		m_ActPtr->AddBoxFixture(GetWidth(), GetHeight(), 0.0, 0.15);
 
 		double newHalfHeight = GetHeight() / 2;
 
@@ -211,12 +214,12 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 		return; // NOTE: The player can't do much now...
 	}
 
-	double jumpVelocity = -16000;
+	double jumpVelocity = -16000 * deltaTime;
 	double verticalVel = 0.0;
 
 	// TODO: Use a variable run speed (with acceleration)
-	double walkVel = 6500;
-	double runVel = 10500;
+	double walkVel = 5000 * deltaTime;
+	double runVel = 9500 * deltaTime;
 	double horizontalVel = 0.0;
 
 	if (m_AnimationState == ANIMATION_STATE::DUCKING && 
@@ -295,6 +298,7 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 		}
 	}
 
+	// TODO: Fix running to walking animation update bug
 	if (GAME_ENGINE->IsKeyboardKeyDown(VK_LEFT))
 	{
 		m_DirFacing = FacingDirection::LEFT;
@@ -321,10 +325,6 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 		}
 		horizontalVel = walkVel;
 	}
-	//else
-	//{
-	//	horizontalVel = 0.0; // No x input means no horizontal velocity
-	//}
 
 	if (horizontalVel != 0.0)
 	{
@@ -365,7 +365,6 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 		}
 	}
 
-	// If we're not moving:
 	if (horizontalVel == 0.0 &&
 		verticalVel == 0.0 && 
 		abs(m_ActPtr->GetLinearVelocity().x) < 0.001 &&
@@ -376,7 +375,6 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 			m_AnimationState != ANIMATION_STATE::SPIN_JUMPING &&
 			m_AnimationState != ANIMATION_STATE::LOOKING_UPWARDS)
 		{
-			// We're waiting
 			m_AnimationState = ANIMATION_STATE::WAITING;
 		}
 	}
@@ -392,16 +390,31 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 		}
 	}
 
-	DOUBLE2 newVel = m_ActPtr->GetLinearVelocity();
+	DOUBLE2 oldVel = m_ActPtr->GetLinearVelocity();
+	DOUBLE2 newVel = oldVel;
 	if (horizontalVel != 0.0) 
 	{
 		if (m_DirFacing == FacingDirection::LEFT) horizontalVel = -horizontalVel;
-		newVel.x = horizontalVel * deltaTime;
+		newVel.x = horizontalVel;
 	}
 	if (verticalVel != 0.0) 
 	{
-		newVel.y = verticalVel * deltaTime;
+		newVel.y = verticalVel;
 	}
+
+	double maxHorizontalAcceleration = 14;
+	if (abs(oldVel.x - newVel.x) > maxHorizontalAcceleration)
+	{
+		if (newVel.x > oldVel.x)
+		{
+			newVel.x = oldVel.x + maxHorizontalAcceleration;
+		}
+		else
+		{
+			newVel.x = oldVel.x - maxHorizontalAcceleration;
+		}
+	}
+
 	m_ActPtr->SetLinearVelocity(newVel);
 
 	m_WasOnGround = m_IsOnGround;
@@ -708,8 +721,6 @@ void Player::Die()
 	m_AnimationState = ANIMATION_STATE::DYING;
 
 	m_ActPtr->SetSensor(true);
-
-	// TODO: Pause player input
 	
 	SoundManager::SetAllSongsPaused(true);
 	SoundManager::PlaySoundEffect(SoundManager::SOUND::PLAYER_DEATH);

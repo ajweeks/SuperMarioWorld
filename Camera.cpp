@@ -46,7 +46,7 @@ DOUBLE2 Camera::GetOffset(Player* playerPtr, Level* levelPtr)
 			m_XOffset = MAX_OFFSET;
 		}
 	}
-	else // The player is facing right
+	else if (playerPtr->GetDirectionFacing() == FacingDirection::RIGHT)
 	{
 		if (m_XOffset == -(MAX_OFFSET - m_Width))
 		{
@@ -62,11 +62,13 @@ DOUBLE2 Camera::GetOffset(Player* playerPtr, Level* levelPtr)
 	double epsilon = 0.001;
 	double panSpeed = 0.25;
 	double difference = abs(m_TargetOffset.x - m_PrevTranslation.x);
+
+	// We will overshoot if we use the whole panSpeed, just use the difference
 	if (difference < panSpeed)
 	{
 		panSpeed = difference;
 	}
-	if (difference > epsilon)
+	if (panSpeed > epsilon)
 	{
 		if (m_TargetOffset.x > m_PrevTranslation.x)
 		{
