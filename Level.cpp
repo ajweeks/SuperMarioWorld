@@ -111,7 +111,13 @@ void Level::Tick(double deltaTime)
 		TogglePaused();
 		SoundManager::PlaySoundEffect(SoundManager::SOUND::GAME_PAUSE);
 	}
-	if (m_Paused || m_ShowingMessage) return;
+	if (m_Paused && m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::DYING)
+	{
+		// NOTE: The player needs to still be ticked so they can animate
+		m_PlayerPtr->Tick(deltaTime);
+		return;
+	}
+	else if (m_Paused || m_ShowingMessage) return;
 
 	m_SecondsElapsed += (deltaTime);
 	
