@@ -18,7 +18,7 @@ void ExclamationMarkBlock::Tick(double deltaTime)
 {
 	if (m_ShouldSpawnSuperMushroom)
 	{
-		Item* newItem = new SuperMushroom(m_ActPtr->GetPosition() - DOUBLE2(WIDTH / 2, 1.5*HEIGHT), m_LevelPtr);
+		Item* newItem = new SuperMushroom(m_ActPtr->GetPosition() - DOUBLE2(SuperMushroom::WIDTH / 2, HEIGHT / 2 + 2), m_LevelPtr);
 		newItem->AddContactListener(m_LevelPtr);
 		m_LevelPtr->AddItem(newItem);
 

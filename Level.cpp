@@ -17,6 +17,7 @@
 #include "Player.h"
 #include "KoopaTroopa.h"
 #include "MontyMole.h"
+#include "SuperMushroom.h"
 
 #define GAME_ENGINE (GameEngine::GetSingleton())
 
@@ -521,6 +522,13 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 						enableContactRef = false;
 					}
 				}
+			}
+		} break;
+		case Item::TYPE::SUPER_MUSHROOM:
+		{
+			if (((SuperMushroom*)otherItemPtr)->IsAnimating())
+			{
+				enableContactRef = false;
 			}
 		} break;
 		}
