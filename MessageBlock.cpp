@@ -4,6 +4,7 @@
 #include "Game.h"
 #include "Level.h"
 #include "SoundManager.h"
+#include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
 
 int MessageBlock::m_BitmapWidth = -1;
@@ -54,7 +55,7 @@ void MessageBlock::Paint()
 	double srcRow = 9;
 	double left = m_ActPtr->GetPosition().x;
 	double top = m_ActPtr->GetPosition().y;
-	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
+	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);
 
 	int yo = 32;
 	GAME_ENGINE->SetColor(COLOR(0, 0, 0));

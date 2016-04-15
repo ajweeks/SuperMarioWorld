@@ -2,6 +2,7 @@
 
 #include "SuperMushroom.h"
 #include "Game.h"
+#include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
 
 SuperMushroom::SuperMushroom(DOUBLE2 topLeft, Level* levelPtr, int directionFacing, bool isStatic) :
@@ -58,6 +59,6 @@ void SuperMushroom::Paint()
 	double top = m_ActPtr->GetPosition().y + 2;
 	double srcCol = 2;
 	double srcRow = 12;
+		SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);
 
-	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
 }

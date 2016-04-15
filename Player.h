@@ -78,6 +78,8 @@ private:
 	void ChangePowerupState(POWERUP_STATE newPowerupState, bool isUpgrade = true);
 	SpriteSheet* GetSpriteSheetForPowerupState(POWERUP_STATE powerupState);
 
+	SpriteSheet* m_SpriteSheetPtr = nullptr;
+
 	static const double DEFAULT_GRAVITY;
 
 	static const double WALK_SPEED;

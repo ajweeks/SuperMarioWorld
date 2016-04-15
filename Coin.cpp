@@ -4,6 +4,7 @@
 #include "Level.h"
 #include "NumberParticle.h"
 #include "CoinCollectParticle.h"
+#include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
 
 // NOTE: If 'life == -1', this coin has an infinite lifetime (until the player picks it up), 
@@ -65,5 +66,5 @@ void Coin::Paint()
 	double srcRow = 0;
 	double left = m_ActPtr->GetPosition().x;
 	double top = m_ActPtr->GetPosition().y;
-	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
+	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);
 }

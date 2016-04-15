@@ -162,11 +162,6 @@ void Level::RemoveEnemy(Enemy* enemyPtr)
 
 void Level::Paint()
 {
-#if 0
-	DEBUGPaintZoomedOut();
-	return;
-#endif
-
 	MATRIX3X2 matPreviousView = GAME_ENGINE->GetViewMatrix();
 
 	MATRIX3X2 matCameraView = m_CameraPtr->GetViewMatrix(m_PlayerPtr, this);
@@ -180,9 +175,13 @@ void Level::Paint()
 	xo += (int(cameraX - xo) / bgWidth) * bgWidth;
 
 	GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneBackgroundPtr, DOUBLE2(xo, 0));
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneBackgroundPtr, DOUBLE2(xo + bgWidth, 0));
+	if (Game::WIDTH - (cameraX - xo) < 0)
+	{
+		GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneBackgroundPtr, DOUBLE2(xo + bgWidth, 0));
+	}
 
 	GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneForegroundPtr);
+
 
 	m_LevelDataPtr->PaintItemsAndEnemies();
 
@@ -191,6 +190,11 @@ void Level::Paint()
 	m_ParticleManagerPtr->Paint();
 
 	GAME_ENGINE->SetViewMatrix(Game::matIdentity);
+
+#ifdef DEBUG_ZOOM_OUT
+	GAME_ENGINE->SetColor(COLOR(250, 10, 10));
+	GAME_ENGINE->DrawRect(0, 0, Game::WIDTH, Game::HEIGHT, 2.5);
+#endif
 
 	PaintHUD();
 
@@ -210,12 +214,12 @@ void Level::Paint()
 	GAME_ENGINE->DrawString(String("pos: ") + m_PlayerPtr->GetPosition().ToString(), 10, 193);
 	GAME_ENGINE->DrawString(String("vel: ") + m_PlayerPtr->GetLinearVelocity().ToString(), 10, 203);
 	GAME_ENGINE->DrawString(String("onGround: ") + String(m_PlayerPtr->IsOnGround() ? "true" : "false"), 10, 213);
+#endif
 
 	if (SoundManager::IsMuted())
 	{
 		GAME_ENGINE->DrawString(String("m"), 245, 195);
 	}
-#endif
 
 	GAME_ENGINE->SetViewMatrix(matTotalView);
 }
@@ -380,53 +384,6 @@ RECT2 GetLargeSingleNumberSrcRect(int number)
 
 	return result;
 }
-
- void Level::DEBUGPaintZoomedOut()
-{
-	MATRIX3X2 matCameraView = m_CameraPtr->GetViewMatrix(m_PlayerPtr, this);
-	MATRIX3X2 matZoom = MATRIX3X2::CreateScalingMatrix(0.75);
-	MATRIX3X2 matCenterTranslate = MATRIX3X2::CreateTranslationMatrix(150, 160);
-	MATRIX3X2 matTotal = matCameraView * matZoom * matCenterTranslate;
-	GAME_ENGINE->SetViewMatrix(matTotal);
-
-	int bgWidth = SpriteSheetManager::levelOneBackgroundPtr->GetWidth();
-	double cameraX = -matCameraView.orig.x;
-
-	double parallax = (1.0 - 0.65); // 65% of the speed of the camera
-	int xo = int(cameraX*parallax);
-	xo += (int(cameraX - xo) / bgWidth) * bgWidth;
-
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneBackgroundPtr, DOUBLE2(xo, 0));
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneBackgroundPtr, DOUBLE2(xo + bgWidth, 0));
-
-	int nearestBoundary = int(cameraX - (int(cameraX) % bgWidth));
-	GAME_ENGINE->SetColor(COLOR(200, 20, 20));
-	GAME_ENGINE->DrawLine(nearestBoundary, 0, nearestBoundary, 5000, 5);
-	GAME_ENGINE->DrawLine(nearestBoundary + bgWidth, 0, nearestBoundary + bgWidth, 5000, 5);
-
-	GAME_ENGINE->SetColor(COLOR(20, 20, 20));
-	GAME_ENGINE->DrawLine(xo + bgWidth, 0, xo + bgWidth, 5000, 5);
-
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneForegroundPtr);
-
-	m_PlayerPtr->Paint();
-	m_LevelDataPtr->PaintItemsAndEnemies();
-	m_PlayerPtr->Paint();
-	m_ParticleManagerPtr->Paint();
-
-	// Draw camera outline
-	GAME_ENGINE->SetWorldMatrix(matCameraView.Inverse());
-	GAME_ENGINE->SetColor(COLOR(20, 20, 200));
-	GAME_ENGINE->DrawRect(5, 5, Game::WIDTH - 5, Game::HEIGHT - 5, 5);
-	GAME_ENGINE->SetWorldMatrix(Game::matIdentity);
-
-	GAME_ENGINE->SetViewMatrix(Game::matIdentity);
-
-	GAME_ENGINE->SetColor(COLOR(0, 0, 0));
-	GAME_ENGINE->DrawString(String("Player pos: ") + m_PlayerPtr->GetPosition().ToString(), 10, 10);
-
-	GAME_ENGINE->SetViewMatrix(matTotal);
- }
 
 bool Level::IsPlayerOnGround()
 {

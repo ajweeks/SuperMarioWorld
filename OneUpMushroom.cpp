@@ -1,6 +1,7 @@
 #include "stdafx.h"
 
 #include "OneUpMushroom.h"
+#include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
 
 OneUpMushroom::OneUpMushroom(DOUBLE2 topLeft, Level* levelPtr) :
@@ -19,5 +20,5 @@ void OneUpMushroom::Paint()
 	double srcCol = 2;
 	double srcRow = 12;
 
-	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
+	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);
 }

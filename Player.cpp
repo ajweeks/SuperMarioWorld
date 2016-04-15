@@ -20,7 +20,7 @@ const double Player::WALK_SPEED = 25.0;
 const double Player::RUN_SPEED = 50.0;
 const double Player::DEFAULT_GRAVITY = 0.98;
 
-Player::Player(Level* levelPtr) : Entity(DOUBLE2(), SpriteSheetManager::smallMarioPtr, BodyType::DYNAMIC, levelPtr, this)
+Player::Player(Level* levelPtr) : Entity(DOUBLE2(), BodyType::DYNAMIC, levelPtr, this)
 {
 	Reset();
 
@@ -97,10 +97,10 @@ int Player::GetHeight()
 
 void Player::Tick(double deltaTime)
 {
-#if SMW_ENABLE_JUMP_TO
+#ifdef SMW_ENABLE_JUMP_TO
 	if (GAME_ENGINE->IsKeyboardKeyPressed('O'))
 	{
-		m_ActPtr->SetPosition(DOUBLE2(SMW_JUMP_TO_POS_X, 365));
+		m_ActPtr->SetPosition(DOUBLE2(SMW_JUMP_TO_POS_X, 250));
 	}
 #endif
 
@@ -170,7 +170,7 @@ void Player::Tick(double deltaTime)
 		delete m_ExtraItemPtr;
 
 		// NOTE: It doesn't matter where we spawn it because it will correct its pos in the next tick
-		SuperMushroom* extraSuperMushroomPtr = new SuperMushroom(DOUBLE2(), m_LevelPtr, 1, true);
+		SuperMushroom* extraSuperMushroomPtr = new SuperMushroom(DOUBLE2(), m_LevelPtr, FacingDirection::RIGHT, true);
 
 		m_ExtraItemPtr = extraSuperMushroomPtr;
 	}

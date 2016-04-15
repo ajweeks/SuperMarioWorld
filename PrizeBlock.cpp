@@ -3,6 +3,7 @@
 #include "PrizeBlock.h"
 #include "Coin.h"
 #include "Level.h"
+#include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
 #include "SoundManager.h"
 
@@ -63,7 +64,7 @@ void PrizeBlock::Paint()
 
 	double left = m_ActPtr->GetPosition().x;
 	double top = m_ActPtr->GetPosition().y + m_yo * 3;
-	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
+	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);
 }
 
 void PrizeBlock::Hit(Level* levelPtr)

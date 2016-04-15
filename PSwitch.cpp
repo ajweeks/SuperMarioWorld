@@ -1,6 +1,7 @@
 #include "stdafx.h"
 
 #include "PSwitch.h"
+#include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
 
 PSwitch::PSwitch(DOUBLE2 topLeft, COLOUR colour, Level* levelPtr) :
@@ -22,5 +23,5 @@ void PSwitch::Paint()
 	{
 		srcCol += 1;
 	}
-	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
+	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);
 }

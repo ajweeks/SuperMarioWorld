@@ -4,6 +4,7 @@
 #include "NumberParticle.h"
 #include "CoinCollectParticle.h"
 #include "Level.h"
+#include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
 
 // NOTE: Dragon coins always haev infinite life, therefore -1 as life param
@@ -35,6 +36,6 @@ void DragonCoin::Paint()
 	double top = m_ActPtr->GetPosition().y;
 	// NOTE: Dragon coins are two tiles tall, we could draw both at once of course 
 	// but drawing each half seperately is perhaps a bit simpler
-	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
-	m_SpriteSheetPtr->Paint(left, top + Coin::HEIGHT, srcCol, srcRow + 1);
+	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);
+	SpriteSheetManager::generalTilesPtr->Paint(left, top + Coin::HEIGHT, srcCol, srcRow + 1);
 }

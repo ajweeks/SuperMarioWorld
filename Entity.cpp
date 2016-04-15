@@ -1,13 +1,14 @@
 #include "stdafx.h"
 
 #include "Entity.h"
+#include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
 
 #define GAME_ENGINE (GameEngine::GetSingleton())
 
-Entity::Entity(DOUBLE2& posRef, SpriteSheet* spriteSheetPtr, BodyType bodyType, 
+Entity::Entity(DOUBLE2& posRef, BodyType bodyType, 
 	Level* levelPtr, void* userPointer, DOUBLE2& initialVelRef) :
-	m_SpriteSheetPtr(spriteSheetPtr), m_LevelPtr(levelPtr)
+	m_LevelPtr(levelPtr)
 {
 	m_ActPtr = new PhysicsActor(posRef, 0, bodyType);
 	if (userPointer != nullptr)

@@ -1,6 +1,7 @@
 #include "stdafx.h"
 
 #include "CapeFeather.h"
+#include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
 
 CapeFeather::CapeFeather(DOUBLE2 topLeft, Level* levelPtr) :
@@ -21,5 +22,5 @@ void CapeFeather::Paint()
 	double srcCol = 3;
 	double srcRow = 8;
 
-	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
+	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);
 }

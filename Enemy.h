@@ -11,7 +11,7 @@ public:
 		NONE, KOOPA_TROOPA, CHARGIN_CHUCK, PIRHANA_PLANT, MONTY_MOLE, // POKEY, BULLET_BILL, DRY_BONES, BOO
 	};
 
-	Enemy(TYPE type, DOUBLE2& posRef, double width, double height, SpriteSheet* spriteSheetPtr, BodyType bodyType,
+	Enemy(TYPE type, DOUBLE2& posRef, double width, double height, BodyType bodyType,
 		Level* levelPtr, void* userPointer = nullptr);
 	virtual ~Enemy();
 

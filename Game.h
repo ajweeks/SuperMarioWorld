@@ -21,7 +21,9 @@
 
 #define GAME_ENGINE (GameEngine::GetSingleton())
 
-#define SMW_ENABLE_JUMP_TO true
+//#define DEBUG_ZOOM_OUT
+
+#define SMW_ENABLE_JUMP_TO
 #define SMW_JUMP_TO_POS_X 3300
 
 #define ARRAY_SIZE(array) (sizeof((array))/sizeof((array[0])))

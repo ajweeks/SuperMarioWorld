@@ -11,7 +11,7 @@
 #include "BlockBreakParticle.h"
 
 MontyMole::MontyMole(DOUBLE2& startingPos, Level* levelPtr, SPAWN_LOCATION_TYPE spawnLocationType) :
-	Enemy(TYPE::MONTY_MOLE, startingPos, GetWidth(), GetHeight(), SpriteSheetManager::montyMolePtr, BodyType::DYNAMIC, levelPtr, this),
+	Enemy(TYPE::MONTY_MOLE, startingPos, GetWidth(), GetHeight(), BodyType::DYNAMIC, levelPtr, this),
 	m_SpawnLocationType(spawnLocationType), m_SpawingPosition(startingPos)
 {
 	m_AnimationState = ANIMATION_STATE::INVISIBLE;
@@ -205,7 +205,7 @@ void MontyMole::Paint()
 	}
 
 	DOUBLE2 animationFrame = GetAnimationFrame();
-	m_SpriteSheetPtr->Paint(centerX, centerY + 2, animationFrame.x, animationFrame.y);
+	SpriteSheetManager::montyMolePtr->Paint(centerX, centerY + 2, animationFrame.x, animationFrame.y);
 	
 	GAME_ENGINE->SetWorldMatrix(matPrevWorld);
 

@@ -65,6 +65,10 @@ void Game::GameStart()
 
 	matIdentity = MATRIX3X2::CreateScalingMatrix(WINDOW_SCALE);
 
+#ifdef DEBUG_ZOOM_OUT
+	matIdentity = MATRIX3X2::CreateScalingMatrix(0.65) * MATRIX3X2::CreateTranslationMatrix(150, 0);
+#endif
+
 	m_LevelPtr = new Level();
 
 	m_AllSessionInfo = ReadSessionInfoFromFile();

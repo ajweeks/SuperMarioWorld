@@ -1,6 +1,7 @@
 #include "stdafx.h"
 
 #include "FireFlower.h"
+#include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
 
 FireFlower::FireFlower(DOUBLE2 topLeft, Level* levelPtr) :
@@ -19,5 +20,5 @@ void FireFlower::Paint()
 	double srcCol = 4 + m_AnimInfo.frameNumber;
 	double srcRow = 13;
 
-	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
+	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);
 }

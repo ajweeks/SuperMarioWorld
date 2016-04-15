@@ -10,7 +10,7 @@
 #include "NumberParticle.h"
 
 KoopaTroopa::KoopaTroopa(DOUBLE2& startingPos, Level* levelPtr, COLOUR colour) :
-	Enemy(TYPE::KOOPA_TROOPA, startingPos, GetWidth(), GetHeight(), SpriteSheetManager::koopaTroopaPtr, BodyType::DYNAMIC, levelPtr, this),
+	Enemy(TYPE::KOOPA_TROOPA, startingPos, GetWidth(), GetHeight(), BodyType::DYNAMIC, levelPtr, this),
 	m_Color(colour)
 {
 	m_DirFacing = FacingDirection::LEFT;
@@ -161,7 +161,7 @@ void KoopaTroopa::Paint()
 
 	DOUBLE2 animationFrame = DetermineAnimationFrame();
 	double yo = -4.5;
-	m_SpriteSheetPtr->Paint(centerX, centerY + yo, animationFrame.x, animationFrame.y);
+	SpriteSheetManager::koopaTroopaPtr->Paint(centerX, centerY + yo, animationFrame.x, animationFrame.y);
 
 	// TODO: Add crying particle for shelless koopas
 

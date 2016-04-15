@@ -1,6 +1,7 @@
 #include "stdafx.h"
 
 #include "ThreeUpMoon.h"
+#include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
 
 ThreeUpMoon::ThreeUpMoon(DOUBLE2 topLeft, Level* levelPtr) :
@@ -19,5 +20,5 @@ void ThreeUpMoon::Paint()
 	double srcCol = 3;
 	double srcRow = 7;
 
-	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
+	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);
 }

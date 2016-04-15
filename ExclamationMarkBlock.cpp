@@ -3,10 +3,11 @@
 #include "ExclamationMarkBlock.h"
 #include "SuperMushroom.h"
 #include "Level.h"
+#include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
 #include "SoundManager.h"
 
-ExclamationMarkBlock::ExclamationMarkBlock(DOUBLE2 topLeft, COLOUR colour, bool isSolid, Level* levelPtr) :
+ExclamationMarkBlock::ExclamationMarkBlock(DOUBLE2 topLeft, COLOUR colour, bool isSolid, Level* levelPtr):
 	Block(topLeft, TYPE::EXCLAMATION_MARK_BLOCK, levelPtr), m_Colour(colour)
 {
 	m_AnimInfo.frameNumber = 0;
@@ -64,7 +65,7 @@ void ExclamationMarkBlock::Paint()
 
 	double left = m_ActPtr->GetPosition().x;
 	double top = m_ActPtr->GetPosition().y + m_yo * 3;
-	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
+	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);
 }
 
 void ExclamationMarkBlock::SetSolid(bool solid)

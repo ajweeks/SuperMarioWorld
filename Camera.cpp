@@ -23,7 +23,7 @@ void Camera::Reset()
 
 DOUBLE2 Camera::GetOffset(Player* playerPtr, Level* levelPtr)
 {
-#if SMW_ENABLE_JUMP_TO
+#ifdef SMW_ENABLE_JUMP_TO
 	if (GAME_ENGINE->IsKeyboardKeyPressed('O'))
 	{
 		m_PrevTranslation.x = SMW_JUMP_TO_POS_X - Game::WIDTH / 2;

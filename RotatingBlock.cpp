@@ -1,6 +1,7 @@
 #include "stdafx.h"
 
 #include "RotatingBlock.h"
+#include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
 #include "SoundManager.h"
 
@@ -34,7 +35,7 @@ void RotatingBlock::Paint()
 	double srcRow = 5;
 	double left = m_ActPtr->GetPosition().x;
 	double top = m_ActPtr->GetPosition().y;
-	m_SpriteSheetPtr->Paint(left, top, srcCol, srcRow);
+	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);
 }
 
 void RotatingBlock::Hit(Level* levelPtr)
