@@ -39,5 +39,4 @@ public :
 
 	// NOTE(AJ): I added the following functions to this class
 	virtual void GameSetSleeping(bool sleeping) = 0;
-	virtual void GameWindowResize(int width, int height) = 0;
 };

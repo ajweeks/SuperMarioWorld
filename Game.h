@@ -49,7 +49,6 @@ public:
 	virtual void GamePaint();
 
 	virtual void GameSetSleeping(bool sleeping);
-	virtual void GameWindowResize(int width, int height);
 
 	static Font *Font12Ptr;
 	static Font *Font9Ptr;

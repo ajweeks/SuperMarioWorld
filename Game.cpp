@@ -109,11 +109,6 @@ void Game::GameSetSleeping(bool sleeping)
 	}
 }
 
-void Game::GameWindowResize(int width, int height)
-{
-	// TODO: Fix window resizing
-}
-
 void Game::GameEnd()
 {
 	WriteSessionInfoToFile(false);
