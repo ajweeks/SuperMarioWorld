@@ -55,7 +55,7 @@ Item::TYPE Item::StringToTYPE(std::string string)
 	if (!string.compare("None")) return TYPE::NONE;
 	else if (!string.compare("Coin")) return TYPE::COIN;
 	else if (!string.compare("DragonCoin")) return TYPE::DRAGON_COIN;
-	else if (!string.compare("Berry")) TYPE::BERRY;
+	else if (!string.compare("Berry")) return TYPE::BERRY;
 	else if (!string.compare("KoopaShell")) return TYPE::KOOPA_SHELL;
 	else if (!string.compare("Key")) return TYPE::KEY;
 	else if (!string.compare("Keyhole")) return TYPE::KEYHOLE;
@@ -76,4 +76,12 @@ Item::TYPE Item::StringToTYPE(std::string string)
 		OutputDebugString(String("ERROR: Unhandled item type in Item::TYPEToString: ") + String(string.c_str()) + String("\n"));
 	}
 	return TYPE::NONE;
+}
+
+bool Item::IsBlock()
+{
+	return (m_Type == TYPE::EXCLAMATION_MARK_BLOCK ||
+			m_Type == TYPE::MESSAGE_BLOCK ||
+			m_Type == TYPE::PRIZE_BLOCK ||
+			m_Type == TYPE::ROTATING_BLOCK);
 }

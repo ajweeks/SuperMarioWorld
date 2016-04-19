@@ -34,7 +34,7 @@ Player::~Player()
 
 void Player::Reset()
 {
-	m_ActPtr->SetPosition(DOUBLE2(30, 343));
+	m_ActPtr->SetPosition(DOUBLE2(30, 341));
 	m_ActPtr->SetLinearVelocity(DOUBLE2(0, 0));
 	m_ActPtr->SetActive(true);
 	m_ActPtr->SetSensor(false);

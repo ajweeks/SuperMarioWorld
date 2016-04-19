@@ -5,8 +5,8 @@
 #include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
 
-BlockChunk::BlockChunk(DOUBLE2& positionRef, DOUBLE2& velocityRef) :
-	m_Position(positionRef), m_Velocity(velocityRef)
+BlockChunk::BlockChunk(DOUBLE2 position, DOUBLE2 velocity) :
+	m_Position(position), m_Velocity(velocity)
 {
 	m_BlockType = rand() % 4;
 	m_TypeTimer = rand() % 4 + 1;
@@ -44,14 +44,14 @@ RECT2 BlockChunk::GetBlockParticleSrcRect(int index)
 
 
 
-BlockBreakParticle::BlockBreakParticle(DOUBLE2& positionRef) : Particle(LIFETIME, positionRef)
+BlockBreakParticle::BlockBreakParticle(DOUBLE2 centerPos) : Particle(LIFETIME, centerPos)
 {
-	double xv = 40;
-
-	m_BlockChunkPtrArr[0] = new BlockChunk(positionRef, DOUBLE2(-xv, -280));
-	m_BlockChunkPtrArr[1] = new BlockChunk(positionRef, DOUBLE2(-xv, -160));
-	m_BlockChunkPtrArr[2] = new BlockChunk(positionRef, DOUBLE2(xv, -280));
-	m_BlockChunkPtrArr[3] = new BlockChunk(positionRef, DOUBLE2(xv, -160));
+	int offsetX = 2;
+	int offsetY = 2;
+	m_BlockChunkPtrArr[0] = new BlockChunk(centerPos + DOUBLE2(-offsetX, offsetY), DOUBLE2(-40, -280));
+	m_BlockChunkPtrArr[1] = new BlockChunk(centerPos + DOUBLE2(-offsetX, 0), DOUBLE2(-40, -160));
+	m_BlockChunkPtrArr[2] = new BlockChunk(centerPos + DOUBLE2(offsetX, offsetY), DOUBLE2(40, -280));
+	m_BlockChunkPtrArr[3] = new BlockChunk(centerPos + DOUBLE2(offsetX, 0), DOUBLE2(40, -160));
 }
 
 BlockBreakParticle::~BlockBreakParticle()

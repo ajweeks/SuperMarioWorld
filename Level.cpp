@@ -215,7 +215,7 @@ void Level::Paint()
 	GAME_ENGINE->SetFont(Game::Font12Ptr);
 	GAME_ENGINE->DrawString(String("pos: ") + m_PlayerPtr->GetPosition().ToString(), 10, 193);
 	GAME_ENGINE->DrawString(String("vel: ") + m_PlayerPtr->GetLinearVelocity().ToString(), 10, 203);
-	GAME_ENGINE->DrawString(String("onGround: ") + String(m_PlayerPtr->IsOnGround() ? "true" : "false"), 10, 213);
+	GAME_ENGINE->DrawString(String("onGround: ") + String(m_PlayerPtr->OnGround() ? "true" : "false"), 10, 213);
 #endif
 
 	if (SoundManager::IsMuted())
@@ -242,7 +242,6 @@ void Level::PaintHUD()
 	int y = 15;
 	RECT2 srcRect;
 
-	// LATER: Add luigi here when he's playing
 	// MARIO
 	srcRect = RECT2(1, 1, 41, 9);
 	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, x, y, srcRect);
@@ -505,6 +504,16 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 				enableContactRef = false;
 			}
 		} break;
+		case int(ActorId::ENEMY):
+		{
+			Enemy* thisEnemyPtr = (Enemy*)actThisPtr->GetUserPointer();
+			Enemy* otherEnemyPtr = (Enemy*)actOtherPtr->GetUserPointer();
+			if (otherEnemyPtr->GetType() == Enemy::TYPE::MONTY_MOLE && 
+				thisEnemyPtr->GetType() == otherEnemyPtr->GetType())
+			{
+				enableContactRef = false;
+			}
+		} break;
 		}
 	} break;
 	case int(ActorId::ITEM):
@@ -547,7 +556,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 	{
 	case int(ActorId::PLAYER):
 	{
-		if (((Player*)actOtherPtr->GetUserPointer())->GetAnimationState() == Player::ANIMATION_STATE::DYING)
+		if (m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::DYING)
 		{
 			break;
 		}
@@ -559,16 +568,10 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 		{
 		case int(ActorId::PLATFORM):
 		{
-			// NOTE: *Add* half of the platform height to catch when the player's feet are inside the platform 
-			if (playerFeet.y <= actThisPtr->GetPosition().y + Platform::HEIGHT/2)
-			{
-				m_IsPlayerOnGround = true;
-			}
 		} break;
 		case int(ActorId::LEVEL):
 		case int(ActorId::PIPE):
 		{
-			m_IsPlayerOnGround = true;
 		} break;
 		case int(ActorId::ITEM):
 		{
@@ -647,7 +650,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 					if (m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::SPIN_JUMPING)
 					{
 						((KoopaTroopa*)enemyPtr)->StompKill();
-						m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetLinearVelocity().x, -55));
+						m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetLinearVelocity().x, -58));
 					}
 					else
 					{
@@ -671,10 +674,6 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 						m_PlayerPtr->TakeDamage();
 					}
 				}
-			} break;
-			case Enemy::TYPE::CHARGIN_CHUCK:
-			{
-
 			} break;
 			case Enemy::TYPE::MONTY_MOLE:
 			{
@@ -748,15 +747,14 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 
 void Level::EndContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 {
-	bool isOverlapping = actThisPtr->IsOverlapping(actOtherPtr);
-	if (actOtherPtr->GetUserData() == int(ActorId::PLAYER))
-	{
-		//if (abs(actOtherPtr->GetLinearVelocity().y) > 0.01)
-		if (!isOverlapping)
-		{
-			m_IsPlayerOnGround = false;
-		}
-	}
+	//bool isOverlapping = actThisPtr->IsOverlapping(actOtherPtr);
+	//if (actOtherPtr->GetUserData() == int(ActorId::PLAYER))
+	//{
+	//	//if (abs(actOtherPtr->GetLinearVelocity().y) > 0.01)
+	//	if (!isOverlapping)
+	//	{
+	//	}
+	//}
 }
 
 // NOTE: This seems like a place where Box2D's filter system would be handy to use
@@ -810,6 +808,26 @@ bool Level::Raycast(DOUBLE2 point1, DOUBLE2 point2, int collisionBits, DOUBLE2 &
 		if (m_PlayerPtr->Raycast(point1, point2, intersectionRef, normalRef, fractionRef))
 		{
 			return true;
+		}
+	}
+
+
+	if (collisionBits & COLLIDE_WITH_BLOCKS || collisionBits & COLLIDE_WITH_SHELLS)
+	{
+		std::vector<Item*> itemsPtrArr = m_LevelDataPtr->GetItems();
+		for (size_t i = 0; i < itemsPtrArr.size(); ++i)
+		{
+			if (itemsPtrArr[i] != nullptr)
+			{
+				if ((collisionBits & COLLIDE_WITH_BLOCKS && itemsPtrArr[i]->IsBlock()) || 
+					(collisionBits & COLLIDE_WITH_SHELLS && itemsPtrArr[i]->GetType() == Item::TYPE::KOOPA_SHELL))
+				{
+					if (itemsPtrArr[i]->Raycast(point1, point2, intersectionRef, normalRef, fractionRef))
+					{
+						return true;
+					}
+				}
+			}
 		}
 	}
 

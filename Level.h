@@ -51,9 +51,11 @@ public:
 
 	void AddParticle(Particle* particlePtr);
 
-	static const int COLLIDE_WITH_LEVEL		= 0x0001;
-	static const int COLLIDE_WITH_ENEMIES	= 0x0002;
-	static const int COLLIDE_WITH_PLAYER	= 0x0004;
+	static const int COLLIDE_WITH_LEVEL		= (2 << 0);
+	static const int COLLIDE_WITH_ENEMIES	= (2 << 1);
+	static const int COLLIDE_WITH_PLAYER	= (2 << 2);
+	static const int COLLIDE_WITH_BLOCKS    = (2 << 3);
+	static const int COLLIDE_WITH_SHELLS	= (2 << 4);
 	bool Raycast(DOUBLE2 point1, DOUBLE2 point2, int collisionBits, DOUBLE2 &intersectionRef, DOUBLE2 &normalRef, double &fractionRef);
 
 private:

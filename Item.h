@@ -26,6 +26,7 @@ public:
 	static std::string TYPEToString(TYPE type);
 
 	TYPE GetType();
+	bool IsBlock();
 
 protected:
 	const int WIDTH;

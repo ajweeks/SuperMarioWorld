@@ -57,7 +57,7 @@ public:
 	static const int WIDTH = 256;
 	static const int HEIGHT = 224;
 
-	static const int WINDOW_SCALE = 2;
+	static const int WINDOW_SCALE = 3;
 	// NOTE: Use this matrix as the base for all other matricies,
 	// the hud should be drawn with just this as the view matrix
 	// This matrix will be updated any time the screen size changes

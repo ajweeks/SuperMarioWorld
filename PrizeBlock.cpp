@@ -10,6 +10,7 @@
 PrizeBlock::PrizeBlock(DOUBLE2 topLeft, Level* levelPtr) :
 	Block(topLeft, TYPE::PRIZE_BLOCK, levelPtr)
 {
+	m_AnimInfo.secondsPerFrame = 0.09;
 }
 
 void PrizeBlock::Tick(double deltaTime)

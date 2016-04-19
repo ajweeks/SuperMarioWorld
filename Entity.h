@@ -25,7 +25,7 @@ public:
 
 	void AddContactListener(ContactListener* listener);
 
-	bool Raycast(DOUBLE2 point1, DOUBLE2 point2, DOUBLE2 &intersectionRef, DOUBLE2 &normalRef, double &fractionRef);
+	virtual bool Raycast(DOUBLE2 point1, DOUBLE2 point2, DOUBLE2 &intersectionRef, DOUBLE2 &normalRef, double &fractionRef);
 
 protected:
 	PhysicsActor* m_ActPtr = nullptr;

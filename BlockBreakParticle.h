@@ -5,7 +5,7 @@
 class BlockChunk
 {
 public:
-	BlockChunk(DOUBLE2& positionRef, DOUBLE2& velocityRef);
+	BlockChunk(DOUBLE2 position, DOUBLE2 velocity);
 
 	void Tick(double deltaTime);
 	void Paint();
@@ -25,7 +25,7 @@ private:
 class BlockBreakParticle : public Particle
 {
 public:
-	BlockBreakParticle(DOUBLE2& positionRef);
+	BlockBreakParticle(DOUBLE2 centerPos);
 	virtual ~BlockBreakParticle();
 
 	bool Tick(double deltaTime);

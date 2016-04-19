@@ -85,7 +85,7 @@ private:
 	static const double WALK_SPEED;
 	static const double RUN_SPEED;
 
-	static const int BOUNCE_VEL = 150;
+	static const int BOUNCE_VEL = -195;
 
 	bool m_IsOnGround;
 	bool m_WasOnGround;
