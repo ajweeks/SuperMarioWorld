@@ -46,6 +46,7 @@ public:
 	void SetLinearVelocity(const DOUBLE2& newLinearVelRef);
 	DOUBLE2 GetPosition();
 	int GetDirectionFacing();
+
 	bool IsOnGround();
 
 	// Called when the player bounces off an enemy's head
@@ -74,6 +75,8 @@ private:
 	void AddCoin(Level* levelPtr, bool playSound = true);
 	void AddDragonCoin(Level* levelPtr);
 	void AddLife();
+
+	bool CalculateOnGround();
 
 	void ChangePowerupState(POWERUP_STATE newPowerupState, bool isUpgrade = true);
 	SpriteSheet* GetSpriteSheetForPowerupState(POWERUP_STATE powerupState);

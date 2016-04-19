@@ -239,8 +239,7 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 		m_AnimationState = ANIMATION_STATE::WAITING;
 	}
 
-	// IsPlayerOnGround() may or may not be entirely accurate atm...
-	m_IsOnGround = levelPtr->IsPlayerOnGround();
+	m_IsOnGround = CalculateOnGround();
 	if (m_IsOnGround)
 	{
 		if (m_WasOnGround == false)
@@ -429,6 +428,24 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 	m_ActPtr->SetLinearVelocity(newVel);
 
 	m_WasOnGround = m_IsOnGround;
+}
+
+// NOTE: Technically this isn't exactly the same as in the original, since when the player
+// stands on the edge of a block they can't jump, but it's definitely close enough
+bool Player::CalculateOnGround()
+{
+	DOUBLE2 point1 = m_ActPtr->GetPosition();
+	DOUBLE2 point2 = m_ActPtr->GetPosition() + DOUBLE2(0, (GetHeight() / 2 + 3));
+	DOUBLE2 intersection, normal;
+	double fraction = -1.0;
+	int collisionBits = Level::COLLIDE_WITH_LEVEL | Level::COLLIDE_WITH_BLOCKS;
+
+	if (m_LevelPtr->Raycast(point1, point2, collisionBits, intersection, normal, fraction))
+	{
+		return true;
+	}
+
+	return false;
 }
 
 void Player::TickAnimations(double deltaTime)
@@ -726,7 +743,7 @@ void Player::AddLife()
 
 void Player::Bounce()
 {
-	m_ActPtr->SetLinearVelocity(DOUBLE2(m_ActPtr->GetPosition().x, BOUNCE_VEL));
+	m_ActPtr->SetLinearVelocity(DOUBLE2(m_ActPtr->GetLinearVelocity().x, BOUNCE_VEL));
 }
 
 void Player::Die()
@@ -782,6 +799,7 @@ bool Player::IsOnGround()
 {
 	return m_IsOnGround;
 }
+
 DOUBLE2 Player::GetPosition()
 {
 	return m_ActPtr->GetPosition();

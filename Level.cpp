@@ -386,11 +386,6 @@ RECT2 GetLargeSingleNumberSrcRect(int number)
 	return result;
 }
 
-bool Level::IsPlayerOnGround()
-{
-	return m_IsPlayerOnGround;
-}
-
 bool Level::ActorCanPassThroughPlatform(PhysicsActor *actPlatformPtr, DOUBLE2& actorPosRef, double actorWidth, double actorHeight)
 {
 	DOUBLE2 actorFeet = DOUBLE2(actorPosRef.x, actorPosRef.y + actorHeight / 2);

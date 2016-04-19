@@ -37,7 +37,7 @@ public:
 	double GetWidth();
 	double GetHeight();
 
-	bool IsPlayerOnGround();
+	//bool IsPlayerOnGround();
 
 	void SetShowingMessage(bool showingMessage);
 	bool IsShowingMessage();
@@ -95,7 +95,7 @@ private:
 
 	// TODO: Rename this to Mario? What about Luigi? Add player 2?
 	Player *m_PlayerPtr = nullptr;
-	bool m_IsPlayerOnGround = false;
+	//bool m_IsPlayerOnGround = false;
 
 	Camera* m_CameraPtr = nullptr;
 
