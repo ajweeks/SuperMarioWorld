@@ -27,6 +27,7 @@ std::string Item::TYPEToString(TYPE type)
 	case TYPE::COIN: return "Coin";
 	case TYPE::DRAGON_COIN: return "DragonCoin";
 	case TYPE::BERRY: return "Berry";
+	case TYPE::KOOPA_SHELL: return "KoopaShell";
 	case TYPE::KEY: return "Key";
 	case TYPE::KEYHOLE: return "Keyhole";
 	case TYPE::P_SWITCH: return "PSwitch";
@@ -55,6 +56,7 @@ Item::TYPE Item::StringToTYPE(std::string string)
 	else if (!string.compare("Coin")) return TYPE::COIN;
 	else if (!string.compare("DragonCoin")) return TYPE::DRAGON_COIN;
 	else if (!string.compare("Berry")) TYPE::BERRY;
+	else if (!string.compare("KoopaShell")) return TYPE::KOOPA_SHELL;
 	else if (!string.compare("Key")) return TYPE::KEY;
 	else if (!string.compare("Keyhole")) return TYPE::KEYHOLE;
 	else if (!string.compare("PSwitch")) return TYPE::P_SWITCH;

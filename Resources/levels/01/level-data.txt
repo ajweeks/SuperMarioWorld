@@ -44,6 +44,11 @@
 	
 	<Items>
 		<Item>
+		<Item>
+			<Type>KoopaShell</Type>
+			<TopLeft>14,21</TopLeft>
+			<Colour>Red</Colour>
+		</Item>
 			<Type>PrizeBlock</Type>
 			<TopLeft>38,18</TopLeft>
 		</Item>

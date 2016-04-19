@@ -18,6 +18,7 @@
 #include "KoopaTroopa.h"
 #include "MontyMole.h"
 #include "SuperMushroom.h"
+#include "KoopaShell.h"
 
 #define GAME_ENGINE (GameEngine::GetSingleton())
 
@@ -483,6 +484,10 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 					}
 				}
 			} break;
+			case Item::TYPE::KOOPA_SHELL:
+			{
+				enableContactRef = false;
+			} break;
 			}
 		} break;
 		}
@@ -567,8 +572,8 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 		} break;
 		case int(ActorId::ITEM):
 		{
-			Item* item = (Item*)actThisPtr->GetUserPointer();
-			switch (item->GetType())
+			Item* itemPtr = (Item*)actThisPtr->GetUserPointer();
+			switch (itemPtr->GetType())
 			{
 			case Item::TYPE::COIN:
 			case Item::TYPE::DRAGON_COIN:
@@ -587,8 +592,8 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 					break;
 				}
 
-				((Player*)actOtherPtr->GetUserPointer())->OnItemPickup(item, this);
-				m_ItemToBeRemovedPtr = item;
+				((Player*)actOtherPtr->GetUserPointer())->OnItemPickup(itemPtr, this);
+				m_ItemToBeRemovedPtr = itemPtr;
 			} break;
 			case Item::TYPE::PRIZE_BLOCK:
 			case Item::TYPE::EXCLAMATION_MARK_BLOCK:
@@ -600,14 +605,31 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 
 				if (playerIsRising && playerCenterIsBelowBlock)
 				{
-					((Block*)item)->Hit(this);
+					((Block*)itemPtr)->Hit(this);
 
 					// NOTE: This line prevents the player from slowly floating down after hitting a block
 					m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetLinearVelocity().x, 0.0));
 				}
 				else if (playerCenterIsAboveBlock)
 				{
-					m_IsPlayerOnGround = true;
+				}
+			} break;
+			case Item::TYPE::KOOPA_SHELL:
+			{
+				if (m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::SPIN_JUMPING)
+				{
+					((KoopaShell*)itemPtr)->Stomp();
+				}
+				else 
+				{
+					if (m_PlayerPtr->GetPosition().x > itemPtr->GetPosition().x)
+					{
+						((KoopaShell*)itemPtr)->Kick(FacingDirection::LEFT, false);
+					} 
+					else
+					{
+						((KoopaShell*)itemPtr)->Kick(FacingDirection::RIGHT, false);
+					}
 				}
 			} break;
 			}
@@ -674,21 +696,51 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 					m_PlayerPtr->Die();
 				}
 			} break;
-			case Enemy::TYPE::PIRHANA_PLANT:
-			{
-
-			} break;
 			}
 		} break;
 		}
 	} break;
 	case int(ActorId::ITEM):
 	{
-		if (actThisPtr->GetUserData() == int(ActorId::LEVEL))
+		Item* otherItemPtr = (Item*)actOtherPtr->GetUserPointer();
+		switch (otherItemPtr->GetType())
 		{
-			switch (((Item*)actOtherPtr->GetUserPointer())->GetType())
+		case Item::TYPE::KOOPA_SHELL:
+		{
+			switch (actThisPtr->GetUserData())
 			{
+			case int(ActorId::ITEM):
+			{
+				Item* thisItemPtr = (Item*)actThisPtr->GetUserPointer();
+				switch (thisItemPtr->GetType())
+				{
+				case Item::TYPE::KOOPA_SHELL:
+				{
+					// NOTE: If both shells are moving this check won't work, but
+					// since that situation is very very unlikely this is fine
+					if (!((KoopaShell*)otherItemPtr)->IsMoving())
+					{
+						((KoopaShell*)otherItemPtr)->ShellHit();
+					}
+				} break;
+				}
+			} break;
+			case int(ActorId::ENEMY):
+			{
+				Enemy* enemyPtr = (Enemy*)actThisPtr->GetUserPointer();
+				switch (enemyPtr->GetType())
+				{
+				case Enemy::TYPE::KOOPA_TROOPA:
+				{
+					if (((KoopaShell*)otherItemPtr)->IsMoving())
+					{
+						((KoopaTroopa*)enemyPtr)->ShellHit();
+					}
+				} break;
+				}
+			} break;
 			}
+		} break;
 		}
 	} break;
 	}

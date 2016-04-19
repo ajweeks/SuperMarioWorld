@@ -1,6 +1,7 @@
 #include "stdafx.h"
 
 #include "KoopaTroopa.h"
+#include "KoopaShell.h"
 #include "Game.h"
 #include "Player.h"
 #include "SpriteSheetManager.h"
@@ -24,6 +25,22 @@ KoopaTroopa::~KoopaTroopa()
 
 void KoopaTroopa::Tick(double deltaTime)
 {
+	if (m_ShouldAddKoopaShell)
+	{
+		m_ShouldAddKoopaShell = false;
+		KoopaShell* koopaShellPtr = new KoopaShell(m_ActPtr->GetPosition(), m_LevelPtr, m_Color);
+		koopaShellPtr->AddContactListener(m_LevelPtr);
+		m_LevelPtr->AddItem(koopaShellPtr);
+	}
+	if (m_ShouldAddMovingUpwardKoopaShell)
+	{
+		m_ShouldAddMovingUpwardKoopaShell = false;
+		KoopaShell* koopaShellPtr = new KoopaShell(m_ActPtr->GetPosition(), m_LevelPtr, m_Color);
+		koopaShellPtr->AddContactListener(m_LevelPtr);
+		koopaShellPtr->ShellHit();
+		m_LevelPtr->AddItem(koopaShellPtr);
+	}
+
 	if (m_ShouldBeRemoved)
 	{
 		m_LevelPtr->RemoveEnemy(this);
@@ -82,7 +99,7 @@ void KoopaTroopa::Tick(double deltaTime)
 	DOUBLE2 point2 = m_ActPtr->GetPosition() + DOUBLE2(m_DirFacing * (GetWidth() / 2 + 2), 0);
 	DOUBLE2 intersection, normal;
 	double fraction = -1.0;
-	int collisionBits = Level::COLLIDE_WITH_LEVEL | Level::COLLIDE_WITH_ENEMIES;
+	int collisionBits = Level::COLLIDE_WITH_LEVEL | Level::COLLIDE_WITH_ENEMIES | Level::COLLIDE_WITH_SHELLS;
 
 	if (m_LevelPtr->Raycast(point1, point2, collisionBits, intersection, normal, fraction))
 	{
@@ -235,7 +252,7 @@ void KoopaTroopa::HeadBonk()
 		ChangeAnimationState(ANIMATION_STATE::SHELLESS);
 		m_FramesSpentBeingShelless = 0;
 
-		// TODO: Spawn a shell with no velocity 
+		m_ShouldAddKoopaShell = true;
 	} break;
 	case ANIMATION_STATE::SHELLESS:
 	{
@@ -254,7 +271,7 @@ void KoopaTroopa::HeadBonk()
 
 void KoopaTroopa::ShellHit()
 {
-	// TODO: Spawn shell with upward velocity
+	m_ShouldAddMovingUpwardKoopaShell = true;
 
 	SoundManager::PlaySoundEffect(SoundManager::SOUND::KOOPA_DEATH);
 

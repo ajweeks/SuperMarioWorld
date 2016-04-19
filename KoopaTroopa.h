@@ -82,5 +82,8 @@ private:
 	int m_FramesSpentBeingSquashed = -1;
 
 	bool m_ShouldBeRemoved = false;
+
+	bool m_ShouldAddKoopaShell = false;
+	bool m_ShouldAddMovingUpwardKoopaShell = false;
 };
 

@@ -22,6 +22,7 @@
 #include "Coin.h"
 #include "DragonCoin.h"
 #include "PSwitch.h"
+#include "KoopaShell.h"
 
 LevelData* LevelData::m_LevelOneDataPtr = nullptr;
 
@@ -106,6 +107,10 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 		case int(Item::TYPE::P_SWITCH):
 		{
 			m_ItemsPtrArr.push_back(new PSwitch(topLeft, itemColour, levelPtr));
+		} break;
+		case int(Item::TYPE::KOOPA_SHELL) :
+		{
+			m_ItemsPtrArr.push_back(new KoopaShell(topLeft, levelPtr, itemColour));
 		} break;
 		// NOTE: I don't think 1-UP mushrooms are ever spawned at the start of level..
 		//case int(Item::TYPE::ONE_UP_MUSHROOM):

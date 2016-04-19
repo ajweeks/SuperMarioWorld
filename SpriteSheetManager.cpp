@@ -27,6 +27,7 @@ SpriteSheet* SpriteSheetManager::enemyDeathCloudParticlePtr = nullptr;
 
 SpriteSheet* SpriteSheetManager::montyMolePtr = nullptr;
 SpriteSheet* SpriteSheetManager::koopaTroopaPtr = nullptr;
+SpriteSheet* SpriteSheetManager::koopaShellPtr = nullptr;
 
 
 SpriteSheetManager::SpriteSheetManager()
@@ -66,6 +67,7 @@ void SpriteSheetManager::Load()
 
 	montyMolePtr = new SpriteSheet(String("Resources/monty-mole.png"), 9, 1, 16, 16);
 	koopaTroopaPtr = new SpriteSheet(String("Resources/koopa-troopa.png"), 8, 2, 16, 27);
+	koopaShellPtr = new SpriteSheet(String("Resources/koopa-shell.png"), 2, 3, 16, 16);
 }
 
 void SpriteSheetManager::Unload()
@@ -88,6 +90,7 @@ void SpriteSheetManager::Unload()
 
 	delete generalTilesPtr;
 	delete koopaTroopaPtr;
+	delete koopaShellPtr;
 
 	delete coinCollectParticlePtr;
 	delete runningDustCloudParticlePtr;

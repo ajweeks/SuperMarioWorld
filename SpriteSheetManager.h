@@ -35,6 +35,7 @@ public:
 
 	static SpriteSheet* montyMolePtr;
 	static SpriteSheet* koopaTroopaPtr;
+	static SpriteSheet* koopaShellPtr;
 
 private:
 	SpriteSheetManager();
