@@ -44,7 +44,7 @@ struct ANIMATION_INFO
 
 enum class COLOUR
 {
-	RED, GREEN, YELLOW, BLUE, ORANGE, GREY, NONE
+	RED, GREEN, YELLOW, BLUE, ORANGE, PINK, GREY, NONE
 };
 
 class Colour
@@ -64,6 +64,8 @@ public:
 			return "Blue";
 		case COLOUR::ORANGE:
 			return "Orange";
+		case COLOUR::PINK:
+			return "Pink";
 		case COLOUR::GREY:
 			return "Grey";
 		default:
@@ -91,6 +93,10 @@ public:
 		else if (!str.compare("Orange"))
 		{
 			return COLOUR::ORANGE;
+		}
+		else if (!str.compare("Pink"))
+		{
+			return COLOUR::PINK;
 		}
 		else if (!str.compare("Grey"))
 		{

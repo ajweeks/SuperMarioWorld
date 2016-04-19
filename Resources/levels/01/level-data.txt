@@ -44,11 +44,18 @@
 	
 	<Items>
 		<Item>
+			<Type>Berry</Type>
+			<TopLeft>11,20</TopLeft>
+			<Colour>Red</Colour>
+		</Item>
+		
 		<Item>
 			<Type>KoopaShell</Type>
 			<TopLeft>14,21</TopLeft>
 			<Colour>Red</Colour>
 		</Item>
+		
+		<Item>
 			<Type>PrizeBlock</Type>
 			<TopLeft>38,18</TopLeft>
 		</Item>
@@ -78,6 +85,17 @@
 		</Item>
 	
 		<Item>
+			<Type>Berry</Type>
+			<TopLeft>66,19</TopLeft>
+			<Colour>Red</Colour>
+		</Item>
+		<Item>
+			<Type>Berry</Type>
+			<TopLeft>72,20</TopLeft>
+			<Colour>Red</Colour>
+		</Item>
+		
+		<Item>
 			<Type>Coin</Type>
 			<TopLeft>77,18</TopLeft>
 		</Item>
@@ -99,8 +117,36 @@
 		</Item>
 		
 		<Item>
+			<Type>Berry</Type>
+			<TopLeft>87,20</TopLeft>
+			<Colour>Red</Colour>
+		</Item>
+		<Item>
+			<Type>Berry</Type>
+			<TopLeft>98,19</TopLeft>
+			<Colour>Red</Colour>
+		</Item>
+		
+		<Item>
 			<Type>DragonCoin</Type>
 			<TopLeft>108,16</TopLeft>
+		</Item>
+		
+		<Item>
+			<Type>Berry</Type>
+			<TopLeft>112,20</TopLeft>
+			<Colour>Red</Colour>
+		</Item>
+		
+		<Item>
+			<Type>Berry</Type>
+			<TopLeft>132,16</TopLeft>
+			<Colour>Red</Colour>
+		</Item>
+		<Item>
+			<Type>Berry</Type>
+			<TopLeft>137,15</TopLeft>
+			<Colour>Red</Colour>
 		</Item>
 		
 		<Item>
@@ -140,12 +186,24 @@
 		</Item>
 		
 		<Item>
+			<Type>Berry</Type>
+			<TopLeft>182,20</TopLeft>
+			<Colour>Red</Colour>
+		</Item>
+		
+		<Item>
 			<Type>RotatingBlock</Type>
 			<TopLeft>199,14</TopLeft>
 		</Item>
 		<Item>
 			<Type>RotatingBlock</Type>
 			<TopLeft>200,14</TopLeft>
+		</Item>
+		
+		<Item>
+			<Type>Berry</Type>
+			<TopLeft>207,20</TopLeft>
+			<Colour>Red</Colour>
 		</Item>
 		
 		<Item>
@@ -179,6 +237,27 @@
 			<Type>ExclamationMarkBlock</Type>
 			<Colour>Yellow</Colour>
 			<TopLeft>229,22</TopLeft>
+		</Item>
+		
+		<Item>
+			<Type>Berry</Type>
+			<TopLeft>232,20</TopLeft>
+			<Colour>Red</Colour>
+		</Item>
+		<Item>
+			<Type>Berry</Type>
+			<TopLeft>237,19</TopLeft>
+			<Colour>Pink</Colour>
+		</Item>
+		<Item>
+			<Type>Berry</Type>
+			<TopLeft>247,19</TopLeft>
+			<Colour>Red</Colour>
+		</Item>
+		<Item>
+			<Type>Berry</Type>
+			<TopLeft>259,20</TopLeft>
+			<Colour>Red</Colour>
 		</Item>
 		
 		<Item>
