@@ -69,8 +69,8 @@ void SuperMushroom::Paint()
 	{
 		double left = m_ActPtr->GetPosition().x;
 		double top = m_ActPtr->GetPosition().y + 2;
-		double srcCol = 2;
-		double srcRow = 12;
+		int srcCol = 2;
+		int srcRow = 12;
 
 		SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);
 	}

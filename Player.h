@@ -68,7 +68,7 @@ public:
 	void ResetNumberOfFramesUntilEndStompSound();
 
 private:
-	DOUBLE2 CalculateAnimationFrame();
+	INT2 CalculateAnimationFrame();
 
 	void HandleKeyboardInput(double deltaTime, Level* levelPtr);
 

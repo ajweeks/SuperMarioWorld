@@ -19,8 +19,8 @@ void CapeFeather::Paint()
 {
 	double left = m_ActPtr->GetPosition().x;
 	double top = m_ActPtr->GetPosition().y;
-	double srcCol = 3;
-	double srcRow = 8;
+	int srcCol = 3;
+	int srcRow = 8;
 
 	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);
 }

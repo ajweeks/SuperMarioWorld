@@ -50,11 +50,10 @@ void KoopaShell::Tick(double deltaTime)
 
 void KoopaShell::Paint()
 {
-	double srcCol = 0;
+	int srcCol = 0;
 	if (m_Colour == COLOUR::RED) srcCol = 1;
 
-	double srcRow = 0 + m_AnimInfo.frameNumber;
-	if (m_IsFalling) srcRow = 0;
+	int srcRow = 0 + m_AnimInfo.frameNumber;
 
 	double left = m_ActPtr->GetPosition().x;
 	double top = m_ActPtr->GetPosition().y;

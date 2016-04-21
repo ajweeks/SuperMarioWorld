@@ -62,8 +62,8 @@ void Coin::GenerateParticles()
 
 void Coin::Paint()
 {
-	double srcCol = 0 + m_AnimInfo.frameNumber;
-	double srcRow = 0;
+	int srcCol = 0 + m_AnimInfo.frameNumber;
+	int srcRow = 0;
 	double left = m_ActPtr->GetPosition().x;
 	double top = m_ActPtr->GetPosition().y;
 	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);

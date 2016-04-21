@@ -50,8 +50,8 @@ void ExclamationMarkBlock::Tick(double deltaTime)
 
 void ExclamationMarkBlock::Paint()
 {
-	double srcCol = 1;
-	double srcRow = 10;
+	int srcCol = 1;
+	int srcRow = 10;
 	if (m_IsSolid == false)
 	{
 		srcRow -= 1;

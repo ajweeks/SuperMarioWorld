@@ -17,8 +17,8 @@ void PSwitch::Paint()
 {
 	double left = m_ActPtr->GetPosition().x;
 	double top = m_ActPtr->GetPosition().y;
-	double srcCol = 4;
-	double srcRow = 11;
+	int srcCol = 4;
+	int srcRow = 11;
 	if (m_IsPressed)
 	{
 		srcCol += 1;

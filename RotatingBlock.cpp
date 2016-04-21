@@ -31,8 +31,8 @@ void RotatingBlock::Tick(double deltaTime)
 
 void RotatingBlock::Paint()
 {
-	double srcCol = 0 + m_AnimInfo.frameNumber;
-	double srcRow = 5;
+	int srcCol = 0 + m_AnimInfo.frameNumber;
+	int srcRow = 5;
 	double left = m_ActPtr->GetPosition().x;
 	double top = m_ActPtr->GetPosition().y;
 	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);

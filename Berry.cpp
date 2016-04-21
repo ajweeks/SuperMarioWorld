@@ -31,13 +31,13 @@ void Berry::Paint()
 	if (m_AnimInfo.frameNumber == 2) left += 1;
 	
 	double top = m_ActPtr->GetPosition().y;
-	double srcCol = 11 + m_AnimInfo.frameNumber;
+	int srcCol = 11 + m_AnimInfo.frameNumber;
 	if (m_AnimInfo.frameNumber == 3) 
 	{
 		srcCol -= 2;
 	}
 
-	double srcRow = 22;
+	int srcRow = 22;
 	if (m_Colour == COLOUR::PINK) srcRow += 1;
 	else if (m_Colour == COLOUR::GREEN) srcRow += 2;
 	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);

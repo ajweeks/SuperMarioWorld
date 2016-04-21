@@ -55,8 +55,8 @@ void PrizeBlock::Tick(double deltaTime)
 
 void PrizeBlock::Paint()
 {
-	double srcCol = 0 + m_AnimInfo.frameNumber;
-	double srcRow = 4;
+	int srcCol = 0 + m_AnimInfo.frameNumber;
+	int srcRow = 4;
 
 	if (m_IsUsed)
 	{

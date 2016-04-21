@@ -17,8 +17,8 @@ void ThreeUpMoon::Paint()
 {
 	double left = m_ActPtr->GetPosition().x;
 	double top = m_ActPtr->GetPosition().y;
-	double srcCol = 3;
-	double srcRow = 7;
+	int srcCol = 3;
+	int srcRow = 7;
 
 	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);
 }
