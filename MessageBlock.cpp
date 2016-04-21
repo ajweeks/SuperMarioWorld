@@ -51,8 +51,8 @@ void MessageBlock::Tick(double deltaTime)
 
 void MessageBlock::Paint()
 {
-	double srcCol = 5;
-	double srcRow = 9;
+	int srcCol = 5;
+	int srcRow = 9;
 	double left = m_ActPtr->GetPosition().x;
 	double top = m_ActPtr->GetPosition().y;
 	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);

@@ -10,7 +10,7 @@ public:
 	SpriteSheet& operator=(const SpriteSheet&) = delete;
 
 	void SetTransparencyColor(COLOR& colorRef);
-	void Paint(double centerX, double centerY, double col, double row);
+	void Paint(double centerX, double centerY, int col, int row);
 
 	int GetTileWidth();
 	int GetTileHeight();

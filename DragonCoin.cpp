@@ -30,8 +30,8 @@ void DragonCoin::GenerateParticles()
 
 void DragonCoin::Paint()
 {
-	double srcCol = 0 + m_AnimInfo.frameNumber;
-	double srcRow = 2;
+	int srcCol = 0 + m_AnimInfo.frameNumber;
+	int srcRow = 2;
 	double left = m_ActPtr->GetPosition().x;
 	double top = m_ActPtr->GetPosition().y;
 	// NOTE: Dragon coins are two tiles tall, we could draw both at once of course 

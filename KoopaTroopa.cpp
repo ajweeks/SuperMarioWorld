@@ -176,7 +176,7 @@ void KoopaTroopa::Paint()
 		GAME_ENGINE->SetWorldMatrix(matTranslateInverse * matReflect * matTranslate * matPrevWorld);
 	}
 
-	DOUBLE2 animationFrame = DetermineAnimationFrame();
+	INT2 animationFrame = DetermineAnimationFrame();
 	double yo = -4.5;
 	SpriteSheetManager::koopaTroopaPtr->Paint(centerX, centerY + yo, animationFrame.x, animationFrame.y);
 
@@ -185,9 +185,9 @@ void KoopaTroopa::Paint()
 	GAME_ENGINE->SetWorldMatrix(matPrevWorld);
 }
 
-DOUBLE2 KoopaTroopa::DetermineAnimationFrame()
+INT2 KoopaTroopa::DetermineAnimationFrame()
 {
-	double row, col;
+	int row, col;
 
 	switch (m_Color)
 	{
@@ -238,7 +238,7 @@ DOUBLE2 KoopaTroopa::DetermineAnimationFrame()
 	} break;
 	}
 
-	return DOUBLE2(col, row);
+	return INT2(col, row);
 }
 
 void KoopaTroopa::HeadBonk()

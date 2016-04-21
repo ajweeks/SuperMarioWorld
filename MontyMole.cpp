@@ -204,7 +204,7 @@ void MontyMole::Paint()
 		GAME_ENGINE->SetWorldMatrix(matTranslateInverse * matReflect * matTranslate * matPrevWorld);
 	}
 
-	DOUBLE2 animationFrame = GetAnimationFrame();
+	INT2 animationFrame = GetAnimationFrame();
 	SpriteSheetManager::montyMolePtr->Paint(centerX, centerY + 2, animationFrame.x, animationFrame.y);
 	
 	GAME_ENGINE->SetWorldMatrix(matPrevWorld);
@@ -215,31 +215,38 @@ void MontyMole::Paint()
 #endif
 }
 
-DOUBLE2 MontyMole::GetAnimationFrame()
+INT2 MontyMole::GetAnimationFrame()
 {
 	switch (m_AnimationState)
 	{
 	case ANIMATION_STATE::INVISIBLE:
-		return DOUBLE2(-1, -1);
-
+	{
+		return INT2(-1, -1);
+	}
 	case ANIMATION_STATE::IN_GROUND:
+	{
 		if (m_SpawnLocationType == SPAWN_LOCATION_TYPE::GROUND)
-			return DOUBLE2(7 + m_AnimInfo.frameNumber, 0);
+			return INT2(7 + m_AnimInfo.frameNumber, 0);
 		else
-			return DOUBLE2(3 + m_AnimInfo.frameNumber, 0);
-
+			return INT2(3 + m_AnimInfo.frameNumber, 0);
+	}
 	case ANIMATION_STATE::JUMPING_OUT_OF_GROUND:
-		return DOUBLE2(2, 0);
-
+	{
+		return INT2(2, 0);
+	}
 	case ANIMATION_STATE::WALKING:
-		return DOUBLE2(0 + m_AnimInfo.frameNumber, 0);
-
+	{
+		return INT2(0 + m_AnimInfo.frameNumber, 0);
+	}
 	case ANIMATION_STATE::DEAD:
-		return DOUBLE2(1, 0);
-
+	{
+		return INT2(1, 0);
+	}
 	default:
+	{
 		OutputDebugString(String("ERROR: Unhandled animation state in MontyMole::GetAnimationFrame!\n"));
-		return DOUBLE2(-1, -1);
+		return INT2(-1, -1);
+	}
 	}
 }
 int MontyMole::GetWidth()

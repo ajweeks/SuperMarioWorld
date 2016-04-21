@@ -14,7 +14,7 @@ SpriteSheet::~SpriteSheet()
 	delete m_BmpSpriteSheetPtr;
 }
 
-void SpriteSheet::Paint(double centerX, double centerY, double col, double row)
+void SpriteSheet::Paint(double centerX, double centerY, int col, int row)
 {
 	assert(col >= 0 && col < m_TilesWide && row >= 0 && row < m_TilesHigh);
 

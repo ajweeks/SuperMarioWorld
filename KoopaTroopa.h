@@ -65,7 +65,7 @@ private:
 	static const int WALK_VEL = 35;
 
 	void ChangeAnimationState(ANIMATION_STATE newAnimationState);
-	DOUBLE2 DetermineAnimationFrame();
+	INT2 DetermineAnimationFrame();
 	
 	void ChangeDirections();
 

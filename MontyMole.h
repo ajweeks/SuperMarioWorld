@@ -46,7 +46,7 @@ public:
 
 	void Tick(double deltaTime);
 	void Paint();
-	DOUBLE2 GetAnimationFrame();
+	INT2 GetAnimationFrame();
 
 	int GetWidth();
 	int GetHeight();
