@@ -3,6 +3,7 @@
 #include "LevelData.h"
 #include "Enumerations.h"
 #include "Level.h"
+#include "Player.h"
 
 #include "Entity.h"
 #include "Enemy.h"
@@ -26,6 +27,7 @@
 #include "KoopaShell.h"
 #include "Beanstalk.h"
 #include "CloudBlock.h"
+#include "MidwayGate.h"
 
 LevelData* LevelData::m_LevelOneDataPtr = nullptr;
 
@@ -139,9 +141,14 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 		{
 			m_ItemsPtrArr.push_back(new ThreeUpMoon(topLeft, levelPtr));
 		} break;
-		case int(Item::TYPE::CLOUD_BLOCK):
+		case int(Item::TYPE::CLOUD_BLOCK) :
 		{
 			m_ItemsPtrArr.push_back(new CloudBlock(topLeft, levelPtr));
+		} break;
+		case int(Item::TYPE::MIDWAY_GATE) :
+		{
+			int barHeight = stoi(FileIO::GetTagContent(itemContent, "BarHeight"));
+			m_ItemsPtrArr.push_back(new MidwayGate(topLeft, levelPtr, barHeight));
 		} break;
 		default:
 		{

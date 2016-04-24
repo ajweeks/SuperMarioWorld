@@ -860,6 +860,15 @@ void Player::OnItemPickup(Item* itemPtr, Level* levelPtr)
 	}
 }
 
+void Player::MidwayGatePasshrough()
+{
+	if (m_PowerupState == POWERUP_STATE::NORMAL)
+	{
+		m_PowerupState = POWERUP_STATE::SUPER;
+		m_NeedsNewFixture = true;
+	}
+}
+
 void Player::ChangePowerupState(POWERUP_STATE newPowerupState, bool isUpgrade)
 {
 	m_PrevPowerupState = m_PowerupState;

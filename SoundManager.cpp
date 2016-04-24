@@ -45,6 +45,8 @@ void SoundManager::InitialzeSoundsAndSongs()
 	LoadSound(SOUND::ENEMY_HEAD_STOMP_START, m_ResourcePath + String("enemy-head-stomp-start.wav"));
 	LoadSound(SOUND::ENEMY_HEAD_STOMP_END, m_ResourcePath + String("enemy-head-stomp-end.wav"));
 
+	LoadSound(SOUND::MIDWAY_GATE_PASSTHROUGH, m_ResourcePath + String("midway-gate-passthrough.wav"));
+
 	m_IsInitialized = true;
 }
 

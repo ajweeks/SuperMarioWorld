@@ -74,6 +74,8 @@ public:
 	bool IsDead();
 	bool IsRunning();
 
+	void MidwayGatePasshrough();
+
 	// NOTE: This should be called every time the player stomps on a KoopaTroopa's head
 	//       Every frames m_FramesUntilEnemyHeadBounceEndSound is decremented, and plays the
 	//		 sound when it reaches 0

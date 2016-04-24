@@ -156,6 +156,13 @@
 			<BitmapFilePath>Resources/levels/01/message-box-02.png</BitmapFilePath>
 		</Item>
 		
+		
+		<Item>
+			<Type>MidwayGate</Type>
+			<TopLeft>160,18</TopLeft>
+			<BarHeight>12</BarHeight>
+		</Item>
+		
 		<Item>
 			<Type>Coin</Type>
 			<TopLeft>143,15</TopLeft>

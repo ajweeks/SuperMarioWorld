@@ -20,6 +20,7 @@
 #include "MontyMole.h"
 #include "SuperMushroom.h"
 #include "KoopaShell.h"
+#include "MidwayGate.h"
 
 #define GAME_ENGINE (GameEngine::GetSingleton())
 
@@ -246,7 +247,7 @@ void Level::Paint()
 	m_CameraPtr->DEBUGPaint();
 #endif
 
-#if 0
+#if 1
 	GAME_ENGINE->SetColor(COLOR(0, 0, 0));
 	GAME_ENGINE->SetFont(Game::Font12Ptr);
 	GAME_ENGINE->DrawString(String("pos: ") + m_PlayerPtr->GetPosition().ToString(), 10, 193);
@@ -701,6 +702,15 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			case Item::TYPE::BEANSTALK:
 			{
 				m_PlayerPtr->SetOverlappingWithBeanstalk(true);
+			} break;
+			case Item::TYPE::MIDWAY_GATE:
+			{
+				MidwayGate* midwayGatePtr = (MidwayGate*)itemPtr;
+				if (midwayGatePtr->IsHit() == false)
+				{
+					m_PlayerPtr->MidwayGatePasshrough();
+					midwayGatePtr->Hit();
+				}
 			} break;
 			}
 		} break;

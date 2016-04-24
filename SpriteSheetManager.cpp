@@ -60,7 +60,7 @@ void SpriteSheetManager::Load()
 
 	superMarioPtr = new SpriteSheet(String("Resources/super-mario.png"), 8, 3, 18, 32);
 	superMarioPtr->SetTransparencyColor(COLOR(80, 128, 255));
-	generalTilesPtr = new SpriteSheet(String("Resources/general-tiles.png"), 14, 24, 16, 16);
+	generalTilesPtr = new SpriteSheet(String("Resources/general-tiles.png"), 14, 25, 16, 16);
 	beanstalkPtr = new SpriteSheet(String("Resources/beanstalk.png"), 1, 3, 16, 16);
 
 	coinCollectParticlePtr = new SpriteSheet(String("Resources/coin-collect-particle.png"), 10, 1, 16, 28);
