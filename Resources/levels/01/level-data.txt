@@ -76,12 +76,13 @@
 		<Item>
 			<Type>PrizeBlock</Type>
 			<TopLeft>54,19</TopLeft>
+			<Spawns>Yoshi</Spawns>
 		</Item>
 		
 		<Item>
 			<Type>MessageBlock</Type>
 			<TopLeft>64,19</TopLeft>
-			<BitmapFilePath>Resources/levels/01/message_box_01.png</BitmapFilePath>
+			<BitmapFilePath>Resources/levels/01/message-box-01.png</BitmapFilePath>
 		</Item>
 	
 		<Item>
@@ -152,7 +153,7 @@
 		<Item>
 			<Type>MessageBlock</Type>
 			<TopLeft>157,19</TopLeft>
-			<BitmapFilePath>Resources/levels/01/message_box_02.png</BitmapFilePath>
+			<BitmapFilePath>Resources/levels/01/message-box-02.png</BitmapFilePath>
 		</Item>
 		
 		<Item>
@@ -198,6 +199,73 @@
 		<Item>
 			<Type>RotatingBlock</Type>
 			<TopLeft>200,14</TopLeft>
+			<Spawns>Beanstalk</Spawns>
+		</Item>
+		
+		<Item>
+			<Type>Cloud</Type>
+			<TopLeft>201,4</TopLeft>
+		</Item>
+		<Item>
+			<Type>Cloud</Type>
+			<TopLeft>202,4</TopLeft>
+		</Item>
+		<Item>
+			<Type>Cloud</Type>
+			<TopLeft>203,4</TopLeft>
+		</Item>
+		<Item>
+			<Type>Cloud</Type>
+			<TopLeft>204,4</TopLeft>
+		</Item>
+		<Item>
+			<Type>Cloud</Type>
+			<TopLeft>205,4</TopLeft>
+		</Item>
+		<Item>
+			<Type>Cloud</Type>
+			<TopLeft>206,4</TopLeft>
+		</Item>
+		<Item>
+			<Type>Cloud</Type>
+			<TopLeft>207,4</TopLeft>
+		</Item>
+		<Item>
+			<Type>Cloud</Type>
+			<TopLeft>208,4</TopLeft>
+		</Item>
+		<Item>
+			<Type>Cloud</Type>
+			<TopLeft>209,4</TopLeft>
+		</Item>
+		<Item>
+			<Type>Cloud</Type>
+			<TopLeft>210,4</TopLeft>
+		</Item>
+		<Item>
+			<Type>Cloud</Type>
+			<TopLeft>211,4</TopLeft>
+		</Item>
+		
+		<Item>
+			<Type>Coin</Type>
+			<TopLeft>203,1</TopLeft>
+		</Item>
+		<Item>
+			<Type>Coin</Type>
+			<TopLeft>204,1</TopLeft>
+		</Item>
+		<Item>
+			<Type>DragonCoin</Type>
+			<TopLeft>205,0</TopLeft>
+		</Item>
+		<Item>
+			<Type>Coin</Type>
+			<TopLeft>206,1</TopLeft>
+		</Item>
+		<Item>
+			<Type>Coin</Type>
+			<TopLeft>207,1</TopLeft>
 		</Item>
 		
 		<Item>
@@ -407,15 +475,36 @@
 			<Colour>Green</Colour>
 		</Enemy>
 	
-	<Enemy>
+		<Enemy>
 			<Type>MontyMole</Type>
-			<TopLeft>193,18</TopLeft>
+			<TopLeft>193,17</TopLeft>
+			<AIType>Smart</AIType>
 			<SpawnLocationType>Wall</SpawnLocationType>
 		</Enemy>
 		<Enemy>
 			<Type>MontyMole</Type>
-			<TopLeft>216,21</TopLeft>
+			<TopLeft>198,20</TopLeft>
+			<AIType>Smart</AIType>
 			<SpawnLocationType>Wall</SpawnLocationType>
+		</Enemy>
+		<Enemy>
+			<Type>MontyMole</Type>
+			<TopLeft>215,18</TopLeft>
+			<AIType>Smart</AIType>
+			<SpawnLocationType>Wall</SpawnLocationType>
+		</Enemy>
+		
+		<Enemy>
+			<Type>MontyMole</Type>
+			<TopLeft>235,21</TopLeft>
+			<AIType>Smart</AIType>
+			<SpawnLocationType>Ground</SpawnLocationType>
+		</Enemy>
+		<Enemy>
+			<Type>MontyMole</Type>
+			<TopLeft>247,21</TopLeft>
+			<AIType>Smart</AIType>
+			<SpawnLocationType>Ground</SpawnLocationType>
 		</Enemy>
 	</Enemies>
 	

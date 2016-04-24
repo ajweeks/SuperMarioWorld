@@ -17,11 +17,14 @@ public:
 	};
 
 	Item(DOUBLE2 topLeft, TYPE type, Level* levelPtr,
-		BodyType bodyType = BodyType::STATIC, int width = 16, int height = 16);
+		BodyType bodyType = BodyType::STATIC, int width = TILE_SIZE, int height = TILE_SIZE);
 	virtual ~Item();
 
 	virtual void Tick(double deltaTime) = 0;
 	virtual void Paint() = 0;
+
+	void SetLinearVelocity(DOUBLE2 newVel);
+	void SetPosition(DOUBLE2 newPos);
 
 	static TYPE StringToTYPE(std::string string);
 	static std::string TYPEToString(TYPE type);
@@ -29,7 +32,9 @@ public:
 	TYPE GetType();
 	bool IsBlock();
 
+	static const int TILE_SIZE = 16;
 protected:
+
 	const int WIDTH;
 	const int HEIGHT;
 	RECT2 m_Bounds;

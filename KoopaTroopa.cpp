@@ -7,8 +7,10 @@
 #include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
 #include "SoundManager.h"
+
 #include "EnemyPoofParticle.h"
 #include "NumberParticle.h"
+#include "SplatParticle.h"
 
 KoopaTroopa::KoopaTroopa(DOUBLE2& startingPos, Level* levelPtr, COLOUR colour) :
 	Enemy(TYPE::KOOPA_TROOPA, startingPos, GetWidth(), GetHeight(), BodyType::DYNAMIC, levelPtr, this),
@@ -35,6 +37,7 @@ void KoopaTroopa::Tick(double deltaTime)
 	if (m_ShouldAddMovingUpwardKoopaShell)
 	{
 		m_ShouldAddMovingUpwardKoopaShell = false;
+
 		KoopaShell* koopaShellPtr = new KoopaShell(m_ActPtr->GetPosition(), m_LevelPtr, m_Color);
 		koopaShellPtr->AddContactListener(m_LevelPtr);
 		koopaShellPtr->ShellHit();
@@ -94,7 +97,7 @@ void KoopaTroopa::Tick(double deltaTime)
 	m_AnimInfo.frameNumber %= 2;
 
 
-	// NOTE: Check if this koopa is near an obstacle, if so turn around
+	// NOTE: Checks if this koopa is near an obstacle, if true then turn around
 	DOUBLE2 point1 = m_ActPtr->GetPosition();
 	DOUBLE2 point2 = m_ActPtr->GetPosition() + DOUBLE2(m_DirFacing * (GetWidth() / 2 + 2), 0);
 	DOUBLE2 intersection, normal;
@@ -107,7 +110,7 @@ void KoopaTroopa::Tick(double deltaTime)
 	}
 
 
-	// NOTE: Check if this koopa about to walk off an edge, if so turn around
+	// NOTE: Checks if this koopa about to walk off an edge, if true then turn around
 	point1 = m_ActPtr->GetPosition();
 	point2 = m_ActPtr->GetPosition() + DOUBLE2(m_DirFacing * (GetWidth() / 2 + 2), GetHeight() / 2 + 4);
 	fraction = -1.0;
@@ -187,7 +190,7 @@ void KoopaTroopa::Paint()
 
 INT2 KoopaTroopa::DetermineAnimationFrame()
 {
-	int row, col;
+	int row = 0, col = 0;
 
 	switch (m_Color)
 	{
@@ -274,6 +277,12 @@ void KoopaTroopa::ShellHit()
 	m_ShouldAddMovingUpwardKoopaShell = true;
 
 	SoundManager::PlaySoundEffect(SoundManager::SOUND::KOOPA_DEATH);
+
+	SplatParticle* splatParticlePtr = new SplatParticle(m_ActPtr->GetPosition());
+	m_LevelPtr->AddParticle(splatParticlePtr);
+
+	NumberParticle* numberParticlePtr = new NumberParticle(200, m_ActPtr->GetPosition());
+	m_LevelPtr->AddParticle(numberParticlePtr);
 
 	m_ShouldBeRemoved = true;
 }

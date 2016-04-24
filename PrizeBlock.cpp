@@ -1,28 +1,37 @@
 #include "stdafx.h"
 
 #include "PrizeBlock.h"
-#include "Coin.h"
-#include "Level.h"
 #include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
 #include "SoundManager.h"
+#include "Level.h"
+#include "Coin.h"
+#include "Yoshi.h"
 
-PrizeBlock::PrizeBlock(DOUBLE2 topLeft, Level* levelPtr) :
-	Block(topLeft, TYPE::PRIZE_BLOCK, levelPtr)
+PrizeBlock::PrizeBlock(DOUBLE2 topLeft, Level* levelPtr, bool spawnsYoshi) :
+	Block(topLeft, TYPE::PRIZE_BLOCK, levelPtr),
+	m_SpawnsYoshi(spawnsYoshi)
 {
 	m_AnimInfo.secondsPerFrame = 0.09;
 }
 
 void PrizeBlock::Tick(double deltaTime)
 {
-	if (m_ShouldSpawnCoin)
+	if (m_ShouldSpawnItem)
 	{
-		Coin* newCoinPtr = new Coin(DOUBLE2(m_ActPtr->GetPosition().x - WIDTH / 2, m_ActPtr->GetPosition().y - HEIGHT),
-			m_LevelPtr,
-			Coin::LIFETIME);
-		m_LevelPtr->AddItem(newCoinPtr);
+		m_ShouldSpawnItem = false;
 
-		m_ShouldSpawnCoin = false;
+		if (m_SpawnsYoshi)
+		{
+			Yoshi* newYoshiPtr = new Yoshi(DOUBLE2(m_ActPtr->GetPosition().x - WIDTH / 2, m_ActPtr->GetPosition().y - HEIGHT), m_LevelPtr);
+			m_LevelPtr->AddYoshi(newYoshiPtr);
+		}
+		else
+		{
+			DOUBLE2 coinPos(m_ActPtr->GetPosition().x - WIDTH / 2, m_ActPtr->GetPosition().y - HEIGHT);
+			Coin* newCoinPtr = new Coin(coinPos, m_LevelPtr, Coin::LIFETIME);
+			m_LevelPtr->AddItem(newCoinPtr);
+		}
 	}
 
 	if (m_CurrentFrameOfBumpAnimation > -1)
@@ -78,6 +87,11 @@ void PrizeBlock::Hit(Level* levelPtr)
 		m_CurrentFrameOfBumpAnimation = 2;
 		m_yo = 0;
 
-		m_ShouldSpawnCoin = true;
+		m_ShouldSpawnItem = true;
 	}
+}
+
+void PrizeBlock::SetUsed(bool used)
+{
+	m_IsUsed = used;
 }

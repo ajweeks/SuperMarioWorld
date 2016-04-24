@@ -2,12 +2,11 @@
 #include "Enemy.h"
 
 Enemy::Enemy(TYPE type, DOUBLE2& posRef, double width, double height, BodyType bodyType, Level* levelPtr, void* userPointer) :
-	Entity(posRef, bodyType, levelPtr, userPointer),
+	Entity(posRef, bodyType, levelPtr, ActorId::ENEMY, userPointer),
 	m_Type(type)
 {
 	m_ActPtr->AddBoxFixture(width, height, 0.0);
 	m_ActPtr->SetFixedRotation(true);
-	m_ActPtr->SetUserData(int(ActorId::ENEMY));
 }
 
 Enemy::~Enemy()

@@ -4,11 +4,10 @@
 #include "SpriteSheetManager.h"
 
 Item::Item(DOUBLE2 topLeft, TYPE type, Level* levelPtr, BodyType bodyType, int width, int height) :
-	Entity(topLeft + DOUBLE2(width / 2, height / 2), bodyType, levelPtr, this), 
+	Entity(topLeft + DOUBLE2(width / 2, height / 2), bodyType, levelPtr, ActorId::ITEM, this),
 	m_Type(type), WIDTH(width), HEIGHT(height)
 {
 	m_ActPtr->AddBoxFixture(width, height, 0.0);
-	m_ActPtr->SetUserData(int(ActorId::ITEM));
 	m_ActPtr->SetFixedRotation(true);
 }
 
@@ -17,6 +16,16 @@ Item::~Item() {}
 Item::TYPE Item::GetType()
 {
 	return m_Type;
+}
+
+void Item::SetPosition(DOUBLE2 newPos)
+{
+	m_ActPtr->SetPosition(newPos);
+}
+
+void Item::SetLinearVelocity(DOUBLE2 newVel)
+{
+	m_ActPtr->SetLinearVelocity(newVel);
 }
 
 std::string Item::TYPEToString(TYPE type)
@@ -43,6 +52,7 @@ std::string Item::TYPEToString(TYPE type)
 	case TYPE::ROTATING_BLOCK: return "RotatingBlock";
 	case TYPE::EXCLAMATION_MARK_BLOCK: return "ExclamationMarkBlock";
 	case TYPE::BEANSTALK: return "Beanstalk";
+	case TYPE::CLOUD_BLOCK: return "Cloud";
 	default:
 	{
 		OutputDebugString(String("ERROR: Unhandled item type in Item::TYPEToString: ") + String(int(type)) + String("\n"));
@@ -73,6 +83,7 @@ Item::TYPE Item::StringToTYPE(std::string string)
 	else if (!string.compare("RotatingBlock")) return TYPE::ROTATING_BLOCK;
 	else if (!string.compare("ExclamationMarkBlock")) return TYPE::EXCLAMATION_MARK_BLOCK;
 	else if (!string.compare("Beanstalk")) return TYPE::BEANSTALK;
+	else if (!string.compare("Cloud")) return TYPE::CLOUD_BLOCK;
 	else
 	{
 		OutputDebugString(String("ERROR: Unhandled item type in Item::TYPEToString: ") + String(string.c_str()) + String("\n"));
@@ -85,5 +96,6 @@ bool Item::IsBlock()
 	return (m_Type == TYPE::EXCLAMATION_MARK_BLOCK ||
 			m_Type == TYPE::MESSAGE_BLOCK ||
 			m_Type == TYPE::PRIZE_BLOCK ||
-			m_Type == TYPE::ROTATING_BLOCK);
+			m_Type == TYPE::ROTATING_BLOCK ||
+			m_Type == TYPE::CLOUD_BLOCK);
 }

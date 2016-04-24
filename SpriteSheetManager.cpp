@@ -17,7 +17,6 @@ Bitmap* SpriteSheetManager::splatParticlePtr = nullptr;
 
 SpriteSheet* SpriteSheetManager::smallMarioPtr = nullptr;
 SpriteSheet* SpriteSheetManager::superMarioPtr = nullptr;
-
 SpriteSheet* SpriteSheetManager::generalTilesPtr = nullptr;
 SpriteSheet* SpriteSheetManager::beanstalkPtr = nullptr;
 
@@ -29,6 +28,9 @@ SpriteSheet* SpriteSheetManager::enemyDeathCloudParticlePtr = nullptr;
 SpriteSheet* SpriteSheetManager::montyMolePtr = nullptr;
 SpriteSheet* SpriteSheetManager::koopaTroopaPtr = nullptr;
 SpriteSheet* SpriteSheetManager::koopaShellPtr = nullptr;
+
+SpriteSheet* SpriteSheetManager::yoshiPtr = nullptr;
+SpriteSheet* SpriteSheetManager::smallYoshiPtr = nullptr;
 
 
 SpriteSheetManager::SpriteSheetManager()
@@ -46,8 +48,8 @@ void SpriteSheetManager::Load()
 
 	hudPtr = new Bitmap(String("Resources/hud.png"));
 
-	messageBox_01Ptr = new Bitmap(String("Resources/levels/01/message_box_01.png"));
-	messageBox_02Ptr = new Bitmap(String("Resources/levels/01/message_box_02.png"));
+	messageBox_01Ptr = new Bitmap(String("Resources/levels/01/message-box-01.png"));
+	messageBox_02Ptr = new Bitmap(String("Resources/levels/01/message-box-02.png"));
 
 	starParticlePtr = new Bitmap(String("Resources/star-particle.png"));
 	splatParticlePtr = new Bitmap(String("Resources/splat-particle.png"));
@@ -56,10 +58,9 @@ void SpriteSheetManager::Load()
 	smallMarioPtr = new SpriteSheet(String("Resources/mario.png"), 8, 3, 18, 32);
 	smallMarioPtr->SetTransparencyColor(COLOR(80, 128, 255));
 
-	superMarioPtr = new SpriteSheet(String("Resources/super_mario.png"), 8, 3, 18, 32);
+	superMarioPtr = new SpriteSheet(String("Resources/super-mario.png"), 8, 3, 18, 32);
 	superMarioPtr->SetTransparencyColor(COLOR(80, 128, 255));
-
-	generalTilesPtr = new SpriteSheet(String("Resources/general_tiles.png"), 14, 24, 16, 16);
+	generalTilesPtr = new SpriteSheet(String("Resources/general-tiles.png"), 14, 24, 16, 16);
 	beanstalkPtr = new SpriteSheet(String("Resources/beanstalk.png"), 1, 3, 16, 16);
 
 	coinCollectParticlePtr = new SpriteSheet(String("Resources/coin-collect-particle.png"), 10, 1, 16, 28);
@@ -70,6 +71,9 @@ void SpriteSheetManager::Load()
 	montyMolePtr = new SpriteSheet(String("Resources/monty-mole.png"), 9, 1, 16, 16);
 	koopaTroopaPtr = new SpriteSheet(String("Resources/koopa-troopa.png"), 8, 2, 16, 27);
 	koopaShellPtr = new SpriteSheet(String("Resources/koopa-shell.png"), 2, 3, 16, 16);
+
+	yoshiPtr = new SpriteSheet(String("Resources/yoshi.png"), 4, 1, 26, 32);
+	smallYoshiPtr = new SpriteSheet(String("Resources/yoshi-small.png"), 3, 2, 16, 16);
 }
 
 void SpriteSheetManager::Unload()
@@ -89,11 +93,14 @@ void SpriteSheetManager::Unload()
 
 	delete smallMarioPtr;
 	delete superMarioPtr;
-
 	delete generalTilesPtr;
 	delete beanstalkPtr;
+
 	delete koopaTroopaPtr;
 	delete koopaShellPtr;
+
+	delete yoshiPtr;
+	delete smallYoshiPtr;
 
 	delete coinCollectParticlePtr;
 	delete runningDustCloudParticlePtr;

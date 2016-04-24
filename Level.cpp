@@ -9,6 +9,7 @@
 
 #include "Platform.h"
 #include "Pipe.h"
+#include "Yoshi.h"
 
 #include "Block.h"
 #include "RotatingBlock.h"
@@ -48,6 +49,7 @@ Level::~Level()
 	delete m_PlayerPtr;
 	delete m_CameraPtr;
 	delete m_ParticleManagerPtr;
+	delete m_YoshiPtr;
 }
 
 void Level::Reset()
@@ -63,6 +65,9 @@ void Level::Reset()
 
 	m_LevelDataPtr->GenerateLevelData(1, this);
 	ReadLevelData(1);
+
+	delete m_YoshiPtr;
+	m_YoshiPtr = nullptr;
 
 	m_ParticleManagerPtr->Reset();
 
@@ -118,7 +123,7 @@ void Level::Tick(double deltaTime)
 		TogglePaused();
 		SoundManager::PlaySoundEffect(SoundManager::SOUND::GAME_PAUSE);
 	}
-	if (m_Paused && m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::DYING)
+	if (m_Paused && m_PlayerPtr->IsDead())
 	{
 		// NOTE: The player needs to still be ticked so they can animate
 		m_PlayerPtr->Tick(deltaTime);
@@ -128,11 +133,28 @@ void Level::Tick(double deltaTime)
 
 	m_SecondsElapsed += (deltaTime);
 	
-	if (m_ItemToBeRemovedPtr != nullptr)
+	for (size_t i = 0; i < m_ItemsToBeRemovedPtrArr.size(); ++i)
 	{
-		// The player collided with a coin during begin-contact, we need to remove it now
-		m_LevelDataPtr->RemoveItem(m_ItemToBeRemovedPtr);
-		m_ItemToBeRemovedPtr = nullptr;
+		if (m_ItemsToBeRemovedPtrArr[i] != nullptr)
+		{
+			m_LevelDataPtr->RemoveItem(m_ItemsToBeRemovedPtrArr[i]);
+			m_ItemsToBeRemovedPtrArr[i] = nullptr;
+		}
+	}
+
+	if (m_PlayerPtr->GetExtraItemType() != Item::TYPE::NONE &&
+		m_Paused && GAME_ENGINE->IsKeyboardKeyPressed(VK_RETURN))
+	{
+		DOUBLE2 cameraOffset = GetCameraOffset();
+		double xPos = cameraOffset.x + Game::WIDTH / 2;
+		double yPos = cameraOffset.y + 25;
+
+		m_PlayerPtr->ReleaseExtraItem(DOUBLE2(xPos, yPos));
+	}
+
+	if (m_YoshiPtr != nullptr)
+	{
+		m_YoshiPtr->Tick(deltaTime);
 	}
 
 	m_PlayerPtr->Tick(deltaTime);
@@ -140,6 +162,17 @@ void Level::Tick(double deltaTime)
 	m_ParticleManagerPtr->Tick(deltaTime);
 
 	m_LevelDataPtr->TickItemsAndEnemies(deltaTime, this);
+}
+
+void Level::AddYoshi(Yoshi* yoshiPtr)
+{
+	if (m_YoshiPtr != nullptr) 
+	{
+		OutputDebugString(String("ERROR: More than one yoshi was added to the level!\n"));
+		delete m_YoshiPtr;
+	}
+
+	m_YoshiPtr = yoshiPtr;
 }
 
 void Level::AddItem(Item* newItemPtr)
@@ -176,31 +209,34 @@ void Level::Paint()
 	int xo = int(cameraX * parallax);
 	xo += (int(cameraX - xo) / bgWidth) * bgWidth;
 
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneBackgroundPtr, DOUBLE2(xo, 0));
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneBackgroundPtr, DOUBLE2(xo, -32));
 	if (Game::WIDTH - (cameraX - xo) < 0)
 	{
-		GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneBackgroundPtr, DOUBLE2(xo + bgWidth, 0));
+		GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneBackgroundPtr, DOUBLE2(xo + bgWidth, -32));
 	}
 
 	GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneForegroundPtr);
 
-
 	m_LevelDataPtr->PaintItemsAndEnemies();
 
+	if (m_YoshiPtr != nullptr)
+	{
+		m_YoshiPtr->Paint();
+	}
 	m_PlayerPtr->Paint();
-	
+
 	m_ParticleManagerPtr->Paint();
 
 	GAME_ENGINE->SetViewMatrix(Game::matIdentity);
 
-#ifdef DEBUG_ZOOM_OUT
+#if DEBUG_ZOOM_OUT
 	GAME_ENGINE->SetColor(COLOR(250, 10, 10));
 	GAME_ENGINE->DrawRect(0, 0, Game::WIDTH, Game::HEIGHT, 2.5);
 #endif
 
 	PaintHUD();
 
-	if (m_Paused && m_PlayerPtr->GetAnimationState() != Player::ANIMATION_STATE::DYING)
+	if (m_Paused && !m_PlayerPtr->IsDead())
 	{
 		GAME_ENGINE->SetColor(COLOR(255, 255, 255));
 		GAME_ENGINE->DrawRect(0, 0, Game::WIDTH, Game::HEIGHT, 6);
@@ -210,12 +246,12 @@ void Level::Paint()
 	m_CameraPtr->DEBUGPaint();
 #endif
 
-#if 1
+#if 0
 	GAME_ENGINE->SetColor(COLOR(0, 0, 0));
 	GAME_ENGINE->SetFont(Game::Font12Ptr);
 	GAME_ENGINE->DrawString(String("pos: ") + m_PlayerPtr->GetPosition().ToString(), 10, 193);
 	GAME_ENGINE->DrawString(String("vel: ") + m_PlayerPtr->GetLinearVelocity().ToString(), 10, 203);
-	GAME_ENGINE->DrawString(String("onGround: ") + String(m_PlayerPtr->OnGround() ? "true" : "false"), 10, 213);
+	GAME_ENGINE->DrawString(String("onGround: ") + String(m_PlayerPtr->IsOnGround() ? "true" : "false"), 10, 213);
 #endif
 
 	if (SoundManager::IsMuted())
@@ -416,7 +452,7 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 	{
 	case int(ActorId::PLAYER):
 	{
-		if (((Player*)actOtherPtr->GetUserPointer())->GetAnimationState() == Player::ANIMATION_STATE::DYING)
+		if (((Player*)actOtherPtr->GetUserPointer())->IsDead())
 		{
 			break;
 		}
@@ -454,6 +490,7 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 			case Item::TYPE::MESSAGE_BLOCK:
 			case Item::TYPE::EXCLAMATION_MARK_BLOCK:
 			case Item::TYPE::ROTATING_BLOCK:
+			case Item::TYPE::CLOUD_BLOCK:
 			{
 				if (itemPtr->GetType() == Item::TYPE::ROTATING_BLOCK)
 				{
@@ -513,8 +550,6 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 	} break;
 	case int(ActorId::ITEM):
 	{
-		// FIXME: IMPORTANT: TODO: Find out how tf to know when to use 'actThis'
-		// vs. 'actOther', it sure seems like black magic
 		Item* otherItemPtr = (Item*)actOtherPtr->GetUserPointer();
 		switch (otherItemPtr->GetType())
 		{
@@ -540,6 +575,32 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 				enableContactRef = false;
 			}
 		} break;
+		case Item::TYPE::KOOPA_SHELL:
+		{
+			KoopaShell* koopaShellPtr =(KoopaShell*)otherItemPtr;
+			if (actThisPtr->GetUserData() == int(ActorId::ITEM))
+			{
+				Item* thisItemPtr = (Item*)actThisPtr->GetUserPointer();
+				if (thisItemPtr->IsBlock())
+				{
+					enableContactRef = false;
+				}
+			}
+		} break;
+		}
+	} break;
+	case int(ActorId::PLATFORM):
+	{
+		if (actThisPtr->GetUserData() == int(ActorId::ITEM))
+		{
+			Item* itemPtr = (Item*)actThisPtr->GetUserPointer();
+			if (itemPtr->GetType() == Item::TYPE::KOOPA_SHELL)
+			{
+				if (ActorCanPassThroughPlatform(actOtherPtr, actThisPtr->GetPosition(), Item::TILE_SIZE, Item::TILE_SIZE))
+				{
+					enableContactRef = false;
+				}
+			}
 		}
 	} break;
 	}
@@ -549,9 +610,23 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 {
 	switch (actOtherPtr->GetUserData())
 	{
+	case int(ActorId::YOSHI):
+	{
+		if (actThisPtr->GetUserData() == int(ActorId::PLAYER))
+		{
+			assert(m_YoshiPtr != nullptr);
+			if (m_YoshiPtr->IsHatching() == false)
+			{
+				if (m_PlayerPtr->GetLinearVelocity().y > 0)
+				{
+					m_PlayerPtr->RideYoshi(m_YoshiPtr);
+				}
+			}
+		}
+	} break;
 	case int(ActorId::PLAYER):
 	{
-		if (m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::DYING)
+		if (m_PlayerPtr->IsDead())
 		{
 			break;
 		}
@@ -561,13 +636,6 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 
 		switch (actThisPtr->GetUserData())
 		{
-		case int(ActorId::PLATFORM):
-		{
-		} break;
-		case int(ActorId::LEVEL):
-		case int(ActorId::PIPE):
-		{
-		} break;
 		case int(ActorId::ITEM):
 		{
 			Item* itemPtr = (Item*)actThisPtr->GetUserPointer();
@@ -583,20 +651,14 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			case Item::TYPE::ONE_UP_MUSHROOM:
 			case Item::TYPE::THREE_UP_MOON:
 			{
-				if (m_ItemToBeRemovedPtr != nullptr)
-				{
-					// The player is collecting two (or more) items this tick, just return and let the 
-					// previous item be collected, we'll almost definitely be colliding with this one again next tick
-					break;
-				}
-
 				((Player*)actOtherPtr->GetUserPointer())->OnItemPickup(itemPtr, this);
-				m_ItemToBeRemovedPtr = itemPtr;
+				m_ItemsToBeRemovedPtrArr.push_back(itemPtr);
 			} break;
 			case Item::TYPE::PRIZE_BLOCK:
 			case Item::TYPE::EXCLAMATION_MARK_BLOCK:
 			case Item::TYPE::MESSAGE_BLOCK:
 			case Item::TYPE::ROTATING_BLOCK:
+			case Item::TYPE::CLOUD_BLOCK:
 			{
 				bool playerCenterIsBelowBlock = m_PlayerPtr->GetPosition().y > (actThisPtr->GetPosition().y + Block::HEIGHT / 2);
 				bool playerCenterIsAboveBlock = m_PlayerPtr->GetPosition().y < (actThisPtr->GetPosition().y - Block::HEIGHT / 2);
@@ -614,21 +676,28 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			} break;
 			case Item::TYPE::KOOPA_SHELL:
 			{
-				if (m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::SPIN_JUMPING)
+				KoopaShell* koopaShellPtr = (KoopaShell*)itemPtr;
+				if (koopaShellPtr->IsMoving())
 				{
-					((KoopaShell*)itemPtr)->Stomp();
+					m_PlayerPtr->TakeDamage();
+				}
+				else if (m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::SPIN_JUMPING)
+				{
+					koopaShellPtr->Stomp();
+				}
+				else if (m_PlayerPtr->IsRunning())
+				{
+					if (koopaShellPtr->IsFalling() == false)
+					{
+						koopaShellPtr->SetMoving(false);
+						m_PlayerPtr->AddItemToBeHeld(itemPtr);
+					}
 				}
 				else 
 				{
-					if (m_PlayerPtr->GetPosition().x > itemPtr->GetPosition().x)
-					{
-						((KoopaShell*)itemPtr)->Kick(FacingDirection::LEFT, false);
-					} 
-					else
-					{
-						((KoopaShell*)itemPtr)->Kick(FacingDirection::RIGHT, false);
-					}
+					m_PlayerPtr->KickShell(koopaShellPtr);
 				}
+			} break;
 			case Item::TYPE::BEANSTALK:
 			{
 				m_PlayerPtr->SetOverlappingWithBeanstalk(true);
@@ -643,9 +712,10 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			{
 			case Enemy::TYPE::KOOPA_TROOPA:
 			{
-				if (playerFeet.y < enemyFeet.y)
+				if (playerFeet.y < enemyPtr->GetPosition().y)
 				{
-					if (m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::SPIN_JUMPING)
+					if (m_PlayerPtr->IsHoldingItem() == false &&
+						m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::SPIN_JUMPING)
 					{
 						((KoopaTroopa*)enemyPtr)->StompKill();
 						m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetLinearVelocity().x, -58));
@@ -704,6 +774,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 		{
 		case Item::TYPE::KOOPA_SHELL:
 		{
+			KoopaShell* otherKoopaShellPtr = (KoopaShell*) otherItemPtr;
 			switch (actThisPtr->GetUserData())
 			{
 			case int(ActorId::ITEM):
@@ -715,9 +786,9 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 				{
 					// NOTE: If both shells are moving this check won't work, but
 					// since that situation is very very unlikely this is fine
-					if (!((KoopaShell*)otherItemPtr)->IsMoving())
+					if (!otherKoopaShellPtr->IsMoving())
 					{
-						((KoopaShell*)otherItemPtr)->ShellHit();
+						otherKoopaShellPtr->ShellHit();
 					}
 				} break;
 				}
@@ -729,7 +800,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 				{
 				case Enemy::TYPE::KOOPA_TROOPA:
 				{
-					if (((KoopaShell*)otherItemPtr)->IsMoving())
+					if (otherKoopaShellPtr->IsMoving() || otherKoopaShellPtr->IsBouncing())
 					{
 						((KoopaTroopa*)enemyPtr)->ShellHit();
 					}
@@ -866,6 +937,11 @@ void Level::SetPaused(bool paused)
 
 	m_PlayerPtr->SetPaused(m_Paused);
 	m_LevelDataPtr->SetItemsAndEnemiesPaused(m_Paused);
+
+	if (m_YoshiPtr != nullptr)
+	{
+		m_YoshiPtr->SetPaused(paused);
+	}
 
 	SoundManager::SetAllSongsPaused(m_Paused);
 }

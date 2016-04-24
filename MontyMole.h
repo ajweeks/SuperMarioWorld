@@ -24,7 +24,7 @@ public:
 	};
 	enum class SPAWN_LOCATION_TYPE
 	{
-		GROUND, WALL
+		GROUND, WALL, NONE
 	};
 	/*
 		There are two types of AI:
@@ -38,10 +38,10 @@ public:
 	*/
 	enum class AI_TYPE
 	{
-		DUMB, SMART
+		DUMB, SMART, NONE
 	};
 
-	MontyMole(DOUBLE2& startingPos, Level* levelPtr, SPAWN_LOCATION_TYPE spawnLocationType);
+	MontyMole(DOUBLE2& startingPos, Level* levelPtr, SPAWN_LOCATION_TYPE spawnLocationType, AI_TYPE aiType);
 	virtual ~MontyMole();
 
 	void Tick(double deltaTime);
@@ -54,19 +54,27 @@ public:
 	void HeadBonk();
 	void StompKill();
 
+	void SetPaused(bool paused);
+	bool Raycast(DOUBLE2 point1, DOUBLE2 point2, DOUBLE2 &intersectionRef, DOUBLE2 &normalRef, double &fractionRef);
+
+	static AI_TYPE StringToAIType(std::string aiTypeString);
+	static SPAWN_LOCATION_TYPE StringToSpawnLocationType(std::string spawnLocationTypeString);
+
 private:
+	void UpdatePosition(double deltaTime);
+	void CalculateNewTarget();
 
 	static const int WIDTH = 16;
 	static const int HEIGHT = 16;
 
-	static const int WALK_VEL = 900;
-	static const int MAX_HORIZONTAL_VEL = 125;
+	static const double HORIZONTAL_ACCELERATION;
+	static const double MAX_HORIZONTAL_VEL;
 
 	DOUBLE2 m_SpawingPosition;
 
 	ANIMATION_STATE m_AnimationState;
 
-	double m_TargetOffshoot = 20;
+	double m_TargetOffshoot = 35;
 	double m_TargetX;
 
 	// If true, we now can never spawn again, but we need 
@@ -79,7 +87,7 @@ private:
 	static const int FRAMES_TO_WRIGGLE_IN_DIRT_FOR = 90;
 	int m_FramesSpentWrigglingInTheDirt = -1;
 
-	bool m_ShouldBeRemoved = false;
+	bool m_ShouldRemoveActor;
 
 	SPAWN_LOCATION_TYPE m_SpawnLocationType;
 	AI_TYPE m_AiType;

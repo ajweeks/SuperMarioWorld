@@ -8,6 +8,7 @@
 RotatingBlock::RotatingBlock(DOUBLE2 topLeft, Level* levelPtr) :
 	Block(topLeft, TYPE::ROTATING_BLOCK, levelPtr)
 {
+	m_AnimInfo.secondsPerFrame = 0.135;
 }
 
 void RotatingBlock::Tick(double deltaTime)
@@ -19,7 +20,7 @@ void RotatingBlock::Tick(double deltaTime)
 		if (m_AnimInfo.frameNumber == 3)
 		{
 			m_Rotations++;
-			if (m_Rotations > MAX_ROTATIONS)
+			if (m_Rotations > FRAMES_OF_ROTATION)
 			{
 				m_IsRotating = false;
 				m_Rotations = 0;

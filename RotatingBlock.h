@@ -11,7 +11,7 @@ public:
 	void Hit(Level* levelPtr);
 	bool IsRotating();
 
-	static const int MAX_ROTATIONS = 25;
+	static const int FRAMES_OF_ROTATION = 55;
 
 private:
 	int m_Rotations = -1;

@@ -38,6 +38,9 @@ public:
 	static SpriteSheet* koopaTroopaPtr;
 	static SpriteSheet* koopaShellPtr;
 
+	static SpriteSheet* yoshiPtr;
+	static SpriteSheet* smallYoshiPtr;
+
 private:
 	SpriteSheetManager();
 

@@ -25,6 +25,7 @@
 #include "Berry.h"
 #include "KoopaShell.h"
 #include "Beanstalk.h"
+#include "CloudBlock.h"
 
 LevelData* LevelData::m_LevelOneDataPtr = nullptr;
 
@@ -77,13 +78,18 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 		int itemType = int(Item::StringToTYPE(FileIO::GetTagContent(itemContent, "Type")));
 		// NOTE: Not all items have the following properties, but there is no harm is seeing if a tag is there
 		COLOUR itemColour = Colour::StringToCOLOUR(FileIO::GetTagContent(itemContent, "Colour"));
-		String messageString = String(FileIO::GetTagContent(itemContent, "BitmapFilePath").c_str());
 
 		switch (itemType)
 		{
 		case int(Item::TYPE::PRIZE_BLOCK):
 		{
-			m_ItemsPtrArr.push_back(new PrizeBlock(topLeft, levelPtr));
+			std::string spawnsString = FileIO::GetTagContent(itemContent, "Spawns");
+			bool spawnsYoshi = false;
+			if (!spawnsString.compare("Yoshi"))
+			{
+				spawnsYoshi = true;
+			}
+			m_ItemsPtrArr.push_back(new PrizeBlock(topLeft, levelPtr, spawnsYoshi));
 		} break;
 		case int(Item::TYPE::EXCLAMATION_MARK_BLOCK):
 		{
@@ -133,6 +139,10 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 		{
 			m_ItemsPtrArr.push_back(new ThreeUpMoon(topLeft, levelPtr));
 		} break;
+		case int(Item::TYPE::CLOUD_BLOCK):
+		{
+			m_ItemsPtrArr.push_back(new CloudBlock(topLeft, levelPtr));
+		} break;
 		default:
 		{
 			OutputDebugString(String("ERROR: Unhandled item passed LevelData(): ") + String(int(itemType)) + String("\n"));
@@ -147,28 +157,21 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 	{
 		std::string enemyContent = FileIO::GetTagContent(enemies, "Enemy", enemyTagBeginIndex);
 
-		DOUBLE2 topLeft = StringToDOUBLE2(FileIO::GetTagContent(enemyContent, "TopLeft")) * TILE_SIZE;
+		DOUBLE2 topLeft = (StringToDOUBLE2(FileIO::GetTagContent(enemyContent, "TopLeft")) * TILE_SIZE) + DOUBLE2(0, -2);
 		int enemyType = int(Enemy::StringToTYPE(FileIO::GetTagContent(enemyContent, "Type")));
 		COLOUR enemyColour = Colour::StringToCOLOUR(FileIO::GetTagContent(enemyContent, "Colour"));
 
 		switch (enemyType)
 		{
-			// TODO: Add more enemies
 		case int(Enemy::TYPE::KOOPA_TROOPA):
 		{
 			m_EnemiesPtrArr.push_back(new KoopaTroopa(topLeft, levelPtr, enemyColour));
 		} break;
-		/*case int(Enemy::TYPE::CHARGIN_CHUCK):
-		{
-			m_EnemiesPtrArr.push_back(new CharginChuck(topLeft, levelPtr));
-		} break;*/
-		/*case int(Enemy::TYPE::PIRHANA_PLANT):
-		{
-			m_EnemiesPtrArr.push_back(new PirhanaPlant(topLeft, levelPtr));
-		} break;*/
 		case int(Enemy::TYPE::MONTY_MOLE):
 		{
-			m_EnemiesPtrArr.push_back(new MontyMole(topLeft, levelPtr, MontyMole::SPAWN_LOCATION_TYPE::WALL));
+			MontyMole::AI_TYPE aiType = MontyMole::StringToAIType(FileIO::GetTagContent(enemyContent, "AIType"));
+			MontyMole::SPAWN_LOCATION_TYPE spawnLocationType = MontyMole::StringToSpawnLocationType(FileIO::GetTagContent(enemyContent, "SpawnLocationType"));
+			m_EnemiesPtrArr.push_back(new MontyMole(topLeft, levelPtr, spawnLocationType, aiType));
 		} break;
 		default:
 		{

@@ -10,7 +10,7 @@ class Entity
 {
 public:
 	Entity(DOUBLE2& posRef, BodyType bodyType, 
-		Level* levelPtr, void* userPointer = nullptr, DOUBLE2& initialVelRef = DOUBLE2());
+		Level* levelPtr, ActorId actorId, void* userPointer = nullptr, DOUBLE2& initialVelRef = DOUBLE2());
 	virtual ~Entity();
 
 	Entity& operator=(const Entity&) = delete;

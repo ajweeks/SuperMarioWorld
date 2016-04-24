@@ -2,7 +2,7 @@
 
 enum class ActorId
 {
-	PLAYER, PLATFORM, PIPE, ENEMY, LEVEL, ITEM
+	PLAYER, PLATFORM, PIPE, ENEMY, LEVEL, ITEM, YOSHI
 };
 
 struct FacingDirection
@@ -58,6 +58,63 @@ struct ANIMATION_INFO
 	}
 };
 
+struct CountdownTimer
+{
+	CountdownTimer() : CountdownTimer(-1) {}
+
+	CountdownTimer(int numberOfFrames) :
+		TOTAL_FRAMES(numberOfFrames)
+	{
+		m_FramesRemaining = -1;
+		m_IsActive = false;
+	}
+
+	void Start()
+	{
+		m_FramesRemaining = TOTAL_FRAMES + 1;
+		m_IsActive = true;
+	}
+
+	// Returns whether or not this timer is active
+	bool Tick()
+	{
+		if (m_IsActive)
+		{
+			--m_FramesRemaining;
+			if (m_FramesRemaining <= -1)
+			{
+				m_IsActive = false;
+			}
+
+			return m_IsActive;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	bool IsComplete()
+	{
+		return m_FramesRemaining == 0;
+	}
+
+	bool IsActive()
+	{
+		return m_IsActive;
+	}
+
+	int FramesElapsed()
+	{
+		return (TOTAL_FRAMES - m_FramesRemaining);
+	}
+
+private:
+	int TOTAL_FRAMES;
+	int m_FramesRemaining;
+	bool m_IsActive;
+};
+
 enum class COLOUR
 {
 	RED, GREEN, YELLOW, BLUE, ORANGE, PINK, GREY, NONE
@@ -90,38 +147,14 @@ public:
 	}
 	static COLOUR StringToCOLOUR(std::string str)
 	{
-		if (!str.compare("Red"))
-		{
-			return COLOUR::RED;
-		}
-		else if (!str.compare("Green"))
-		{
-			return COLOUR::GREEN;
-		}
-		else if (!str.compare("Yellow"))
-		{
-			return COLOUR::YELLOW;
-		}
-		else if (!str.compare("Blue"))
-		{
-			return COLOUR::BLUE;
-		}
-		else if (!str.compare("Orange"))
-		{
-			return COLOUR::ORANGE;
-		}
-		else if (!str.compare("Pink"))
-		{
-			return COLOUR::PINK;
-		}
-		else if (!str.compare("Grey"))
-		{
-			return COLOUR::GREY;
-		}
-		else
-		{
-			return COLOUR::NONE;
-		}
+		if (!str.compare("Red")) return COLOUR::RED;
+		else if (!str.compare("Green")) return COLOUR::GREEN;
+		else if (!str.compare("Yellow")) return COLOUR::YELLOW;
+		else if (!str.compare("Blue")) return COLOUR::BLUE;
+		else if (!str.compare("Orange")) return COLOUR::ORANGE;
+		else if (!str.compare("Pink")) return COLOUR::PINK;
+		else if (!str.compare("Grey")) return COLOUR::GREY;
+		else return COLOUR::NONE;
 	}
 };
 

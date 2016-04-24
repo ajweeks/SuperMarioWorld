@@ -8,6 +8,7 @@ class Pipe;
 class Item;
 class Enemy;
 class Player;
+class Yoshi;
 
 class Camera;
 class Particle;
@@ -34,10 +35,10 @@ public:
 	void AddEnemy(Enemy* newEnemyPtr);
 	void RemoveEnemy(Enemy* enemyPtr);
 
+	void AddYoshi(Yoshi* yoshiPtr);
+
 	double GetWidth();
 	double GetHeight();
-
-	//bool IsPlayerOnGround();
 
 	void SetShowingMessage(bool showingMessage);
 	bool IsShowingMessage();
@@ -77,7 +78,7 @@ private:
 	// NOTE: We *could* make this an array, in case the player tries to collect two items
 	// in the same frame, but that isn't very likely and will be caught in the next frame
 	// anyways, so this should be just fine
-	Item* m_ItemToBeRemovedPtr = nullptr;
+	std::vector<Item*> m_ItemsToBeRemovedPtrArr;
 
 	PhysicsActor* m_ActLevelPtr = nullptr;
 
@@ -100,6 +101,8 @@ private:
 	Camera* m_CameraPtr = nullptr;
 
 	ParticleManager* m_ParticleManagerPtr = nullptr;
+
+	Yoshi* m_YoshiPtr = nullptr;
 };
 
 // TODO: Move this somewhere more global

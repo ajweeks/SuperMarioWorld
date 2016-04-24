@@ -1,6 +1,7 @@
 #include "stdafx.h"
 
 #include "KoopaShell.h"
+#include "Game.h"
 #include "SpriteSheet.h"
 #include "SpriteSheetManager.h"
 #include "SplatParticle.h"
@@ -10,8 +11,9 @@
 #include "NumberParticle.h"
 #include "SoundManager.h"
 
-const double KoopaShell::KICK_VEL = 320.0;
-const double KoopaShell::SHELL_HIT_VEL = -250.0;
+const double KoopaShell::HORIZONTAL_KICK_BASE_VEL = 190;
+const double KoopaShell::VERTICAL_KICK_VEL = -520.0;
+const double KoopaShell::SHELL_HIT_VEL = -150.0;
 
 KoopaShell::KoopaShell(DOUBLE2 topLeft, Level* levelPtr, COLOUR colour)  :
 	Item(topLeft, TYPE::KOOPA_SHELL, levelPtr, BodyType::DYNAMIC),
@@ -40,11 +42,32 @@ void KoopaShell::Tick(double deltaTime)
 		return;
 	}
 
+	if (m_IsBouncing)
+	{
+		if (m_ActPtr->GetLinearVelocity().y == 0.0)
+		{
+			m_IsBouncing = false;
+		}
+	}
+
 	if (m_IsMoving)
 	{
-		m_ActPtr->SetLinearVelocity(DOUBLE2(KICK_VEL * m_DirMoving, 0));
+		double horVel = HORIZONTAL_KICK_BASE_VEL;
+		m_ActPtr->SetLinearVelocity(DOUBLE2(horVel * m_DirMoving, m_ActPtr->GetLinearVelocity().y));
+
 		m_AnimInfo.Tick(deltaTime);
 		m_AnimInfo.frameNumber %= 3;
+
+		DOUBLE2 point1 = m_ActPtr->GetPosition();
+		DOUBLE2 point2 = m_ActPtr->GetPosition() + DOUBLE2(m_DirMoving * (WIDTH / 2 + 2), 0);
+		DOUBLE2 intersection, normal;
+		double fraction = -1.0;
+		int collisionBits = Level::COLLIDE_WITH_LEVEL | Level::COLLIDE_WITH_BLOCKS;
+
+		if (m_LevelPtr->Raycast(point1, point2, collisionBits, intersection, normal, fraction))
+		{
+			m_DirMoving = FacingDirection::OppositeDirection(m_DirMoving);
+		}
 	}
 }
 
@@ -55,21 +78,44 @@ void KoopaShell::Paint()
 
 	int srcRow = 0 + m_AnimInfo.frameNumber;
 
-	double left = m_ActPtr->GetPosition().x;
-	double top = m_ActPtr->GetPosition().y;
-	SpriteSheetManager::koopaShellPtr->Paint(left, top, srcCol, srcRow);
+	double centerX = m_ActPtr->GetPosition().x;
+	double centerY = m_ActPtr->GetPosition().y;
+
+	MATRIX3X2 matPrevWorld = GAME_ENGINE->GetWorldMatrix();
+	if (m_IsFalling)
+	{
+		srcRow = 0;
+
+		MATRIX3X2 matReflect = MATRIX3X2::CreateScalingMatrix(DOUBLE2(1, -1));
+		MATRIX3X2 matTranslate = MATRIX3X2::CreateTranslationMatrix(centerX, centerY);
+		MATRIX3X2 matTranslateInverse = MATRIX3X2::CreateTranslationMatrix(-centerX, -centerY);
+		GAME_ENGINE->SetWorldMatrix(matTranslateInverse * matReflect * matTranslate * matPrevWorld);
+	}
+
+	SpriteSheetManager::koopaShellPtr->Paint(centerX, centerY + 2.5, srcCol, srcRow);
+
+	GAME_ENGINE->SetWorldMatrix(matPrevWorld);
 }
 
-void KoopaShell::Kick(int facingDir, bool wasThrown)
+void KoopaShell::KickHorizontally(int facingDir, bool wasThrown)
 {
 	m_IsMoving = true;
 	m_DirMoving = facingDir;
 
 	if (wasThrown)
 	{
-		SplatParticle* splatParticlePtr = new SplatParticle(m_ActPtr->GetPosition());
+		SplatParticle* splatParticlePtr = new SplatParticle(m_ActPtr->GetPosition() + DOUBLE2(m_DirMoving * -3, 0));
 		m_LevelPtr->AddParticle(splatParticlePtr);
 	}
+}
+
+void KoopaShell::KickVertically(double horizontalVel)
+{
+	SplatParticle* splatParticlePtr = new SplatParticle(m_ActPtr->GetPosition() + DOUBLE2(m_DirMoving * -3, 0));
+	m_LevelPtr->AddParticle(splatParticlePtr);
+
+	m_ActPtr->SetLinearVelocity(DOUBLE2(horizontalVel, VERTICAL_KICK_VEL));
+	m_IsBouncing = true;
 }
 
 void KoopaShell::ShellHit()
@@ -94,7 +140,27 @@ void KoopaShell::Stomp()
 	m_ShouldBeRemoved = true;
 }
 
+bool KoopaShell::IsFalling()
+{
+	return m_IsFalling;
+}
+
 bool KoopaShell::IsMoving()
 {
 	return m_IsMoving;
+}
+
+void KoopaShell::SetMoving(bool moving)
+{
+	m_IsMoving = moving;
+
+	if (!moving)
+	{
+		m_ActPtr->SetLinearVelocity(DOUBLE2());
+	}
+}
+
+bool KoopaShell::IsBouncing()
+{
+	return m_IsBouncing;
 }

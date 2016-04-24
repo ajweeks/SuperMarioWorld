@@ -8,10 +8,12 @@
 #include "SoundManager.h"
 #include "DustParticle.h"
 #include "NumberParticle.h"
+#include "SplatParticle.h"
 
 #include "SuperMushroom.h"
 #include "Coin.h"
 #include "DragonCoin.h"
+#include "KoopaShell.h"
 
 #define ENTITY_MANAGER (EntityManager::GetInstance())
 
@@ -20,12 +22,15 @@ const double Player::WALK_SPEED = 25.0;
 const double Player::RUN_SPEED = 50.0;
 const double Player::DEFAULT_GRAVITY = 0.98;
 
-Player::Player(Level* levelPtr) : Entity(DOUBLE2(), BodyType::DYNAMIC, levelPtr, this)
+Player::Player(Level* levelPtr) : 
+	Entity(DOUBLE2(), BodyType::DYNAMIC, levelPtr, ActorId::PLAYER, this)
 {
 	Reset();
 
 	m_ActPtr->SetFixedRotation(true);
-	m_ActPtr->SetUserData(int(ActorId::PLAYER));
+
+	// NOTE: This can't go in reset since that is called after the player dies
+	m_Lives = STARTING_LIVES;
 }
 
 Player::~Player()
@@ -45,24 +50,42 @@ void Player::Reset()
 
 	m_Score = 0;
 	m_Coins = 0;
-	m_Lives = 5;
 	m_Stars = 0;
 	m_DragonCoins = 0;
 
 	m_SpriteSheetPtr = SpriteSheetManager::smallMarioPtr;
 	m_NeedsNewFixture = true;
 
+	m_ExtraItemPtr = nullptr;
 	m_ExtraItemToBeSpawnedType = Item::TYPE::NONE;
 
+	m_ItemHoldingPtr = nullptr;
+
 	m_FramesSpentInAir = -1;
-	m_FramesOfPowerupTransitionElapsed = -1;
-	m_FramesOfDeathAnimationElapsed = -1;
+
+	m_DeathAnimation = CountdownTimer(240);
+	m_ChangingDirections; // This depends on the player's vel
+	m_Invincibility = CountdownTimer(12);
+	m_ShellKickAnimation = CountdownTimer(10);
+	m_HeadStompSoundDelay = CountdownTimer(10);
+	m_PowerupTransition = CountdownTimer(50);
+
+	m_AnimationState = ANIMATION_STATE::WAITING;
+	m_IsDucking = false;
+	m_IsLookingUp = false;
+	m_IsRunning = false;
+	m_IsHoldingItem = false;
+	m_IsDead = false;
 
 	m_PowerupState = POWERUP_STATE::NORMAL;
 	m_PrevPowerupState = POWERUP_STATE::NORMAL;
-	m_AnimationState = ANIMATION_STATE::WAITING;
 	m_DirFacing = FacingDirection::RIGHT;
 	m_DirFacingLastFrame = FacingDirection::RIGHT;
+
+	m_IsOverlappingWithBeanstalk = false;
+
+	delete m_RidingYoshiPtr;
+	m_RidingYoshiPtr = nullptr;
 }
 
 int Player::GetWidth()
@@ -103,45 +126,41 @@ void Player::Tick(double deltaTime)
 		m_ActPtr->SetPosition(DOUBLE2(SMW_JUMP_TO_POS_X, 250));
 	}
 #endif
+	m_VelLastFrame = m_ActPtr->GetLinearVelocity();
 
-	if (m_AnimationState == ANIMATION_STATE::DYING)
+	if (m_IsDead)
 	{
-		if (m_FramesOfDeathAnimationElapsed == 0)
+		if (m_DeathAnimation.Tick() && m_DeathAnimation.IsComplete())
+		{
+			m_LevelPtr->Reset();
+			return;
+		}
+
+		if (m_DeathAnimation.FramesElapsed() == 1)
 		{
 			// NOTE: We couldn't set active = true earlier since Box2D was locked,
 			// this is the next best thing
 			m_LevelPtr->SetPaused(true);
 		}
 
-		++m_FramesOfDeathAnimationElapsed;
-
 		// NOTE: The player doesn't fly upward until after a short delay
 		// LATER: Move all harcoded values out somewhere else
-		if (m_FramesOfDeathAnimationElapsed == 40)
+		if (m_DeathAnimation.FramesElapsed() == 40)
 		{
 			m_ActPtr->SetActive(true);
 			m_ActPtr->SetLinearVelocity(DOUBLE2(0, -420));
 		}
 
-		if (m_FramesOfDeathAnimationElapsed > FRAMES_OF_DEATH_ANIMATION)
-		{
-			// LATER: Fix this, when the player dies their death count shoud not be reset
-			m_LevelPtr->Reset();
-		}
 	}
 
-	if (m_FramesUntilEnemyHeadBounceEndSound > -1)
+	if (m_HeadStompSoundDelay.Tick() && m_HeadStompSoundDelay.IsComplete())
 	{
-		if (--m_FramesUntilEnemyHeadBounceEndSound < 0)
-		{
-			m_FramesUntilEnemyHeadBounceEndSound = -1;
-			SoundManager::PlaySoundEffect(SoundManager::SOUND::ENEMY_HEAD_STOMP_END);
-		}
+		SoundManager::PlaySoundEffect(SoundManager::SOUND::ENEMY_HEAD_STOMP_END);
 	}
 
-	if (m_FramesOfPowerupTransitionElapsed > -1)
+	if (m_PowerupTransition.Tick())
 	{
-		if (m_FramesOfPowerupTransitionElapsed == 0)
+		if (m_PowerupTransition.FramesElapsed() == 1)
 		{
 			// NOTE: The player is frozen while they are transforming powerup states
 			// NOTE: This call can't be moved elsewhere since lovly ol' Box2D locks up
@@ -149,12 +168,9 @@ void Player::Tick(double deltaTime)
 			SetPaused(true);
 		}
 
-		++m_FramesOfPowerupTransitionElapsed;
-
-		if (m_FramesOfPowerupTransitionElapsed > TOTAL_FRAMES_OF_POWERUP_TRANSITION)
+		if (m_PowerupTransition.IsComplete())
 		{
 			SetPaused(false);
-			m_FramesOfPowerupTransitionElapsed = -1;
 		}
 		else
 		{
@@ -163,22 +179,9 @@ void Player::Tick(double deltaTime)
 		}
 	}
 
-	if (m_ExtraItemToBeSpawnedType != Item::TYPE::NONE)
-	{
-		m_ExtraItemToBeSpawnedType = Item::TYPE::NONE;
-
-		delete m_ExtraItemPtr;
-
-		// NOTE: It doesn't matter where we spawn it because it will correct its pos in the next tick
-		SuperMushroom* extraSuperMushroomPtr = new SuperMushroom(DOUBLE2(), m_LevelPtr, FacingDirection::RIGHT, true);
-
-		m_ExtraItemPtr = extraSuperMushroomPtr;
-	}
-
-	if (m_ExtraItemPtr != nullptr)
-	{
-		m_ExtraItemPtr->Tick(deltaTime);
-	}
+	m_ChangingDirections.Tick();
+	m_ShellKickAnimation.Tick();
+	m_Invincibility.Tick();
 
 	if (m_NeedsNewFixture)
 	{
@@ -201,16 +204,37 @@ void Player::Tick(double deltaTime)
 		m_NeedsNewFixture = false;
 	}
 
-	HandleKeyboardInput(deltaTime, m_LevelPtr);
+	HandleKeyboardInput(deltaTime);
 
-	// TODO: FIXME: Instead of checking if our direction has changed, see what
-	// the diference between our current vel and our target vel is, if it's larger
-	// than a threshold, generate a dust cloud
+	if (m_AnimationState != ANIMATION_STATE::CLIMBING &&
+		m_IsOverlappingWithBeanstalk &&
+		(GAME_ENGINE->IsKeyboardKeyDown(VK_UP) || 
+		(!m_IsOnGround && GAME_ENGINE->IsKeyboardKeyDown(VK_DOWN))))
+	{
+		SetClimbingBeanstalk(true);
+	}
+
+	if (m_IsHoldingItem)
+	{
+		// NOTE: Once the player is no longer running, they should kick the shell
+		if (!m_IsRunning)
+		{
+			// When ducking, the player gently releases the item
+			KickHeldItem(m_IsDucking);
+		}
+		else
+		{
+			m_ItemHoldingPtr->Tick(deltaTime);
+		}
+	}
+
 	if (m_IsOnGround && 
 		m_DirFacing != m_DirFacingLastFrame)
 	{
 		DustParticle* dustParticlePtr = new DustParticle(m_ActPtr->GetPosition() + DOUBLE2(0, GetHeight() / 2));
 		m_LevelPtr->AddParticle(dustParticlePtr);
+
+		m_ChangingDirections.Start();
 	}
 
 	TickAnimations(deltaTime);
@@ -218,9 +242,48 @@ void Player::Tick(double deltaTime)
 	m_DirFacingLastFrame = m_DirFacing;
 }
 
-void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
+void Player::HandleClimbingState(double deltaTime)
 {
-	if (m_AnimationState == ANIMATION_STATE::DYING)
+	if (GAME_ENGINE->IsKeyboardKeyPressed('Z')) // NOTE: Regular jump
+	{
+		SetClimbingBeanstalk(false);
+		m_AnimationState = ANIMATION_STATE::JUMPING;
+		SoundManager::PlaySoundEffect(SoundManager::SOUND::PLAYER_JUMP);
+		m_FramesSpentInAir = 0;
+		m_ActPtr->SetLinearVelocity(DOUBLE2(0, -21500 * deltaTime));
+		return;
+	}
+
+	DOUBLE2 prevPlayerPos = m_ActPtr->GetPosition();
+	if (GAME_ENGINE->IsKeyboardKeyDown(VK_UP))
+	{
+		m_ActPtr->SetPosition(prevPlayerPos.x, prevPlayerPos.y - 1);
+	} 
+	else if (GAME_ENGINE->IsKeyboardKeyDown(VK_DOWN))
+	{
+		m_ActPtr->SetPosition(prevPlayerPos.x, prevPlayerPos.y + 1);
+
+		m_IsOnGround = CalculateOnGround();
+		if (m_IsOnGround)
+		{
+			SetClimbingBeanstalk(false);
+			return;
+		}
+	} 
+	else if (GAME_ENGINE->IsKeyboardKeyDown(VK_LEFT))
+	{
+		m_ActPtr->SetPosition(prevPlayerPos.x - 1, prevPlayerPos.y);
+	}
+	else if (GAME_ENGINE->IsKeyboardKeyDown(VK_RIGHT))
+	{
+		m_ActPtr->SetPosition(prevPlayerPos.x + 1, prevPlayerPos.y);
+	}
+
+}
+
+void Player::HandleKeyboardInput(double deltaTime)
+{
+	if (m_IsDead)
 	{
 		return; // NOTE: The player can't do much now...
 	}
@@ -228,15 +291,27 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 	double jumpVelocity = -16000 * deltaTime;
 	double verticalVel = 0.0;
 
-	// TODO: Use a variable run speed (with acceleration)
 	double walkVel = 5000 * deltaTime;
 	double runVel = 9500 * deltaTime;
 	double horizontalVel = 0.0;
 
-	if (m_AnimationState == ANIMATION_STATE::DUCKING && 
+	if (m_IsDucking && 
 		GAME_ENGINE->IsKeyboardKeyDown(VK_DOWN) == false)
 	{
 		m_AnimationState = ANIMATION_STATE::WAITING;
+		m_IsDucking = false;
+	}
+	if (m_IsLookingUp &&
+		GAME_ENGINE->IsKeyboardKeyDown(VK_UP) == false)
+	{
+		m_AnimationState = ANIMATION_STATE::WAITING;
+		m_IsLookingUp = false;
+	}
+
+	if (m_AnimationState == ANIMATION_STATE::CLIMBING)
+	{
+		HandleClimbingState(deltaTime);
+		return;
 	}
 
 	m_IsOnGround = CalculateOnGround();
@@ -254,9 +329,6 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 			SoundManager::PlaySoundEffect(SoundManager::SOUND::PLAYER_JUMP);
 			m_FramesSpentInAir = 0;
 			verticalVel = jumpVelocity;
-			// NOTE: This line is slightly hacky, but it prevents stupid Box2D from 
-			// thinking we're on the ground even on the frame after we jump
-			m_ActPtr->SetPosition(m_ActPtr->GetPosition() - DOUBLE2(0, 1));
 		}
 		else if (GAME_ENGINE->IsKeyboardKeyPressed('X')) // NOTE: Spin jump
 		{
@@ -265,7 +337,6 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 			SoundManager::PlaySoundEffect(SoundManager::SOUND::PLAYER_SPIN_JUMP);
 			m_FramesSpentInAir = 0;
 			verticalVel = jumpVelocity;
-			m_ActPtr->SetPosition(m_ActPtr->GetPosition() - DOUBLE2(0, 1));
 		}
 		else
 		{
@@ -299,9 +370,7 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 		else
 		{
 			m_ActPtr->SetGravityScale(DEFAULT_GRAVITY);
-			if (m_AnimationState != ANIMATION_STATE::SPIN_JUMPING &&  
-				m_AnimationState != ANIMATION_STATE::DUCKING &&
-				m_AnimationState != ANIMATION_STATE::RUNNING)
+			if (m_AnimationState != ANIMATION_STATE::SPIN_JUMPING)
 			{
 				m_AnimationState = ANIMATION_STATE::FALLING;
 			}
@@ -314,9 +383,9 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 		m_DirFacing = FacingDirection::LEFT;
 		if (m_AnimationState != ANIMATION_STATE::JUMPING &&
 			m_AnimationState != ANIMATION_STATE::SPIN_JUMPING &&
-			m_AnimationState != ANIMATION_STATE::DUCKING &&
-			m_AnimationState != ANIMATION_STATE::RUNNING &&
-			m_AnimationState != ANIMATION_STATE::FALLING)
+			m_AnimationState != ANIMATION_STATE::FALLING &&
+			!m_IsDucking &&
+			!m_IsRunning)
 		{
 			m_AnimationState = ANIMATION_STATE::WALKING;
 		}
@@ -327,9 +396,9 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 		m_DirFacing = FacingDirection::RIGHT;
 		if (m_AnimationState != ANIMATION_STATE::JUMPING &&
 			m_AnimationState != ANIMATION_STATE::SPIN_JUMPING &&
-			m_AnimationState != ANIMATION_STATE::DUCKING &&
-			m_AnimationState != ANIMATION_STATE::RUNNING &&
-			m_AnimationState != ANIMATION_STATE::FALLING)
+			m_AnimationState != ANIMATION_STATE::FALLING &&
+			!m_IsDucking &&
+			!m_IsRunning)
 		{
 			m_AnimationState = ANIMATION_STATE::WALKING;
 		}
@@ -340,39 +409,60 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 	{
 		if (GAME_ENGINE->IsKeyboardKeyDown('A') || GAME_ENGINE->IsKeyboardKeyDown('S')) // Running
 		{
-			if (m_AnimationState != ANIMATION_STATE::DUCKING)
+			if (!m_IsDucking)
 			{
 				if (m_IsOnGround &&
 					m_AnimationState != ANIMATION_STATE::SPIN_JUMPING &&
 					m_AnimationState != ANIMATION_STATE::JUMPING)
 				{
-					m_AnimationState = ANIMATION_STATE::RUNNING;
+					m_AnimationState = ANIMATION_STATE::WALKING;
+					m_IsRunning = true;
 				}
 				horizontalVel = runVel;
 			}
+		}
+		else
+		{
+			m_IsRunning = false;
+		}
+	}
+	else
+	{
+		if (!GAME_ENGINE->IsKeyboardKeyDown('A') && !GAME_ENGINE->IsKeyboardKeyDown('S')) // Running
+		{
+			m_IsRunning = false;
 		}
 	}
 
 	// Only look up if we aren't moving horizontally or vertically
 	if (GAME_ENGINE->IsKeyboardKeyDown(VK_UP))
 	{
-		if (abs(m_ActPtr->GetLinearVelocity().x) < 0.01 &&
+		if (m_IsOverlappingWithBeanstalk)
+		{
+			SetClimbingBeanstalk(true);
+			return;
+		}
+		else if (abs(m_ActPtr->GetLinearVelocity().x) < 0.01 &&
 			abs(m_ActPtr->GetLinearVelocity().y) < 0.01)
 		{
-			m_AnimationState = ANIMATION_STATE::LOOKING_UPWARDS;
+			m_AnimationState = ANIMATION_STATE::WAITING;
+			m_IsLookingUp = true;
 		}
 	}
 	else if (GAME_ENGINE->IsKeyboardKeyDown(VK_DOWN))
 	{
-		if (m_IsOnGround)
+		if (m_IsOverlappingWithBeanstalk && !m_IsOnGround)
 		{
-			m_AnimationState = ANIMATION_STATE::DUCKING;
+			SetClimbingBeanstalk(true);
+			return;
+		}
+		else if (m_IsOnGround)
+		{
+			m_AnimationState = ANIMATION_STATE::WAITING;
 			horizontalVel = 0.0;
 		}
-		else if (m_AnimationState == ANIMATION_STATE::JUMPING)
-		{
-			m_AnimationState = ANIMATION_STATE::DUCKING;
-		}
+		
+		m_IsDucking = true;
 	}
 
 	if (horizontalVel == 0.0 &&
@@ -380,23 +470,12 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 		abs(m_ActPtr->GetLinearVelocity().x) < 0.001 &&
 		abs(m_ActPtr->GetLinearVelocity().y) < 0.001)
 	{
-		if (m_AnimationState != ANIMATION_STATE::DUCKING &&
+		if (!m_IsDucking &&
+			!m_IsLookingUp &&
 			m_AnimationState != ANIMATION_STATE::JUMPING &&
-			m_AnimationState != ANIMATION_STATE::SPIN_JUMPING &&
-			m_AnimationState != ANIMATION_STATE::LOOKING_UPWARDS)
+			m_AnimationState != ANIMATION_STATE::SPIN_JUMPING)
 		{
 			m_AnimationState = ANIMATION_STATE::WAITING;
-		}
-	}
-	else if (verticalVel > 0.0 && m_AnimationState != ANIMATION_STATE::SPIN_JUMPING)
-	{
-		if (m_AnimationState == ANIMATION_STATE::RUNNING)
-		{
-			m_AnimationState = ANIMATION_STATE::FAST_FALLING;
-		}
-		else
-		{
-			m_AnimationState = ANIMATION_STATE::FAST_FALLING;
 		}
 	}
 
@@ -426,6 +505,20 @@ void Player::HandleKeyboardInput(double deltaTime, Level* levelPtr)
 	}
 
 	m_ActPtr->SetLinearVelocity(newVel);
+
+	if (m_ActPtr->GetPosition().x < GetWidth())
+	{
+		m_ActPtr->SetLinearVelocity(DOUBLE2(0, m_ActPtr->GetLinearVelocity().y));
+		m_ActPtr->SetPosition(DOUBLE2(GetWidth(), m_ActPtr->GetPosition().y));
+	}
+
+	if (m_ItemHoldingPtr != nullptr)
+	{
+		double offset = 12;
+		if (m_ChangingDirections.IsActive()) offset = 0;
+		m_ItemHoldingPtr->SetPosition(m_ActPtr->GetPosition() + DOUBLE2(offset * m_DirFacing, 0));
+		m_ItemHoldingPtr->SetLinearVelocity(DOUBLE2(0, 0));
+	}
 
 	m_WasOnGround = m_IsOnGround;
 }
@@ -459,24 +552,23 @@ void Player::TickAnimations(double deltaTime)
 		switch (m_AnimationState)
 		{
 		case ANIMATION_STATE::WAITING:
-		case ANIMATION_STATE::CHANGING_DIRECTIONS:
 		case ANIMATION_STATE::JUMPING:
-		case ANIMATION_STATE::DYING:
-		case ANIMATION_STATE::DUCKING:
-		case ANIMATION_STATE::FAST_FALLING:
 		case ANIMATION_STATE::FALLING:
-		case ANIMATION_STATE::LOOKING_UPWARDS:
+		case ANIMATION_STATE::CLIMBING:
 		{
 			// NOTE: 1 frame animation
-			m_AnimInfo.frameNumber = 1;
+			m_AnimInfo.frameNumber = 0;
 		} break;
 		case ANIMATION_STATE::WALKING:
 		{
-			m_AnimInfo.frameNumber %= 2;
-		} break;
-		case ANIMATION_STATE::RUNNING:
-		{
-			m_AnimInfo.frameNumber %= 2;
+			if (m_ChangingDirections.IsActive())
+			{
+				m_AnimInfo.frameNumber = 0;
+			}
+			else
+			{
+				m_AnimInfo.frameNumber %= 2;
+			}
 		} break;
 		case ANIMATION_STATE::SPIN_JUMPING:
 		{
@@ -497,7 +589,9 @@ void Player::Paint()
 	double centerX = m_ActPtr->GetPosition().x;
 	double centerY = m_ActPtr->GetPosition().y;
 
-	if (m_DirFacing == FacingDirection::LEFT)
+	bool changingDiections = m_ChangingDirections.IsActive();
+	if ((m_DirFacing == FacingDirection::LEFT && !changingDiections) ||
+		(m_DirFacing == FacingDirection::RIGHT && changingDiections))
 	{
 		MATRIX3X2 matReflect = MATRIX3X2::CreateScalingMatrix(DOUBLE2(-1, 1));
 		MATRIX3X2 matTranslate = MATRIX3X2::CreateTranslationMatrix(centerX, centerY);
@@ -507,11 +601,11 @@ void Player::Paint()
 
 	POWERUP_STATE powerupStateToPaint;
 	int yo;
-	if (m_FramesOfPowerupTransitionElapsed > -1)
+	if (m_PowerupTransition.IsActive())
 	{
 		yo = GetHeight() / 2 - (m_PrevPowerupState == POWERUP_STATE::NORMAL ? 6 : 4);
 		
-		if (m_FramesOfPowerupTransitionElapsed % 12 > 6)
+		if (m_PowerupTransition.FramesElapsed() % 12 > 6)
 		{
 			powerupStateToPaint = m_PrevPowerupState;
 		}
@@ -527,42 +621,130 @@ void Player::Paint()
 	}
 
 	SpriteSheet* spriteSheetToPaint = GetSpriteSheetForPowerupState(powerupStateToPaint);
-	DOUBLE2 spriteTile = CalculateAnimationFrame();
+	INT2 spriteTile = CalculateAnimationFrame();
 	spriteSheetToPaint->Paint(centerX, centerY - GetHeight() / 2 + yo, spriteTile.x, spriteTile.y);
 
 	GAME_ENGINE->SetWorldMatrix(matPrevWorld);
 
+#if 0
+	GAME_ENGINE->DrawString(AnimationStateToString(m_AnimationState), DOUBLE2(centerX + 15, centerY));
+	GAME_ENGINE->DrawString(String("ovlp bean: ") + String(m_IsOverlappingWithBeanstalk ? "T" : "F"), centerX + 15, centerY - 10);
+#endif
+	
 	if (m_ExtraItemPtr != nullptr)
 	{
-		m_ExtraItemPtr->Paint();	
+		m_ExtraItemPtr->Paint();
 	}
 
-	//GAME_ENGINE->DrawString(AnimationStateToString(m_AnimationState), centerX + 15, centerY - 15);
 }
 
-DOUBLE2 Player::CalculateAnimationFrame()
+INT2 Player::CalculateAnimationFrame()
 {
-	double srcX = 2;
-	double srcY = 0;
+	int srcX = 0, srcY = 0;
+
+	if (m_IsDead)
+	{
+		srcX = 6;
+		srcY = 1;
+		return INT2(srcX, srcY);
+	}
+
+	// NOTE: Since when holding an item behaviour is similar across all states
+	// it might as well be calculated all in one place
+	if (m_IsHoldingItem)
+	{
+		if (m_IsDucking)
+		{
+			srcX = 1;
+			srcY = 1;
+		}
+		else if (m_ChangingDirections.IsActive())
+		{
+			srcX = 3;
+			srcY = 2;
+		}
+		else if (m_IsLookingUp)
+		{
+			srcX = 0;
+			srcY = 1;
+		}
+		else if (m_IsDucking)
+		{
+			srcX = 1;
+			srcY = 1;
+		}
+		else
+		{
+			srcY = 1;
+
+			if (m_AnimationState == ANIMATION_STATE::JUMPING) srcX = 3;
+			else if (m_AnimationState == ANIMATION_STATE::WAITING) srcX = 2;
+			else srcX = 2 + m_AnimInfo.frameNumber;
+		}
+
+		return INT2(srcX, srcY);
+	}
 
 	switch (m_AnimationState)
 	{
 	case ANIMATION_STATE::WAITING:
 	{
-		// Default (2, 0)	
+		if (m_IsDead)
+		{
+			srcX = 6;
+			srcY = 1;
+		}
+		else if (m_IsLookingUp)
+		{
+			srcX = 0;
+			srcY = 0;
+		}
+		else if (m_IsDucking)
+		{
+			srcX = 1;
+			srcY = 0;
+		}
+		else
+		{
+			srcX = 2;
+			srcY = 0;
+		}
 	} break;
 	case ANIMATION_STATE::WALKING:
 	{
-		srcX = 2 + m_AnimInfo.frameNumber;
-	} break;
-	case ANIMATION_STATE::RUNNING:
-	{
-		srcX = 4 + m_AnimInfo.frameNumber;
+		if (m_ShellKickAnimation.IsActive())
+		{
+			srcX = 5;
+			srcY = 1;
+		}
+		else if (m_ChangingDirections.IsActive())
+		{
+			srcX = 6;
+			srcY = 0;
+		}
+		else if (m_IsRunning)
+		{
+			srcX = 4 + m_AnimInfo.frameNumber;
+			srcY = 0;
+		}
+		else
+		{
+			srcX = 2 + m_AnimInfo.frameNumber;
+			srcY = 0;
+		}
 	} break;
 	case ANIMATION_STATE::JUMPING:
-	{
-		srcX = 0;
-		srcY = 2;
+	{	
+		if (m_IsDucking)
+		{
+			srcX = 1;
+			srcY = 0;
+		}
+		else
+		{
+			srcX = 0;
+			srcY = 2;
+		}
 	} break;
 	case ANIMATION_STATE::SPIN_JUMPING:
 	{
@@ -571,32 +753,43 @@ DOUBLE2 Player::CalculateAnimationFrame()
 	} break;
 	case ANIMATION_STATE::FALLING:
 	{
-		srcX = 1;
-		srcY = 2;
+		if (m_IsDucking)
+		{
+			srcX = 1;
+			srcY = 0;
+		}
+		else if (m_IsRunning)
+		{
+			srcX = 2;
+			srcY = 2;
+		}
+		else
+		{
+			srcX = 1;
+			srcY = 2;
+		}
 	} break;
-	case ANIMATION_STATE::FAST_FALLING:
+	case ANIMATION_STATE::CLIMBING:
 	{
-		srcX = 2;
-		srcY = 2;
-	} break;
-	case ANIMATION_STATE::DUCKING:
-	{
-		srcX = 1;
+		srcX = 7;
 		srcY = 0;
 	} break;
-	case ANIMATION_STATE::LOOKING_UPWARDS:
+	case ANIMATION_STATE::RIDING_YOSHI:
 	{
-		srcX = 0;
-		srcY = 0;
-	} break;
-	case ANIMATION_STATE::DYING:
-	{
-		srcX = 6;
-		srcY = 1;
+		assert(false);
 	} break;
 	}
 
-	return DOUBLE2(srcX, srcY);
+	return INT2(srcX, srcY);
+}
+
+void Player::RideYoshi(Yoshi* yoshiPtr)
+{
+	assert (m_RidingYoshiPtr == nullptr);
+
+	m_RidingYoshiPtr = yoshiPtr;
+
+	m_AnimationState = ANIMATION_STATE::RIDING_YOSHI;
 }
 
 void Player::OnItemPickup(Item* itemPtr, Level* levelPtr)
@@ -674,7 +867,7 @@ void Player::ChangePowerupState(POWERUP_STATE newPowerupState, bool isUpgrade)
 	m_PowerupState = newPowerupState;
 	m_SpriteSheetPtr = GetSpriteSheetForPowerupState(m_PowerupState);
 
-	m_FramesOfPowerupTransitionElapsed = 0;
+	m_PowerupTransition.Start();
 
 	if (isUpgrade)
 	{
@@ -702,6 +895,47 @@ SpriteSheet* Player::GetSpriteSheetForPowerupState(POWERUP_STATE powerupState)
 		OutputDebugString(String("Unhandled powerup state passed to Player::GetSpriteSheetForPowerupState!\n"));
 		return nullptr;
 	}
+}
+
+void Player::AddItemToBeHeld(Item* itemPtr)
+{
+	m_ItemHoldingPtr = itemPtr;
+	m_IsHoldingItem = true;
+}
+
+void Player::KickShell(KoopaShell* koopaShellPtr)
+{
+	koopaShellPtr->KickHorizontally(m_DirFacing, true);
+}
+
+void Player::KickHeldItem(bool gently)
+{
+	assert(m_ItemHoldingPtr != nullptr);
+
+	if (gently)
+	{
+		((KoopaShell*)m_ItemHoldingPtr)->SetMoving(false);
+	}
+	else
+	{
+		if (GAME_ENGINE->IsKeyboardKeyDown(VK_UP))
+		{
+			double horizontalVel = RUN_SPEED * m_DirFacing;
+			if (m_ActPtr->GetLinearVelocity().x == 0.0) horizontalVel = 0.0;
+			((KoopaShell*)m_ItemHoldingPtr)->KickVertically(horizontalVel);
+		}
+		else
+		{
+			((KoopaShell*)m_ItemHoldingPtr)->KickHorizontally(m_DirFacing, true);
+		}
+
+		m_ShellKickAnimation.Start();
+	}
+
+	m_ItemHoldingPtr = nullptr;
+
+	m_IsHoldingItem = false;
+	m_ShellKickAnimation.Start();
 }
 
 void Player::AddCoin(Level* levelPtr, bool playSound)
@@ -748,10 +982,18 @@ void Player::Bounce()
 
 void Player::Die()
 {
+	// TODO: Lives don't decrement right as the player dies, but after the screen
+	// goes dark and right before the map is shown
 	m_Lives--;
+	if (m_Lives < 0)
+	{
+		// LATER: Trigger game over screen
+		m_Lives = STARTING_LIVES;
+	}
 
-	m_FramesOfDeathAnimationElapsed = 0;
-	m_AnimationState = ANIMATION_STATE::DYING;
+	m_DeathAnimation.Start();
+	m_AnimationState = ANIMATION_STATE::WAITING;
+	m_IsDead = true;
 
 	m_ActPtr->SetSensor(true);
 	
@@ -768,20 +1010,12 @@ void Player::TakeDamage()
 		Die();
 	} break;
 	case POWERUP_STATE::SUPER:
-	{
-		ChangePowerupState(POWERUP_STATE::NORMAL, false);
-	} break;
-	case POWERUP_STATE::FIRE:
-	{
-		ChangePowerupState(POWERUP_STATE::NORMAL, false);
-	} break;
 	case POWERUP_STATE::CAPE:
-	{
-		ChangePowerupState(POWERUP_STATE::NORMAL, false);
-	} break;
+	case POWERUP_STATE::FIRE:
 	case POWERUP_STATE::BALLOON:
 	{
 		ChangePowerupState(POWERUP_STATE::NORMAL, false);
+		m_Invincibility.Start();
 	} break;
 	case POWERUP_STATE::STAR:
 	{
@@ -793,6 +1027,72 @@ void Player::TakeDamage()
 		OutputDebugString(String("ERROR: Unhandled powerup state in Player::TakeDamage()\n"));
 	} break;
 	}
+}
+
+void Player::SetOverlappingWithBeanstalk(bool overlapping)
+{
+	m_IsOverlappingWithBeanstalk = overlapping;
+	
+	if (overlapping == false && m_AnimationState == ANIMATION_STATE::CLIMBING)
+	{
+		SetClimbingBeanstalk(false);
+	}
+}
+
+void Player::SetClimbingBeanstalk(bool climbing)
+{
+	if (climbing)
+	{
+		m_ActPtr->SetGravityScale(0.0);
+		m_ActPtr->SetLinearVelocity(DOUBLE2(0, 0));
+		m_AnimationState = ANIMATION_STATE::CLIMBING;
+	}
+	else
+	{
+		m_ActPtr->SetGravityScale(9.8);
+		if (m_IsOnGround) m_AnimationState = ANIMATION_STATE::WALKING;
+		else m_AnimationState = ANIMATION_STATE::FALLING;
+	}
+}
+
+bool Player::IsHoldingItem()
+{
+	return m_IsHoldingItem;
+}
+
+Item::TYPE Player::GetExtraItemType()
+{
+	if (m_ExtraItemPtr != nullptr)
+	{
+		return m_ExtraItemPtr->GetType();
+	}
+	else
+	{
+		return Item::TYPE::NONE;
+	}
+}
+
+void Player::ReleaseExtraItem(DOUBLE2 position)
+{
+	m_ExtraItemToBeSpawnedType = Item::TYPE::NONE;
+
+	delete m_ExtraItemPtr;
+
+	SuperMushroom* extraSuperMushroomPtr = new SuperMushroom(position, m_LevelPtr, FacingDirection::RIGHT);
+
+	// TODO: FIXME: Mushroom needs custom physics here to slowly fall down through the screen
+	
+	m_ExtraItemPtr = extraSuperMushroomPtr;
+}
+
+Player::ANIMATION_STATE Player::GetAnimationState()
+{
+	return m_AnimationState;
+}
+
+void Player::ResetNumberOfFramesUntilEndStompSound()
+{
+	m_HeadStompSoundDelay.Start();
 }
 
 bool Player::IsOnGround()
@@ -845,56 +1145,50 @@ int Player::GetScore()
 	return m_Score;
 }
 
-Item::TYPE Player::GetExtraItemType()
+bool Player::IsDead()
 {
-	if (m_ExtraItemPtr != nullptr)
-	{
-		return m_ExtraItemPtr->GetType();
-	}
-	else
-	{
-		return Item::TYPE(-1);
-	}
+	return m_IsDead;
 }
 
-Player::ANIMATION_STATE Player::GetAnimationState()
+bool Player::IsRunning()
 {
-	return m_AnimationState;
-}
-
-void Player::ResetNumberOfFramesUntilEndStompSound()
-{
-	m_FramesUntilEnemyHeadBounceEndSound = FRAMES_TO_WAIT_BEFORE_PLAYING_KOOPA_HEAD_STOMP_END_SOUND;
+	return m_IsRunning;
 }
 
 String Player::AnimationStateToString(ANIMATION_STATE state)
 {
+	String str;
+
 	switch (state)
 	{
 	case ANIMATION_STATE::WAITING:
-		return String("waiting");
+		str = String("waiting");
+		break;
 	case ANIMATION_STATE::WALKING:
-		return String("walking");
-	case ANIMATION_STATE::RUNNING:
-		return String("running");
+		str = String("walking");
+		break;
 	case ANIMATION_STATE::JUMPING:
-		return String("jumping");
+		str = String("jumping");
+		break;
 	case ANIMATION_STATE::SPIN_JUMPING:
-		return String("spin jumping");
+		str = String("s_jumping");
+		break;
 	case ANIMATION_STATE::FALLING:
-		return String("falling");
-	case ANIMATION_STATE::FAST_FALLING:
-		return String("fast_falling");
-	case ANIMATION_STATE::DYING:
-		return String("dying");
-	case ANIMATION_STATE::DUCKING:
-		return String("ducking");
-	case ANIMATION_STATE::LOOKING_UPWARDS:
-		return String("looking up");
+		str = String("falling");
+		break;
 	case ANIMATION_STATE::CLIMBING:
-		return String("climbing");
-	case ANIMATION_STATE::CHANGING_DIRECTIONS:
-		return String("changing directions");
+		str = String("climbing");
+		break;
+	default:
+		return String("unknown state passed to Player::AnimationStateToString: ") + String(int(state));
 	}
-	return String("unknown state passed to Player::AnimationStateToString: ") + String(int(state));
+
+	if (m_IsRunning) str += String(" running");
+	if (m_ChangingDirections.IsActive()) str += String(" chng_dirs");
+	if (m_IsDead) str += String(" dying");
+	if (m_IsDucking) str += String(" ducking");
+	if (m_IsLookingUp) str += String(" lkng_up");
+	if (m_IsHoldingItem) str += String(" hld_item");
+
+	return str;
 }

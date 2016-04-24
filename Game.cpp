@@ -57,7 +57,7 @@ void Game::GameStart()
 	SpriteSheetManager::Load();
 
 	SoundManager::InitialzeSoundsAndSongs();
-	SoundManager::SetMuted(true);
+	SoundManager::SetMuted(false);
 
 	// TODO: Add mario fonts
 	Game::Font12Ptr = new Font(String("consolas"), 12);
@@ -65,7 +65,7 @@ void Game::GameStart()
 
 	matIdentity = MATRIX3X2::CreateScalingMatrix(WINDOW_SCALE);
 
-#ifdef DEBUG_ZOOM_OUT
+#if DEBUG_ZOOM_OUT
 	matIdentity = MATRIX3X2::CreateScalingMatrix(0.65) * MATRIX3X2::CreateTranslationMatrix(150, 0);
 #endif
 
@@ -188,7 +188,7 @@ void Game::GamePaint()
 		GAME_ENGINE->FillRect(x - 5, y - 5, x + 106, y + 140);
 
 		int dy = 11;
-		GAME_ENGINE->SetColor(COLOR(255,255,255));
+		GAME_ENGINE->SetColor(COLOR(255, 255, 255));
 		std::stringstream stringStream(m_CurrentSessionInfo);
 		std::string currentLine;
 		while (getline(stringStream, currentLine))

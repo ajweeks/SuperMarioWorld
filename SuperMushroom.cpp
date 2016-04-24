@@ -6,9 +6,8 @@
 #include "SpriteSheet.h"
 #include "Block.h"
 
-SuperMushroom::SuperMushroom(DOUBLE2 topLeft, Level* levelPtr, int directionFacing, bool isStatic) :
-	Item(topLeft, TYPE::SUPER_MUSHROOM, levelPtr, BodyType::DYNAMIC, WIDTH, HEIGHT), 
-	m_IsStatic(isStatic), m_SpawnLocation(topLeft)
+SuperMushroom::SuperMushroom(DOUBLE2 topLeft, Level* levelPtr, int directionFacing) :
+	Item(topLeft, TYPE::SUPER_MUSHROOM, levelPtr, BodyType::DYNAMIC, WIDTH, HEIGHT), m_SpawnLocation(topLeft)
 {
 	assert(directionFacing == 1 || directionFacing == -1);
 
@@ -16,21 +15,12 @@ SuperMushroom::SuperMushroom(DOUBLE2 topLeft, Level* levelPtr, int directionFaci
 
 	m_ActPtr->SetActive(false);
 
-	if (m_IsStatic == false)
-	{
-		m_FramesOfIntroAnimation = 0;
-	}
+	m_FramesOfIntroAnimation = 0;
 }
 
 void SuperMushroom::Tick(double deltaTime)
 {
-	if (m_IsStatic)
-	{
-		double xPos = m_LevelPtr->GetCameraOffset().x + Game::WIDTH / 2;
-		double yPos = m_LevelPtr->GetCameraOffset().y + 25;
-		m_ActPtr->SetPosition(DOUBLE2(xPos, yPos));
-	}
-	else if(m_FramesOfIntroAnimation > -1)
+	if(m_FramesOfIntroAnimation > -1)
 	{
 		++m_FramesOfIntroAnimation;
 
@@ -97,7 +87,7 @@ void SuperMushroom::SetPaused(bool paused)
 	// if we are a static mushroom (at the top of the screen), or
 	// we are still animating out of our prize block, we should stay
 	// deactivated
-	if (m_IsStatic == false && m_FramesOfIntroAnimation == -1)
+	if (m_IsFalingFromTopOfScreen == false && m_FramesOfIntroAnimation == -1)
 	{
 		m_ActPtr->SetActive(!paused);
 	}

@@ -7,10 +7,11 @@
 #define GAME_ENGINE (GameEngine::GetSingleton())
 
 Entity::Entity(DOUBLE2& posRef, BodyType bodyType, 
-	Level* levelPtr, void* userPointer, DOUBLE2& initialVelRef) :
+	Level* levelPtr, ActorId actorId, void* userPointer, DOUBLE2& initialVelRef) :
 	m_LevelPtr(levelPtr)
 {
 	m_ActPtr = new PhysicsActor(posRef, 0, bodyType);
+	m_ActPtr->SetUserData(int(actorId));
 	if (userPointer != nullptr)
 	{
 		m_ActPtr->SetUserPointer(userPointer);
