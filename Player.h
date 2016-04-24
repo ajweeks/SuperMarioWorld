@@ -151,6 +151,9 @@ private:
 	bool m_IsDead;
 
 	bool m_IsOverlappingWithBeanstalk;
+	static const int FRAMES_OF_CLIMBING_ANIMATION = 6;
+	int m_FramesClimbingSinceLastFlip;
+	int m_LastClimbingPose; // Flips between left and right as the player climbs
 
 	Yoshi* m_RidingYoshiPtr;
 };

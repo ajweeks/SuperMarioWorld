@@ -83,6 +83,8 @@ void Player::Reset()
 	m_DirFacingLastFrame = FacingDirection::RIGHT;
 
 	m_IsOverlappingWithBeanstalk = false;
+	m_FramesClimbingSinceLastFlip = 0;
+	m_LastClimbingPose = FacingDirection::RIGHT;
 
 	delete m_RidingYoshiPtr;
 	m_RidingYoshiPtr = nullptr;
@@ -255,10 +257,11 @@ void Player::HandleClimbingState(double deltaTime)
 	}
 
 	DOUBLE2 prevPlayerPos = m_ActPtr->GetPosition();
+	bool moved = true;
 	if (GAME_ENGINE->IsKeyboardKeyDown(VK_UP))
 	{
 		m_ActPtr->SetPosition(prevPlayerPos.x, prevPlayerPos.y - 1);
-	} 
+	}
 	else if (GAME_ENGINE->IsKeyboardKeyDown(VK_DOWN))
 	{
 		m_ActPtr->SetPosition(prevPlayerPos.x, prevPlayerPos.y + 1);
@@ -277,6 +280,18 @@ void Player::HandleClimbingState(double deltaTime)
 	else if (GAME_ENGINE->IsKeyboardKeyDown(VK_RIGHT))
 	{
 		m_ActPtr->SetPosition(prevPlayerPos.x + 1, prevPlayerPos.y);
+	}
+	else moved = false;
+
+	--m_FramesClimbingSinceLastFlip;
+	
+	if (moved)
+	{
+		if (m_FramesClimbingSinceLastFlip < 0)
+		{
+			m_FramesClimbingSinceLastFlip = FRAMES_OF_CLIMBING_ANIMATION;
+			m_LastClimbingPose = FacingDirection::OppositeDirection(m_LastClimbingPose);
+		}
 	}
 
 }
@@ -589,9 +604,12 @@ void Player::Paint()
 	double centerX = m_ActPtr->GetPosition().x;
 	double centerY = m_ActPtr->GetPosition().y;
 
+	bool climbingFlip = m_AnimationState == ANIMATION_STATE::CLIMBING && m_LastClimbingPose == FacingDirection::LEFT;
+
 	bool changingDiections = m_ChangingDirections.IsActive();
 	if ((m_DirFacing == FacingDirection::LEFT && !changingDiections) ||
-		(m_DirFacing == FacingDirection::RIGHT && changingDiections))
+		(m_DirFacing == FacingDirection::RIGHT && changingDiections) || 
+		climbingFlip)
 	{
 		MATRIX3X2 matReflect = MATRIX3X2::CreateScalingMatrix(DOUBLE2(-1, 1));
 		MATRIX3X2 matTranslate = MATRIX3X2::CreateTranslationMatrix(centerX, centerY);
@@ -865,6 +883,7 @@ void Player::MidwayGatePasshrough()
 	if (m_PowerupState == POWERUP_STATE::NORMAL)
 	{
 		m_PowerupState = POWERUP_STATE::SUPER;
+
 		m_NeedsNewFixture = true;
 	}
 }
@@ -1062,6 +1081,8 @@ void Player::SetClimbingBeanstalk(bool climbing)
 		if (m_IsOnGround) m_AnimationState = ANIMATION_STATE::WALKING;
 		else m_AnimationState = ANIMATION_STATE::FALLING;
 	}
+
+	m_FramesClimbingSinceLastFlip = FRAMES_OF_CLIMBING_ANIMATION;
 }
 
 bool Player::IsHoldingItem()
