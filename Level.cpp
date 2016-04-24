@@ -629,6 +629,9 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 						((KoopaShell*)itemPtr)->Kick(FacingDirection::RIGHT, false);
 					}
 				}
+			case Item::TYPE::BEANSTALK:
+			{
+				m_PlayerPtr->SetOverlappingWithBeanstalk(true);
 			} break;
 			}
 		} break;
@@ -742,19 +745,22 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 
 void Level::EndContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 {
-	//bool isOverlapping = actThisPtr->IsOverlapping(actOtherPtr);
-	//if (actOtherPtr->GetUserData() == int(ActorId::PLAYER))
-	//{
-	//	//if (abs(actOtherPtr->GetLinearVelocity().y) > 0.01)
-	//	if (!isOverlapping)
-	//	{
-	//	}
-	//}
+	if (actOtherPtr->GetUserData() == int(ActorId::PLAYER))
+	{
+		if (actThisPtr->GetUserData() == int(ActorId::ITEM))
+		{
+			Item* otherItemPtr = (Item*)actThisPtr->GetUserPointer();
+			switch (otherItemPtr->GetType())
+			{
+			case Item::TYPE::BEANSTALK:
+			{
+				m_PlayerPtr->SetOverlappingWithBeanstalk(false);
+			} break;
+			}
+		}
+	}
 }
 
-// NOTE: This seems like a place where Box2D's filter system would be handy to use
-// however I don't think raycasting listens to that, so we'll just implement our own
-// bitfields
 bool Level::Raycast(DOUBLE2 point1, DOUBLE2 point2, int collisionBits, DOUBLE2 &intersectionRef, DOUBLE2 &normalRef, double &fractionRef)
 {
 	if (collisionBits & COLLIDE_WITH_LEVEL)

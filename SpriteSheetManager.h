@@ -27,6 +27,7 @@ public:
 	static SpriteSheet* smallMarioPtr;
 	static SpriteSheet* superMarioPtr;
 	static SpriteSheet* generalTilesPtr;
+	static SpriteSheet* beanstalkPtr;
 
 	static SpriteSheet* coinCollectParticlePtr;
 	static SpriteSheet* runningDustCloudParticlePtr;

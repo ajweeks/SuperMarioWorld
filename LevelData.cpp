@@ -24,6 +24,7 @@
 #include "PSwitch.h"
 #include "Berry.h"
 #include "KoopaShell.h"
+#include "Beanstalk.h"
 
 LevelData* LevelData::m_LevelOneDataPtr = nullptr;
 
@@ -99,10 +100,16 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 		} break;
 		case int(Item::TYPE::MESSAGE_BLOCK):
 		{
+			String messageString = String(FileIO::GetTagContent(itemContent, "BitmapFilePath").c_str());
 			m_ItemsPtrArr.push_back(new MessageBlock(topLeft, messageString, levelPtr));
 		} break;
 		case int(Item::TYPE::ROTATING_BLOCK):
 		{
+			std::string spawnItem = FileIO::GetTagContent(itemContent, "Spawns");
+			if (!spawnItem.compare("Beanstalk"))
+			{
+				m_ItemsPtrArr.push_back(new Beanstalk(topLeft, levelPtr, 14));
+			}
 			m_ItemsPtrArr.push_back(new RotatingBlock(topLeft, levelPtr));
 		} break;
 		case int(Item::TYPE::P_SWITCH):

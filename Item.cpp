@@ -42,6 +42,7 @@ std::string Item::TYPEToString(TYPE type)
 	case TYPE::MESSAGE_BLOCK: return "MessageBlock";
 	case TYPE::ROTATING_BLOCK: return "RotatingBlock";
 	case TYPE::EXCLAMATION_MARK_BLOCK: return "ExclamationMarkBlock";
+	case TYPE::BEANSTALK: return "Beanstalk";
 	default:
 	{
 		OutputDebugString(String("ERROR: Unhandled item type in Item::TYPEToString: ") + String(int(type)) + String("\n"));
@@ -71,6 +72,7 @@ Item::TYPE Item::StringToTYPE(std::string string)
 	else if (!string.compare("MessageBlock")) return TYPE::MESSAGE_BLOCK;
 	else if (!string.compare("RotatingBlock")) return TYPE::ROTATING_BLOCK;
 	else if (!string.compare("ExclamationMarkBlock")) return TYPE::EXCLAMATION_MARK_BLOCK;
+	else if (!string.compare("Beanstalk")) return TYPE::BEANSTALK;
 	else
 	{
 		OutputDebugString(String("ERROR: Unhandled item type in Item::TYPEToString: ") + String(string.c_str()) + String("\n"));

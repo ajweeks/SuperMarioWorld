@@ -9,18 +9,6 @@ class Pipe;
 
 #define GAME_ENGINE (GameEngine::GetSingleton())
 
-/*
-
-This class stores info about an entire level
-It holds the following information:
-
-- Platforms
-- Pipes
-- Enemies' spawns
-- Items (Coins, Blocks, etc.)
-- Midway gates & Goal gates
-
-*/
 class LevelData
 {
 public:
