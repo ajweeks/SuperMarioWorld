@@ -770,7 +770,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 				}
 				else
 				{
-					m_PlayerPtr->Die();
+					m_PlayerPtr->TakeDamage();
 				}
 			} break;
 			}
