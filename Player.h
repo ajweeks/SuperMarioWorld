@@ -33,6 +33,8 @@ public:
 	void Paint();
 
 	void Reset();
+	
+	std::string GetPowerupStateString();
 
 	int GetLives();
 	int GetCoinsCollected();
@@ -51,6 +53,7 @@ public:
 
 	bool IsOnGround();
 
+	bool IsRidingYoshi();
 	void RideYoshi(Yoshi* yoshiPtr);
 
 	void KickShell(KoopaShell* koopaShellPtr);
@@ -100,6 +103,10 @@ private:
 	String AnimationStateToString(ANIMATION_STATE state);
 
 	void ChangePowerupState(POWERUP_STATE newPowerupState, bool isUpgrade = true);
+
+	POWERUP_STATE StringToPowerupState(std::string powerupStateStr);
+	std::string PowerupStateToString(POWERUP_STATE powerupState);
+
 	SpriteSheet* GetSpriteSheetForPowerupState(POWERUP_STATE powerupState);
 
 	SpriteSheet* m_SpriteSheetPtr = nullptr;
@@ -149,6 +156,7 @@ private:
 	bool m_IsRunning;
 	bool m_IsHoldingItem;
 	bool m_IsDead;
+	bool m_IsRidingYoshi;
 
 	bool m_IsOverlappingWithBeanstalk;
 	static const int FRAMES_OF_CLIMBING_ANIMATION = 6;

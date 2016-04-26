@@ -63,6 +63,11 @@ void Level::Reset()
 
 	m_TotalTime = 400; // This changes for every level, TODO: Put this info in the level save
 	m_SecondsElapsed = 0.0;
+	m_TimeRemaining = m_TotalTime;
+
+	m_IsCheckpointCleared = false;
+
+	m_AllDragonCoinsCollected = false;
 
 	m_LevelDataPtr->GenerateLevelData(1, this);
 	ReadLevelData(1);
@@ -273,7 +278,7 @@ void Level::PaintHUD()
 	Item::TYPE playerExtraItemType = m_PlayerPtr->GetExtraItemType();
 
 	// NOTE: 1 second in SMW is 2/3 of a real life second!
-	int timeRemaining = m_TotalTime - (int(m_SecondsElapsed * 1.5)); 
+	m_TimeRemaining = m_TotalTime - (int(m_SecondsElapsed * 1.5)); 
 
 	int x = 15;
 	int y = 15;
@@ -336,7 +341,7 @@ void Level::PaintHUD()
 	// TIME VALUE
 	y += 9;
 	x += 16;
-	PaintSeveralDigitNumber(x, y, timeRemaining, true);
+	PaintSeveralDigitNumber(x, y, m_TimeRemaining, true);
 
 	// COIN LABEL
 	x += 33;
@@ -710,6 +715,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 				{
 					m_PlayerPtr->MidwayGatePasshrough();
 					midwayGatePtr->Hit();
+					m_IsCheckpointCleared = true;
 				}
 			} break;
 			}
@@ -974,4 +980,24 @@ double Level::GetWidth()
 double Level::GetHeight()
 {
 	return m_Height;
+}
+
+bool Level::IsCheckpointCleared()
+{
+	return m_IsCheckpointCleared;
+}
+
+int Level::GetTimeRemaining()
+{
+	return m_TimeRemaining;
+}
+
+void Level::SetAllDragonCoinsCollected(bool allCollected)
+{
+	m_AllDragonCoinsCollected = allCollected;
+}
+
+bool Level::AllDragonCoinsCollected()
+{
+	return m_AllDragonCoinsCollected;
 }

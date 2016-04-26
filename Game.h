@@ -64,20 +64,9 @@ public:
 	static MATRIX3X2 matIdentity;
 
 private:
-	void WriteSessionInfoToFile(bool startInfo);
-	std::string ReadSessionInfoFromFile();
-
 	void Reset();
 
 	bool m_ShowingSessionInfo = false; // 'i' toggles info overlay
-	std::string m_AllSessionInfo;
-	int m_TotalSessionsWithInfo;
-	int m_CurrentSessionInfoShowingIndex = 0;
-	std::string m_CurrentSessionInfo;
-
-	/* NOTE: A reverseSessionIndex of 0 returns the most recent session info, 1 -> the second most recent, etc. */
-	std::string GetReadableSessionInfo(int reverseSessionIndex);
-	int GetNumberOfSessions(std::string allSessionInfo);
 
 	bool m_RenderDebugOverlay;
 

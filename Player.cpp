@@ -14,6 +14,7 @@
 #include "Coin.h"
 #include "DragonCoin.h"
 #include "KoopaShell.h"
+#include "Yoshi.h"
 
 #define ENTITY_MANAGER (EntityManager::GetInstance())
 
@@ -76,6 +77,7 @@ void Player::Reset()
 	m_IsRunning = false;
 	m_IsHoldingItem = false;
 	m_IsDead = false;
+	m_IsRidingYoshi = false;
 
 	m_PowerupState = POWERUP_STATE::NORMAL;
 	m_PrevPowerupState = POWERUP_STATE::NORMAL;
@@ -801,6 +803,11 @@ INT2 Player::CalculateAnimationFrame()
 	return INT2(srcX, srcY);
 }
 
+bool Player::IsRidingYoshi()
+{
+	return m_IsRidingYoshi;
+}
+
 void Player::RideYoshi(Yoshi* yoshiPtr)
 {
 	assert (m_RidingYoshiPtr == nullptr);
@@ -994,6 +1001,7 @@ void Player::AddDragonCoin(Level* levelPtr)
 	{
 		m_DragonCoins = 0;
 		AddLife();
+		levelPtr->SetAllDragonCoinsCollected(true);
 	}
 }
 
@@ -1183,6 +1191,36 @@ bool Player::IsDead()
 bool Player::IsRunning()
 {
 	return m_IsRunning;
+}
+
+std::string Player::GetPowerupStateString()
+{
+	return PowerupStateToString(m_PowerupState);
+}
+
+Player::POWERUP_STATE Player::StringToPowerupState(std::string powerupStateStr)
+{
+	if (!powerupStateStr.compare("Normal")) return POWERUP_STATE::NORMAL;
+	else if (!powerupStateStr.compare("Super")) return POWERUP_STATE::SUPER;
+	else if (!powerupStateStr.compare("Fire")) return POWERUP_STATE::FIRE;
+	else if (!powerupStateStr.compare("Cape")) return POWERUP_STATE::CAPE;
+	else if (!powerupStateStr.compare("Balloon")) return POWERUP_STATE::BALLOON;
+	else if (!powerupStateStr.compare("Star")) return POWERUP_STATE::STAR;
+	else return POWERUP_STATE::NONE;
+}
+
+std::string Player::PowerupStateToString(POWERUP_STATE powerupState)
+{
+	switch (powerupState)
+	{
+	case POWERUP_STATE::NORMAL: return "Normal";
+	case POWERUP_STATE::SUPER: return "Super";
+	case POWERUP_STATE::FIRE: return "Fire";
+	case POWERUP_STATE::CAPE: return "Cape";
+	case POWERUP_STATE::BALLOON: return "Balloon";
+	case POWERUP_STATE::STAR: return "Star";
+	default: return "INVALID STATE";
+	}
 }
 
 String Player::AnimationStateToString(ANIMATION_STATE state)

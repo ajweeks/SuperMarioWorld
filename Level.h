@@ -40,10 +40,17 @@ public:
 	double GetWidth();
 	double GetHeight();
 
+	int GetTimeRemaining();
+
 	void SetShowingMessage(bool showingMessage);
 	bool IsShowingMessage();
 
 	void SetPaused(bool paused);
+
+	bool IsCheckpointCleared();
+
+	void SetAllDragonCoinsCollected(bool allCollected);
+	bool AllDragonCoinsCollected();
 
 	Player* GetPlayer();
 	void GiveItemToPlayer(Item* itemPtr);
@@ -88,6 +95,7 @@ private:
 
 	int m_TotalTime; // How long the player has to complete this level
 	double m_SecondsElapsed = 0.0; // How many real-time seconds have elapsed
+	int m_TimeRemaining;
 
 	// How many pixels wide the foreground of the level is
 	double m_Width;
@@ -97,7 +105,9 @@ private:
 	// TODO: Rename this to Mario? What about Luigi? Add player 2?
 	Player *m_PlayerPtr = nullptr;
 	//bool m_IsPlayerOnGround = false;
+	bool m_AllDragonCoinsCollected;
 
+	bool m_IsCheckpointCleared;
 	Camera* m_CameraPtr = nullptr;
 
 	ParticleManager* m_ParticleManagerPtr = nullptr;

@@ -14,6 +14,7 @@
 #include "LevelData.h"
 #include "SoundManager.h"
 #include "Player.h"
+#include "GameSession.h"
 #include "Enumerations.h"
 
 Font* Game::Font12Ptr = nullptr;
@@ -71,11 +72,8 @@ void Game::GameStart()
 
 	m_LevelPtr = new Level();
 
-	m_AllSessionInfo = ReadSessionInfoFromFile();
-	m_TotalSessionsWithInfo = GetNumberOfSessions(m_AllSessionInfo);
-	m_CurrentSessionInfo = GetReadableSessionInfo(m_CurrentSessionInfoShowingIndex);
-
-	WriteSessionInfoToFile(true);
+	GameSession::ReadSessionInfoFromFile();
+	GameSession::WriteSessionInfoToFile(true, m_LevelPtr);
 
 	Reset();
 }
@@ -86,8 +84,7 @@ void Game::Reset()
 
 	m_SecondsElapsed = 0.0;
 
-	m_CurrentSessionInfoShowingIndex = 0;
-	m_CurrentSessionInfo = GetReadableSessionInfo(m_CurrentSessionInfoShowingIndex);
+	GameSession::Reset();
 
 	m_ShowingSessionInfo = false;
 
@@ -111,7 +108,7 @@ void Game::GameSetSleeping(bool sleeping)
 
 void Game::GameEnd()
 {
-	WriteSessionInfoToFile(false);
+	GameSession::WriteSessionInfoToFile(false, m_LevelPtr);
 
 	delete m_LevelPtr;
 
@@ -154,20 +151,12 @@ void Game::GameTick(double deltaTime)
 		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_NEXT) || 
 			(GAME_ENGINE->IsKeyboardKeyDown(VK_NEXT) && GAME_ENGINE->IsKeyboardKeyDown(VK_CONTROL))) // Page Down
 		{
-			if (m_CurrentSessionInfoShowingIndex + 1 < m_TotalSessionsWithInfo)
-			{
-				m_CurrentSessionInfoShowingIndex++;
-				m_CurrentSessionInfo = GetReadableSessionInfo(m_CurrentSessionInfoShowingIndex);
-			}
+			GameSession::NextSession();
 		}
 		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_PRIOR) || 
 			(GAME_ENGINE->IsKeyboardKeyDown(VK_PRIOR) && GAME_ENGINE->IsKeyboardKeyDown(VK_CONTROL))) // Page Up
 		{
-			if (m_CurrentSessionInfoShowingIndex - 1 >= 0)
-			{
-				m_CurrentSessionInfoShowingIndex--;
-				m_CurrentSessionInfo = GetReadableSessionInfo(m_CurrentSessionInfoShowingIndex);
-			}
+			GameSession::PreviousSession();
 		}
 	}
 }
@@ -180,181 +169,8 @@ void Game::GamePaint()
 	GAME_ENGINE->SetViewMatrix(matIdentity);
 	if (m_ShowingSessionInfo)
 	{
-		int x = Game::WIDTH - 107;
-		int y = 40;
-	
-		GAME_ENGINE->SetFont(Font9Ptr);
-		GAME_ENGINE->SetColor(COLOR(10, 10, 10, 160));
-		GAME_ENGINE->FillRect(x - 5, y - 5, x + 106, y + 140);
-
-		int dy = 11;
-		GAME_ENGINE->SetColor(COLOR(255, 255, 255));
-		std::stringstream stringStream(m_CurrentSessionInfo);
-		std::string currentLine;
-		while (getline(stringStream, currentLine))
-		{
-			GAME_ENGINE->DrawString(String(currentLine.c_str()), x, y);
-			y += dy;
-		}
+		GameSession::PaintCurrentSessionInfo();
 	}
 
 	GAME_ENGINE->SetViewMatrix(matPrevious);
-}
-
-void Game::WriteSessionInfoToFile(bool writeStartInfo)
-{
-	std::ofstream fileOutStream;
-
-	fileOutStream.open("Resources/GameSessions.txt", std::fstream::app);
-
-	if (fileOutStream.fail() == false)
-	{
-		int playerLives = m_LevelPtr->GetPlayer()->GetLives();
-
-		SYSTEMTIME currentTime;
-		GetSystemTime(&currentTime);
-
-		if (writeStartInfo)
-		{
-			fileOutStream << "<Session>" << std::endl;
-				fileOutStream << "\t<Start>" << std::endl;
-		}
-		else
-		{
-				fileOutStream << "\t<End>" << std::endl;
-		}
-
-				fileOutStream << std::setfill('0') ;
-				fileOutStream << "\t\t<Date>";
-				fileOutStream << currentTime.wYear << ":";
-				fileOutStream << std::setw(2) << currentTime.wMonth << ":";
-				fileOutStream << std::setw(2) << currentTime.wDay;
-				fileOutStream << "</Date>" << std::endl;
-
-				fileOutStream << "\t\t<Time>";
-				fileOutStream << std::setw(2) << currentTime.wHour << ":";
-				fileOutStream << std::setw(2) << currentTime.wMinute << ":";
-				fileOutStream << std::setw(2) << currentTime.wSecond;
-				fileOutStream << "</Time>" << std::endl;
-
-				fileOutStream << "\t\t<PlayerLives>";
-				fileOutStream << std::setw(2) << playerLives;
-				fileOutStream << "</PlayerLives>" << std::endl;
-
-		if (writeStartInfo)
-		{
-				fileOutStream << "\t</Start>" << std::endl;
-		}
-		else
-		{
-				fileOutStream << "\t</End>" << std::endl;
-			fileOutStream << "</Session>" << std::endl;
-		}
-	}
-
-	fileOutStream.close();
-}
-
-std::string Game::ReadSessionInfoFromFile()
-{
-	std::ifstream fileInStream;
-	std::stringstream stringStream;
-
-	fileInStream.open("Resources/GameSessions.txt");
-
-	std::string line;
-	while (fileInStream.eof() == false)
-	{
-		std::getline(fileInStream, line);
-		stringStream << line << "\n";
-	}
-
-	fileInStream.close();
-
-	return stringStream.str();
-}
-
-int Game::GetNumberOfSessions(std::string allSessionInfo)
-{
-	int numberOfSessions = 0;
-	int currentIndex = -1;
-	do
-	{
-		currentIndex = allSessionInfo.find("<Session>", currentIndex + 1);
-		numberOfSessions++;
-	} while (currentIndex != std::string::npos);
-
-	numberOfSessions--;
-
-	return numberOfSessions;
-}
-
-std::string Game::GetReadableSessionInfo(int sessionIndex)
-{
-	int sessionTagStart;
-	int sessionsFound = 0;
-	int currentIndex = -1;
-	do 
-	{
-		currentIndex = m_AllSessionInfo.find("<Session>", currentIndex+1);
-		sessionsFound++;
-	} 
-	while (currentIndex != std::string::npos && m_TotalSessionsWithInfo - sessionsFound > sessionIndex);
-
-	sessionTagStart = currentIndex;
-	int sessionTagEnd = m_AllSessionInfo.find("</Session>", sessionTagStart);
-
-	if (sessionTagStart != std::string::npos)
-	{
-		std::string currentSessionRaw;
-		if (sessionTagEnd != std::string::npos)
-		{
-			currentSessionRaw = m_AllSessionInfo.substr(sessionTagStart, sessionTagEnd - sessionTagStart);
-		}
-		else
-		{
-			currentSessionRaw = m_AllSessionInfo.substr(sessionTagStart);
-		}
-		std::stringstream currentSessionStream;
-		currentSessionStream << "Session " << (m_CurrentSessionInfoShowingIndex + 1) << "/" << m_TotalSessionsWithInfo << ":\n\n";
-
-		int startTag = currentSessionRaw.find("<Start>") + std::string("<Start>").length();
-		if (startTag != std::string::npos)
-		{
-			currentSessionStream << "Started on:\n";
-			currentSessionStream << FileIO::GetTagContent(currentSessionRaw, "Date", startTag) << "\n";
-			currentSessionStream << FileIO::GetTagContent(currentSessionRaw, "Time", startTag) << "\n";
-
-			std::string playerLivesString = FileIO::GetTagContent(currentSessionRaw, "PlayerLives", startTag);
-			if (playerLivesString.length() > 0)
-			{
-				currentSessionStream << "Player lives: ";
-				currentSessionStream << playerLivesString;
-				currentSessionStream << "\n";
-			}
-		}
-		currentSessionStream << "\n";
-
-		int endTag = currentSessionRaw.find("<End>") + std::string("<End>").length();
-		if (endTag != std::string::npos)
-		{
-			currentSessionStream << "Ended on:" << "\n";
-			currentSessionStream << FileIO::GetTagContent(currentSessionRaw, "Date", endTag) << "\n";
-			currentSessionStream << FileIO::GetTagContent(currentSessionRaw, "Time", endTag) << "\n";
-
-			std::string playerLivesString = FileIO::GetTagContent(currentSessionRaw, "PlayerLives", endTag);
-			if (playerLivesString.length() > 0)
-			{
-				currentSessionStream << "Player lives: ";
-				currentSessionStream << playerLivesString;
-				currentSessionStream << "\n";
-			}
-		}
-
-		return currentSessionStream.str();
-	}
-	else
-	{
-		return "No session info yet";
-	}
 }
