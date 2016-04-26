@@ -272,7 +272,10 @@ void KoopaTroopa::HeadBonk()
 
 void KoopaTroopa::ShellHit()
 {
-	m_ShouldAddMovingUpwardKoopaShell = true;
+	if (m_AnimationState == ANIMATION_STATE::WALKING)
+	{
+		m_ShouldAddMovingUpwardKoopaShell = true;
+	}
 
 	SoundManager::PlaySoundEffect(SoundManager::SOUND::KOOPA_DEATH);
 
