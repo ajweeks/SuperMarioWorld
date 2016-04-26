@@ -31,6 +31,7 @@ SpriteSheet* SpriteSheetManager::koopaShellPtr = nullptr;
 
 SpriteSheet* SpriteSheetManager::yoshiPtr = nullptr;
 SpriteSheet* SpriteSheetManager::smallYoshiPtr = nullptr;
+SpriteSheet* SpriteSheetManager::yoshiWithMarioPtr = nullptr;
 
 
 SpriteSheetManager::SpriteSheetManager()
@@ -74,6 +75,7 @@ void SpriteSheetManager::Load()
 
 	yoshiPtr = new SpriteSheet(String("Resources/yoshi.png"), 4, 1, 26, 32);
 	smallYoshiPtr = new SpriteSheet(String("Resources/yoshi-small.png"), 3, 2, 16, 16);
+	yoshiWithMarioPtr = new SpriteSheet(String("Resources/yoshi-with-mario.png"), 13, 2, 33, 39);
 }
 
 void SpriteSheetManager::Unload()
@@ -101,6 +103,7 @@ void SpriteSheetManager::Unload()
 
 	delete yoshiPtr;
 	delete smallYoshiPtr;
+	delete yoshiWithMarioPtr;
 
 	delete coinCollectParticlePtr;
 	delete runningDustCloudParticlePtr;

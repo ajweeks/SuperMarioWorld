@@ -2,6 +2,8 @@
 
 #include "Entity.h"
 
+class Player;
+
 class Yoshi : public Entity
 {
 public:
@@ -20,6 +22,7 @@ public:
 	int GetHeight();
 
 	bool IsHatching();
+	void SetCarryingMario(bool carryingMario, Player* marioPtr = nullptr);
 
 private:
 	void PaintAnimationFrame(double left, double top);
@@ -30,6 +33,7 @@ private:
 
 	ANIMATION_STATE m_AnimationState;
 
+	// NOTE: Yoshi enters this state when mario takes damage while riding yoshi and is forced to dismount
 	bool m_IsRunning;
 	bool m_IsCarryingMario;
 	bool m_IsTurningAround;
@@ -37,5 +41,6 @@ private:
 	CountdownTimer m_HatchingTimer;
 	SpriteSheet* m_SpriteSheetPtr = nullptr;
 
-};
+	Player* m_PlayerPtr = nullptr;
 
+};

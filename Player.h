@@ -14,11 +14,11 @@ class Player : public Entity
 public:
 	enum class POWERUP_STATE
 	{
-		NORMAL, SUPER, FIRE, CAPE, BALLOON, STAR
+		NORMAL, SUPER, FIRE, CAPE, BALLOON, STAR, NONE
 	};
 	enum class ANIMATION_STATE
 	{
-		WAITING, WALKING, JUMPING, SPIN_JUMPING, FALLING, CLIMBING, RIDING_YOSHI
+		WAITING, WALKING, JUMPING, SPIN_JUMPING, FALLING, CLIMBING, NONE
 	};
 
 	Player(Level* levelPtr);
@@ -45,6 +45,8 @@ public:
 
 	void AddItemToBeHeld(Item* itemPtr);
 	bool IsHoldingItem();
+	Item* GetHeldItemPtr();
+	void DropHeldItem();
 
 	DOUBLE2 GetLinearVelocity();
 	void SetLinearVelocity(const DOUBLE2& newLinearVelRef);
@@ -54,7 +56,9 @@ public:
 	bool IsOnGround();
 
 	bool IsRidingYoshi();
+
 	void RideYoshi(Yoshi* yoshiPtr);
+	void DismountYoshi();
 
 	void KickShell(KoopaShell* koopaShellPtr);
 

@@ -4,6 +4,7 @@
 #include "Level.h"
 #include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
+#include "Player.h"
 
 Yoshi::Yoshi(DOUBLE2 position, Level* levelPtr) : 
 	Entity(position, BodyType::DYNAMIC, levelPtr, ActorId::YOSHI, this)
@@ -34,11 +35,21 @@ void Yoshi::Tick(double deltaTime)
 		ChangeAnimationState(ANIMATION_STATE::WAITING);
 	}
 
-	m_ActPtr->SetLinearVelocity(DOUBLE2(0, -1));
+	if (m_IsCarryingMario)
+	{
+		m_ActPtr->SetPosition(m_PlayerPtr->GetPosition());
+	}
+	else if (m_IsRunning)
+	{
+
+	}
 }
 
 void Yoshi::Paint()
 {
+	// NOTE: When the player is riding yoshi they paint both characters (since they are both in one spritesheet)
+	if (m_IsCarryingMario) return;
+
 	double centerX = m_ActPtr->GetPosition().x;
 	double centerY = m_ActPtr->GetPosition().y;
 	PaintAnimationFrame(centerX - WIDTH/2, centerY - HEIGHT/2);
@@ -89,6 +100,12 @@ void Yoshi::ChangeAnimationState(ANIMATION_STATE newAnimationState)
 		m_SpriteSheetPtr = SpriteSheetManager::yoshiPtr;
 	} break;
 	}
+}
+
+void Yoshi::SetCarryingMario(bool carryingMario, Player* marioPtr)
+{
+	m_IsCarryingMario = carryingMario;
+	m_PlayerPtr = marioPtr;
 }
 
 int Yoshi::GetWidth()

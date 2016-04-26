@@ -40,6 +40,7 @@ public:
 
 	static SpriteSheet* yoshiPtr;
 	static SpriteSheet* smallYoshiPtr;
+	static SpriteSheet* yoshiWithMarioPtr;
 
 private:
 	SpriteSheetManager();

@@ -241,6 +241,11 @@ void Player::Tick(double deltaTime)
 		m_ChangingDirections.Start();
 	}
 
+	if (m_IsRidingYoshi)
+	{
+		//m_RidingYoshiPtr->Tick(deltaTime, m_ActPtr->GetPosition());
+	}
+
 	TickAnimations(deltaTime);
 
 	m_DirFacingLastFrame = m_DirFacing;
@@ -339,7 +344,11 @@ void Player::HandleKeyboardInput(double deltaTime)
 			m_AnimationState = ANIMATION_STATE::WAITING;
 		}
 
-		if (GAME_ENGINE->IsKeyboardKeyPressed('Z')) // NOTE: Regular jump
+		bool zIsPressed = GAME_ENGINE->IsKeyboardKeyPressed('Z');
+		bool xIsPressed = GAME_ENGINE->IsKeyboardKeyPressed('X');
+		if (zIsPressed || 
+			(xIsPressed && m_IsHoldingItem) ||
+			(xIsPressed && m_IsRidingYoshi)) // NOTE: Regular jump
 		{
 			m_AnimationState = ANIMATION_STATE::JUMPING;
 			m_IsOnGround = false;
@@ -347,7 +356,7 @@ void Player::HandleKeyboardInput(double deltaTime)
 			m_FramesSpentInAir = 0;
 			verticalVel = jumpVelocity;
 		}
-		else if (GAME_ENGINE->IsKeyboardKeyPressed('X')) // NOTE: Spin jump
+		else if (xIsPressed) // NOTE: Spin jump
 		{
 			m_AnimationState = ANIMATION_STATE::SPIN_JUMPING;
 			m_IsOnGround = false;
@@ -714,6 +723,14 @@ INT2 Player::CalculateAnimationFrame()
 			srcX = 6;
 			srcY = 1;
 		}
+		else if (m_IsRidingYoshi)
+		{
+			if (m_IsDucking) srcX = 5;
+			else srcX = 1;
+
+			if (m_PowerupState == POWERUP_STATE::NORMAL) srcY = 0;
+			else srcY = 1;
+		}
 		else if (m_IsLookingUp)
 		{
 			srcX = 0;
@@ -732,7 +749,13 @@ INT2 Player::CalculateAnimationFrame()
 	} break;
 	case ANIMATION_STATE::WALKING:
 	{
-		if (m_ShellKickAnimation.IsActive())
+		if (m_IsRidingYoshi)
+		{
+			srcX = 1 + m_AnimInfo.frameNumber;
+			if (m_PowerupState == POWERUP_STATE::NORMAL) srcY = 0;
+			else srcY = 1;
+		}
+		else if (m_ShellKickAnimation.IsActive())
 		{
 			srcX = 5;
 			srcY = 1;
@@ -755,7 +778,13 @@ INT2 Player::CalculateAnimationFrame()
 	} break;
 	case ANIMATION_STATE::JUMPING:
 	{	
-		if (m_IsDucking)
+		if (m_IsRidingYoshi)
+		{
+			srcX = 3;
+			if (m_PowerupState == POWERUP_STATE::NORMAL) srcY = 0;
+			else srcY = 1;
+		}
+		else if (m_IsDucking)
 		{
 			srcX = 1;
 			srcY = 0;
@@ -773,7 +802,13 @@ INT2 Player::CalculateAnimationFrame()
 	} break;
 	case ANIMATION_STATE::FALLING:
 	{
-		if (m_IsDucking)
+		if (m_IsRidingYoshi)
+		{
+			srcX = 2;
+			if (m_PowerupState == POWERUP_STATE::NORMAL) srcY = 0;
+			else srcY = 1;
+		}
+		else if (m_IsDucking)
 		{
 			srcX = 1;
 			srcY = 0;
@@ -794,10 +829,6 @@ INT2 Player::CalculateAnimationFrame()
 		srcX = 7;
 		srcY = 0;
 	} break;
-	case ANIMATION_STATE::RIDING_YOSHI:
-	{
-		assert(false);
-	} break;
 	}
 
 	return INT2(srcX, srcY);
@@ -810,11 +841,23 @@ bool Player::IsRidingYoshi()
 
 void Player::RideYoshi(Yoshi* yoshiPtr)
 {
-	assert (m_RidingYoshiPtr == nullptr);
+	assert(m_IsHoldingItem == false);
+	assert(m_RidingYoshiPtr == nullptr);
 
 	m_RidingYoshiPtr = yoshiPtr;
+	m_RidingYoshiPtr->SetCarryingMario(true, this);
 
-	m_AnimationState = ANIMATION_STATE::RIDING_YOSHI;
+	m_IsRidingYoshi = true;
+	m_AnimationState = ANIMATION_STATE::WAITING;
+}
+
+void Player::DismountYoshi()
+{
+	assert(m_RidingYoshiPtr != nullptr);
+	m_RidingYoshiPtr->SetCarryingMario(false);
+	m_RidingYoshiPtr = nullptr;
+
+	m_IsRidingYoshi = false;
 }
 
 void Player::OnItemPickup(Item* itemPtr, Level* levelPtr)
@@ -934,6 +977,8 @@ SpriteSheet* Player::GetSpriteSheetForPowerupState(POWERUP_STATE powerupState)
 
 void Player::AddItemToBeHeld(Item* itemPtr)
 {
+	assert(m_ItemHoldingPtr == nullptr);
+
 	m_ItemHoldingPtr = itemPtr;
 	m_IsHoldingItem = true;
 }
@@ -943,13 +988,24 @@ void Player::KickShell(KoopaShell* koopaShellPtr)
 	koopaShellPtr->KickHorizontally(m_DirFacing, true);
 }
 
+void Player::DropHeldItem()
+{
+	assert(m_IsHoldingItem);
+	// LATER: Add other item type handling here
+	assert(m_ItemHoldingPtr->GetType() == Item::TYPE::KOOPA_SHELL);
+
+	((KoopaShell*)m_ItemHoldingPtr)->ShellHit();
+	m_ItemHoldingPtr = nullptr;
+	m_IsHoldingItem = false;
+}
+
 void Player::KickHeldItem(bool gently)
 {
 	assert(m_ItemHoldingPtr != nullptr);
 
 	if (gently)
 	{
-		((KoopaShell*)m_ItemHoldingPtr)->SetMoving(false);
+		((KoopaShell*)m_ItemHoldingPtr)->SetLinearVelocity(m_ActPtr->GetLinearVelocity() + DOUBLE2(m_DirFacing * 30, 0));
 	}
 	else
 	{
@@ -1091,6 +1147,11 @@ void Player::SetClimbingBeanstalk(bool climbing)
 	}
 
 	m_FramesClimbingSinceLastFlip = FRAMES_OF_CLIMBING_ANIMATION;
+}
+
+Item* Player::GetHeldItemPtr()
+{
+	return m_ItemHoldingPtr;
 }
 
 bool Player::IsHoldingItem()
@@ -1247,6 +1308,7 @@ String Player::AnimationStateToString(ANIMATION_STATE state)
 	case ANIMATION_STATE::CLIMBING:
 		str = String("climbing");
 		break;
+	case ANIMATION_STATE::NONE:
 	default:
 		return String("unknown state passed to Player::AnimationStateToString: ") + String(int(state));
 	}

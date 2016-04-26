@@ -89,12 +89,12 @@ private:
 
 	PhysicsActor* m_ActLevelPtr = nullptr;
 
-	bool m_Paused = false;
+	bool m_Paused;
 
-	bool m_ShowingMessage = false;
+	bool m_ShowingMessage;
 
 	int m_TotalTime; // How long the player has to complete this level
-	double m_SecondsElapsed = 0.0; // How many real-time seconds have elapsed
+	double m_SecondsElapsed; // How many real-time seconds have elapsed
 	int m_TimeRemaining;
 
 	// How many pixels wide the foreground of the level is
@@ -102,17 +102,15 @@ private:
 	// How many pixels high the foreground of the level is
 	double m_Height;
 
-	// TODO: Rename this to Mario? What about Luigi? Add player 2?
-	Player *m_PlayerPtr = nullptr;
-	//bool m_IsPlayerOnGround = false;
 	bool m_AllDragonCoinsCollected;
 
 	bool m_IsCheckpointCleared;
+	
+	Player *m_PlayerPtr = nullptr;
 	Camera* m_CameraPtr = nullptr;
-
 	ParticleManager* m_ParticleManagerPtr = nullptr;
-
 	Yoshi* m_YoshiPtr = nullptr;
+
 };
 
 // TODO: Move this somewhere more global

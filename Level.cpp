@@ -179,6 +179,7 @@ void Level::AddYoshi(Yoshi* yoshiPtr)
 	}
 
 	m_YoshiPtr = yoshiPtr;
+	yoshiPtr->AddContactListener(this);
 }
 
 void Level::AddItem(Item* newItemPtr)
@@ -616,20 +617,6 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 {
 	switch (actOtherPtr->GetUserData())
 	{
-	case int(ActorId::YOSHI):
-	{
-		if (actThisPtr->GetUserData() == int(ActorId::PLAYER))
-		{
-			assert(m_YoshiPtr != nullptr);
-			if (m_YoshiPtr->IsHatching() == false)
-			{
-				if (m_PlayerPtr->GetLinearVelocity().y > 0)
-				{
-					m_PlayerPtr->RideYoshi(m_YoshiPtr);
-				}
-			}
-		}
-	} break;
 	case int(ActorId::PLAYER):
 	{
 		if (m_PlayerPtr->IsDead())
@@ -691,7 +678,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 				{
 					koopaShellPtr->Stomp();
 				}
-				else if (m_PlayerPtr->IsRunning())
+				else if (m_PlayerPtr->IsRunning() && m_PlayerPtr->IsHoldingItem() == false)
 				{
 					if (koopaShellPtr->IsFalling() == false)
 					{
@@ -781,6 +768,19 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			} break;
 			}
 		} break;
+		case int(ActorId::YOSHI):
+		{
+			assert(m_YoshiPtr != nullptr);
+			if (m_YoshiPtr->IsHatching() == false)
+			{
+				if (m_PlayerPtr->IsHoldingItem() == false &&
+					playerFeet.y < actThisPtr->GetPosition().y &&
+					m_PlayerPtr->GetLinearVelocity().y > 0)
+				{
+					m_PlayerPtr->RideYoshi(m_YoshiPtr);
+				}
+			}
+		} break;
 		}
 	} break;
 	case int(ActorId::ITEM):
@@ -816,7 +816,12 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 				{
 				case Enemy::TYPE::KOOPA_TROOPA:
 				{
-					if (otherKoopaShellPtr->IsMoving() || otherKoopaShellPtr->IsBouncing())
+					if (m_PlayerPtr->IsHoldingItem() && m_PlayerPtr->GetHeldItemPtr() == otherKoopaShellPtr)
+					{
+						m_PlayerPtr->DropHeldItem();
+						((KoopaTroopa*)enemyPtr)->ShellHit();
+					}
+					else if (otherKoopaShellPtr->IsMoving() || otherKoopaShellPtr->IsBouncing())
 					{
 						((KoopaTroopa*)enemyPtr)->ShellHit();
 					}
@@ -834,7 +839,9 @@ void Level::EndContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 {
 	if (actOtherPtr->GetUserData() == int(ActorId::PLAYER))
 	{
-		if (actThisPtr->GetUserData() == int(ActorId::ITEM))
+		switch (actThisPtr->GetUserData())
+		{
+		case int(ActorId::ITEM):
 		{
 			Item* otherItemPtr = (Item*)actThisPtr->GetUserPointer();
 			switch (otherItemPtr->GetType())
@@ -844,6 +851,14 @@ void Level::EndContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 				m_PlayerPtr->SetOverlappingWithBeanstalk(false);
 			} break;
 			}
+		} break;
+		case int(ActorId::YOSHI):
+		{
+			if (m_PlayerPtr->IsRidingYoshi())
+			{
+				m_PlayerPtr->DismountYoshi();
+			}
+		} break;
 		}
 	}
 }
