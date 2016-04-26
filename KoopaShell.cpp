@@ -13,12 +13,16 @@
 
 const double KoopaShell::HORIZONTAL_KICK_BASE_VEL = 190;
 const double KoopaShell::VERTICAL_KICK_VEL = -520.0;
-const double KoopaShell::SHELL_HIT_VEL = -150.0;
+const double KoopaShell::SHELL_HIT_VEL = -180.0;
 
-KoopaShell::KoopaShell(DOUBLE2 topLeft, Level* levelPtr, COLOUR colour)  :
-	Item(topLeft, TYPE::KOOPA_SHELL, levelPtr, BodyType::DYNAMIC),
+KoopaShell::KoopaShell(DOUBLE2 topLeft, Level* levelPtr, COLOUR colour, bool upsideDown)  :
+	Item(topLeft, TYPE::KOOPA_SHELL, levelPtr, BodyType::DYNAMIC, WIDTH, HEIGHT),
 	m_Colour(colour)
 {
+	if (upsideDown)
+	{
+		ShellHit();
+	}
 }
 
 KoopaShell::~KoopaShell()

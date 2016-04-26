@@ -61,6 +61,7 @@ public:
 
 private:
 	static const int WIDTH = 14;
+	static const int HEIGHT = 14;
 
 	static const int WALK_VEL = 35;
 

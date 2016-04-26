@@ -6,7 +6,7 @@
 class KoopaShell : public Item
 {
 public:	
-	KoopaShell(DOUBLE2 topLeft, Level* levelPtr, COLOUR colour);
+	KoopaShell(DOUBLE2 topLeft, Level* levelPtr, COLOUR colour, bool upsideDown = false);
 	virtual ~KoopaShell();
 
 	void Tick(double deltaTime);
@@ -24,6 +24,10 @@ public:
 	bool IsMoving();
 	void SetMoving(bool moving);
 	bool IsBouncing();
+
+	static const int WIDTH = 14;
+	static const int HEIGHT = 14;
+
 private:
 	// NOTE: This value is affected by how fast the player is moving
 	// This is the minimum value (when the player is standing still)
@@ -39,8 +43,6 @@ private:
 	// NOTE: This is true when this shell has been thrown into the air by the player
 	// and hasn't hit the ground yet
 	bool m_IsBouncing = false;
-
 	bool m_IsFalling = false;
-
 	bool m_ShouldBeRemoved = false;
 };

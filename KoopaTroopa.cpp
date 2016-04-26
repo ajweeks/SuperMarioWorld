@@ -30,17 +30,15 @@ void KoopaTroopa::Tick(double deltaTime)
 	if (m_ShouldAddKoopaShell)
 	{
 		m_ShouldAddKoopaShell = false;
-		KoopaShell* koopaShellPtr = new KoopaShell(m_ActPtr->GetPosition(), m_LevelPtr, m_Color);
+		KoopaShell* koopaShellPtr = new KoopaShell(m_ActPtr->GetPosition() + DOUBLE2(0, -10), m_LevelPtr, m_Color);
 		koopaShellPtr->AddContactListener(m_LevelPtr);
 		m_LevelPtr->AddItem(koopaShellPtr);
 	}
 	if (m_ShouldAddMovingUpwardKoopaShell)
 	{
 		m_ShouldAddMovingUpwardKoopaShell = false;
-
-		KoopaShell* koopaShellPtr = new KoopaShell(m_ActPtr->GetPosition(), m_LevelPtr, m_Color);
-		koopaShellPtr->AddContactListener(m_LevelPtr);
-		koopaShellPtr->ShellHit();
+		KoopaShell* koopaShellPtr = new KoopaShell(m_ActPtr->GetPosition(), m_LevelPtr, m_Color, true);
+		//koopaShellPtr->AddContactListener(m_LevelPtr);
 		m_LevelPtr->AddItem(koopaShellPtr);
 	}
 
@@ -305,8 +303,6 @@ void KoopaTroopa::ChangeAnimationState(ANIMATION_STATE newAnimationState)
 {
 
 	m_AnimationState = newAnimationState;
-
-	// LATER: Add particle?
 }
 
 KoopaTroopa::ANIMATION_STATE KoopaTroopa::GetAnimationState()
@@ -321,16 +317,5 @@ int KoopaTroopa::GetWidth()
 
 int KoopaTroopa::GetHeight()
 {
-	static const int SMALL_HEIGHT = 14;
-	static const int LARGE_HEIGHT = 14;
-
-	// TODO: Remove resizable actor height functionality
-	if (m_AnimationState == ANIMATION_STATE::WALKING)
-	{
-		return LARGE_HEIGHT;
-	}
-	else
-	{
-		return SMALL_HEIGHT;
-	}
+	return HEIGHT;
 }
