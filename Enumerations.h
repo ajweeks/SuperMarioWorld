@@ -123,6 +123,7 @@ enum class COLOUR
 class Colour
 {
 public:
+
 	static std::string COLOURToString(COLOUR colour)
 	{
 		switch (colour)
@@ -195,5 +196,15 @@ public:
 		result.bottom = stod(string.substr(comma3 + 1));
 
 		return result;
+	}
+
+	static bool StringToBool(std::string valueString)
+	{
+		return valueString != "0";
+	}
+
+	static std::string BoolToString(bool value)
+	{
+		return (value == 1 ? "true" : value == 0 ? "false" : "");
 	}
 };

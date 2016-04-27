@@ -24,7 +24,7 @@
 #define DEBUG_ZOOM_OUT false
 
 #define SMW_ENABLE_JUMP_TO
-#define SMW_JUMP_TO_POS_X 3300
+#define SMW_JUMP_TO_POS_X 2500
 
 #define ARRAY_SIZE(array) (sizeof((array))/sizeof((array[0])))
 
@@ -41,7 +41,6 @@ public:
 	Game(const Game&) = delete;
 	Game& operator=(const Game&) = delete;
 
-
 	virtual void GameInitialize(GameSettings &gameSettingsRef);
 	virtual void GameStart();
 	virtual void GameEnd();
@@ -54,8 +53,8 @@ public:
 	static Font *Font9Ptr;
 
 	// NOTE: How many pixels we have to work with, not how large the final window will be necessarily
-	static const int WIDTH = 256;
-	static const int HEIGHT = 224;
+	static const int WIDTH;
+	static const int HEIGHT;
 
 	static const int WINDOW_SCALE = 3;
 	// NOTE: Use this matrix as the base for all other matricies,

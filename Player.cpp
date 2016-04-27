@@ -1254,9 +1254,9 @@ bool Player::IsRunning()
 	return m_IsRunning;
 }
 
-std::string Player::GetPowerupStateString()
+Player::POWERUP_STATE Player::GetPowerupState()
 {
-	return PowerupStateToString(m_PowerupState);
+	return m_PowerupState;
 }
 
 Player::POWERUP_STATE Player::StringToPowerupState(std::string powerupStateStr)

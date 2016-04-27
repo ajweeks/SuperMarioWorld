@@ -34,7 +34,10 @@ public:
 
 	void Reset();
 	
-	std::string GetPowerupStateString();
+	POWERUP_STATE GetPowerupState();
+
+	static POWERUP_STATE StringToPowerupState(std::string powerupStateStr);
+	static std::string PowerupStateToString(POWERUP_STATE powerupState);
 
 	int GetLives();
 	int GetCoinsCollected();
@@ -107,9 +110,6 @@ private:
 	String AnimationStateToString(ANIMATION_STATE state);
 
 	void ChangePowerupState(POWERUP_STATE newPowerupState, bool isUpgrade = true);
-
-	POWERUP_STATE StringToPowerupState(std::string powerupStateStr);
-	std::string PowerupStateToString(POWERUP_STATE powerupState);
 
 	SpriteSheet* GetSpriteSheetForPowerupState(POWERUP_STATE powerupState);
 

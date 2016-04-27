@@ -243,12 +243,6 @@ void Level::Paint()
 
 	PaintHUD();
 
-	if (m_Paused && !m_PlayerPtr->IsDead())
-	{
-		GAME_ENGINE->SetColor(COLOR(255, 255, 255));
-		GAME_ENGINE->DrawRect(0, 0, Game::WIDTH, Game::HEIGHT, 6);
-	}
-
 #if 0
 	m_CameraPtr->DEBUGPaint();
 #endif

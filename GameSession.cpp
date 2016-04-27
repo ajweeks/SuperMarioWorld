@@ -8,73 +8,94 @@
 
 int GameSession::m_CurrentSessionIndex = 0;
 int GameSession::m_TotalSessionsWithInfo = 0;
-std::string GameSession::m_AllSessionInfo = "";
-std::string GameSession::m_CurrentSessionInfo = "";
+SessionInfoPair GameSession::m_CurrentSessionInfo = {};
+std::string GameSession::m_AllSessionsInfoString = "";
 
-void GameSession::WriteSessionInfoToFile(bool writeStartInfo, Level* levelPtr)
+COLOR GameSession::OFF_WHITE = COLOR(245, 245, 250);
+COLOR GameSession::GREEN = COLOR(16, 181, 16);
+COLOR GameSession::RED = COLOR(193, 36, 36);
+
+void GameSession::RecordStartSessionInfo(Level* levelPtr)
 {
+	RecordSessionInfo(m_CurrentSessionInfo.sessionInfoStart, levelPtr);
+}
+
+void GameSession::RecordSessionInfo(SessionInfo &sessionInfo, Level* levelPtr)
+{
+	SYSTEMTIME currentTime;
+	GetLocalTime(&currentTime);
+
+	std::stringstream stringStream;
+	sessionInfo = {};
+
+	stringStream <<
+		std::to_string(currentTime.wYear) << ":" <<
+		std::setw(2) << std::setfill('0') << std::to_string(currentTime.wMonth) << ":" <<
+		std::setw(2) << std::setfill('0') << std::to_string(currentTime.wDay);
+	sessionInfo.m_Date = stringStream.str();
+	stringStream.str(std::string());
+	stringStream.clear();
+
+	stringStream << 
+		std::setw(2) << std::setfill('0') << std::to_string(currentTime.wHour) << ":" <<
+		std::setw(2) << std::setfill('0') << std::to_string(currentTime.wMinute) << ":" <<
+		std::setw(2) << std::setfill('0') << std::to_string(currentTime.wSecond);
+	sessionInfo.m_Time = stringStream.str();
+	stringStream.str(std::string());
+	stringStream.clear();
+
+	sessionInfo.m_PlayerLives = levelPtr->GetPlayer()->GetLives();
+	sessionInfo.m_PlayerScore = levelPtr->GetPlayer()->GetScore();
+	sessionInfo.m_CheckpointCleared = levelPtr->IsCheckpointCleared();
+	sessionInfo.m_PlayerRidingYoshi = levelPtr->GetPlayer()->IsRidingYoshi();
+	sessionInfo.m_PlayerPowerupState = Player::PowerupStateToString(levelPtr->GetPlayer()->GetPowerupState());
+	sessionInfo.m_TimeRemaining = levelPtr->GetTimeRemaining();
+	sessionInfo.m_CoinsCollected = levelPtr->GetPlayer()->GetCoinsCollected();
+	sessionInfo.m_AllDragonCoinsCollected = levelPtr->AllDragonCoinsCollected();
+}
+
+void GameSession::WriteSessionInfoToFile(Level* levelPtr)
+{
+	RecordSessionInfo(m_CurrentSessionInfo.sessionInfoEnd, levelPtr);
+
 	std::ofstream fileOutStream;
 
 	fileOutStream.open("Resources/GameSessions.txt", std::fstream::app);
 
 	if (fileOutStream.fail() == false)
 	{
-		int playerLives = levelPtr->GetPlayer()->GetLives();
-		int playerScore = levelPtr->GetPlayer()->GetScore();
-		bool checkpointCleared = levelPtr->IsCheckpointCleared();
-		bool ridingYoshi = levelPtr->GetPlayer()->IsRidingYoshi();
-		std::string playerPowerupState = levelPtr->GetPlayer()->GetPowerupStateString();
-		int timeRemaining = levelPtr->GetTimeRemaining();
-		int numberOfCoinsCollected = levelPtr->GetPlayer()->GetCoinsCollected();
-		bool allDragonCoinsCollected = levelPtr->AllDragonCoinsCollected();
+		fileOutStream << "<Session>" << std::endl;
 
-		SYSTEMTIME currentTime;
-		GetSystemTime(&currentTime);
+		fileOutStream << "\t<Start>" << std::endl;
+		fileOutStream << GetSessionInfoMarkedUp(m_CurrentSessionInfo.sessionInfoStart);
+		fileOutStream << "\t</Start>" << std::endl;
 
-		if (writeStartInfo)
-		{
-			fileOutStream << "<Session>" << std::endl;
-			fileOutStream << "\t<Start>" << std::endl;
-		}
-		else
-		{
-			fileOutStream << "\t<End>" << std::endl;
-		}
+		fileOutStream << "\t<End>" << std::endl;
+		fileOutStream << GetSessionInfoMarkedUp(m_CurrentSessionInfo.sessionInfoEnd);
+		fileOutStream << "\t</End>" << std::endl;
 
-		fileOutStream << std::setfill('0');
-		fileOutStream << "\t\t<Date>";
-		fileOutStream << currentTime.wYear << ":";
-		fileOutStream << std::setw(2) << currentTime.wMonth << ":";
-		fileOutStream << std::setw(2) << currentTime.wDay;
-		fileOutStream << "</Date>" << std::endl;
-
-		fileOutStream << "\t\t<Time>";
-		fileOutStream << std::setw(2) << currentTime.wHour << ":";
-		fileOutStream << std::setw(2) << currentTime.wMinute << ":";
-		fileOutStream << std::setw(2) << currentTime.wSecond;
-		fileOutStream << "</Time>" << std::endl;
-
-		fileOutStream << "\t\t<PlayerLives>" << std::setw(2) << playerLives << "</PlayerLives>" << std::endl;
-		fileOutStream << "\t\t<Score>" << playerScore << "</Score>" << std::endl;
-		fileOutStream << "\t\t<CheckpointCleared>" << checkpointCleared << "</CheckpointCleared>" << std::endl;
-		fileOutStream << "\t\t<PlayerRidingYoshi>" << ridingYoshi << "</PlayerRidingYoshi>" << std::endl;
-		fileOutStream << "\t\t<PlayerPowerupState>" << playerPowerupState << "</PlayerPowerupState>" << std::endl;
-		fileOutStream << "\t\t<TimeRemaining>" << timeRemaining << "</TimeRemaining>" << std::endl;
-		fileOutStream << "\t\t<CoinsCollected>" << numberOfCoinsCollected << "</CoinsCollected>" << std::endl;
-		fileOutStream << "\t\t<AllDragonCoinsCollected>" << allDragonCoinsCollected << "</AllDragonCoinsCollected>" << std::endl;
-
-		if (writeStartInfo)
-		{
-			fileOutStream << "\t</Start>" << std::endl;
-		}
-		else
-		{
-			fileOutStream << "\t</End>" << std::endl;
-			fileOutStream << "</Session>" << std::endl;
-		}
+		fileOutStream << "</Session>" << std::endl;
 	}
 
 	fileOutStream.close();
+}
+
+std::string GameSession::GetSessionInfoMarkedUp(SessionInfo sessionInfo)
+{
+	std::stringstream stringStream;
+	stringStream << std::setfill('0');
+	stringStream << "\t\t<Date>" << sessionInfo.m_Date << "</Date>" << std::endl;
+	stringStream << "\t\t<Time>" << sessionInfo.m_Time << "</Time>" << std::endl;
+	stringStream << "\t\t<PlayerLives>" << std::setw(2) << sessionInfo.m_PlayerLives << "</PlayerLives>" << std::endl;
+	stringStream << "\t\t<Score>" << sessionInfo.m_PlayerScore << "</Score>" << std::endl;
+	stringStream << "\t\t<CheckpointCleared>" << sessionInfo.m_CheckpointCleared << "</CheckpointCleared>" << std::endl;
+	stringStream << "\t\t<PlayerRidingYoshi>" << sessionInfo.m_PlayerRidingYoshi << "</PlayerRidingYoshi>" << std::endl;
+	stringStream << "\t\t<PlayerPowerupState>" << sessionInfo.m_PlayerPowerupState << "</PlayerPowerupState>" << std::endl;
+	stringStream << "\t\t<TimeRemaining>" << sessionInfo.m_TimeRemaining << "</TimeRemaining>" << std::endl;
+	stringStream << "\t\t<CoinsCollected>" << sessionInfo.m_CoinsCollected << "</CoinsCollected>" << std::endl;
+	stringStream << "\t\t<AllDragonCoinsCollected>" << sessionInfo.m_AllDragonCoinsCollected << "</AllDragonCoinsCollected>" << std::endl;
+
+	return stringStream.str();
 }
 
 void GameSession::ReadSessionInfoFromFile()
@@ -93,9 +114,10 @@ void GameSession::ReadSessionInfoFromFile()
 
 	fileInStream.close();
 
-	m_AllSessionInfo = stringStream.str();
+	m_AllSessionsInfoString = stringStream.str();
+	m_AllSessionsInfoString.erase(std::remove_if(m_AllSessionsInfoString.begin(), m_AllSessionsInfoString.end(), isspace), m_AllSessionsInfoString.end());
 	m_TotalSessionsWithInfo = GetNumberOfSessions();
-	m_CurrentSessionInfo = GetReadableSessionInfo(m_CurrentSessionIndex);
+	m_CurrentSessionInfo = GetSessionInfo(m_CurrentSessionIndex);
 }
 
 int GameSession::GetNumberOfSessions()
@@ -104,7 +126,7 @@ int GameSession::GetNumberOfSessions()
 	int currentIndex = -1;
 	do
 	{
-		currentIndex = m_AllSessionInfo.find("<Session>", currentIndex + 1);
+		currentIndex = m_AllSessionsInfoString.find("<Session>", currentIndex + 1);
 		numberOfSessions++;
 	} while (currentIndex != std::string::npos);
 
@@ -113,131 +135,259 @@ int GameSession::GetNumberOfSessions()
 	return numberOfSessions;
 }
 
-std::string GameSession::GetReadableSessionInfo(int sessionIndex)
+SessionInfoPair GameSession::GetSessionInfo(int sessionIndex)
 {
-	int sessionTagStart;
 	int sessionsFound = 0;
 	int currentIndex = -1;
 	do
 	{
-		currentIndex = m_AllSessionInfo.find("<Session>", currentIndex + 1);
+		currentIndex = m_AllSessionsInfoString.find("<Session>", currentIndex + 1);
 		sessionsFound++;
 	} while (currentIndex != std::string::npos && m_TotalSessionsWithInfo - sessionsFound > sessionIndex);
 
-	sessionTagStart = currentIndex;
-	int sessionTagEnd = m_AllSessionInfo.find("</Session>", sessionTagStart);
+	int sessionTagStart = currentIndex;
+	int sessionTagEnd = m_AllSessionsInfoString.find("</Session>", sessionTagStart);
 
-	if (sessionTagStart != std::string::npos)
+	if (sessionTagStart != std::string::npos && sessionTagEnd != std::string::npos)
 	{
 		std::string currentSessionRaw;
-		if (sessionTagEnd != std::string::npos)
-		{
-			currentSessionRaw = m_AllSessionInfo.substr(sessionTagStart, sessionTagEnd - sessionTagStart);
-		}
-		else
-		{
-			currentSessionRaw = m_AllSessionInfo.substr(sessionTagStart);
-		}
-		std::stringstream currentSessionStream;
-		currentSessionStream << "Session " << (m_CurrentSessionIndex + 1) << "/" << m_TotalSessionsWithInfo << ":\n\n";
+		currentSessionRaw = m_AllSessionsInfoString.substr(sessionTagStart, sessionTagEnd - sessionTagStart);
 
+		SessionInfo currentSessionInfoStart;
 		int startTag = currentSessionRaw.find("<Start>") + std::string("<Start>").length();
 		int startTagEnd = currentSessionRaw.find("</Start>") + std::string("</Start>").length();
 		if (startTag != std::string::npos && startTagEnd != std::string::npos)
 		{
 			std::string startInfo = currentSessionRaw.substr(startTag, startTagEnd - startTag);
-			currentSessionStream << "Started on:\n";
-			currentSessionStream << GetSessionInfoContent(startInfo);
+			currentSessionInfoStart = GetSessionInfo(startInfo);
 		}
-		currentSessionStream << "\n";
 
+		SessionInfo currentSessionInfoEnd;
 		int endTag = currentSessionRaw.find("<End>") + std::string("<End>").length();
 		int endTagEnd = currentSessionRaw.find("</End>") + std::string("</End>").length();
 		if (endTag != std::string::npos && endTagEnd != std::string::npos)
 		{
 			std::string endInfo = currentSessionRaw.substr(endTag, endTagEnd - endTag);
-			currentSessionStream << "Ended on:\n";
-			currentSessionStream << GetSessionInfoContent(endInfo);
+			currentSessionInfoEnd = GetSessionInfo(endInfo);
 		}
 
-		return currentSessionStream.str();
+		SessionInfoPair sessionInfoPair;
+		sessionInfoPair.sessionInfoStart = currentSessionInfoStart;
+		sessionInfoPair.sessionInfoEnd = currentSessionInfoEnd;
+		sessionInfoPair.m_SessionIndex = sessionIndex;
+		return sessionInfoPair;
 	}
-	else
-	{
-		return "No session info yet";
-	}
+	return {};
 }
 
-std::string GameSession::GetSessionInfoContent(std::string sessionString)
+SessionInfo GameSession::GetSessionInfo(std::string sessionString)
 {
-	std::stringstream sessionStream;
+	SessionInfo sessionInfo = {};
+	
+	sessionInfo.m_Date = FileIO::GetTagContent(sessionString, "Date");
+	sessionInfo.m_Time = FileIO::GetTagContent(sessionString, "Time");
 
-	sessionStream << GetTagContentIfAvailable(sessionString, "Date");
-	sessionStream << GetTagContentIfAvailable(sessionString, "Time");
-	sessionStream << GetTagContentIfAvailable(sessionString, "PlayerLives", "Player Lives: ");
-	sessionStream << GetTagContentIfAvailable(sessionString, "Score", "Score: ");
-	sessionStream << GetTagContentIfAvailable(sessionString, "CheckpointCleared", "Checkpoint Cleared: ");
-	sessionStream << GetTagContentIfAvailable(sessionString, "PlayerRidingYoshi", "Riding Yoshi: ");
-	sessionStream << GetTagContentIfAvailable(sessionString, "PlayerPowerupState", "Powerup State: ");
-	sessionStream << GetTagContentIfAvailable(sessionString, "TimeRemaining", "Time Remaining: ");
-	sessionStream << GetTagContentIfAvailable(sessionString, "CoinsCollected", "Coins Collected: ");
-	sessionStream << GetTagContentIfAvailable(sessionString, "AllDragonCoinsCollected", "All Dragon Coins Collected: ");
+	std::string playerPowerupStateStr = FileIO::GetTagContent(sessionString, "PlayerPowerupState");
+	if (playerPowerupStateStr.length() > 0) sessionInfo.m_PlayerPowerupState = playerPowerupStateStr;
 
-	return sessionStream.str();
+	std::string playerLivesStr = FileIO::GetTagContent(sessionString, "PlayerLives");
+	if (playerLivesStr.length() > 0) sessionInfo.m_PlayerLives = stoi(playerLivesStr);
+
+	std::string playerScoreStr = FileIO::GetTagContent(sessionString, "Score");
+	if (playerScoreStr.length() > 0) sessionInfo.m_PlayerScore = stoi(playerScoreStr);
+
+	std::string timeRemainingStr = FileIO::GetTagContent(sessionString, "TimeRemaining");
+	if (timeRemainingStr.length() > 0) sessionInfo.m_TimeRemaining = stoi(timeRemainingStr);
+
+	std::string coinsCollectedStr = FileIO::GetTagContent(sessionString, "CoinsCollected");
+	if(coinsCollectedStr.length() > 0) sessionInfo.m_CoinsCollected = stoi(coinsCollectedStr);
+
+	std::string checkpointClearedStr = FileIO::GetTagContent(sessionString, "CheckpointCleared");
+	if (checkpointClearedStr.length() > 0) sessionInfo.m_CheckpointCleared = FileIO::StringToBool(checkpointClearedStr);
+
+	std::string playerRidingYoshiStr = FileIO::GetTagContent(sessionString, "PlayerRidingYoshi");
+	if (playerRidingYoshiStr.length() > 0) sessionInfo.m_PlayerRidingYoshi = FileIO::StringToBool(playerRidingYoshiStr);
+
+	std::string allDragonCoinsCollectedStr = FileIO::GetTagContent(sessionString, "AllDragonCoinsCollected");
+	if (allDragonCoinsCollectedStr.length() > 0) sessionInfo.m_AllDragonCoinsCollected = FileIO::StringToBool(allDragonCoinsCollectedStr);
+
+	return sessionInfo;
 }
 
-std::string GameSession::GetTagContentIfAvailable(std::string sessionString, std::string tagString, std::string formattedString)
+static int lineHeight = 11;
+void GameSession::PaintCurrentSessionInfo()
 {
-	std::string playerLivesString = FileIO::GetTagContent(sessionString, tagString);
-	if (playerLivesString.length() > 0)
+	// BACKGROUND ROWS
+	int rows = 11;
+	int yOffset = 34;
+	GAME_ENGINE->SetColor(COLOR(5, 5, 5, 185));
+	GAME_ENGINE->FillRect(0, 0, Game::WIDTH, yOffset);
+	if (yOffset + rows * lineHeight < Game::HEIGHT)
 	{
-		return formattedString + playerLivesString + "\n";
+		GAME_ENGINE->FillRect(0, yOffset + rows * lineHeight, Game::WIDTH, Game::HEIGHT);
 	}
-	return "";
+
+	for (int i = 0; i < rows; ++i)
+	{
+		if (i% 2 == 0) GAME_ENGINE->SetColor(COLOR(10, 10, 10, 185));
+		else GAME_ENGINE->SetColor(COLOR(25, 25, 30, 185));
+
+		GAME_ENGINE->FillRect(0, i * lineHeight + yOffset, Game::WIDTH, (i + 1) * lineHeight + yOffset);
+	}
+
+	int x = 12;
+	int y = 10;
+
+	// SESSION INDEX
+	GAME_ENGINE->SetColor(OFF_WHITE);
+	GAME_ENGINE->SetFont(Game::Font9Ptr);
+	GAME_ENGINE->DrawString(String("Current session: ") + String(m_TotalSessionsWithInfo - m_CurrentSessionInfo.m_SessionIndex) + 
+		String("/") + String(m_TotalSessionsWithInfo), x, y);
+	y += 16;
+
+	// HEADINGS
+	GAME_ENGINE->SetFont(Game::Font12Ptr);
+	GAME_ENGINE->DrawString(String("Start"), x + 15, y);
+	GAME_ENGINE->DrawString(String("End"), x + 170, y);
+
+	y += 20;
+	GAME_ENGINE->DrawLine(10, y, Game::WIDTH - 20, y);
+
+	// MAIN INFO
+	GAME_ENGINE->SetFont(Game::Font9Ptr);
+	m_CurrentSessionInfo;
+	
+	PaintInfoString("Date: ",
+		m_CurrentSessionInfo.sessionInfoStart.m_Date,
+		m_CurrentSessionInfo.sessionInfoEnd.m_Date,
+		x, y);
+
+	PaintInfoString("Time: ",
+		m_CurrentSessionInfo.sessionInfoStart.m_Time,
+		m_CurrentSessionInfo.sessionInfoEnd.m_Time,
+		x, y);
+
+	PaintInfoString("Player lives: ",
+		m_CurrentSessionInfo.sessionInfoStart.m_PlayerLives,
+		m_CurrentSessionInfo.sessionInfoEnd.m_PlayerLives,
+		x, y);
+
+	PaintInfoString("Score: ",
+		m_CurrentSessionInfo.sessionInfoStart.m_PlayerScore,
+		m_CurrentSessionInfo.sessionInfoEnd.m_PlayerScore,
+		x, y);
+
+	PaintInfoString("Coins: ",
+		m_CurrentSessionInfo.sessionInfoStart.m_CoinsCollected,
+		m_CurrentSessionInfo.sessionInfoEnd.m_CoinsCollected,
+		x, y);
+
+	PaintInfoString("Player powerup state: ",
+		m_CurrentSessionInfo.sessionInfoStart.m_PlayerPowerupState,
+		m_CurrentSessionInfo.sessionInfoEnd.m_PlayerPowerupState,
+		x, y);
+
+	PaintInfoString("Time remaining: ",
+		m_CurrentSessionInfo.sessionInfoStart.m_TimeRemaining,
+		m_CurrentSessionInfo.sessionInfoEnd.m_TimeRemaining,
+		x, y);
+
+	PaintInfoString("Checkpoint cleared: ",
+		m_CurrentSessionInfo.sessionInfoStart.m_CheckpointCleared,
+		m_CurrentSessionInfo.sessionInfoEnd.m_CheckpointCleared,
+		x, y);
+
+	PaintInfoString("Riding yoshi: ",
+		m_CurrentSessionInfo.sessionInfoStart.m_PlayerRidingYoshi,
+		m_CurrentSessionInfo.sessionInfoEnd.m_PlayerRidingYoshi,
+		x, y);
+
+	PaintInfoString("All dragon coins collected: ",
+		m_CurrentSessionInfo.sessionInfoStart.m_AllDragonCoinsCollected,
+		m_CurrentSessionInfo.sessionInfoEnd.m_AllDragonCoinsCollected,
+		x, y);
 }
 
-void GameSession::NextSession()
+static int xo = 165;
+void GameSession::PaintInfoString(std::string preString, int value1, int value2, int x, int& y)
+{
+	if (value1 == -1 || value2 == -1) return;
+
+	GAME_ENGINE->SetColor(OFF_WHITE);
+	GAME_ENGINE->DrawString(String(preString.c_str()) + String(value1), x, y);
+	if (value1 > value2)
+	{
+		GAME_ENGINE->SetColor(RED);
+		GAME_ENGINE->DrawString(String(value2), x + xo, y);
+	}
+	else if (value1 < value2)
+	{
+		GAME_ENGINE->SetColor(GREEN);
+		GAME_ENGINE->DrawString(String(value2), x + xo, y);
+	}
+	y += lineHeight;
+}
+
+void GameSession::PaintInfoString(std::string preString, std::string value1, std::string value2, int x, int& y)
+{
+	if (!value1.compare("") || !value2.compare("")) return;
+
+	GAME_ENGINE->SetColor(OFF_WHITE);
+	GAME_ENGINE->DrawString(String(preString.c_str()) + String(value1.c_str()), x, y);
+	if (value1.compare(value2) > 0)
+	{
+		GAME_ENGINE->SetColor(RED);
+		GAME_ENGINE->DrawString(String(value2.c_str()), x + xo, y);
+	}
+	else if (value1.compare(value2) < 0)
+	{
+		GAME_ENGINE->SetColor(GREEN);
+		GAME_ENGINE->DrawString(String(value2.c_str()), x + xo, y);
+	}
+	y += lineHeight;
+}
+
+void GameSession::PaintInfoString(std::string preString, bool value1, bool value2, int x, int& y)
+{
+	if (int(value1) == -1 || int(value2) == -1) return;
+
+	GAME_ENGINE->SetColor(OFF_WHITE);
+	GAME_ENGINE->DrawString(String(preString.c_str()) + String(FileIO::BoolToString(value1).c_str()), x, y);
+	if (value1 && !value2)
+	{
+		GAME_ENGINE->SetColor(RED);
+		GAME_ENGINE->DrawString(String(FileIO::BoolToString(value2).c_str()), x + xo, y);
+	}
+	else if (value2 && !value1)
+	{
+		GAME_ENGINE->SetColor(GREEN);
+		GAME_ENGINE->DrawString(String(FileIO::BoolToString(value2).c_str()), x + xo, y);
+	}
+	y += lineHeight;
+}
+
+void GameSession::ShowNextSession()
 {
 	if (m_CurrentSessionIndex + 1 < m_TotalSessionsWithInfo)
 	{
 		m_CurrentSessionIndex++;
-		m_CurrentSessionInfo = GetReadableSessionInfo(m_CurrentSessionIndex);
+		m_CurrentSessionInfo = GetSessionInfo(m_CurrentSessionIndex);
 	}
 }
 
-void GameSession::PreviousSession()
+void GameSession::ShowPreviousSession()
 {
 	if (m_CurrentSessionIndex - 1 >= 0)
 	{
 		m_CurrentSessionIndex--;
-		m_CurrentSessionInfo = GetReadableSessionInfo(m_CurrentSessionIndex);
-	}
-}
-
-void GameSession::PaintCurrentSessionInfo()
-{
-	int x = Game::WIDTH - 107;
-	int y = 40;
-
-	GAME_ENGINE->SetFont(Game::Font9Ptr);
-	GAME_ENGINE->SetColor(COLOR(10, 10, 10, 160));
-	GAME_ENGINE->FillRect(x - 5, y - 5, x + 106, y + 140);
-
-	int lineHeight = 11;
-	GAME_ENGINE->SetColor(COLOR(255, 255, 255));
-	std::stringstream stringStream(m_CurrentSessionInfo);
-	std::string currentLine;
-	while (getline(stringStream, currentLine))
-	{
-		GAME_ENGINE->DrawString(String(currentLine.c_str()), x, y);
-		y += lineHeight;
+		m_CurrentSessionInfo = GetSessionInfo(m_CurrentSessionIndex);
 	}
 }
 
 void GameSession::Reset()
 {
 	m_CurrentSessionIndex = 0;
-	m_CurrentSessionInfo = GameSession::GetReadableSessionInfo(m_CurrentSessionIndex);
+	m_CurrentSessionInfo = GameSession::GetSessionInfo(m_CurrentSessionIndex);
 }
 
 GameSession::GameSession()

@@ -20,6 +20,9 @@
 Font* Game::Font12Ptr = nullptr;
 Font* Game::Font9Ptr = nullptr;
 
+const int Game::WIDTH = 256;
+const int Game::HEIGHT = 224;
+
 MATRIX3X2 Game::matIdentity;
 
 Game::Game()
@@ -73,9 +76,10 @@ void Game::GameStart()
 	m_LevelPtr = new Level();
 
 	GameSession::ReadSessionInfoFromFile();
-	GameSession::WriteSessionInfoToFile(true, m_LevelPtr);
 
 	Reset();
+
+	GameSession::RecordStartSessionInfo(m_LevelPtr);
 }
 
 void Game::Reset()
@@ -108,7 +112,7 @@ void Game::GameSetSleeping(bool sleeping)
 
 void Game::GameEnd()
 {
-	GameSession::WriteSessionInfoToFile(false, m_LevelPtr);
+	GameSession::WriteSessionInfoToFile(m_LevelPtr);
 
 	delete m_LevelPtr;
 
@@ -123,6 +127,33 @@ void Game::GameEnd()
 
 void Game::GameTick(double deltaTime)
 {
+	if (GAME_ENGINE->IsKeyboardKeyPressed('R'))
+	{
+		Reset();
+	}
+	if (GAME_ENGINE->IsKeyboardKeyPressed('I'))
+	{
+		m_ShowingSessionInfo = !m_ShowingSessionInfo;
+
+		m_LevelPtr->SetPaused(m_ShowingSessionInfo);
+	}
+
+	if (m_ShowingSessionInfo)
+	{
+		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_NEXT) ||
+			(GAME_ENGINE->IsKeyboardKeyDown(VK_NEXT) && GAME_ENGINE->IsKeyboardKeyDown(VK_CONTROL))) // Page Down
+		{
+			GameSession::ShowNextSession();
+		}
+		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_PRIOR) ||
+			(GAME_ENGINE->IsKeyboardKeyDown(VK_PRIOR) && GAME_ENGINE->IsKeyboardKeyDown(VK_CONTROL))) // Page Up
+		{
+			GameSession::ShowPreviousSession();
+		}
+
+		return;
+	}
+
 	m_LevelPtr->Tick(deltaTime);
 
 	if (GAME_ENGINE->IsKeyboardKeyPressed('P'))
@@ -131,33 +162,9 @@ void Game::GameTick(double deltaTime)
 		m_RenderDebugOverlay = !m_RenderDebugOverlay;
 		GAME_ENGINE->EnablePhysicsDebugRendering(m_RenderDebugOverlay);
 	}
-
 	if (GAME_ENGINE->IsKeyboardKeyPressed('M'))
 	{
 		SoundManager::ToggleMuted();
-	}
-
-	if (GAME_ENGINE->IsKeyboardKeyPressed('R'))
-	{
-		Reset();
-	}
-
-	if (GAME_ENGINE->IsKeyboardKeyPressed('I'))
-	{
-		m_ShowingSessionInfo = !m_ShowingSessionInfo;
-	}
-	if (m_ShowingSessionInfo)
-	{
-		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_NEXT) || 
-			(GAME_ENGINE->IsKeyboardKeyDown(VK_NEXT) && GAME_ENGINE->IsKeyboardKeyDown(VK_CONTROL))) // Page Down
-		{
-			GameSession::NextSession();
-		}
-		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_PRIOR) || 
-			(GAME_ENGINE->IsKeyboardKeyDown(VK_PRIOR) && GAME_ENGINE->IsKeyboardKeyDown(VK_CONTROL))) // Page Up
-		{
-			GameSession::PreviousSession();
-		}
 	}
 }
 
