@@ -21,6 +21,7 @@
 #include "SuperMushroom.h"
 #include "KoopaShell.h"
 #include "MidwayGate.h"
+#include "GoalGate.h"
 
 #define GAME_ENGINE (GameEngine::GetSingleton())
 
@@ -231,6 +232,8 @@ void Level::Paint()
 		m_YoshiPtr->Paint();
 	}
 	m_PlayerPtr->Paint();
+
+	m_LevelDataPtr->PaintItemsForeground();
 
 	m_ParticleManagerPtr->Paint();
 
@@ -697,6 +700,14 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 					m_PlayerPtr->MidwayGatePasshrough();
 					midwayGatePtr->Hit();
 					m_IsCheckpointCleared = true;
+				}
+			} break;
+			case Item::TYPE::GOAL_GATE:
+			{
+				GoalGate* goalGatePtr = (GoalGate*)itemPtr;
+				if (goalGatePtr->IsHit() == false)
+				{
+					goalGatePtr->Hit();
 				}
 			} break;
 			}

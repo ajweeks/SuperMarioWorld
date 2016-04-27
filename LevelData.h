@@ -29,6 +29,7 @@ public:
 	void RemoveEnemy(Enemy* enemyPtr);
 	void RemoveEnemy(int enemyIndex);
 
+	void PaintItemsForeground();
 	void PaintItemsAndEnemies();
 	void TickItemsAndEnemies(double deltaTime, Level* levelPtr);
 

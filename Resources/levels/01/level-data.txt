@@ -427,6 +427,12 @@
 			<Type>Coin</Type>
 			<TopLeft>297,16</TopLeft>
 		</Item>
+		
+		
+		<Item>
+			<Type>GoalGate</Type>
+			<TopLeft>301,13</TopLeft>
+		</Item>
 	</Items>
 	
 	

@@ -54,6 +54,7 @@ std::string Item::TYPEToString(TYPE type)
 	case TYPE::BEANSTALK: return "Beanstalk";
 	case TYPE::CLOUD_BLOCK: return "Cloud";
 	case TYPE::MIDWAY_GATE: return "MidwayGate";
+	case TYPE::GOAL_GATE: return "GoalGate";
 	default:
 	{
 		OutputDebugString(String("ERROR: Unhandled item type in Item::TYPEToString: ") + String(int(type)) + String("\n"));
@@ -86,6 +87,7 @@ Item::TYPE Item::StringToTYPE(std::string string)
 	else if (!string.compare("Beanstalk")) return TYPE::BEANSTALK;
 	else if (!string.compare("Cloud")) return TYPE::CLOUD_BLOCK;
 	else if (!string.compare("MidwayGate")) return TYPE::MIDWAY_GATE;
+	else if (!string.compare("GoalGate")) return TYPE::GOAL_GATE;
 	else
 	{
 		OutputDebugString(String("ERROR: Unhandled item type in Item::TYPEToString: ") + String(string.c_str()) + String("\n"));

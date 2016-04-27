@@ -28,6 +28,7 @@
 #include "Beanstalk.h"
 #include "CloudBlock.h"
 #include "MidwayGate.h"
+#include "GoalGate.h"
 
 LevelData* LevelData::m_LevelOneDataPtr = nullptr;
 
@@ -124,11 +125,11 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 		{
 			m_ItemsPtrArr.push_back(new PSwitch(topLeft, itemColour, levelPtr));
 		} break;
-		case int(Item::TYPE::BERRY) :
+		case int(Item::TYPE::BERRY):
 		{
 			m_ItemsPtrArr.push_back(new Berry(topLeft, levelPtr, itemColour));
 		} break;
-		case int(Item::TYPE::KOOPA_SHELL) :
+		case int(Item::TYPE::KOOPA_SHELL):
 		{
 			m_ItemsPtrArr.push_back(new KoopaShell(topLeft, levelPtr, itemColour));
 		} break;
@@ -141,14 +142,18 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 		{
 			m_ItemsPtrArr.push_back(new ThreeUpMoon(topLeft, levelPtr));
 		} break;
-		case int(Item::TYPE::CLOUD_BLOCK) :
+		case int(Item::TYPE::CLOUD_BLOCK):
 		{
 			m_ItemsPtrArr.push_back(new CloudBlock(topLeft, levelPtr));
 		} break;
-		case int(Item::TYPE::MIDWAY_GATE) :
+		case int(Item::TYPE::MIDWAY_GATE):
 		{
 			int barHeight = stoi(FileIO::GetTagContent(itemContent, "BarHeight"));
 			m_ItemsPtrArr.push_back(new MidwayGate(topLeft, levelPtr, barHeight));
+		} break;
+		case int(Item::TYPE::GOAL_GATE):
+		{
+			m_ItemsPtrArr.push_back(new GoalGate(topLeft, levelPtr));
 		} break;
 		default:
 		{
@@ -370,6 +375,21 @@ void LevelData::PaintItemsAndEnemies()
 		if (m_EnemiesPtrArr[i] != nullptr)
 		{
 			m_EnemiesPtrArr[i]->Paint();
+		}
+	}
+}
+
+void LevelData::PaintItemsForeground()
+{
+	for (size_t i = 0; i < m_ItemsPtrArr.size(); ++i)
+	{
+		if (m_ItemsPtrArr[i] != nullptr)
+		{
+			if (m_ItemsPtrArr[i]->GetType() == Item::TYPE::GOAL_GATE ||
+				m_ItemsPtrArr[i]->GetType() == Item::TYPE::MIDWAY_GATE)
+			{
+				((Gate*)m_ItemsPtrArr[i])->PaintFrontPole();
+			}
 		}
 	}
 }
