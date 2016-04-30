@@ -76,6 +76,9 @@ void Level::Reset()
 	delete m_YoshiPtr;
 	m_YoshiPtr = nullptr;
 
+	m_IsShowingEndScreen = false;
+	m_FramesShowingEndScreen = 0;
+
 	m_ParticleManagerPtr->Reset();
 
 	SoundManager::RestartSongs();
@@ -138,8 +141,13 @@ void Level::Tick(double deltaTime)
 	}
 	else if (m_Paused || m_ShowingMessage) return;
 
+	if (m_IsShowingEndScreen)
+	{
+		return;
+	}
+
 	m_SecondsElapsed += (deltaTime);
-	
+
 	for (size_t i = 0; i < m_ItemsToBeRemovedPtrArr.size(); ++i)
 	{
 		if (m_ItemsToBeRemovedPtrArr[i] != nullptr)
@@ -238,6 +246,51 @@ void Level::Paint()
 	m_ParticleManagerPtr->Paint();
 
 	GAME_ENGINE->SetViewMatrix(Game::matIdentity);
+
+	int fadeTransition = 1600; // after this many frames, the transition will occur
+	int drumrollStart = fadeTransition + 1600;
+	int fadeFromBlackTransition = 3550 + fadeTransition;
+	int backToClearTransition = fadeTransition + fadeFromBlackTransition;
+	int resetGameTransition = backToClearTransition + 128;
+	if (m_IsShowingEndScreen)
+	{
+		++m_FramesShowingEndScreen;
+
+		if (m_FramesShowingEndScreen < fadeTransition)
+		{
+			GAME_ENGINE->SetColor(COLOR(0, 0, 0, int((double(m_FramesShowingEndScreen) / double(fadeTransition)) * 255)));
+		}
+		else if (m_FramesShowingEndScreen < fadeFromBlackTransition)
+		{
+			if (m_FramesShowingEndScreen == drumrollStart)
+			{
+				SoundManager::PlaySoundEffect(SoundManager::SOUND::DRUMROLL);
+			}
+			GAME_ENGINE->SetColor(COLOR(0, 0, 0));
+		}
+		else if (m_FramesShowingEndScreen < backToClearTransition)
+		{
+			int alpha = int(255 - (double(m_FramesShowingEndScreen - fadeFromBlackTransition) / double(fadeTransition)) * 255);
+			GAME_ENGINE->SetColor(COLOR(0, 0, 0, alpha));
+		}
+		else
+		{
+			if (m_FramesShowingEndScreen == backToClearTransition)
+			{
+				SoundManager::PlaySoundEffect(SoundManager::SOUND::OUTRO_CIRCLE_TRANSITION);
+			}
+			else if (m_FramesShowingEndScreen >= resetGameTransition)
+			{
+				Reset();
+				return;
+			}
+			GAME_ENGINE->SetColor(COLOR(0, 0, 0, 0));
+		}
+
+
+		GAME_ENGINE->FillRect(0, 0, Game::WIDTH, Game::HEIGHT);
+	}
+
 
 #if DEBUG_ZOOM_OUT
 	GAME_ENGINE->SetColor(COLOR(250, 10, 10));
@@ -861,10 +914,7 @@ void Level::EndContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 		} break;
 		case int(ActorId::YOSHI):
 		{
-			if (m_PlayerPtr->IsRidingYoshi())
-			{
-				m_PlayerPtr->DismountYoshi();
-			}
+			
 		} break;
 		}
 	}
@@ -942,6 +992,14 @@ bool Level::Raycast(DOUBLE2 point1, DOUBLE2 point2, int collisionBits, DOUBLE2 &
 	}
 
 	return false;
+}
+
+void Level::TriggerEndScreen()
+{
+	m_IsShowingEndScreen = true;
+
+	SoundManager::PlaySoundEffect(SoundManager::SOUND::COURSE_CLEAR_FANFARE);
+	SoundManager::SetAllSongsPaused(true);
 }
 
 void Level::AddParticle(Particle* particlePtr)

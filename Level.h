@@ -66,6 +66,8 @@ public:
 	static const int COLLIDE_WITH_SHELLS	= (2 << 4);
 	bool Raycast(DOUBLE2 point1, DOUBLE2 point2, int collisionBits, DOUBLE2 &intersectionRef, DOUBLE2 &normalRef, double &fractionRef);
 
+	void TriggerEndScreen();
+
 private:
 	void PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool & enableContactRef);
 	void BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr);
@@ -110,6 +112,9 @@ private:
 	Camera* m_CameraPtr = nullptr;
 	ParticleManager* m_ParticleManagerPtr = nullptr;
 	Yoshi* m_YoshiPtr = nullptr;
+
+	bool m_IsShowingEndScreen;
+	int m_FramesShowingEndScreen;
 
 };
 

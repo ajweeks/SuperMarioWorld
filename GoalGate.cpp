@@ -5,6 +5,9 @@
 #include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
 #include "SoundManager.h"
+#include "Level.h"
+#include "Player.h"
+#include "Coin.h"
 
 const double GoalGate::BAR_SPEED = 1.05;
 
@@ -42,9 +45,22 @@ void GoalGate::Tick(double deltaTime)
 			m_BarDirectionMoving = FacingDirection::OppositeDirection(m_BarDirectionMoving);
 			m_BarHeight = maxBarHeight;
 		}
-	}
 
-	m_ActPtr->SetPosition(DOUBLE2(m_ActPtr->GetPosition().x, m_TopLeft.y + TILES_HIGH * TILE_SIZE - m_BarHeight - BAR_DIAMETER/2));
+		// Mario can walk through the gate, or hit the bar
+		// If he simply walks through it, the bar is turned into a coin
+		if (m_LevelPtr->GetPlayer()->GetPosition().x > m_TopLeft.x + (TILES_WIDE / 2) * TILE_SIZE)
+		{
+			m_IsHit = true;
+			m_LevelPtr->TriggerEndScreen();
+
+			Coin* coinPtr = new Coin(m_TopLeft + DOUBLE2((TILES_WIDE/2) * TILE_SIZE, TILES_HIGH * TILE_SIZE - m_BarHeight), m_LevelPtr);
+			m_LevelPtr->AddItem(coinPtr);
+
+			// LATER: Add smoke poof particle
+		}
+
+		m_ActPtr->SetPosition(DOUBLE2(m_ActPtr->GetPosition().x, m_TopLeft.y + TILES_HIGH * TILE_SIZE - m_BarHeight - BAR_DIAMETER/2));
+	}
 }
 
 void GoalGate::Paint()
@@ -104,9 +120,7 @@ void GoalGate::PaintFrontPole()
 void GoalGate::Hit()
 {
 	m_IsHit = true;
-
-	// LATER: Start level end sounds
-	//SoundManager::PlaySoundEffect(SoundManager::SOUND::MIDWAY_GATE_PASSTHROUGH);
+	m_LevelPtr->TriggerEndScreen();
 }
 
 bool GoalGate::IsHit()

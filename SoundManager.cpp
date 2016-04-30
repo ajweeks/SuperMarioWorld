@@ -46,6 +46,10 @@ void SoundManager::InitialzeSoundsAndSongs()
 	LoadSound(SOUND::ENEMY_HEAD_STOMP_END, m_ResourcePath + String("enemy-head-stomp-end.wav"));
 
 	LoadSound(SOUND::MIDWAY_GATE_PASSTHROUGH, m_ResourcePath + String("midway-gate-passthrough.wav"));
+	LoadSound(SOUND::COURSE_CLEAR_FANFARE, m_ResourcePath + String("course-clear-fanfare.wav"));
+
+	LoadSound(SOUND::DRUMROLL, m_ResourcePath + String("outro-drumroll.wav"));
+	LoadSound(SOUND::OUTRO_CIRCLE_TRANSITION, m_ResourcePath + String("outro-circle-transition.wav"));
 
 	m_IsInitialized = true;
 }
