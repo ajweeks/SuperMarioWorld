@@ -8,7 +8,7 @@ public:
 	virtual ~SpriteSheetManager();
 
 	SpriteSheetManager(const SpriteSheetManager&) = delete;
-	SpriteSheetManager&operator=(const SpriteSheetManager&) = delete;
+	SpriteSheetManager& operator=(const SpriteSheetManager&) = delete;
 
 	static void Load();
 	static void Unload();

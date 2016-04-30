@@ -9,6 +9,9 @@ public:
 	Berry(DOUBLE2& positionRef, Level* levelPtr, COLOUR colour);
 	virtual ~Berry();
 
+	Berry(const Berry&) = delete;
+	Berry& operator=(const Berry&) = delete;
+
 	void Tick(double deltaTime);
 	void Paint();
 

@@ -8,6 +8,9 @@ public:
 	GoalGate(DOUBLE2 topLeft, Level* levelPtr);
 	virtual ~GoalGate();
 
+	GoalGate(const GoalGate&) = delete;
+	GoalGate& operator=(const GoalGate&) = delete;
+
 	void Tick(double deltaTime);
 	void Paint();
 	void PaintFrontPole();

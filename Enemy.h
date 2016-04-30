@@ -15,6 +15,9 @@ public:
 		Level* levelPtr, void* userPointer = nullptr);
 	virtual ~Enemy();
 
+	Enemy(const Enemy&) = delete;
+	Enemy&operator=(const Enemy&) = delete;
+
 	virtual void Tick(double deltaTime) = 0;
 	virtual void Paint() = 0;
 

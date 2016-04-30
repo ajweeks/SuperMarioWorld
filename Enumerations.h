@@ -162,7 +162,6 @@ public:
 class FileIO
 {
 public:
-
 	static std::string GetTagContent(std::string totalString, std::string tagString, int startPos = 0)
 	{
 		std::string result;
@@ -207,4 +206,7 @@ public:
 	{
 		return (value == 1 ? "true" : value == 0 ? "false" : "");
 	}
+
+private:
+	FileIO() = delete;
 };

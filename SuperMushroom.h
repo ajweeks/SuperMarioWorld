@@ -7,6 +7,10 @@ class SuperMushroom : public Item
 {
 public:
 	SuperMushroom(DOUBLE2 topLeft, Level* levelPtr, int directionFacing = FacingDirection::RIGHT);
+
+	SuperMushroom(const SuperMushroom&) = delete;
+	SuperMushroom& operator=(const SuperMushroom&) = delete;
+
 	void Tick(double deltaTime);
 	void Paint();
 

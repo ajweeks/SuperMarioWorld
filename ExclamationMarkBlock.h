@@ -6,6 +6,10 @@ class ExclamationMarkBlock : public Block
 {
 public:
 	ExclamationMarkBlock(DOUBLE2 topLeft, COLOUR colour, bool isSolid, Level* levelPtr);
+
+	ExclamationMarkBlock(const ExclamationMarkBlock&) = delete;
+	ExclamationMarkBlock& operator=(const ExclamationMarkBlock&) = delete;
+	
 	void Tick(double deltaTime);
 	void Paint();
 	void SetSolid(bool solid);

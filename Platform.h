@@ -7,6 +7,10 @@ public:
 	// of platforms from accidentally being made
 	Platform(double left, double top, double right);
 	virtual ~Platform();
+
+	Platform(const Platform&) = delete;
+	Platform&operator=(const Platform&) = delete;
+
 	void AddContactListener(ContactListener* listener);
 	double GetWidth();
 	double GetHeight();

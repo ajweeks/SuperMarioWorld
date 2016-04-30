@@ -8,6 +8,9 @@ public:
 	MidwayGate(DOUBLE2 topLeft, Level* levelPtr, int barHeight);
 	virtual ~MidwayGate();
 
+	MidwayGate(const MidwayGate&) = delete;
+	MidwayGate& operator=(const MidwayGate&) = delete;
+
 	void Tick(double deltaTime);
 	void Paint();
 	void PaintFrontPole();

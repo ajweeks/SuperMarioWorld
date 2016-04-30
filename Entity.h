@@ -13,8 +13,8 @@ public:
 		Level* levelPtr, ActorId actorId, void* userPointer = nullptr, DOUBLE2& initialVelRef = DOUBLE2());
 	virtual ~Entity();
 
-	Entity& operator=(const Entity&) = delete;
 	Entity(const Entity&) = delete;
+	Entity& operator=(const Entity&) = delete;
 
 	// NOTE: Returns true when this entity should be removed
 	virtual void Tick(double deltaTime) = 0;

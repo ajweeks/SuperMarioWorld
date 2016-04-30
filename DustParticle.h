@@ -9,6 +9,9 @@ public:
 	DustParticle(DOUBLE2& positionRef);
 	virtual ~DustParticle();
 
+	DustParticle(const DustParticle&) = delete;
+	DustParticle& operator=(const DustParticle&) = delete;
+
 	bool Tick(double deltaTime);
 	void Paint();
 

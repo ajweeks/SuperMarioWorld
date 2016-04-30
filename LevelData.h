@@ -14,8 +14,8 @@ class LevelData
 public:
 	virtual ~LevelData();
 
-	LevelData& operator=(const LevelData&) = delete;
 	LevelData(const LevelData&) = delete;
+	LevelData& operator=(const LevelData&) = delete;
 
 	static LevelData* GetLevelData(int levelIndex, Level* levelPtr);
 	static void GenerateLevelData(int levelIndex, Level* levelPtr);

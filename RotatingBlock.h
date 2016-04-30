@@ -6,6 +6,10 @@ class RotatingBlock : public Block
 {
 public:
 	RotatingBlock(DOUBLE2 topLeft, Level* levelPtr);
+
+	RotatingBlock(const RotatingBlock&) = delete;
+	RotatingBlock& operator=(const RotatingBlock&) = delete;
+
 	void Tick(double deltaTime);
 	void Paint();
 	void Hit(Level* levelPtr);

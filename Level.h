@@ -21,8 +21,8 @@ public:
 	Level();
 	virtual ~Level();
 
-	Level& operator=(const Level&) = delete;
 	Level(const Level&) = delete;
+	Level& operator=(const Level&) = delete;
 
 	void Tick(double deltaTime);
 	void Paint();

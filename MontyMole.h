@@ -44,6 +44,9 @@ public:
 	MontyMole(DOUBLE2& startingPos, Level* levelPtr, SPAWN_LOCATION_TYPE spawnLocationType, AI_TYPE aiType);
 	virtual ~MontyMole();
 
+	MontyMole(const MontyMole&) = delete;
+	MontyMole&operator=(const MontyMole&) = delete;
+
 	void Tick(double deltaTime);
 	void Paint();
 	INT2 GetAnimationFrame();

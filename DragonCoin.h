@@ -6,6 +6,10 @@ class DragonCoin : public Coin
 {
 public:
 	DragonCoin(DOUBLE2 topLeft, Level* levelPtr);
+
+	DragonCoin(const DragonCoin&) = delete;
+	DragonCoin& operator=(const DragonCoin&) = delete;
+
 	void Tick(double deltaTime);
 	void Paint();
 	void GenerateParticles();

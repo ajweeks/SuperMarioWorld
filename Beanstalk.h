@@ -7,6 +7,9 @@ class Beanstalk : public Item
 public:
 	Beanstalk(DOUBLE2 bottomLeft, Level* levelPtr, int height);
 	virtual ~Beanstalk();
+
+	Beanstalk(const Beanstalk&) = delete;
+	Beanstalk& operator=(const Beanstalk&) = delete;
 	
 	void Tick(double deltaTime);
 	void Paint();

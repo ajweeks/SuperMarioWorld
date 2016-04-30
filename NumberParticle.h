@@ -8,6 +8,9 @@ public:
 	NumberParticle(int value, DOUBLE2 position);
 	virtual ~NumberParticle();
 
+	NumberParticle(const NumberParticle&) = delete;
+	NumberParticle& operator=(const NumberParticle&) = delete;
+
 	bool Tick(double deltaTime);
 	void Paint();
 

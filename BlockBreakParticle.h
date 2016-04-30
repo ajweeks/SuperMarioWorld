@@ -7,6 +7,9 @@ class BlockChunk
 public:
 	BlockChunk(DOUBLE2 position, DOUBLE2 velocity);
 
+	BlockChunk(const BlockChunk&) = delete;
+	BlockChunk& operator=(const BlockChunk&) = delete;
+
 	void Tick(double deltaTime);
 	void Paint();
 
@@ -27,6 +30,9 @@ class BlockBreakParticle : public Particle
 public:
 	BlockBreakParticle(DOUBLE2 centerPos);
 	virtual ~BlockBreakParticle();
+
+	BlockBreakParticle(const BlockBreakParticle&) = delete;
+	BlockBreakParticle&operator=(const BlockBreakParticle&) = delete;
 
 	bool Tick(double deltaTime);
 	void Paint();

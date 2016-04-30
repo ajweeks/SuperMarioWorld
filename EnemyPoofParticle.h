@@ -15,6 +15,9 @@ public:
 	EnemyPoofParticle(DOUBLE2& positionRef);
 	virtual ~EnemyPoofParticle();
 
+	EnemyPoofParticle(const EnemyPoofParticle&) = delete;
+	EnemyPoofParticle& operator=(const EnemyPoofParticle&) = delete;
+
 	bool Tick(double deltaTime);
 	void Paint();
 

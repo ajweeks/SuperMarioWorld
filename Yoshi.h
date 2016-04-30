@@ -15,6 +15,9 @@ public:
 	Yoshi(DOUBLE2 position, Level* levelPtr);
 	virtual ~Yoshi();
 
+	Yoshi(const Yoshi&) = delete;
+	Yoshi&operator=(const Yoshi&) = delete;
+
 	void Tick(double deltaTime);
 	void Paint();
 

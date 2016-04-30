@@ -8,6 +8,9 @@ public:
 	Particle(int lifetime, DOUBLE2& positionRef);
 	virtual ~Particle();
 
+	Particle(const Particle&) = delete;
+	Particle& operator=(const Particle&) = delete;
+
 	// NOTE: Returns true if this item needs to be removed
 	virtual bool Tick(double deltaTime) = 0;
 	virtual void Paint() = 0;

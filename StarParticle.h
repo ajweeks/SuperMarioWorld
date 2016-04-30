@@ -7,6 +7,9 @@ class StarParticle : public Particle
 public:
 	StarParticle(DOUBLE2& positionRef, DOUBLE2& velocityRef);
 
+	StarParticle(const StarParticle&) = delete;
+	StarParticle& operator=(const StarParticle&) = delete;
+
 	bool Tick(double deltaTime);
 	void Paint();
 

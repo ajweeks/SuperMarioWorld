@@ -8,6 +8,9 @@ public:
 	Gate(DOUBLE2 topLeft, Level* levelPtr, TYPE itemType, int barLength, int barDiameter);
 	virtual ~Gate();
 
+	Gate(const Gate&) = delete;
+	Gate& operator=(const Gate&) = delete;
+
 	virtual void Tick(double deltaTime) = 0;
 	virtual void Paint() = 0;
 	virtual void PaintFrontPole() = 0;

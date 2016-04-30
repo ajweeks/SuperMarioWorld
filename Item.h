@@ -21,6 +21,9 @@ public:
 		BodyType bodyType = BodyType::STATIC, int width = TILE_SIZE, int height = TILE_SIZE);
 	virtual ~Item();
 
+	Item(const Item&) = delete;
+	Item& operator=(const Item&) = delete;
+
 	virtual void Tick(double deltaTime) = 0;
 	virtual void Paint() = 0;
 

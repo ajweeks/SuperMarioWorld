@@ -7,6 +7,10 @@ class MessageBlock : public Block
 public:
 	MessageBlock(DOUBLE2 topLeft, String bmpFilePath, Level* levelPtr);
 	virtual ~MessageBlock();
+
+	MessageBlock(const MessageBlock&) = delete;
+	MessageBlock& operator=(const MessageBlock&) = delete;
+
 	void Tick(double deltaTime);
 	void Paint();
 	void Hit(Level* levelPtr);

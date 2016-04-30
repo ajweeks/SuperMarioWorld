@@ -9,6 +9,9 @@ public:
 	KoopaShell(DOUBLE2 topLeft, Level* levelPtr, COLOUR colour, bool upsideDown = false);
 	virtual ~KoopaShell();
 
+	KoopaShell(const KoopaShell&) = delete;
+	KoopaShell& operator=(const KoopaShell&) = delete;
+
 	void Tick(double deltaTime);
 	void Paint();
 
