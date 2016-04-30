@@ -214,7 +214,6 @@ SessionInfo GameSession::GetSessionInfo(std::string sessionString)
 	return sessionInfo;
 }
 
-static int lineHeight = 11;
 void GameSession::PaintCurrentSessionInfo()
 {
 	// BACKGROUND ROWS
@@ -222,9 +221,9 @@ void GameSession::PaintCurrentSessionInfo()
 	int yOffset = 34;
 	GAME_ENGINE->SetColor(COLOR(5, 5, 5, 185));
 	GAME_ENGINE->FillRect(0, 0, Game::WIDTH, yOffset);
-	if (yOffset + rows * lineHeight < Game::HEIGHT)
+	if (yOffset + rows * LINE_HEIGHT < Game::HEIGHT)
 	{
-		GAME_ENGINE->FillRect(0, yOffset + rows * lineHeight, Game::WIDTH, Game::HEIGHT);
+		GAME_ENGINE->FillRect(0, yOffset + rows * LINE_HEIGHT, Game::WIDTH, Game::HEIGHT);
 	}
 
 	for (int i = 0; i < rows; ++i)
@@ -232,7 +231,7 @@ void GameSession::PaintCurrentSessionInfo()
 		if (i% 2 == 0) GAME_ENGINE->SetColor(COLOR(10, 10, 10, 185));
 		else GAME_ENGINE->SetColor(COLOR(25, 25, 30, 185));
 
-		GAME_ENGINE->FillRect(0, i * lineHeight + yOffset, Game::WIDTH, (i + 1) * lineHeight + yOffset);
+		GAME_ENGINE->FillRect(0, i * LINE_HEIGHT + yOffset, Game::WIDTH, (i + 1) * LINE_HEIGHT + yOffset);
 	}
 
 	int x = 12;
@@ -240,8 +239,11 @@ void GameSession::PaintCurrentSessionInfo()
 
 	// SESSION INDEX
 	GAME_ENGINE->SetColor(OFF_WHITE);
+	GAME_ENGINE->SetFont(Game::Font6Ptr);
+	GAME_ENGINE->DrawString(String("<-PgUp|PgDn->"), Game::WIDTH - 48, y - 6);
+
 	GAME_ENGINE->SetFont(Game::Font9Ptr);
-	GAME_ENGINE->DrawString(String("Current session: ") + String(m_TotalSessionsWithInfo - m_CurrentSessionInfo.m_SessionIndex) + 
+	GAME_ENGINE->DrawString(String("Current session: ") + String(m_TotalSessionsWithInfo - m_CurrentSessionInfo.m_SessionIndex) +
 		String("/") + String(m_TotalSessionsWithInfo), x, y);
 	y += 16;
 
@@ -266,6 +268,9 @@ void GameSession::PaintCurrentSessionInfo()
 		m_CurrentSessionInfo.sessionInfoStart.m_Time,
 		m_CurrentSessionInfo.sessionInfoEnd.m_Time,
 		x, y);
+	std::string timeDurationStr = GetTimeDuration(m_CurrentSessionInfo.sessionInfoStart.m_Time, m_CurrentSessionInfo.sessionInfoEnd.m_Time);
+	GAME_ENGINE->DrawString(String("(") + String(timeDurationStr.c_str())+ String(")"), x + COL_WIDTH, y);
+	y += LINE_HEIGHT;
 
 	PaintInfoString("Player lives: ",
 		m_CurrentSessionInfo.sessionInfoStart.m_PlayerLives,
@@ -308,7 +313,6 @@ void GameSession::PaintCurrentSessionInfo()
 		x, y);
 }
 
-static int xo = 165;
 void GameSession::PaintInfoString(std::string preString, int value1, int value2, int x, int& y)
 {
 	if (value1 == -1 || value2 == -1) return;
@@ -318,14 +322,14 @@ void GameSession::PaintInfoString(std::string preString, int value1, int value2,
 	if (value1 > value2)
 	{
 		GAME_ENGINE->SetColor(RED);
-		GAME_ENGINE->DrawString(String(value2), x + xo, y);
+		GAME_ENGINE->DrawString(String(value2), x + COL_WIDTH, y);
 	}
 	else if (value1 < value2)
 	{
 		GAME_ENGINE->SetColor(GREEN);
-		GAME_ENGINE->DrawString(String(value2), x + xo, y);
+		GAME_ENGINE->DrawString(String(value2), x + COL_WIDTH, y);
 	}
-	y += lineHeight;
+	y += LINE_HEIGHT;
 }
 
 void GameSession::PaintInfoString(std::string preString, std::string value1, std::string value2, int x, int& y)
@@ -337,14 +341,14 @@ void GameSession::PaintInfoString(std::string preString, std::string value1, std
 	if (value1.compare(value2) > 0)
 	{
 		GAME_ENGINE->SetColor(RED);
-		GAME_ENGINE->DrawString(String(value2.c_str()), x + xo, y);
+		GAME_ENGINE->DrawString(String(value2.c_str()), x + COL_WIDTH, y);
 	}
 	else if (value1.compare(value2) < 0)
 	{
 		GAME_ENGINE->SetColor(GREEN);
-		GAME_ENGINE->DrawString(String(value2.c_str()), x + xo, y);
+		GAME_ENGINE->DrawString(String(value2.c_str()), x + COL_WIDTH, y);
 	}
-	y += lineHeight;
+	y += LINE_HEIGHT;
 }
 
 void GameSession::PaintInfoString(std::string preString, bool value1, bool value2, int x, int& y)
@@ -356,14 +360,43 @@ void GameSession::PaintInfoString(std::string preString, bool value1, bool value
 	if (value1 && !value2)
 	{
 		GAME_ENGINE->SetColor(RED);
-		GAME_ENGINE->DrawString(String(FileIO::BoolToString(value2).c_str()), x + xo, y);
+		GAME_ENGINE->DrawString(String(FileIO::BoolToString(value2).c_str()), x + COL_WIDTH, y);
 	}
 	else if (value2 && !value1)
 	{
 		GAME_ENGINE->SetColor(GREEN);
-		GAME_ENGINE->DrawString(String(FileIO::BoolToString(value2).c_str()), x + xo, y);
+		GAME_ENGINE->DrawString(String(FileIO::BoolToString(value2).c_str()), x + COL_WIDTH, y);
 	}
-	y += lineHeight;
+	y += LINE_HEIGHT;
+}
+
+// This function expects both input strings to be formatted as such: "HH:MM:SS"
+std::string GameSession::GetTimeDuration(std::string startTimeStr, std::string endTimeStr)
+{
+	std::stringstream result;
+
+	int dHours = stoi(endTimeStr.substr(0, 2)) - stoi(startTimeStr.substr(0, 2));
+	int dMinutes = stoi(endTimeStr.substr(3, 2)) - stoi(startTimeStr.substr(3, 2));
+	int dSeconds = stoi(endTimeStr.substr(6, 2)) - stoi(startTimeStr.substr(6, 2));
+	
+	if (dSeconds < 0)
+	{
+		dSeconds += 60;
+		dMinutes -= 1;
+	}
+	if (dMinutes < 0)
+	{
+		dMinutes += 60;
+		dHours -= 1;
+	}
+
+	if (dHours != 0) result << std::to_string(dHours) << "h, ";
+
+	if (dMinutes != 0) result << std::to_string(dMinutes) << "m, ";
+
+	result << std::to_string(dSeconds) << "s";
+
+	return result.str();
 }
 
 void GameSession::ShowNextSession()

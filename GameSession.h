@@ -50,6 +50,9 @@ private:
 	static COLOR GREEN;
 	static COLOR RED;
 	
+	static const int LINE_HEIGHT = 11;
+	static const int COL_WIDTH = 165;
+
 	/* NOTE: A reverseSessionIndex of 0 returns the most recent session info, 1 -> the second most recent, etc. */
 	static int GetNumberOfSessions();
 
@@ -58,6 +61,8 @@ private:
 	static SessionInfoPair GetSessionInfo(int reverseSessionIndex);
 	static SessionInfo GetSessionInfo(std::string sessionString);
 	static std::string GetSessionInfoMarkedUp(SessionInfo sessionInfo);
+
+	static std::string GetTimeDuration(std::string startTimeStr, std::string endTimeStr);
 
 	static void PaintInfoString(std::string preString, int value1, int value2, int x, int& y);
 	static void PaintInfoString(std::string preString, std::string value1, std::string value2, int x, int& y);
