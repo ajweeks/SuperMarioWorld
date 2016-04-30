@@ -71,7 +71,7 @@ void Game::GameStart()
 
 	matIdentity = MATRIX3X2::CreateScalingMatrix(WINDOW_SCALE);
 
-#if DEBUG_ZOOM_OUT
+#if SMW_DEBUG_ZOOM_OUT
 	matIdentity = MATRIX3X2::CreateScalingMatrix(0.65) * MATRIX3X2::CreateTranslationMatrix(150, 0);
 #endif
 

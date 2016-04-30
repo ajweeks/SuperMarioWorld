@@ -21,11 +21,16 @@
 
 #define GAME_ENGINE (GameEngine::GetSingleton())
 
-#define DEBUG_ZOOM_OUT false
+#define SMW_DEBUG_ZOOM_OUT false
+
+#define SMW_DISPLAY_GENERAL_DEBUG_INFO true
+#define SMW_DISPLAY_CAMERA_DEBUG_INFO false
+#define SMW_DISPLAY_AI_DEBUG_INFO false
 
 #define SMW_ENABLE_JUMP_TO
 #define SMW_JUMP_TO_POS_X 4700
 //#define SMW_JUMP_TO_POS_X 2500
+
 
 #define ARRAY_SIZE(array) (sizeof((array))/sizeof((array[0])))
 

@@ -68,6 +68,8 @@ void Level::Reset()
 
 	m_IsCheckpointCleared = false;
 
+	m_GamePausedTimer; // this timer's value is set by other classes (in Level::SetPausedTimer)
+
 	m_AllDragonCoinsCollected = false;
 
 	m_LevelDataPtr->GenerateLevelData(1, this);
@@ -115,6 +117,11 @@ void Level::ReadLevelData(int levelIndex)
 
 void Level::Tick(double deltaTime)
 {
+	if (m_GamePausedTimer.Tick() && m_GamePausedTimer.IsComplete())
+	{
+		SetPaused(false);
+	}
+
 	if (m_ShowingMessage)
 	{
 		if (GAME_ENGINE->IsKeyboardKeyPressed('A') ||
@@ -133,7 +140,8 @@ void Level::Tick(double deltaTime)
 		TogglePaused();
 		SoundManager::PlaySoundEffect(SoundManager::SOUND::GAME_PAUSE);
 	}
-	if (m_Paused && m_PlayerPtr->IsDead())
+	if (m_Paused && 
+		(m_PlayerPtr->IsDead() || m_PlayerPtr->IsTransitioningPowerups()))
 	{
 		// NOTE: The player needs to still be ticked so they can animate
 		m_PlayerPtr->Tick(deltaTime);
@@ -292,31 +300,32 @@ void Level::Paint()
 	}
 
 
-#if DEBUG_ZOOM_OUT
+#if SMW_DEBUG_ZOOM_OUT
 	GAME_ENGINE->SetColor(COLOR(250, 10, 10));
 	GAME_ENGINE->DrawRect(0, 0, Game::WIDTH, Game::HEIGHT, 2.5);
 #endif
 
 	PaintHUD();
 
-#if 0
+#if SMW_DISPLAY_CAMERA_DEBUG_INFO
 	m_CameraPtr->DEBUGPaint();
 #endif
 
-#if 1
+#if SMW_DISPLAY_GENERAL_DEBUG_INFO
 	GAME_ENGINE->SetColor(COLOR(0, 0, 0));
 	GAME_ENGINE->SetFont(Game::Font9Ptr);
 	int yo = 197;
 	int dy = 9;
 	GAME_ENGINE->DrawString(String("pos: ") + m_PlayerPtr->GetPosition().ToString(), 10, yo); yo += dy;
 	GAME_ENGINE->DrawString(String("vel: ") + m_PlayerPtr->GetLinearVelocity().ToString(), 10, yo); yo += dy;
-	GAME_ENGINE->DrawString(String("onGround: ") + String(m_PlayerPtr->IsOnGround() ? "true" : "false"), 10, yo); yo += dy;
-#endif
+	GAME_ENGINE->DrawString(String("onGround: ") + String(m_PlayerPtr->IsOnGround() ? "true" : "false"), 10, yo); yo -= dy * 2;
 
 	if (SoundManager::IsMuted())
 	{
 		GAME_ENGINE->DrawString(String("m"), 245, 198);
 	}
+#endif
+
 
 	GAME_ENGINE->SetViewMatrix(matTotalView);
 }
@@ -511,7 +520,9 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 	{
 	case int(ActorId::PLAYER):
 	{
-		if (((Player*)actOtherPtr->GetUserPointer())->IsDead())
+		assert(m_PlayerPtr == actOtherPtr->GetUserPointer());
+
+		if (m_PlayerPtr->IsDead())
 		{
 			break;
 		}
@@ -580,6 +591,14 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 			} break;
 			}
 		} break;
+		case int(ActorId::YOSHI):
+		{
+			if (m_PlayerPtr->IsRidingYoshi()) enableContactRef = false;
+		} break;
+		case int(ActorId::ENEMY):
+		{
+			if (m_PlayerPtr->IsInvincible()) enableContactRef = false;
+		} break;
 		}
 	} break;
 	case int(ActorId::ENEMY):
@@ -642,7 +661,8 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 				Item* thisItemPtr = (Item*)actThisPtr->GetUserPointer();
 				if (thisItemPtr->IsBlock())
 				{
-					enableContactRef = false;
+					DOUBLE2 koopaShellVel = actOtherPtr->GetLinearVelocity();
+					koopaShellPtr->SetLinearVelocity(DOUBLE2(-koopaShellVel.x, koopaShellVel.y));
 				}
 			}
 		} break;
@@ -722,13 +742,13 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			case Item::TYPE::KOOPA_SHELL:
 			{
 				KoopaShell* koopaShellPtr = (KoopaShell*)itemPtr;
-				if (koopaShellPtr->IsMoving())
-				{
-					m_PlayerPtr->TakeDamage();
-				}
-				else if (m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::SPIN_JUMPING)
+				if (m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::SPIN_JUMPING)
 				{
 					koopaShellPtr->Stomp();
+				}
+				else if (koopaShellPtr->IsMoving() && m_PlayerPtr->IsInvincible() == false)
+				{
+					m_PlayerPtr->TakeDamage();
 				}
 				else if (m_PlayerPtr->IsRunning() && m_PlayerPtr->IsHoldingItem() == false)
 				{
@@ -800,7 +820,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 						// TODO: Rename this method because not only shell hits cause this behaviour
 						((KoopaTroopa*)enemyPtr)->ShellHit();
 					}
-					else
+					else if (m_PlayerPtr->IsInvincible() == false)
 					{
 						m_PlayerPtr->TakeDamage();
 					}
@@ -833,8 +853,8 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			assert(m_YoshiPtr != nullptr);
 			if (m_YoshiPtr->IsHatching() == false)
 			{
-				if (m_PlayerPtr->IsHoldingItem() == false &&
-					playerFeet.y < actThisPtr->GetPosition().y &&
+				if (m_PlayerPtr->IsRidingYoshi() == false && 
+					m_PlayerPtr->IsHoldingItem() == false &&
 					m_PlayerPtr->GetLinearVelocity().y > 0)
 				{
 					m_PlayerPtr->RideYoshi(m_YoshiPtr);
@@ -1080,4 +1100,11 @@ void Level::SetAllDragonCoinsCollected(bool allCollected)
 bool Level::AllDragonCoinsCollected()
 {
 	return m_AllDragonCoinsCollected;
+}
+
+void Level::SetPausedTimer(int duration)
+{
+	m_GamePausedTimer = CountdownTimer(duration);
+	m_GamePausedTimer.Start();
+	SetPaused(true);
 }

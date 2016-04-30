@@ -22,6 +22,11 @@
 const double Player::WALK_SPEED = 25.0;
 const double Player::RUN_SPEED = 50.0;
 const double Player::DEFAULT_GRAVITY = 0.98;
+const int Player::JUMP_VEL = -16000;
+const int Player::WALK_BASE_VEL = 5000;
+const int Player::RUN_BASE_VEL = 9500;
+const int Player::BOUNCE_VEL = -195;
+const int Player::STARTING_LIVES = 5;
 
 Player::Player(Level* levelPtr) : 
 	Entity(DOUBLE2(), BodyType::DYNAMIC, levelPtr, ActorId::PLAYER, this)
@@ -64,12 +69,12 @@ void Player::Reset()
 
 	m_FramesSpentInAir = -1;
 
-	m_DeathAnimation = CountdownTimer(240);
-	m_ChangingDirections; // This depends on the player's vel
-	m_Invincibility = CountdownTimer(12);
-	m_ShellKickAnimation = CountdownTimer(10);
-	m_HeadStompSoundDelay = CountdownTimer(10);
-	m_PowerupTransition = CountdownTimer(50);
+	m_DeathAnimationTimer = CountdownTimer(240);
+	m_ChangingDirectionsTimer; // This depends on the player's velocity
+	m_InvincibilityTimer = CountdownTimer(115);
+	m_ShellKickAnimationTimer = CountdownTimer(10);
+	m_HeadStompSoundDelayTimer = CountdownTimer(10);
+	m_PowerupTransitionTimer = CountdownTimer(50);
 
 	m_AnimationState = ANIMATION_STATE::WAITING;
 	m_IsDucking = false;
@@ -134,13 +139,13 @@ void Player::Tick(double deltaTime)
 
 	if (m_IsDead)
 	{
-		if (m_DeathAnimation.Tick() && m_DeathAnimation.IsComplete())
+		if (m_DeathAnimationTimer.Tick() && m_DeathAnimationTimer.IsComplete())
 		{
 			m_LevelPtr->Reset();
 			return;
 		}
 
-		if (m_DeathAnimation.FramesElapsed() == 1)
+		if (m_DeathAnimationTimer.FramesElapsed() == 1)
 		{
 			// NOTE: We couldn't set active = true earlier since Box2D was locked,
 			// this is the next best thing
@@ -149,43 +154,25 @@ void Player::Tick(double deltaTime)
 
 		// NOTE: The player doesn't fly upward until after a short delay
 		// LATER: Move all harcoded values out somewhere else
-		if (m_DeathAnimation.FramesElapsed() == 40)
+		if (m_DeathAnimationTimer.FramesElapsed() == 40)
 		{
 			m_ActPtr->SetActive(true);
 			m_ActPtr->SetLinearVelocity(DOUBLE2(0, -420));
 		}
-
 	}
 
-	if (m_HeadStompSoundDelay.Tick() && m_HeadStompSoundDelay.IsComplete())
+	if (m_HeadStompSoundDelayTimer.Tick() && m_HeadStompSoundDelayTimer.IsComplete())
 	{
 		SoundManager::PlaySoundEffect(SoundManager::SOUND::ENEMY_HEAD_STOMP_END);
 	}
 
-	if (m_PowerupTransition.Tick())
+	m_ChangingDirectionsTimer.Tick();
+	m_ShellKickAnimationTimer.Tick();
+
+	if (m_InvincibilityTimer.Tick() && m_InvincibilityTimer.IsComplete())
 	{
-		if (m_PowerupTransition.FramesElapsed() == 1)
-		{
-			// NOTE: The player is frozen while they are transforming powerup states
-			// NOTE: This call can't be moved elsewhere since lovly ol' Box2D locks up
-			// during BeginContact
-			SetPaused(true);
-		}
-
-		if (m_PowerupTransition.IsComplete())
-		{
-			SetPaused(false);
-		}
-		else
-		{
-			// NOTE: The player can't provide any input while they are transforming powerup states
-			return;
-		}
+		m_IsInvincible = false;
 	}
-
-	m_ChangingDirections.Tick();
-	m_ShellKickAnimation.Tick();
-	m_Invincibility.Tick();
 
 	if (m_NeedsNewFixture)
 	{
@@ -238,12 +225,7 @@ void Player::Tick(double deltaTime)
 		DustParticle* dustParticlePtr = new DustParticle(m_ActPtr->GetPosition() + DOUBLE2(0, GetHeight() / 2));
 		m_LevelPtr->AddParticle(dustParticlePtr);
 
-		m_ChangingDirections.Start();
-	}
-
-	if (m_IsRidingYoshi)
-	{
-		//m_RidingYoshiPtr->Tick(deltaTime, m_ActPtr->GetPosition());
+		m_ChangingDirectionsTimer.Start();
 	}
 
 	TickAnimations(deltaTime);
@@ -251,7 +233,7 @@ void Player::Tick(double deltaTime)
 	m_DirFacingLastFrame = m_DirFacing;
 }
 
-void Player::HandleClimbingState(double deltaTime)
+void Player::HandleClimbingStateKeyboardInput(double deltaTime)
 {
 	if (GAME_ENGINE->IsKeyboardKeyPressed('Z')) // NOTE: Regular jump
 	{
@@ -259,6 +241,7 @@ void Player::HandleClimbingState(double deltaTime)
 		m_AnimationState = ANIMATION_STATE::JUMPING;
 		SoundManager::PlaySoundEffect(SoundManager::SOUND::PLAYER_JUMP);
 		m_FramesSpentInAir = 0;
+		// TODO: Move vine jump value out to a const int
 		m_ActPtr->SetLinearVelocity(DOUBLE2(0, -21500 * deltaTime));
 		return;
 	}
@@ -300,7 +283,57 @@ void Player::HandleClimbingState(double deltaTime)
 			m_LastClimbingPose = FacingDirection::OppositeDirection(m_LastClimbingPose);
 		}
 	}
+}
 
+void Player::HandleYoshiKeyboardInput(double deltaTime)
+{
+	if (GAME_ENGINE->IsKeyboardKeyPressed('X')) // Spin jump
+	{
+		m_AnimationState = ANIMATION_STATE::SPIN_JUMPING;
+		SoundManager::PlaySoundEffect(SoundManager::SOUND::PLAYER_SPIN_JUMP);
+		m_FramesSpentInAir = 0;
+		m_ActPtr->SetLinearVelocity(DOUBLE2(0, JUMP_VEL * deltaTime));
+		DismountYoshi();
+		return;
+	}
+
+	DOUBLE2 prevPlayerPos = m_ActPtr->GetPosition();
+	DOUBLE2 prevPlayerVel = m_ActPtr->GetLinearVelocity();
+
+	double horizontalVel = 0.0;
+	double verticalVel = 0.0;
+
+	m_IsOnGround = CalculateOnGround();
+	if (GAME_ENGINE->IsKeyboardKeyPressed('Z')) // Regular jump
+	{
+		verticalVel = JUMP_VEL * deltaTime;
+		m_AnimationState = ANIMATION_STATE::JUMPING;
+	}
+
+	if (m_IsOnGround && GAME_ENGINE->IsKeyboardKeyDown(VK_DOWN))
+	{
+		m_IsDucking = true;
+		m_AnimationState = ANIMATION_STATE::WAITING;
+	}
+	else if (GAME_ENGINE->IsKeyboardKeyDown(VK_LEFT))
+	{
+		m_AnimationState = ANIMATION_STATE::WALKING;
+		m_DirFacing = FacingDirection::LEFT;
+		horizontalVel = WALK_BASE_VEL;
+	}
+	else if (GAME_ENGINE->IsKeyboardKeyDown(VK_RIGHT))
+	{
+		m_AnimationState = ANIMATION_STATE::WALKING;
+		m_DirFacing = FacingDirection::RIGHT;
+		horizontalVel = WALK_BASE_VEL;
+	}
+
+	if (horizontalVel != 0.0 || verticalVel != 0.0)
+	{
+		m_ActPtr->SetLinearVelocity(DOUBLE2(horizontalVel, verticalVel));
+	}
+
+	m_DirFacingLastFrame = m_DirFacing;
 }
 
 void Player::HandleKeyboardInput(double deltaTime)
@@ -310,11 +343,7 @@ void Player::HandleKeyboardInput(double deltaTime)
 		return; // NOTE: The player can't do much now...
 	}
 
-	double jumpVelocity = -16000 * deltaTime;
 	double verticalVel = 0.0;
-
-	double walkVel = 5000 * deltaTime;
-	double runVel = 9500 * deltaTime;
 	double horizontalVel = 0.0;
 
 	if (m_IsDucking && 
@@ -332,7 +361,12 @@ void Player::HandleKeyboardInput(double deltaTime)
 
 	if (m_AnimationState == ANIMATION_STATE::CLIMBING)
 	{
-		HandleClimbingState(deltaTime);
+		HandleClimbingStateKeyboardInput(deltaTime);
+		return;
+	}
+	else if (m_IsRidingYoshi)
+	{
+		HandleYoshiKeyboardInput(deltaTime);
 		return;
 	}
 
@@ -344,25 +378,25 @@ void Player::HandleKeyboardInput(double deltaTime)
 			m_AnimationState = ANIMATION_STATE::WAITING;
 		}
 
-		bool zIsPressed = GAME_ENGINE->IsKeyboardKeyPressed('Z');
-		bool xIsPressed = GAME_ENGINE->IsKeyboardKeyPressed('X');
-		if (zIsPressed || 
-			(xIsPressed && m_IsHoldingItem) ||
-			(xIsPressed && m_IsRidingYoshi)) // NOTE: Regular jump
+		bool regularJumpKeyPressed = GAME_ENGINE->IsKeyboardKeyPressed('Z');
+		bool spinJumpKeyPressed = GAME_ENGINE->IsKeyboardKeyPressed('X');
+		if (regularJumpKeyPressed ||
+			(spinJumpKeyPressed && m_IsHoldingItem) ||
+			(spinJumpKeyPressed && m_IsRidingYoshi)) // NOTE: Regular jump
 		{
 			m_AnimationState = ANIMATION_STATE::JUMPING;
 			m_IsOnGround = false;
 			SoundManager::PlaySoundEffect(SoundManager::SOUND::PLAYER_JUMP);
 			m_FramesSpentInAir = 0;
-			verticalVel = jumpVelocity;
+			verticalVel = JUMP_VEL * deltaTime;
 		}
-		else if (xIsPressed) // NOTE: Spin jump
+		else if (spinJumpKeyPressed) // NOTE: Spin jump
 		{
 			m_AnimationState = ANIMATION_STATE::SPIN_JUMPING;
 			m_IsOnGround = false;
 			SoundManager::PlaySoundEffect(SoundManager::SOUND::PLAYER_SPIN_JUMP);
 			m_FramesSpentInAir = 0;
-			verticalVel = jumpVelocity;
+			verticalVel = JUMP_VEL * deltaTime;
 		}
 		else
 		{
@@ -415,7 +449,7 @@ void Player::HandleKeyboardInput(double deltaTime)
 		{
 			m_AnimationState = ANIMATION_STATE::WALKING;
 		}
-		horizontalVel = walkVel;
+		horizontalVel = WALK_BASE_VEL * deltaTime;
 	}
 	else if (GAME_ENGINE->IsKeyboardKeyDown(VK_RIGHT))
 	{
@@ -428,7 +462,7 @@ void Player::HandleKeyboardInput(double deltaTime)
 		{
 			m_AnimationState = ANIMATION_STATE::WALKING;
 		}
-		horizontalVel = walkVel;
+		horizontalVel = WALK_BASE_VEL * deltaTime;
 	}
 
 	if (horizontalVel != 0.0)
@@ -444,7 +478,7 @@ void Player::HandleKeyboardInput(double deltaTime)
 					m_AnimationState = ANIMATION_STATE::WALKING;
 					m_IsRunning = true;
 				}
-				horizontalVel = runVel;
+				horizontalVel = RUN_BASE_VEL * deltaTime;
 			}
 		}
 		else
@@ -541,7 +575,7 @@ void Player::HandleKeyboardInput(double deltaTime)
 	if (m_ItemHoldingPtr != nullptr)
 	{
 		double offset = 12;
-		if (m_ChangingDirections.IsActive()) offset = 0;
+		if (m_ChangingDirectionsTimer.IsActive()) offset = 0;
 		m_ItemHoldingPtr->SetPosition(m_ActPtr->GetPosition() + DOUBLE2(offset * m_DirFacing, 0));
 		m_ItemHoldingPtr->SetLinearVelocity(DOUBLE2(0, 0));
 	}
@@ -587,7 +621,7 @@ void Player::TickAnimations(double deltaTime)
 		} break;
 		case ANIMATION_STATE::WALKING:
 		{
-			if (m_ChangingDirections.IsActive())
+			if (m_ChangingDirectionsTimer.IsActive())
 			{
 				m_AnimInfo.frameNumber = 0;
 			}
@@ -612,12 +646,22 @@ void Player::Paint()
 {
     MATRIX3X2 matPrevWorld = GAME_ENGINE->GetWorldMatrix();
 
+	if (m_ExtraItemPtr != nullptr)
+	{
+		m_ExtraItemPtr->Paint();
+	}
+
+	if (m_InvincibilityTimer.IsActive() && m_InvincibilityTimer.FramesElapsed() % 10 < 5)
+	{
+		return; // NOTE: The player flashes while invincible
+	}
+
 	double centerX = m_ActPtr->GetPosition().x;
 	double centerY = m_ActPtr->GetPosition().y;
 
 	bool climbingFlip = m_AnimationState == ANIMATION_STATE::CLIMBING && m_LastClimbingPose == FacingDirection::LEFT;
 
-	bool changingDiections = m_ChangingDirections.IsActive();
+	bool changingDiections = m_ChangingDirectionsTimer.IsActive();
 	if ((m_DirFacing == FacingDirection::LEFT && !changingDiections) ||
 		(m_DirFacing == FacingDirection::RIGHT && changingDiections) || 
 		climbingFlip)
@@ -630,11 +674,16 @@ void Player::Paint()
 
 	POWERUP_STATE powerupStateToPaint;
 	int yo;
-	if (m_PowerupTransition.IsActive())
+	if (m_PowerupTransitionTimer.Tick())
 	{
+		if (m_PowerupTransitionTimer.FramesElapsed() == 1)
+		{
+			m_LevelPtr->SetPausedTimer(49);
+		}
+
 		yo = GetHeight() / 2 - (m_PrevPowerupState == POWERUP_STATE::NORMAL ? 6 : 4);
 		
-		if (m_PowerupTransition.FramesElapsed() % 12 > 6)
+		if (m_PowerupTransitionTimer.FramesElapsed() % 12 > 6)
 		{
 			powerupStateToPaint = m_PrevPowerupState;
 		}
@@ -654,17 +703,6 @@ void Player::Paint()
 	spriteSheetToPaint->Paint(centerX, centerY - GetHeight() / 2 + yo, spriteTile.x, spriteTile.y);
 
 	GAME_ENGINE->SetWorldMatrix(matPrevWorld);
-
-#if 0
-	GAME_ENGINE->DrawString(AnimationStateToString(m_AnimationState), DOUBLE2(centerX + 15, centerY));
-	GAME_ENGINE->DrawString(String("ovlp bean: ") + String(m_IsOverlappingWithBeanstalk ? "T" : "F"), centerX + 15, centerY - 10);
-#endif
-	
-	if (m_ExtraItemPtr != nullptr)
-	{
-		m_ExtraItemPtr->Paint();
-	}
-
 }
 
 INT2 Player::CalculateAnimationFrame()
@@ -687,7 +725,7 @@ INT2 Player::CalculateAnimationFrame()
 			srcX = 1;
 			srcY = 1;
 		}
-		else if (m_ChangingDirections.IsActive())
+		else if (m_ChangingDirectionsTimer.IsActive())
 		{
 			srcX = 3;
 			srcY = 2;
@@ -755,12 +793,12 @@ INT2 Player::CalculateAnimationFrame()
 			if (m_PowerupState == POWERUP_STATE::NORMAL) srcY = 0;
 			else srcY = 1;
 		}
-		else if (m_ShellKickAnimation.IsActive())
+		else if (m_ShellKickAnimationTimer.IsActive())
 		{
 			srcX = 5;
 			srcY = 1;
 		}
-		else if (m_ChangingDirections.IsActive())
+		else if (m_ChangingDirectionsTimer.IsActive())
 		{
 			srcX = 6;
 			srcY = 0;
@@ -826,8 +864,16 @@ INT2 Player::CalculateAnimationFrame()
 	} break;
 	case ANIMATION_STATE::CLIMBING:
 	{
-		srcX = 7;
-		srcY = 0;
+		if (m_PowerupState == POWERUP_STATE::NORMAL)
+		{
+			srcX = 7;
+			srcY = 0;
+		}
+		else
+		{
+			srcX = 7;
+			srcY = 2;
+		}
 	} break;
 	}
 
@@ -945,7 +991,7 @@ void Player::ChangePowerupState(POWERUP_STATE newPowerupState, bool isUpgrade)
 	m_PowerupState = newPowerupState;
 	m_SpriteSheetPtr = GetSpriteSheetForPowerupState(m_PowerupState);
 
-	m_PowerupTransition.Start();
+	m_PowerupTransitionTimer.Start();
 
 	if (isUpgrade)
 	{
@@ -1020,13 +1066,13 @@ void Player::KickHeldItem(bool gently)
 			((KoopaShell*)m_ItemHoldingPtr)->KickHorizontally(m_DirFacing, true);
 		}
 
-		m_ShellKickAnimation.Start();
+		m_ShellKickAnimationTimer.Start();
 	}
 
 	m_ItemHoldingPtr = nullptr;
 
 	m_IsHoldingItem = false;
-	m_ShellKickAnimation.Start();
+	m_ShellKickAnimationTimer.Start();
 }
 
 void Player::AddCoin(Level* levelPtr, bool playSound)
@@ -1083,7 +1129,7 @@ void Player::Die()
 		m_Lives = STARTING_LIVES;
 	}
 
-	m_DeathAnimation.Start();
+	m_DeathAnimationTimer.Start();
 	m_AnimationState = ANIMATION_STATE::WAITING;
 	m_IsDead = true;
 
@@ -1107,7 +1153,8 @@ void Player::TakeDamage()
 	case POWERUP_STATE::BALLOON:
 	{
 		ChangePowerupState(POWERUP_STATE::NORMAL, false);
-		m_Invincibility.Start();
+		m_InvincibilityTimer.Start();
+		m_IsInvincible = true;
 	} break;
 	case POWERUP_STATE::STAR:
 	{
@@ -1147,6 +1194,11 @@ void Player::SetClimbingBeanstalk(bool climbing)
 	}
 
 	m_FramesClimbingSinceLastFlip = FRAMES_OF_CLIMBING_ANIMATION;
+}
+
+bool Player::IsInvincible()
+{
+	return m_IsInvincible;
 }
 
 Item* Player::GetHeldItemPtr()
@@ -1191,7 +1243,7 @@ Player::ANIMATION_STATE Player::GetAnimationState()
 
 void Player::ResetNumberOfFramesUntilEndStompSound()
 {
-	m_HeadStompSoundDelay.Start();
+	m_HeadStompSoundDelayTimer.Start();
 }
 
 bool Player::IsOnGround()
@@ -1300,7 +1352,7 @@ String Player::AnimationStateToString(ANIMATION_STATE state)
 		str = String("jumping");
 		break;
 	case ANIMATION_STATE::SPIN_JUMPING:
-		str = String("s_jumping");
+		str = String("spin_jumping");
 		break;
 	case ANIMATION_STATE::FALLING:
 		str = String("falling");
@@ -1314,11 +1366,16 @@ String Player::AnimationStateToString(ANIMATION_STATE state)
 	}
 
 	if (m_IsRunning) str += String(" running");
-	if (m_ChangingDirections.IsActive()) str += String(" chng_dirs");
+	if (m_ChangingDirectionsTimer.IsActive()) str += String(" chng_dirs");
 	if (m_IsDead) str += String(" dying");
 	if (m_IsDucking) str += String(" ducking");
 	if (m_IsLookingUp) str += String(" lkng_up");
 	if (m_IsHoldingItem) str += String(" hld_item");
 
 	return str;
+}
+
+bool Player::IsTransitioningPowerups()
+{
+	return m_PowerupTransitionTimer.IsActive();
 }

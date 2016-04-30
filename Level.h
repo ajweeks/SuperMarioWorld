@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ContactListener.h"
+#include "Enumerations.h"
 
 class LevelData;
 class Platform;
@@ -68,6 +69,8 @@ public:
 
 	void TriggerEndScreen();
 
+	void SetPausedTimer(int duration);
+
 private:
 	void PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool & enableContactRef);
 	void BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr);
@@ -108,6 +111,10 @@ private:
 
 	bool m_IsCheckpointCleared;
 	
+	// This can be set by various classes to pause the game for a short duration
+	// (eg. when the player changes powerup states, when a message block is animating in or out, etc.)
+	CountdownTimer m_GamePausedTimer;
+
 	Player *m_PlayerPtr = nullptr;
 	Camera* m_CameraPtr = nullptr;
 	ParticleManager* m_ParticleManagerPtr = nullptr;
@@ -115,7 +122,6 @@ private:
 
 	bool m_IsShowingEndScreen;
 	int m_FramesShowingEndScreen;
-
 };
 
 // TODO: Move this somewhere more global

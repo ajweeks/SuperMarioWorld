@@ -259,7 +259,7 @@ void MontyMole::Paint()
 	
 	GAME_ENGINE->SetWorldMatrix(matPrevWorld);
 
-#if 0
+#if SMW_DISPLAY_AI_DEBUG_INFO
 	GAME_ENGINE->SetColor(COLOR(255, 0, 0));
 	GAME_ENGINE->DrawLine(m_TargetX, m_ActPtr->GetPosition().y - 300, m_TargetX, m_ActPtr->GetPosition().y + 300);
 #endif

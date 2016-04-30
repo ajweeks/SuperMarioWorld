@@ -84,6 +84,8 @@ public:
 	bool IsDead();
 	bool IsRunning();
 
+	bool IsInvincible();
+
 	void MidwayGatePasshrough();
 
 	// NOTE: This should be called every time the player stomps on a KoopaTroopa's head
@@ -93,11 +95,14 @@ public:
 
 	void SetOverlappingWithBeanstalk(bool overlapping);
 
+	bool IsTransitioningPowerups();
+
 private:
 	INT2 CalculateAnimationFrame();
 
 	void HandleKeyboardInput(double deltaTime);
-	void HandleClimbingState(double deltaTime);
+	void HandleClimbingStateKeyboardInput(double deltaTime);
+	void HandleYoshiKeyboardInput(double deltaTime);
 
 	void AddCoin(Level* levelPtr, bool playSound = true);
 	void AddDragonCoin(Level* levelPtr);
@@ -120,26 +125,31 @@ private:
 	static const double WALK_SPEED;
 	static const double RUN_SPEED;
 
-	static const int BOUNCE_VEL = -195;
+	static const int JUMP_VEL;
+	static const int WALK_BASE_VEL;
+	static const int RUN_BASE_VEL;
+
+	static const int BOUNCE_VEL;
 
 	bool m_IsOnGround;
 	bool m_WasOnGround;
 	int m_FramesSpentInAir;
 
-	static const int STARTING_LIVES = 5;
+	static const int STARTING_LIVES;
 	int m_Lives;
 	int m_Coins;
 	int m_DragonCoins;
 	int m_Stars;
 	int m_Score;
 	bool m_NeedsNewFixture;
+	bool m_IsInvincible;
 
-	CountdownTimer m_DeathAnimation;
-	CountdownTimer m_ChangingDirections;
-	CountdownTimer m_Invincibility;
-	CountdownTimer m_ShellKickAnimation;
-	CountdownTimer m_HeadStompSoundDelay;
-	CountdownTimer m_PowerupTransition;
+	CountdownTimer m_DeathAnimationTimer;
+	CountdownTimer m_ChangingDirectionsTimer;
+	CountdownTimer m_ShellKickAnimationTimer;
+	CountdownTimer m_HeadStompSoundDelayTimer;
+	CountdownTimer m_PowerupTransitionTimer;
+	CountdownTimer m_InvincibilityTimer;
 
 	POWERUP_STATE m_PrevPowerupState; // This is used to transition between states upon state change
 
