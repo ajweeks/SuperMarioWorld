@@ -828,22 +828,26 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			} break;
 			case Enemy::TYPE::MONTY_MOLE:
 			{
-				if (playerFeet.y < enemyPtr->GetPosition().y)
+				MontyMole* montyMolePtr = (MontyMole*)enemyPtr;
+				if (montyMolePtr->IsAlive())
 				{
-					if (m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::SPIN_JUMPING)
+					if (playerFeet.y < enemyPtr->GetPosition().y)
 					{
-						((MontyMole*)enemyPtr)->StompKill();
-						m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetLinearVelocity().x, 0));
+						if (m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::SPIN_JUMPING)
+						{
+							((MontyMole*)enemyPtr)->StompKill();
+							m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetLinearVelocity().x, 0));
+						}
+						else
+						{
+							((MontyMole*)enemyPtr)->HeadBonk();
+							m_PlayerPtr->Bounce();
+						}
 					}
-					else
+					else if(m_PlayerPtr->IsInvincible() == false)
 					{
-						((MontyMole*)enemyPtr)->HeadBonk();
-						m_PlayerPtr->Bounce();
+						m_PlayerPtr->TakeDamage();
 					}
-				}
-				else
-				{
-					m_PlayerPtr->TakeDamage();
 				}
 			} break;
 			}

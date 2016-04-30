@@ -349,3 +349,8 @@ int MontyMole::GetHeight()
 {
 	return HEIGHT;
 }
+
+bool MontyMole::IsAlive()
+{
+	return (m_AnimationState != ANIMATION_STATE::DEAD);
+}
