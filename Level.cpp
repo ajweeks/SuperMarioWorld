@@ -252,15 +252,17 @@ void Level::Paint()
 
 #if 1
 	GAME_ENGINE->SetColor(COLOR(0, 0, 0));
-	GAME_ENGINE->SetFont(Game::Font12Ptr);
-	GAME_ENGINE->DrawString(String("pos: ") + m_PlayerPtr->GetPosition().ToString(), 10, 193);
-	GAME_ENGINE->DrawString(String("vel: ") + m_PlayerPtr->GetLinearVelocity().ToString(), 10, 203);
-	GAME_ENGINE->DrawString(String("onGround: ") + String(m_PlayerPtr->IsOnGround() ? "true" : "false"), 10, 213);
+	GAME_ENGINE->SetFont(Game::Font9Ptr);
+	int yo = 197;
+	int dy = 9;
+	GAME_ENGINE->DrawString(String("pos: ") + m_PlayerPtr->GetPosition().ToString(), 10, yo); yo += dy;
+	GAME_ENGINE->DrawString(String("vel: ") + m_PlayerPtr->GetLinearVelocity().ToString(), 10, yo); yo += dy;
+	GAME_ENGINE->DrawString(String("onGround: ") + String(m_PlayerPtr->IsOnGround() ? "true" : "false"), 10, yo); yo += dy;
 #endif
 
 	if (SoundManager::IsMuted())
 	{
-		GAME_ENGINE->DrawString(String("m"), 245, 195);
+		GAME_ENGINE->DrawString(String("m"), 245, 198);
 	}
 
 	GAME_ENGINE->SetViewMatrix(matTotalView);

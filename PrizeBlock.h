@@ -17,7 +17,7 @@ public:
 
 private:
 	int m_CurrentFrameOfBumpAnimation = -1;
-	int m_FramesOfBumpAnimation = 14;
+	static const int FRAMES_OF_BUMP_ANIMATION = 14;
 	int m_yo = 0;
 	bool m_IsUsed = false;
 	bool m_ShouldSpawnItem = false;

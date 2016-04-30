@@ -42,14 +42,14 @@ void PrizeBlock::Tick(double deltaTime)
 		//		 Then the block is "used" and renders the brown used block texture
 
 		m_yo = m_CurrentFrameOfBumpAnimation;
-		if (m_yo > m_FramesOfBumpAnimation / 2)
+		if (m_yo > FRAMES_OF_BUMP_ANIMATION / 2)
 		{
-			m_yo = (m_FramesOfBumpAnimation / 2) - (m_yo - (m_FramesOfBumpAnimation / 2));
+			m_yo = (FRAMES_OF_BUMP_ANIMATION / 2) - (m_yo - (FRAMES_OF_BUMP_ANIMATION / 2));
 		}
 		m_yo = int(m_yo * -0.5);
 
 		m_CurrentFrameOfBumpAnimation++;
-		if (m_CurrentFrameOfBumpAnimation > m_FramesOfBumpAnimation)
+		if (m_CurrentFrameOfBumpAnimation > FRAMES_OF_BUMP_ANIMATION)
 		{
 			m_CurrentFrameOfBumpAnimation = -1;
 			m_yo = 0;

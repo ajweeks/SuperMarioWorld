@@ -19,6 +19,7 @@
 
 Font* Game::Font12Ptr = nullptr;
 Font* Game::Font9Ptr = nullptr;
+Font* Game::Font6Ptr = nullptr;
 
 const int Game::WIDTH = 256;
 const int Game::HEIGHT = 224;
@@ -61,11 +62,12 @@ void Game::GameStart()
 	SpriteSheetManager::Load();
 
 	SoundManager::InitialzeSoundsAndSongs();
-	SoundManager::SetMuted(false);
+	SoundManager::SetMuted(true);
 
 	// TODO: Add mario fonts
 	Game::Font12Ptr = new Font(String("consolas"), 12);
 	Game::Font9Ptr = new Font(String("consolas"), 9);
+	Game::Font6Ptr = new Font(String("consolas"), 6);
 
 	matIdentity = MATRIX3X2::CreateScalingMatrix(WINDOW_SCALE);
 
@@ -118,6 +120,7 @@ void Game::GameEnd()
 
 	delete Font12Ptr;
 	delete Font9Ptr;
+	delete Font6Ptr;
 
 	LevelData::Unload();
 	SpriteSheetManager::Unload();

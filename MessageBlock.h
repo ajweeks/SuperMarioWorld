@@ -27,4 +27,9 @@ private:
 	int m_FramesOfOutroAnimation = -1;
 	static const int FRAMES_OF_ANIMATION;
 
+	int m_CurrentFrameOfBumpAnimation = -1;
+	static const int FRAMES_OF_BUMP_ANIMATION = 12;
+	static const int BUMP_HEIGHT = 20;
+	int m_yo = 0;
+
 };

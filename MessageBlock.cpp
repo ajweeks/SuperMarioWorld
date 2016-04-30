@@ -47,6 +47,23 @@ void MessageBlock::Tick(double deltaTime)
 	{
 		m_FramesOfOutroAnimation = -1;
 	}
+
+	if (m_CurrentFrameOfBumpAnimation > -1)
+	{
+		m_yo = m_CurrentFrameOfBumpAnimation;
+		if (m_yo > FRAMES_OF_BUMP_ANIMATION / 2)
+		{
+			m_yo = (FRAMES_OF_BUMP_ANIMATION / 2) - (m_yo - (FRAMES_OF_BUMP_ANIMATION / 2));
+		}
+		m_yo = int((double(-m_yo) / FRAMES_OF_BUMP_ANIMATION) * BUMP_HEIGHT);
+
+		m_CurrentFrameOfBumpAnimation++;
+		if (m_CurrentFrameOfBumpAnimation > FRAMES_OF_BUMP_ANIMATION)
+		{
+			m_CurrentFrameOfBumpAnimation = -1;
+			m_yo = 0;
+		}
+	}
 }
 
 void MessageBlock::Paint()
@@ -54,7 +71,7 @@ void MessageBlock::Paint()
 	int srcCol = 5;
 	int srcRow = 9;
 	double left = m_ActPtr->GetPosition().x;
-	double top = m_ActPtr->GetPosition().y;
+	double top = m_ActPtr->GetPosition().y + m_yo;
 	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);
 
 	int yo = 32;
@@ -105,6 +122,9 @@ void MessageBlock::Hit(Level* levelPtr)
 	SoundManager::PlaySoundEffect(SoundManager::SOUND::BLOCK_HIT);
 
 	m_FramesUntilPause = FRAMES_TO_WAIT;
+
+	m_CurrentFrameOfBumpAnimation = 2;
+	m_yo = 0;
 
 	SoundManager::PlaySoundEffect(SoundManager::SOUND::MESSAGE_BLOCK_HIT);
 }

@@ -24,7 +24,8 @@
 #define DEBUG_ZOOM_OUT false
 
 #define SMW_ENABLE_JUMP_TO
-#define SMW_JUMP_TO_POS_X 2500
+#define SMW_JUMP_TO_POS_X 4700
+//#define SMW_JUMP_TO_POS_X 2500
 
 #define ARRAY_SIZE(array) (sizeof((array))/sizeof((array[0])))
 
@@ -51,6 +52,7 @@ public:
 
 	static Font *Font12Ptr;
 	static Font *Font9Ptr;
+	static Font *Font6Ptr;
 
 	// NOTE: How many pixels we have to work with, not how large the final window will be necessarily
 	static const int WIDTH;
