@@ -2,7 +2,7 @@
 
 enum class ActorId
 {
-	PLAYER, PLATFORM, PIPE, ENEMY, LEVEL, ITEM, YOSHI
+	PLAYER, PLATFORM, PIPE, ENEMY, LEVEL, ITEM, YOSHI, YOSHI_TOUNGE
 };
 
 struct FacingDirection

@@ -9,7 +9,7 @@ class Yoshi : public Entity
 public:
 	enum class ANIMATION_STATE
 	{
-		EGG, BABY, WAITING, WALKING, WILD, JUMPING, FALLING, EATING, DUCKING
+		EGG, BABY, WAITING, WALKING, WILD, JUMPING, FALLING
 	};
 
 	Yoshi(DOUBLE2 position, Level* levelPtr);
@@ -25,25 +25,46 @@ public:
 	int GetHeight();
 
 	bool IsHatching();
-	void SetCarryingMario(bool carryingMario, Player* marioPtr = nullptr);
+	void SetCarryingPlayer(bool carryingPlayer, Player* playerPtr = nullptr);
+
+	int GetDirectionFacing();
 
 private:
 	void PaintAnimationFrame(double left, double top);
-	void ChangeAnimationState(ANIMATION_STATE newAnimationState);
+	void HandleKeyboardInput(double deltaTime);
+	bool CalculateOnGround();
+	std::string AnimationStateToString();
 
-	static const int WIDTH = 16;
-	static const int HEIGHT = 14;
+	static const int JUMP_VEL;
+	static const int WALK_BASE_VEL;
+	static const int RUN_BASE_VEL;
+	static const int TOUNGE_VEL;
+
+	static const int WIDTH = 12;
+	static const int HEIGHT = 16;
 
 	ANIMATION_STATE m_AnimationState;
 
-	// NOTE: Yoshi enters this state when mario takes damage while riding yoshi and is forced to dismount
-	bool m_IsRunning;
-	bool m_IsCarryingMario;
-	bool m_IsTurningAround;
-	
+	static const float HATCHING_SECONDS_PER_FRAME;
+	static const float WAITING_SECONDS_PER_FRAME;
+	static const float WALKING_SECONDS_PER_FRAME;
+
+	// NOTE: Yoshi enters this state when the player takes damage while riding yoshi and is forced to dismount
+	bool m_IsRunning = false;
+	bool m_IsCarryingPlayer = false;
+	bool m_IsToungeStuckOut = false;
+
+	bool m_IsOnGround = false;
+
 	CountdownTimer m_HatchingTimer;
+	CountdownTimer m_ChangingDirectionsTimer;
+	CountdownTimer m_ToungeTimer; // Records how long yoshi's tounge has been stuck out for
 	SpriteSheet* m_SpriteSheetPtr = nullptr;
+
+	PhysicsActor* m_ActToungePtr = nullptr;
 
 	Player* m_PlayerPtr = nullptr;
 
+	int m_DirFacingLastFrame;
+	int m_DirFacing;
 };

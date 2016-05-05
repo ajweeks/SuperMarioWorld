@@ -73,7 +73,7 @@ void SpriteSheetManager::Load()
 	koopaTroopaPtr = new SpriteSheet(String("Resources/koopa-troopa.png"), 8, 2, 16, 27);
 	koopaShellPtr = new SpriteSheet(String("Resources/koopa-shell.png"), 2, 3, 16, 16);
 
-	yoshiPtr = new SpriteSheet(String("Resources/yoshi.png"), 4, 1, 26, 32);
+	yoshiPtr = new SpriteSheet(String("Resources/yoshi.png"), 5, 1, 26, 32);
 	smallYoshiPtr = new SpriteSheet(String("Resources/yoshi-small.png"), 3, 2, 16, 16);
 	yoshiWithMarioPtr = new SpriteSheet(String("Resources/yoshi-with-mario.png"), 13, 2, 33, 39);
 }

@@ -19,8 +19,6 @@
 #define ENTITY_MANAGER (EntityManager::GetInstance())
 
 // STATIC INITIALIZATIONS
-const double Player::WALK_SPEED = 25.0;
-const double Player::RUN_SPEED = 50.0;
 const double Player::DEFAULT_GRAVITY = 0.98;
 const int Player::JUMP_VEL = -16000;
 const int Player::WALK_BASE_VEL = 5000;
@@ -32,8 +30,6 @@ Player::Player(Level* levelPtr) :
 	Entity(DOUBLE2(), BodyType::DYNAMIC, levelPtr, ActorId::PLAYER, this)
 {
 	Reset();
-
-	m_ActPtr->SetFixedRotation(true);
 
 	// NOTE: This can't go in reset since that is called after the player dies
 	m_Lives = STARTING_LIVES;
@@ -93,7 +89,6 @@ void Player::Reset()
 	m_FramesClimbingSinceLastFlip = 0;
 	m_LastClimbingPose = FacingDirection::RIGHT;
 
-	delete m_RidingYoshiPtr;
 	m_RidingYoshiPtr = nullptr;
 }
 
@@ -136,7 +131,7 @@ void Player::Tick(double deltaTime)
 	}
 #endif
 	m_VelLastFrame = m_ActPtr->GetLinearVelocity();
-
+	
 	if (m_IsDead)
 	{
 		if (m_DeathAnimationTimer.Tick() && m_DeathAnimationTimer.IsComplete())
@@ -184,7 +179,15 @@ void Player::Tick(double deltaTime)
 			b2Fixture* nextFixturePtr = fixturePtr->GetNext();
 			m_ActPtr->GetBody()->DestroyFixture(fixturePtr);
 			fixturePtr = nextFixturePtr;
-		} 
+		}
+		if (m_IsRidingYoshi) 
+		{
+			m_NeedsNewFixture = false;
+			m_ActPtr->SetActive(false);
+			return;
+		}
+		m_ActPtr->SetActive(true);
+
 		m_ActPtr->AddBoxFixture(GetWidth(), GetHeight(), 0.0, 0.15);
 
 		double newHalfHeight = GetHeight() / 2;
@@ -304,36 +307,11 @@ void Player::HandleYoshiKeyboardInput(double deltaTime)
 	double verticalVel = 0.0;
 
 	m_IsOnGround = CalculateOnGround();
-	if (GAME_ENGINE->IsKeyboardKeyPressed('Z')) // Regular jump
-	{
-		verticalVel = JUMP_VEL * deltaTime;
-		m_AnimationState = ANIMATION_STATE::JUMPING;
-	}
-
 	if (m_IsOnGround && GAME_ENGINE->IsKeyboardKeyDown(VK_DOWN))
 	{
 		m_IsDucking = true;
 		m_AnimationState = ANIMATION_STATE::WAITING;
 	}
-	else if (GAME_ENGINE->IsKeyboardKeyDown(VK_LEFT))
-	{
-		m_AnimationState = ANIMATION_STATE::WALKING;
-		m_DirFacing = FacingDirection::LEFT;
-		horizontalVel = WALK_BASE_VEL;
-	}
-	else if (GAME_ENGINE->IsKeyboardKeyDown(VK_RIGHT))
-	{
-		m_AnimationState = ANIMATION_STATE::WALKING;
-		m_DirFacing = FacingDirection::RIGHT;
-		horizontalVel = WALK_BASE_VEL;
-	}
-
-	if (horizontalVel != 0.0 || verticalVel != 0.0)
-	{
-		m_ActPtr->SetLinearVelocity(DOUBLE2(horizontalVel, verticalVel));
-	}
-
-	m_DirFacingLastFrame = m_DirFacing;
 }
 
 void Player::HandleKeyboardInput(double deltaTime)
@@ -341,22 +319,6 @@ void Player::HandleKeyboardInput(double deltaTime)
 	if (m_IsDead)
 	{
 		return; // NOTE: The player can't do much now...
-	}
-
-	double verticalVel = 0.0;
-	double horizontalVel = 0.0;
-
-	if (m_IsDucking && 
-		GAME_ENGINE->IsKeyboardKeyDown(VK_DOWN) == false)
-	{
-		m_AnimationState = ANIMATION_STATE::WAITING;
-		m_IsDucking = false;
-	}
-	if (m_IsLookingUp &&
-		GAME_ENGINE->IsKeyboardKeyDown(VK_UP) == false)
-	{
-		m_AnimationState = ANIMATION_STATE::WAITING;
-		m_IsLookingUp = false;
 	}
 
 	if (m_AnimationState == ANIMATION_STATE::CLIMBING)
@@ -369,6 +331,23 @@ void Player::HandleKeyboardInput(double deltaTime)
 		HandleYoshiKeyboardInput(deltaTime);
 		return;
 	}
+
+	double verticalVel = 0.0;
+	double horizontalVel = 0.0;
+
+	if (m_IsDucking &&
+		GAME_ENGINE->IsKeyboardKeyDown(VK_DOWN) == false)
+	{
+		m_AnimationState = ANIMATION_STATE::WAITING;
+		m_IsDucking = false;
+	}
+	if (m_IsLookingUp &&
+		GAME_ENGINE->IsKeyboardKeyDown(VK_UP) == false)
+	{
+		m_AnimationState = ANIMATION_STATE::WAITING;
+		m_IsLookingUp = false;
+	}
+
 
 	m_IsOnGround = CalculateOnGround();
 	if (m_IsOnGround)
@@ -566,6 +545,7 @@ void Player::HandleKeyboardInput(double deltaTime)
 
 	m_ActPtr->SetLinearVelocity(newVel);
 
+	// NOTE: Prevents the player from walking off the side of the level
 	if (m_ActPtr->GetPosition().x < GetWidth())
 	{
 		m_ActPtr->SetLinearVelocity(DOUBLE2(0, m_ActPtr->GetLinearVelocity().y));
@@ -651,6 +631,9 @@ void Player::Paint()
 		m_ExtraItemPtr->Paint();
 	}
 
+	// Yoshi paints the both of us while the player is on him
+	if (m_IsRidingYoshi) return;
+
 	if (m_InvincibilityTimer.IsActive() && m_InvincibilityTimer.FramesElapsed() % 10 < 5)
 	{
 		return; // NOTE: The player flashes while invincible
@@ -661,9 +644,9 @@ void Player::Paint()
 
 	bool climbingFlip = m_AnimationState == ANIMATION_STATE::CLIMBING && m_LastClimbingPose == FacingDirection::LEFT;
 
-	bool changingDiections = m_ChangingDirectionsTimer.IsActive();
-	if ((m_DirFacing == FacingDirection::LEFT && !changingDiections) ||
-		(m_DirFacing == FacingDirection::RIGHT && changingDiections) || 
+	bool changingDirections = m_ChangingDirectionsTimer.IsActive();
+	if ((m_DirFacing == FacingDirection::LEFT && !changingDirections) ||
+		(m_DirFacing == FacingDirection::RIGHT && changingDirections) ||
 		climbingFlip)
 	{
 		MATRIX3X2 matReflect = MATRIX3X2::CreateScalingMatrix(DOUBLE2(-1, 1));
@@ -678,7 +661,7 @@ void Player::Paint()
 	{
 		if (m_PowerupTransitionTimer.FramesElapsed() == 1)
 		{
-			m_LevelPtr->SetPausedTimer(49);
+			m_LevelPtr->SetPausedTimer(m_PowerupTransitionTimer.OriginalNumberOfFrames()-1);
 		}
 
 		yo = GetHeight() / 2 - (m_PrevPowerupState == POWERUP_STATE::NORMAL ? 6 : 4);
@@ -761,14 +744,6 @@ INT2 Player::CalculateAnimationFrame()
 			srcX = 6;
 			srcY = 1;
 		}
-		else if (m_IsRidingYoshi)
-		{
-			if (m_IsDucking) srcX = 5;
-			else srcX = 1;
-
-			if (m_PowerupState == POWERUP_STATE::NORMAL) srcY = 0;
-			else srcY = 1;
-		}
 		else if (m_IsLookingUp)
 		{
 			srcX = 0;
@@ -787,13 +762,7 @@ INT2 Player::CalculateAnimationFrame()
 	} break;
 	case ANIMATION_STATE::WALKING:
 	{
-		if (m_IsRidingYoshi)
-		{
-			srcX = 1 + m_AnimInfo.frameNumber;
-			if (m_PowerupState == POWERUP_STATE::NORMAL) srcY = 0;
-			else srcY = 1;
-		}
-		else if (m_ShellKickAnimationTimer.IsActive())
+		if (m_ShellKickAnimationTimer.IsActive())
 		{
 			srcX = 5;
 			srcY = 1;
@@ -816,13 +785,7 @@ INT2 Player::CalculateAnimationFrame()
 	} break;
 	case ANIMATION_STATE::JUMPING:
 	{	
-		if (m_IsRidingYoshi)
-		{
-			srcX = 3;
-			if (m_PowerupState == POWERUP_STATE::NORMAL) srcY = 0;
-			else srcY = 1;
-		}
-		else if (m_IsDucking)
+		if (m_IsDucking)
 		{
 			srcX = 1;
 			srcY = 0;
@@ -840,13 +803,7 @@ INT2 Player::CalculateAnimationFrame()
 	} break;
 	case ANIMATION_STATE::FALLING:
 	{
-		if (m_IsRidingYoshi)
-		{
-			srcX = 2;
-			if (m_PowerupState == POWERUP_STATE::NORMAL) srcY = 0;
-			else srcY = 1;
-		}
-		else if (m_IsDucking)
+		if (m_IsDucking)
 		{
 			srcX = 1;
 			srcY = 0;
@@ -891,7 +848,9 @@ void Player::RideYoshi(Yoshi* yoshiPtr)
 	assert(m_RidingYoshiPtr == nullptr);
 
 	m_RidingYoshiPtr = yoshiPtr;
-	m_RidingYoshiPtr->SetCarryingMario(true, this);
+	m_RidingYoshiPtr->SetCarryingPlayer(true, this);
+	
+	m_NeedsNewFixture = true;
 
 	m_IsRidingYoshi = true;
 	m_AnimationState = ANIMATION_STATE::WAITING;
@@ -900,8 +859,13 @@ void Player::RideYoshi(Yoshi* yoshiPtr)
 void Player::DismountYoshi()
 {
 	assert(m_RidingYoshiPtr != nullptr);
-	m_RidingYoshiPtr->SetCarryingMario(false);
+
+	m_ActPtr->SetPosition(m_RidingYoshiPtr->GetPosition());
+
+	m_RidingYoshiPtr->SetCarryingPlayer(false);
 	m_RidingYoshiPtr = nullptr;
+
+	m_NeedsNewFixture = true;
 
 	m_IsRidingYoshi = false;
 }
@@ -1057,7 +1021,7 @@ void Player::KickHeldItem(bool gently)
 	{
 		if (GAME_ENGINE->IsKeyboardKeyDown(VK_UP))
 		{
-			double horizontalVel = RUN_SPEED * m_DirFacing;
+			double horizontalVel = RUN_BASE_VEL * m_DirFacing;
 			if (m_ActPtr->GetLinearVelocity().x == 0.0) horizontalVel = 0.0;
 			((KoopaShell*)m_ItemHoldingPtr)->KickVertically(horizontalVel);
 		}
@@ -1378,4 +1342,9 @@ String Player::AnimationStateToString(ANIMATION_STATE state)
 bool Player::IsTransitioningPowerups()
 {
 	return m_PowerupTransitionTimer.IsActive();
+}
+
+bool Player::IsDucking()
+{
+	return m_IsDucking;
 }

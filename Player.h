@@ -63,6 +63,8 @@ public:
 	void RideYoshi(Yoshi* yoshiPtr);
 	void DismountYoshi();
 
+	bool IsDucking();
+
 	void KickShell(KoopaShell* koopaShellPtr);
 
 	// Called when the player bounces off an enemy's head
@@ -121,9 +123,6 @@ private:
 	SpriteSheet* m_SpriteSheetPtr = nullptr;
 
 	static const double DEFAULT_GRAVITY;
-
-	static const double WALK_SPEED;
-	static const double RUN_SPEED;
 
 	static const int JUMP_VEL;
 	static const int WALK_BASE_VEL;

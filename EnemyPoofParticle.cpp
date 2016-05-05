@@ -8,19 +8,19 @@
 #include "SplatParticle.h"
 #include "EnemyDeathCloudParticle.h"
 
-EnemyPoofParticle::EnemyPoofParticle(DOUBLE2& positionRef) : 
-	Particle(LIFETIME, positionRef)
+EnemyPoofParticle::EnemyPoofParticle(DOUBLE2 position) : 
+	Particle(LIFETIME, position)
 {
 	double xv = 55;
 	double yv = 45;
-	m_StarParticlePtrArr[0] = new StarParticle(positionRef, DOUBLE2(xv, yv));
-	m_StarParticlePtrArr[1] = new StarParticle(positionRef, DOUBLE2(xv, -yv));
-	m_StarParticlePtrArr[2] = new StarParticle(positionRef, DOUBLE2(-xv, yv));
-	m_StarParticlePtrArr[3] = new StarParticle(positionRef, DOUBLE2(-xv, -yv));
+	m_StarParticlePtrArr[0] = new StarParticle(position, DOUBLE2(xv, yv));
+	m_StarParticlePtrArr[1] = new StarParticle(position, DOUBLE2(xv, -yv));
+	m_StarParticlePtrArr[2] = new StarParticle(position, DOUBLE2(-xv, yv));
+	m_StarParticlePtrArr[3] = new StarParticle(position, DOUBLE2(-xv, -yv));
 
-	m_SplatParticlePtr = new SplatParticle(positionRef + DOUBLE2(0, -11));
+	m_SplatParticlePtr = new SplatParticle(position + DOUBLE2(0, -11));
 
-	m_CloudParticlePtr = new EnemyDeathCloudParticle(positionRef);
+	m_CloudParticlePtr = new EnemyDeathCloudParticle(position);
 }
 
 EnemyPoofParticle::~EnemyPoofParticle()

@@ -12,16 +12,16 @@ public:
 	Camera(const Camera&) = delete;
 	Camera& operator=(const Camera&) = delete;
 
-	DOUBLE2 GetOffset(Player* playerPtr, Level* levelPtr);
-	MATRIX3X2 GetViewMatrix(Player* playerPtr, Level* levelPtr);
+	DOUBLE2 GetOffset(DOUBLE2 playerPos, int directionFacing, Level* levelPtr);
+	MATRIX3X2 GetViewMatrix(DOUBLE2 playerPos, int directionFacing, Level* levelPtr);
 
 	void Reset();
 
 	void DEBUGPaint();
 
 private:
-	double CalculateXTranslation(Player* playerPtr, Level* levelPtr);
-	double CalculateYTranslation(Player* playerPtr, Level* levelPtr);
+	double CalculateXTranslation(DOUBLE2 playerPos, int directionFacing, Level* levelPtr);
+	double CalculateYTranslation(DOUBLE2 playerPos, Level* levelPtr);
 
 	void Clamp(DOUBLE2& posRef, Level* levelPtr);
 

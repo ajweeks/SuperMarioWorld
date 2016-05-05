@@ -12,7 +12,7 @@ class StarParticle;
 class EnemyPoofParticle : public Particle
 {
 public:
-	EnemyPoofParticle(DOUBLE2& positionRef);
+	EnemyPoofParticle(DOUBLE2 position);
 	virtual ~EnemyPoofParticle();
 
 	EnemyPoofParticle(const EnemyPoofParticle&) = delete;

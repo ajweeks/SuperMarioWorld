@@ -223,12 +223,20 @@ void Level::Paint()
 {
 	MATRIX3X2 matPreviousView = GAME_ENGINE->GetViewMatrix();
 
-	MATRIX3X2 matCameraView = m_CameraPtr->GetViewMatrix(m_PlayerPtr, this);
+	MATRIX3X2 matCameraView; 
+	if (m_PlayerPtr->IsRidingYoshi()) 
+	{
+		matCameraView = m_CameraPtr->GetViewMatrix(m_YoshiPtr->GetPosition(), m_YoshiPtr->GetDirectionFacing(), this);
+	}
+	else
+	{
+		matCameraView = m_CameraPtr->GetViewMatrix(m_PlayerPtr->GetPosition(), m_PlayerPtr->GetDirectionFacing(), this);
+	}
 	MATRIX3X2 matTotalView = matCameraView *  Game::matIdentity;
 	GAME_ENGINE->SetViewMatrix(matTotalView);
 
 	int bgWidth = SpriteSheetManager::levelOneBackgroundPtr->GetWidth();
-	double cameraX = m_CameraPtr->GetOffset(m_PlayerPtr, this).x;
+	double cameraX = -matCameraView.orig.x;
 	double parallax = (1.0 - 0.50); // 50% of the speed of the camera
 	int xo = int(cameraX * parallax);
 	xo += (int(cameraX - xo) / bgWidth) * bgWidth;
@@ -1033,7 +1041,14 @@ void Level::AddParticle(Particle* particlePtr)
 
 DOUBLE2 Level::GetCameraOffset()
 {
-	return m_CameraPtr->GetOffset(m_PlayerPtr, this);
+	if (m_PlayerPtr->IsRidingYoshi())
+	{
+		return m_CameraPtr->GetOffset(m_YoshiPtr->GetPosition(), m_YoshiPtr->GetDirectionFacing(), this);
+	}
+	else
+	{
+		return m_CameraPtr->GetOffset(m_PlayerPtr->GetPosition(), m_PlayerPtr->GetDirectionFacing(), this);
+	}
 }
 
 Player* Level::GetPlayer()

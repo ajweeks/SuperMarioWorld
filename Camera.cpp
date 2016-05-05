@@ -22,17 +22,18 @@ void Camera::Reset()
 	m_UsingConstantYO = false;
 }
 
-DOUBLE2 Camera::GetOffset(Player* playerPtr, Level* levelPtr)
+DOUBLE2 Camera::GetOffset(DOUBLE2 playerPos, int directionFacing, Level* levelPtr)
 {
 #ifdef SMW_ENABLE_JUMP_TO
 	if (GAME_ENGINE->IsKeyboardKeyPressed('O'))
 	{
 		m_PrevTranslation.x = SMW_JUMP_TO_POS_X - Game::WIDTH / 2;
+		return m_PrevTranslation;
 	}
 #endif
 
-	double xo = CalculateXTranslation(playerPtr, levelPtr);
-	double yo = CalculateYTranslation(playerPtr, levelPtr);
+	double xo = CalculateXTranslation(playerPos, directionFacing, levelPtr);
+	double yo = CalculateYTranslation(playerPos, levelPtr);
 	DOUBLE2 newTranslation = DOUBLE2(xo, yo);
 
 	Clamp(newTranslation, levelPtr);
@@ -42,13 +43,11 @@ DOUBLE2 Camera::GetOffset(Player* playerPtr, Level* levelPtr)
 	return newTranslation;
 }
 
-double Camera::CalculateXTranslation(Player* playerPtr, Level* levelPtr)
+double Camera::CalculateXTranslation(DOUBLE2 playerPos, int directionFacing, Level* levelPtr)
 {
 	double translationX = m_PrevTranslation.x;
 
-	DOUBLE2 playerPos = playerPtr->GetPosition();
-
-	if (playerPtr->GetDirectionFacing() == FacingDirection::LEFT)
+	if (directionFacing == FacingDirection::LEFT)
 	{
 		if (m_XOffset == MAX_X_OFFSET)
 		{
@@ -60,7 +59,7 @@ double Camera::CalculateXTranslation(Player* playerPtr, Level* levelPtr)
 			m_XOffset = MAX_X_OFFSET;
 		}
 	}
-	else if (playerPtr->GetDirectionFacing() == FacingDirection::RIGHT)
+	else if (directionFacing == FacingDirection::RIGHT)
 	{
 		if (m_XOffset == -(MAX_X_OFFSET - m_Width))
 		{
@@ -147,9 +146,10 @@ camera.targetY = player.feetY - threshold;
 */
 
 // TODO: The camera actually does pay attention to the player's y pos *if* they are running at full speed
-double Camera::CalculateYTranslation(Player* playerPtr, Level* levelPtr)
+double Camera::CalculateYTranslation(DOUBLE2 playerPos, Level* levelPtr)
 {
 	double translationY = m_PrevTranslation.y;
+	Player* playerPtr = levelPtr->GetPlayer();
 	double playerFeetY = playerPtr->GetPosition().y + playerPtr->GetHeight() / 2;
 
 	if (playerPtr->GetAnimationState() == Player::ANIMATION_STATE::CLIMBING)
@@ -209,9 +209,9 @@ double Camera::CalculateYTranslation(Player* playerPtr, Level* levelPtr)
 }
 
 // TODO: Add yo functionality for certain levels
-MATRIX3X2 Camera::GetViewMatrix(Player* playerPtr, Level* levelPtr)
+MATRIX3X2 Camera::GetViewMatrix(DOUBLE2 playerPos, int directionFacing, Level* levelPtr)
 {
-	DOUBLE2 newTranslation = GetOffset(playerPtr, levelPtr);
+	DOUBLE2 newTranslation = GetOffset(playerPos, directionFacing, levelPtr);
 	
 	// NOTE: Uses negative position instead of .Inverse()
 	MATRIX3X2 matCameraTranslation = MATRIX3X2::CreateTranslationMatrix(-newTranslation);
