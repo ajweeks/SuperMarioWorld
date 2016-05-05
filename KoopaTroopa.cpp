@@ -130,7 +130,7 @@ void KoopaTroopa::Tick(double deltaTime)
 
 void KoopaTroopa::ChangeDirections()
 {
-	m_DirFacing = FacingDirection::OppositeDirection(m_DirFacing);
+	m_DirFacing = -m_DirFacing;
 
 	// NOTE: Only trigger the turn around animation if we're walking
 	if (m_AnimationState == ANIMATION_STATE::WALKING)

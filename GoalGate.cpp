@@ -37,12 +37,12 @@ void GoalGate::Tick(double deltaTime)
 		int maxBarHeight = (TILES_HIGH - 1) * TILE_SIZE;
 		if (m_BarHeight <= 0) 
 		{
-			m_BarDirectionMoving = FacingDirection::OppositeDirection(m_BarDirectionMoving);
+			m_BarDirectionMoving = -m_BarDirectionMoving;
 			m_BarHeight = 0;
 		}
 		else if (m_BarHeight >= maxBarHeight)
 		{
-			m_BarDirectionMoving = FacingDirection::OppositeDirection(m_BarDirectionMoving);
+			m_BarDirectionMoving = -m_BarDirectionMoving;
 			m_BarHeight = maxBarHeight;
 		}
 

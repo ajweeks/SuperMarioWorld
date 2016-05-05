@@ -5,7 +5,7 @@
 class CoinCollectParticle : public Particle
 {
 public:
-	CoinCollectParticle(DOUBLE2& positionRef);
+	CoinCollectParticle(DOUBLE2 position);
 	virtual ~CoinCollectParticle();
 
 	CoinCollectParticle(const CoinCollectParticle&) = delete;
@@ -16,6 +16,5 @@ public:
 
 private:
 	static const int LIFETIME = 10;
-
 };
 

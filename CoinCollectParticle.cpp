@@ -5,7 +5,7 @@
 #include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
 
-CoinCollectParticle::CoinCollectParticle(DOUBLE2& positionRef) : Particle(LIFETIME, positionRef)
+CoinCollectParticle::CoinCollectParticle(DOUBLE2 position) : Particle(LIFETIME, position)
 {
 	m_AnimInfo.secondsPerFrame = 0.055;
 }

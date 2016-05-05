@@ -280,7 +280,7 @@ void Player::HandleClimbingStateKeyboardInput(double deltaTime)
 		if (m_FramesClimbingSinceLastFlip < 0)
 		{
 			m_FramesClimbingSinceLastFlip = FRAMES_OF_CLIMBING_ANIMATION;
-			m_LastClimbingPose = FacingDirection::OppositeDirection(m_LastClimbingPose);
+			m_LastClimbingPose = -m_LastClimbingPose;
 		}
 	}
 }

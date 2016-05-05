@@ -70,7 +70,7 @@ void KoopaShell::Tick(double deltaTime)
 
 		if (m_LevelPtr->Raycast(point1, point2, collisionBits, intersection, normal, fraction))
 		{
-			m_DirMoving = FacingDirection::OppositeDirection(m_DirMoving);
+			m_DirMoving = -m_DirMoving;
 		}
 	}
 }

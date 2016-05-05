@@ -6,7 +6,7 @@
 class DustParticle : public Particle
 {
 public:
-	DustParticle(DOUBLE2& positionRef);
+	DustParticle(DOUBLE2 position);
 	virtual ~DustParticle();
 
 	DustParticle(const DustParticle&) = delete;
@@ -19,4 +19,3 @@ private:
 	static const int LIFETIME = 4; // NOTE: Once we show our four frames, we're gone
 
 };
-

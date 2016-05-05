@@ -45,7 +45,7 @@ void SuperMushroom::Tick(double deltaTime)
 		// If this returns true, the koopa is about to hit an obstacle, let's turn around
 		if (m_LevelPtr->Raycast(point1, point2, m_CollisionBits, intersection, normal, fraction))
 		{
-			m_DirFacing = FacingDirection::OppositeDirection(m_DirFacing);
+			m_DirFacing = -m_DirFacing;
 		}
 
 		double xVel = HORIZONTAL_VEL * m_DirFacing;

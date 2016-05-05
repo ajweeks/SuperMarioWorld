@@ -8,7 +8,6 @@ Item::Item(DOUBLE2 topLeft, TYPE type, Level* levelPtr, BodyType bodyType, int w
 	m_Type(type), WIDTH(width), HEIGHT(height)
 {
 	m_ActPtr->AddBoxFixture(width, height, 0.0);
-	m_ActPtr->SetFixedRotation(true);
 }
 
 Item::~Item() {}

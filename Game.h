@@ -28,7 +28,8 @@
 #define SMW_DISPLAY_AI_DEBUG_INFO false
 
 #define SMW_ENABLE_JUMP_TO
-#define SMW_JUMP_TO_POS_X 4700
+#define SMW_JUMP_TO_POS_X 840
+//#define SMW_JUMP_TO_POS_X 4700
 //#define SMW_JUMP_TO_POS_X 2500
 
 

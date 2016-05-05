@@ -6,7 +6,6 @@ Enemy::Enemy(TYPE type, DOUBLE2& posRef, double width, double height, BodyType b
 	m_Type(type)
 {
 	m_ActPtr->AddBoxFixture(width, height, 0.0);
-	m_ActPtr->SetFixedRotation(true);
 }
 
 Enemy::~Enemy()

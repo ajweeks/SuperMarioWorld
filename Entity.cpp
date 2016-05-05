@@ -17,6 +17,7 @@ Entity::Entity(DOUBLE2& posRef, BodyType bodyType,
 		m_ActPtr->SetUserPointer(userPointer);
 	}
 	m_ActPtr->SetLinearVelocity(initialVelRef);
+	m_ActPtr->SetFixedRotation(true);
 }
 
 Entity::~Entity()

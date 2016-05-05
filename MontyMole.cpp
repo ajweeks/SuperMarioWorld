@@ -151,7 +151,7 @@ void MontyMole::UpdatePosition(double deltaTime)
 		if (passedTargetLeft || passedTargetRight)
 		{
 			// Turn around
-			m_DirFacing = FacingDirection::OppositeDirection(m_DirFacing);
+			m_DirFacing = -m_DirFacing;
 			CalculateNewTarget();
 		}
 

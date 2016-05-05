@@ -9,11 +9,6 @@ struct FacingDirection
 {
 	static const int LEFT = -1;
 	static const int RIGHT = 1;
-
-	static int OppositeDirection(int direction)
-	{
-		return (direction == RIGHT ? LEFT : RIGHT);
-	}
 };
 
 struct INT2
@@ -107,6 +102,11 @@ struct CountdownTimer
 	int FramesElapsed()
 	{
 		return (TOTAL_FRAMES - m_FramesRemaining);
+	}
+
+	int OriginalNumberOfFrames()
+	{
+		return TOTAL_FRAMES;
 	}
 
 private:

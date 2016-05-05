@@ -13,7 +13,6 @@ Coin::Coin(DOUBLE2 topLeft, Level* levelPtr, int life, TYPE type, DOUBLE2 size) 
 	Item(topLeft, type, levelPtr, BodyType::STATIC, int(size.x), int(size.y)),
 	m_Life(life)
 {
-	m_ActPtr->SetFixedRotation(true);
 	m_ActPtr->SetSensor(true);
 
 	m_AnimInfo.secondsPerFrame = 0.15;
