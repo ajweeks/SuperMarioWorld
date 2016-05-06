@@ -27,15 +27,25 @@ public:
 	int GetWidth();
 	int GetHeight();
 
+	void EatItem(Item* itemPtr);
+	void EatEnemy(Enemy* enemyPtr);
+
 	bool IsHatching();
 	void SetCarryingPlayer(bool carryingPlayer, Player* playerPtr = nullptr);
 
 	int GetDirectionFacing();
 
+	ANIMATION_STATE GetAnimationState();
+	bool IsAirborne();
+
 private:
 	void PaintAnimationFrame(double left, double top);
 	void HandleKeyboardInput(double deltaTime);
 	bool CalculateOnGround();
+
+	void SwallowItem();
+	void SpitOutItem();
+	
 	std::string AnimationStateToString();
 
 	static const int JUMP_VEL;
@@ -43,14 +53,16 @@ private:
 	static const int RUN_BASE_VEL;
 	static const int TOUNGE_VEL;
 
+	static const int MAX_ITEMS_EATEN = 9;
+
 	static const int WIDTH = 12;
 	static const int HEIGHT = 16;
-
-	ANIMATION_STATE m_AnimationState;
 
 	static const float HATCHING_SECONDS_PER_FRAME;
 	static const float WAITING_SECONDS_PER_FRAME;
 	static const float WALKING_SECONDS_PER_FRAME;
+
+	ANIMATION_STATE m_AnimationState;
 
 	// NOTE: Yoshi enters this state when the player takes damage while riding yoshi and is forced to dismount
 	bool m_IsRunning = false;
@@ -58,6 +70,7 @@ private:
 	bool m_IsToungeStuckOut = false;
 
 	bool m_IsOnGround = false;
+	bool m_WasOnGround = false;
 
 	CountdownTimer m_HatchingTimer;
 	CountdownTimer m_ChangingDirectionsTimer;
@@ -67,6 +80,14 @@ private:
 	PhysicsActor* m_ActToungePtr = nullptr;
 
 	Player* m_PlayerPtr = nullptr;
+
+	// NOTE: This is used only for items which are not immediately eaten by yoshi
+	Item::TYPE m_ItemInMouthType;
+
+	Item* m_ItemToBeRemovedPtr = nullptr;
+	Enemy* m_EnemyToBeRemovedPtr = nullptr;
+
+	int m_ItemsEaten;
 
 	int m_DirFacingLastFrame;
 	int m_DirFacing;

@@ -855,6 +855,22 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 		} break;
 		}
 	} break;
+	case int(ActorId::YOSHI_TOUNGE):
+	{
+		switch (actThisPtr->GetUserData())
+		{
+		case int(ActorId::ENEMY):
+		{
+			Enemy* enemyPtr = (Enemy*)actThisPtr->GetUserPointer();
+			m_YoshiPtr->EatEnemy(enemyPtr);
+		} break;
+		case int(ActorId::ITEM):
+		{
+			Item* itemPtr = (Item*)actThisPtr->GetUserPointer();
+			m_YoshiPtr->EatItem(itemPtr);
+		} break;
+		}
+	} break;
 	}
 }
 

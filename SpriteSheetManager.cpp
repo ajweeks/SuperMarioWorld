@@ -75,7 +75,7 @@ void SpriteSheetManager::Load()
 
 	yoshiPtr = new SpriteSheet(String("Resources/yoshi.png"), 5, 1, 26, 32);
 	smallYoshiPtr = new SpriteSheet(String("Resources/yoshi-small.png"), 3, 2, 16, 16);
-	yoshiWithMarioPtr = new SpriteSheet(String("Resources/yoshi-with-mario.png"), 13, 2, 33, 39);
+	yoshiWithMarioPtr = new SpriteSheet(String("Resources/yoshi-with-mario.png"), 14, 2, 33, 39);
 }
 
 void SpriteSheetManager::Unload()

@@ -3,13 +3,18 @@
 #include "Yoshi.h"
 #include "Game.h"
 #include "Level.h"
+#include "Player.h"
+#include "Enemy.h"
+#include "Item.h"
+#include "KoopaTroopa.h"
+#include "KoopaShell.h"
+
 #include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
-#include "Player.h"
 #include "DustParticle.h"
 
 // STATIC INITIALIZATIONS
-const int Yoshi::JUMP_VEL = -16000;
+const int Yoshi::JUMP_VEL = -25000;
 const int Yoshi::WALK_BASE_VEL = 5000;
 const int Yoshi::RUN_BASE_VEL = 9500;
 const int Yoshi::TOUNGE_VEL = 9000;
@@ -34,6 +39,8 @@ Yoshi::Yoshi(DOUBLE2 position, Level* levelPtr) :
 	m_ChangingDirectionsTimer = CountdownTimer(15);
 	m_ToungeTimer = CountdownTimer(35);
 
+	m_ItemsEaten = 0;
+
 	m_DirFacing = FacingDirection::RIGHT;
 	m_DirFacingLastFrame = FacingDirection::RIGHT;
 }
@@ -45,6 +52,17 @@ Yoshi::~Yoshi()
 
 void Yoshi::Tick(double deltaTime)
 {
+	if (m_ItemToBeRemovedPtr != nullptr)
+	{
+		m_LevelPtr->RemoveItem(m_ItemToBeRemovedPtr);
+		m_ItemToBeRemovedPtr = nullptr;
+	}
+	if (m_EnemyToBeRemovedPtr != nullptr)
+	{
+		m_LevelPtr->RemoveEnemy(m_EnemyToBeRemovedPtr);
+		m_EnemyToBeRemovedPtr = nullptr;
+	}
+
 	m_AnimInfo.Tick(deltaTime);
 	if (m_AnimationState == ANIMATION_STATE::WAITING)
 	{
@@ -76,6 +94,8 @@ void Yoshi::Tick(double deltaTime)
 
 	if (m_IsToungeStuckOut)
 	{
+		m_ActToungePtr->SetPosition(m_ActToungePtr->GetPosition().x, m_ActPtr->GetPosition().y);
+
 		if (m_ToungeTimer.FramesElapsed() > m_ToungeTimer.OriginalNumberOfFrames() / 2)
 		{
 			m_ActToungePtr->SetLinearVelocity(DOUBLE2(-m_DirFacing * TOUNGE_VEL * deltaTime, 0));
@@ -91,6 +111,10 @@ void Yoshi::HandleKeyboardInput(double deltaTime)
 	if (m_IsCarryingPlayer)
 	{
 		m_IsOnGround = CalculateOnGround();
+		if (!m_WasOnGround && m_IsOnGround)
+		{
+			m_AnimationState = ANIMATION_STATE::WAITING;
+		}
 
 		if (m_PlayerPtr->IsDucking() == false)
 		{
@@ -114,18 +138,25 @@ void Yoshi::HandleKeyboardInput(double deltaTime)
 			if (GAME_ENGINE->IsKeyboardKeyPressed('A') || 
 				GAME_ENGINE->IsKeyboardKeyPressed('S'))
 			{
-				m_IsRunning = true;
-				horizontalVel = RUN_BASE_VEL * deltaTime;
-
-				if (m_IsToungeStuckOut == false)
+				if (m_AnimationState == ANIMATION_STATE::WALKING)
+				{
+					m_IsRunning = true;
+					horizontalVel = RUN_BASE_VEL * deltaTime;
+				}
+				
+				if (m_ItemInMouthType != Item::TYPE::NONE)
+				{
+					SpitOutItem();
+				}
+				else if (m_IsToungeStuckOut == false)
 				{
 					m_IsToungeStuckOut = true;
 					m_ToungeTimer.Start();
 					DOUBLE2 toungePos = m_ActPtr->GetPosition() + DOUBLE2(m_DirFacing * 4, 0);
 					m_ActToungePtr = new PhysicsActor(toungePos, 0, BodyType::KINEMATIC);
 					m_ActToungePtr->AddBoxFixture(10, 10);
-					m_ActToungePtr->SetLinearVelocity(DOUBLE2(m_DirFacing * TOUNGE_VEL * deltaTime, 0));
 					m_ActToungePtr->SetSensor(true);
+					m_ActToungePtr->SetLinearVelocity(DOUBLE2(m_DirFacing * TOUNGE_VEL * deltaTime, 0));
 					m_ActToungePtr->SetUserData(int(ActorId::YOSHI_TOUNGE));
 					m_ActToungePtr->SetUserPointer(this);
 				}
@@ -162,6 +193,7 @@ void Yoshi::HandleKeyboardInput(double deltaTime)
 		m_ActPtr->SetLinearVelocity(newVel);
 
 		m_DirFacingLastFrame = m_DirFacing;
+		m_WasOnGround = m_IsOnGround;
 	}
 }
 
@@ -207,7 +239,7 @@ void Yoshi::Paint()
 
 	if (m_IsToungeStuckOut)
 	{
-		int srcX = 12;
+		int srcX = 13;
 		bool playerIsSmall = true;
 		if (m_PlayerPtr != nullptr) playerIsSmall = (m_PlayerPtr->GetPowerupState() == Player::POWERUP_STATE::NORMAL);
 		int srcY = playerIsSmall ? 0 : 1;
@@ -228,7 +260,7 @@ void Yoshi::PaintAnimationFrame(double left, double top)
 	{
 		if (m_IsCarryingPlayer)
 		{
-			srcX = 9 + m_AnimInfo.frameNumber;
+			srcX = 10 + m_AnimInfo.frameNumber;
 			srcY = playerIsSmall ? 0 : 1;
 		}
 		else
@@ -349,6 +381,76 @@ void Yoshi::SetCarryingPlayer(bool carryingPlayer, Player* playerPtr)
 	}
 }
 
+void Yoshi::EatItem(Item* itemPtr)
+{
+	switch (itemPtr->GetType())
+	{
+	case Item::TYPE::BERRY:
+	{
+		SwallowItem();
+	} break;
+	case Item::TYPE::KOOPA_SHELL:
+	{
+		if (m_ItemInMouthType == Item::TYPE::NONE)
+		{
+			m_ItemInMouthType = Item::TYPE::KOOPA_SHELL;
+		}
+	} break;
+	}
+
+	m_ItemToBeRemovedPtr = itemPtr;
+}
+
+void Yoshi::EatEnemy(Enemy* enemyPtr)
+{
+	switch (enemyPtr->GetType())
+	{
+	case Enemy::TYPE::KOOPA_TROOPA:
+	{
+		KoopaTroopa* koopaPtr = (KoopaTroopa*)enemyPtr;
+		if (koopaPtr->IsShelless())
+		{
+			SwallowItem();
+		}
+		else
+		{
+			//m_ItemInMouthPtr = new KoopaShell(m_ActPtr->GetPosition(), m_LevelPtr, koopaPtr->GetColour());
+		}
+	} break;
+	}
+
+	m_EnemyToBeRemovedPtr = enemyPtr;
+}
+
+void Yoshi::SwallowItem()
+{
+	++m_ItemsEaten;
+	if (m_ItemsEaten > MAX_ITEMS_EATEN)
+	{
+		m_ItemsEaten = 0;
+
+		// TODO: Set flag for spawning a super mushroom here
+	}
+}
+
+void Yoshi::SpitOutItem()
+{
+	if (m_ItemInMouthType != Item::TYPE::NONE)
+	{
+		switch (m_ItemInMouthType)
+		{
+		case Item::TYPE::KOOPA_SHELL:
+		{
+			KoopaShell* koopaShellPtr = new KoopaShell(m_ActPtr->GetPosition(), m_LevelPtr, COLOUR::GREEN);
+			koopaShellPtr->SetMoving(true);
+			m_LevelPtr->AddItem(koopaShellPtr);
+
+			m_ItemInMouthType = Item::TYPE::NONE;
+		} break;
+		}
+	}
+}
+
 int Yoshi::GetWidth()
 {
 	return WIDTH;
@@ -367,6 +469,17 @@ bool Yoshi::IsHatching()
 int Yoshi::GetDirectionFacing()
 {
 	return m_DirFacing;
+}
+
+Yoshi::ANIMATION_STATE Yoshi::GetAnimationState()
+{
+	return m_AnimationState;
+}
+
+bool Yoshi::IsAirborne()
+{
+	return m_AnimationState == ANIMATION_STATE::JUMPING ||
+		   m_AnimationState == ANIMATION_STATE::FALLING;
 }
 
 std::string Yoshi::AnimationStateToString()

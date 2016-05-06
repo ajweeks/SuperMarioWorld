@@ -293,10 +293,21 @@ void Player::HandleYoshiKeyboardInput(double deltaTime)
 {
 	if (GAME_ENGINE->IsKeyboardKeyPressed('X')) // Spin jump
 	{
-		m_AnimationState = ANIMATION_STATE::SPIN_JUMPING;
+		double newXv = 0.0, newYv = JUMP_VEL * deltaTime;
+		if (m_RidingYoshiPtr->IsAirborne())
+		{
+			m_AnimationState = ANIMATION_STATE::JUMPING;
+			m_DirFacing = m_RidingYoshiPtr->GetDirectionFacing();
+		}
+		else
+		{
+			m_AnimationState = ANIMATION_STATE::SPIN_JUMPING;
+			m_DirFacing = -m_RidingYoshiPtr->GetDirectionFacing();
+			newXv = m_DirFacing * 2500 * deltaTime;
+		}
 		SoundManager::PlaySoundEffect(SoundManager::SOUND::PLAYER_SPIN_JUMP);
 		m_FramesSpentInAir = 0;
-		m_ActPtr->SetLinearVelocity(DOUBLE2(0, JUMP_VEL * deltaTime));
+		m_ActPtr->SetLinearVelocity(DOUBLE2(newXv, newYv));
 		DismountYoshi();
 		return;
 	}
@@ -502,7 +513,14 @@ void Player::HandleKeyboardInput(double deltaTime)
 			horizontalVel = 0.0;
 		}
 		
+		if (m_IsOnGround && m_IsDucking == false)
+		{ 
+			DustParticle* dustParticlePtr = new DustParticle(m_ActPtr->GetPosition() + DOUBLE2(0, GetHeight() / 2));
+			m_LevelPtr->AddParticle(dustParticlePtr);
+		}
+
 		m_IsDucking = true;
+
 	}
 
 	if (horizontalVel == 0.0 &&
@@ -861,7 +879,7 @@ void Player::DismountYoshi()
 {
 	assert(m_RidingYoshiPtr != nullptr);
 
-	m_ActPtr->SetPosition(m_RidingYoshiPtr->GetPosition());
+	m_ActPtr->SetPosition(m_RidingYoshiPtr->GetPosition() + DOUBLE2(0, -m_RidingYoshiPtr->GetHeight()));
 
 	m_RidingYoshiPtr->SetCarryingPlayer(false);
 	m_RidingYoshiPtr = nullptr;
