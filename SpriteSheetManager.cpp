@@ -14,6 +14,9 @@ Bitmap* SpriteSheetManager::messageBox_02Ptr = nullptr;
 Bitmap* SpriteSheetManager::starParticlePtr = nullptr;
 Bitmap* SpriteSheetManager::splatParticlePtr = nullptr;
 
+Bitmap* SpriteSheetManager::mainMenuScreenPtr = nullptr;
+Bitmap* SpriteSheetManager::fontPtr = nullptr;
+
 
 SpriteSheet* SpriteSheetManager::smallMarioPtr = nullptr;
 SpriteSheet* SpriteSheetManager::superMarioPtr = nullptr;
@@ -55,6 +58,10 @@ void SpriteSheetManager::Load()
 	starParticlePtr = new Bitmap(String("Resources/star-particle.png"));
 	splatParticlePtr = new Bitmap(String("Resources/splat-particle.png"));
 
+	mainMenuScreenPtr = new Bitmap(String("Resources/main-menu-screen.png"));
+	mainMenuScreenPtr->SetTransparencyColor(COLOR(0, 128, 0));
+	fontPtr = new Bitmap(String("Resources/font.png"));
+
 
 	smallMarioPtr = new SpriteSheet(String("Resources/mario.png"), 8, 3, 18, 32);
 	smallMarioPtr->SetTransparencyColor(COLOR(80, 128, 255));
@@ -90,8 +97,11 @@ void SpriteSheetManager::Unload()
 
 	delete starParticlePtr;
 	delete splatParticlePtr;
-	delete enemyDeathCloudParticlePtr;
 
+	delete mainMenuScreenPtr;
+	delete fontPtr;
+
+	delete enemyDeathCloudParticlePtr;
 
 	delete smallMarioPtr;
 	delete superMarioPtr;

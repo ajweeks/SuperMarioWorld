@@ -14,7 +14,7 @@
 
 KoopaTroopa::KoopaTroopa(DOUBLE2& startingPos, Level* levelPtr, COLOUR colour) :
 	Enemy(TYPE::KOOPA_TROOPA, startingPos, GetWidth(), GetHeight(), BodyType::DYNAMIC, levelPtr, this),
-	m_Color(colour)
+	m_Colour(colour)
 {
 	m_DirFacing = FacingDirection::LEFT;
 	m_AnimInfo.secondsPerFrame = 0.14;
@@ -30,14 +30,14 @@ void KoopaTroopa::Tick(double deltaTime)
 	if (m_ShouldAddKoopaShell)
 	{
 		m_ShouldAddKoopaShell = false;
-		KoopaShell* koopaShellPtr = new KoopaShell(m_ActPtr->GetPosition() + DOUBLE2(0, -10), m_LevelPtr, m_Color);
+		KoopaShell* koopaShellPtr = new KoopaShell(m_ActPtr->GetPosition() + DOUBLE2(0, -10), m_LevelPtr, m_Colour);
 		koopaShellPtr->AddContactListener(m_LevelPtr);
 		m_LevelPtr->AddItem(koopaShellPtr);
 	}
 	if (m_ShouldAddMovingUpwardKoopaShell)
 	{
 		m_ShouldAddMovingUpwardKoopaShell = false;
-		KoopaShell* koopaShellPtr = new KoopaShell(m_ActPtr->GetPosition(), m_LevelPtr, m_Color, true);
+		KoopaShell* koopaShellPtr = new KoopaShell(m_ActPtr->GetPosition(), m_LevelPtr, m_Colour, true);
 		//koopaShellPtr->AddContactListener(m_LevelPtr);
 		m_LevelPtr->AddItem(koopaShellPtr);
 	}
@@ -190,7 +190,7 @@ INT2 KoopaTroopa::DetermineAnimationFrame()
 {
 	int row = 0, col = 0;
 
-	switch (m_Color)
+	switch (m_Colour)
 	{
 	case COLOUR::GREEN:
 		row = 0;
@@ -199,7 +199,7 @@ INT2 KoopaTroopa::DetermineAnimationFrame()
 		row = 1;
 		break;
 	default:
-		OutputDebugString(String("Unhandled colour in KoopaTroopa::DetermineAnimationFrame:") + String(int(m_Color)) + String("\n"));
+		OutputDebugString(String("Unhandled colour in KoopaTroopa::DetermineAnimationFrame:") + String(int(m_Colour)) + String("\n"));
 		break;
 	}
 
@@ -302,10 +302,21 @@ void KoopaTroopa::StompKill()
 	m_ShouldBeRemoved = true;
 }
 
+COLOUR KoopaTroopa::GetColour()
+{
+	return m_Colour;
+}
+
 void KoopaTroopa::ChangeAnimationState(ANIMATION_STATE newAnimationState)
 {
 
 	m_AnimationState = newAnimationState;
+}
+
+bool KoopaTroopa::IsShelless()
+{
+	return  m_AnimationState == ANIMATION_STATE::SHELLESS ||
+			m_AnimationState == ANIMATION_STATE::WALKING_SHELLESS;
 }
 
 KoopaTroopa::ANIMATION_STATE KoopaTroopa::GetAnimationState()

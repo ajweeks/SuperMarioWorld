@@ -4,6 +4,7 @@
 #include "Enumerations.h"
 #include "CountdownTimer.h"
 
+class Game;
 class LevelData;
 class Platform;
 class Pipe;
@@ -20,7 +21,7 @@ class SpriteSheet;
 class Level : public ContactListener
 {
 public:
-	Level();
+	Level(Game* gamePtr);
 	virtual ~Level();
 
 	Level(const Level&) = delete;
@@ -79,14 +80,20 @@ private:
 	bool ActorCanPassThroughPlatform(PhysicsActor *actPlatformPtr, DOUBLE2& actorPosRef, double actorWidth, double actorHeight);
 
 	void DEBUGPaintZoomedOut();
+	
+	void ResetMembers();
 
 	void PaintHUD();
 	unsigned int GetNumberOfDigits(unsigned int i);
 
 	void TogglePaused();
 
+	static const int TIME_WARNING = 100; // When this many in game seconds are remaining the player is notified
+
 	void ReadLevelData(int levelIndex);
 	LevelData* m_LevelDataPtr = nullptr;
+
+	Game* m_GamePtr = nullptr;
 
 	// NOTE: We *could* make this an array, in case the player tries to collect two items
 	// in the same frame, but that isn't very likely and will be caught in the next frame

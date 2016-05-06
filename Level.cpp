@@ -27,7 +27,7 @@
 #define GAME_ENGINE (GameEngine::GetSingleton())
 
 // NOTE: Level::Reset *must* be called upon game initialization!
-Level::Level()
+Level::Level(Game* gamePtr) : m_GamePtr(gamePtr)
 {
 	m_PlayerPtr = new Player(this);
 
@@ -44,6 +44,8 @@ Level::Level()
 	m_CameraPtr = new Camera(Game::WIDTH, Game::HEIGHT, this);
 
 	m_ParticleManagerPtr = new ParticleManager();
+
+	ResetMembers();
 }
 
 Level::~Level()
@@ -60,6 +62,11 @@ void Level::Reset()
 	m_PlayerPtr->Reset();
 	m_CameraPtr->Reset();
 
+	ResetMembers();
+}
+
+void Level::ResetMembers()
+{
 	m_Paused = false;
 	m_ShowingMessage = false;
 
@@ -68,8 +75,6 @@ void Level::Reset()
 	m_TimeRemaining = m_TotalTime;
 
 	m_IsCheckpointCleared = false;
-
-	m_GamePausedTimer; // this timer's value is set by other classes (in Level::SetPausedTimer)
 
 	m_AllDragonCoinsCollected = false;
 
@@ -136,7 +141,8 @@ void Level::Tick(double deltaTime)
 			return;
 		}
 	}
-	else if (GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE))
+	else if (m_GamePtr->ShowingSessionInfo() == false &&
+			GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE))
 	{
 		TogglePaused();
 		SoundManager::PlaySoundEffect(SoundManager::SOUND::GAME_PAUSE);
@@ -186,6 +192,12 @@ void Level::Tick(double deltaTime)
 	m_ParticleManagerPtr->Tick(deltaTime);
 
 	m_LevelDataPtr->TickItemsAndEnemies(deltaTime, this);
+
+	if (m_TimeRemaining == TIME_WARNING)
+	{
+		SoundManager::SetSongPaused(SoundManager::SONG::OVERWORLD_BGM, true);
+		SoundManager::PlaySong(SoundManager::SONG::OVERWORLD_BGM_FAST);
+	}
 }
 
 void Level::AddYoshi(Yoshi* yoshiPtr)

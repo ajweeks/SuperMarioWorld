@@ -16,6 +16,8 @@
 #include "Player.h"
 #include "GameSession.h"
 #include "Enumerations.h"
+#include "StateManager.h"
+#include "GameState.h"
 
 Font* Game::Font12Ptr = nullptr;
 Font* Game::Font9Ptr = nullptr;
@@ -75,27 +77,16 @@ void Game::GameStart()
 	matIdentity = MATRIX3X2::CreateScalingMatrix(0.65) * MATRIX3X2::CreateTranslationMatrix(150, 0);
 #endif
 
-	m_LevelPtr = new Level();
-
-	GameSession::ReadSessionInfoFromFile();
+	m_StateManagerPtr = new StateManager(this);
 
 	Reset();
-
-	GameSession::RecordStartSessionInfo(m_LevelPtr);
 }
 
 void Game::Reset()
 {
-	m_LevelPtr->Reset();
-
-	m_SecondsElapsed = 0.0;
-
 	GameSession::Reset();
 
 	m_ShowingSessionInfo = false;
-
-	m_RenderDebugOverlay = false;
-	GAME_ENGINE->EnablePhysicsDebugRendering(m_RenderDebugOverlay);
 }
 
 void Game::GameSetSleeping(bool sleeping)
@@ -114,10 +105,6 @@ void Game::GameSetSleeping(bool sleeping)
 
 void Game::GameEnd()
 {
-	GameSession::WriteSessionInfoToFile(m_LevelPtr);
-
-	delete m_LevelPtr;
-
 	delete Font12Ptr;
 	delete Font9Ptr;
 	delete Font6Ptr;
@@ -126,19 +113,20 @@ void Game::GameEnd()
 	SpriteSheetManager::Unload();
 
 	SoundManager::UnloadSoundsAndSongs();
+
+	delete m_StateManagerPtr;
 }
 
 void Game::GameTick(double deltaTime)
-{
-	if (GAME_ENGINE->IsKeyboardKeyPressed('R'))
-	{
-		Reset();
-	}
+{	
 	if (GAME_ENGINE->IsKeyboardKeyPressed('I'))
 	{
 		m_ShowingSessionInfo = !m_ShowingSessionInfo;
 
-		m_LevelPtr->SetPaused(m_ShowingSessionInfo);
+		if (m_StateManagerPtr->CurrentState()->GetType() == STATE_TYPE::GAME)
+		{
+			((GameState*)m_StateManagerPtr->CurrentState())->SetPaused(m_ShowingSessionInfo);
+		}
 	}
 
 	if (m_ShowingSessionInfo)
@@ -153,34 +141,32 @@ void Game::GameTick(double deltaTime)
 		{
 			GameSession::ShowPreviousSession();
 		}
-
-		return;
 	}
 
-	m_LevelPtr->Tick(deltaTime);
-
-	if (GAME_ENGINE->IsKeyboardKeyPressed('P'))
-	{
-		// TODO: Find out why the game is so laggy when physics debug overlay is rendering
-		m_RenderDebugOverlay = !m_RenderDebugOverlay;
-		GAME_ENGINE->EnablePhysicsDebugRendering(m_RenderDebugOverlay);
-	}
 	if (GAME_ENGINE->IsKeyboardKeyPressed('M'))
 	{
 		SoundManager::ToggleMuted();
 	}
+
+	m_StateManagerPtr->Tick(deltaTime);
 }
 
 void Game::GamePaint()
 {
-	m_LevelPtr->Paint();
-
 	MATRIX3X2 matPrevious = GAME_ENGINE->GetViewMatrix();
 	GAME_ENGINE->SetViewMatrix(matIdentity);
+
+	m_StateManagerPtr->Paint();
+
 	if (m_ShowingSessionInfo)
 	{
 		GameSession::PaintCurrentSessionInfo();
 	}
 
 	GAME_ENGINE->SetViewMatrix(matPrevious);
+}
+
+bool Game::ShowingSessionInfo()
+{
+	return m_ShowingSessionInfo;
 }

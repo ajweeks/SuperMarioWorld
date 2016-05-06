@@ -62,6 +62,9 @@ public:
 	// that is removed once it reaches the bottom of the screen
 	void ShellHit();
 
+	bool IsShelless();
+
+	COLOUR GetColour();
 
 private:
 	static const int WIDTH = 14;
@@ -74,7 +77,7 @@ private:
 	
 	void ChangeDirections();
 
-	COLOUR m_Color;
+	COLOUR m_Colour;
 	ANIMATION_STATE m_AnimationState;
 
 	static const int FRAMES_OF_BEING_SHELLESS = 85;

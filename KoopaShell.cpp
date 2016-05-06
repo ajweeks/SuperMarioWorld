@@ -164,6 +164,12 @@ void KoopaShell::SetMoving(bool moving)
 	}
 }
 
+
+COLOUR KoopaShell::GetColour()
+{
+	return m_Colour;
+}
+
 bool KoopaShell::IsBouncing()
 {
 	return m_IsBouncing;

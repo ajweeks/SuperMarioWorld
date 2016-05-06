@@ -25,6 +25,8 @@ void SoundManager::InitialzeSoundsAndSongs()
 	LoadSong(SONG::OVERWORLD_BGM, m_ResourcePath + String("music/overworld-bgm.wav"));
 	LoadSong(SONG::OVERWORLD_BGM_FAST, m_ResourcePath + String("music/overworld-bgm-fast.wav"));
 
+	LoadSong(SONG::MENU_SCREEN_BGM, m_ResourcePath + String("music/menu-screen-bgm.wav"));
+
 	LoadSound(SOUND::GAME_PAUSE, m_ResourcePath + String("game-pause.wav"));
 
 	LoadSound(SOUND::PLAYER_JUMP, m_ResourcePath + String("player-jump.wav"));
@@ -36,6 +38,10 @@ void SoundManager::InitialzeSoundsAndSongs()
 	LoadSound(SOUND::DRAGON_COIN_COLLECT, m_ResourcePath + String("dragon-coin-collect.wav"));
 	LoadSound(SOUND::BLOCK_HIT, m_ResourcePath + String("block-hit.wav"));
 	LoadSound(SOUND::BLOCK_BREAK, m_ResourcePath + String("block-break.wav"));
+
+	LoadSound(SOUND::FIRE_BALL_THROW, m_ResourcePath + String("fire-ball-throw.wav"));
+
+	LoadSound(SOUND::BEANSTALK_SPAWN, m_ResourcePath + String("beanstalk-spawn.wav"));
 
 	LoadSound(SOUND::SUPER_MUSHROOM_SPAWN, m_ResourcePath + String("super-mushroom-spawn.wav"));
 	LoadSound(SOUND::MESSAGE_BLOCK_HIT, m_ResourcePath + String("message-block-hit.wav"));

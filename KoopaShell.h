@@ -28,6 +28,8 @@ public:
 	void SetMoving(bool moving);
 	bool IsBouncing();
 
+	COLOUR GetColour();
+
 	static const int WIDTH = 14;
 	static const int HEIGHT = 14;
 
