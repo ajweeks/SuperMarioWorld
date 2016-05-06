@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Enumerations.h"
+#include "AnimationInfo.h"
 
 class Particle
 {
@@ -19,6 +20,6 @@ protected:
 	//Bitmap* m_BmpPtr = nullptr;
 	// NOTE: Where in world space this particle is
 	DOUBLE2 m_Position;
-	ANIMATION_INFO m_AnimInfo;
+	AnimationInfo m_AnimInfo;
 	int m_LifeRemaining;
 };

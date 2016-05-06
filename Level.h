@@ -2,6 +2,7 @@
 
 #include "ContactListener.h"
 #include "Enumerations.h"
+#include "CountdownTimer.h"
 
 class LevelData;
 class Platform;
@@ -123,9 +124,3 @@ private:
 	bool m_IsShowingEndScreen;
 	int m_FramesShowingEndScreen;
 };
-
-// TODO: Move this somewhere more global
-void PaintSeveralDigitNumber(int x, int y, int number, bool yellow);
-void PaintSeveralDigitLargeNumber(int x, int y, int number);
-RECT2 GetSmallSingleNumberSrcRect(int number, bool yellow);
-RECT2 GetLargeSingleNumberSrcRect(int number);

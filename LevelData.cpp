@@ -4,6 +4,8 @@
 #include "Enumerations.h"
 #include "Level.h"
 #include "Player.h"
+#include "FileIO.h"
+#include "Colour.h"
 
 #include "Entity.h"
 #include "Enemy.h"
@@ -115,11 +117,9 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 		case int(Item::TYPE::ROTATING_BLOCK):
 		{
 			std::string spawnItem = FileIO::GetTagContent(itemContent, "Spawns");
-			if (!spawnItem.compare("Beanstalk"))
-			{
-				m_ItemsPtrArr.push_back(new Beanstalk(topLeft, levelPtr, 14));
-			}
-			m_ItemsPtrArr.push_back(new RotatingBlock(topLeft, levelPtr));
+			bool spawnsBeanstalk = !spawnItem.compare("Beanstalk");
+
+			m_ItemsPtrArr.push_back(new RotatingBlock(topLeft, levelPtr, spawnsBeanstalk));
 		} break;
 		case int(Item::TYPE::P_SWITCH):
 		{

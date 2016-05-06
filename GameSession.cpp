@@ -5,6 +5,8 @@
 #include "Level.h"
 #include "Player.h"
 #include "Game.h"
+#include "CountdownTimer.h"
+#include "FileIO.h"
 
 int GameSession::m_CurrentSessionIndex = 0;
 int GameSession::m_TotalSessionsWithInfo = 0;

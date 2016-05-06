@@ -2,6 +2,8 @@
 
 #include "Enemy.h"
 
+struct INT2;
+
 /*
 
 	Monty Moles spawn from dirt patches in walls and in the ground when the player comes nearby.

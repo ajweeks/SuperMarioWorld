@@ -3,6 +3,7 @@
 #include "Enemy.h"
 #include "Enumerations.h"
 #include "Level.h"
+#include "INT2.h"
 
 class KoopaTroopa :	public Enemy
 {

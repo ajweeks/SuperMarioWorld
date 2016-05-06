@@ -4,6 +4,7 @@
 #include "Game.h"
 #include "Enumerations.h"
 #include "SpriteSheetManager.h"
+#include "INT2.h"
 
 #include "SoundManager.h"
 #include "DustParticle.h"

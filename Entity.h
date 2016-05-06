@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Enumerations.h"
+#include "AnimationInfo.h"
 
 class EntityManager;
 class SpriteSheet;
@@ -30,5 +31,5 @@ public:
 protected:
 	PhysicsActor* m_ActPtr = nullptr;
 	Level* m_LevelPtr = nullptr;
-	ANIMATION_INFO m_AnimInfo;
+	AnimationInfo m_AnimInfo;
 };

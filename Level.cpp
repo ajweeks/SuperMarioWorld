@@ -6,6 +6,7 @@
 #include "LevelData.h"
 #include "SpriteSheetManager.h"
 #include "SoundManager.h"
+#include "HUD.h"
 
 #include "Platform.h"
 #include "Pipe.h"
@@ -366,7 +367,7 @@ void Level::PaintHUD()
 
 	// LIVES
 	x += 15;
-	srcRect = GetSmallSingleNumberSrcRect(playerLives, false);
+	srcRect = HUD::GetSmallSingleNumberSrcRect(playerLives, false);
 	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, x, y, srcRect);
 
 	// DRAGON COINS
@@ -394,7 +395,7 @@ void Level::PaintHUD()
 	// NUMBER OF STARS
 	x += 24;
 	y -= 7;
-	PaintSeveralDigitLargeNumber(x, y, playerStars);
+	HUD::PaintSeveralDigitLargeNumber(x, y, playerStars);
 
 	// ITEM BOX
 	x += 10;
@@ -411,7 +412,7 @@ void Level::PaintHUD()
 	// TIME VALUE
 	y += 9;
 	x += 16;
-	PaintSeveralDigitNumber(x, y, m_TimeRemaining, true);
+	HUD::PaintSeveralDigitNumber(x, y, m_TimeRemaining, true);
 
 	// COIN LABEL
 	x += 33;
@@ -421,81 +422,11 @@ void Level::PaintHUD()
 
 	// COINS
 	x += 30;
-	PaintSeveralDigitNumber(x, y, playerCoins, false);
+	HUD::PaintSeveralDigitNumber(x, y, playerCoins, false);
 
 	// SCORE
 	y += 8;
-	PaintSeveralDigitNumber(x, y, playerScore, false);
-}
-
-// NOTE: The x coordinate specifies the placement of the right-most digit
-void PaintSeveralDigitNumber(int x, int y, int number, bool yellow)
-{
-	number = abs(number);
-
-	do {
-		int digit = number % 10;
-		RECT2 srcRect = GetSmallSingleNumberSrcRect(digit, yellow);
-		GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, x, y, srcRect);
-
-		x -= 8;
-		number /= 10;
-	} while (number > 0);
-}
-
-// TODO: Move to a more global class (custom math class?)
-unsigned int Level::GetNumberOfDigits(unsigned int i)
-{
-	return i > 0 ? (int)log10((double)i) + 1 : 1;
-}
-
-// NOTE: If yellow is true, this returns the rect for a yellow number, otherwise for a white number
-RECT2 GetSmallSingleNumberSrcRect(int number, bool yellow)
-{
-	assert(number >= 0 && number <= 9);
-
-	RECT2 result;
-
-	int numberWidth = 8;
-	int numberHeight = 7;
-	int xo = 0 + numberWidth * number;
-	int yo = 34;
-
-	if (yellow) yo += 10;
-
-	result = RECT2(xo, yo, xo + numberWidth, yo + numberHeight);
-
-	return result;
-}
-
-void PaintSeveralDigitLargeNumber(int x, int y, int number)
-{
-	number = abs(number);
-
-	do {
-		int digit = number % 10;
-		RECT2 srcRect = GetLargeSingleNumberSrcRect(digit);
-		GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, x, y, srcRect);
-
-		x -= 8;
-		number /= 10;
-	} while (number > 0);
-}
-
-RECT2 GetLargeSingleNumberSrcRect(int number)
-{
-	assert(number >= 0 && number <= 9);
-
-	RECT2 result;
-
-	int numberWidth = 8;
-	int numberHeight = 14;
-	int xo = 0 + numberWidth * number;
-	int yo = 19;
-
-	result = RECT2(xo, yo, xo + numberWidth, yo + numberHeight);
-
-	return result;
+	HUD::PaintSeveralDigitNumber(x, y, playerScore, false);
 }
 
 bool Level::ActorCanPassThroughPlatform(PhysicsActor *actPlatformPtr, DOUBLE2& actorPosRef, double actorWidth, double actorHeight)

@@ -1,8 +1,11 @@
 #pragma once
 
 #include "Entity.h"
+#include "Item.h"
+#include "CountdownTimer.h"
 
 class Player;
+class Enemy;
 
 class Yoshi : public Entity
 {

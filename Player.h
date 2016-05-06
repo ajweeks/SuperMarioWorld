@@ -3,6 +3,8 @@
 #include "Enumerations.h"
 #include "SpriteSheet.h"
 #include "Item.h"
+#include "CountdownTimer.h"
+#include "INT2.h"
 
 class Level;
 class Entity;
