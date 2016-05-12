@@ -76,27 +76,24 @@ private:
 
 	static const double HORIZONTAL_ACCELERATION;
 	static const double MAX_HORIZONTAL_VEL;
+	static const double TARGET_OVERSHOOT_DISTANCE;
 
 	DOUBLE2 m_SpawingPosition;
 
 	ANIMATION_STATE m_AnimationState;
 
-	double m_TargetOffshoot = 35;
+	CountdownTimer m_SpawnDustCloudTimer;
+	CountdownTimer m_FramesSpentWrigglingInDirtTimer;
+
 	double m_TargetX;
 
 	// If true, we now can never spawn again, but we need 
 	// to continue painting our spawning hole (if we live in the wall, that is)
 	// so we can't be removed from the level
 	bool m_HasBeenKilledByPlayer = true; 
-	
 	bool m_HaveSpawnedMole = false; // This is set to true once we've spawned a mole
-
-	static const int FRAMES_TO_WRIGGLE_IN_DIRT_FOR = 90;
-	int m_FramesSpentWrigglingInTheDirt = -1;
-
 	bool m_ShouldRemoveActor;
 
 	SPAWN_LOCATION_TYPE m_SpawnLocationType;
 	AI_TYPE m_AiType;
 };
-

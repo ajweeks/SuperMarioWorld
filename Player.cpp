@@ -83,12 +83,12 @@ void Player::Reset()
 
 	m_PowerupState = POWERUP_STATE::NORMAL;
 	m_PrevPowerupState = POWERUP_STATE::NORMAL;
-	m_DirFacing = FacingDirection::RIGHT;
-	m_DirFacingLastFrame = FacingDirection::RIGHT;
+	m_DirFacing = Direction::RIGHT;
+	m_DirFacingLastFrame = Direction::RIGHT;
 
 	m_IsOverlappingWithBeanstalk = false;
 	m_FramesClimbingSinceLastFlip = 0;
-	m_LastClimbingPose = FacingDirection::RIGHT;
+	m_LastClimbingPose = Direction::RIGHT;
 
 	m_RidingYoshiPtr = nullptr;
 }
@@ -431,7 +431,7 @@ void Player::HandleKeyboardInput(double deltaTime)
 	// TODO: Fix running to walking animation update bug
 	if (GAME_ENGINE->IsKeyboardKeyDown(VK_LEFT))
 	{
-		m_DirFacing = FacingDirection::LEFT;
+		m_DirFacing = Direction::LEFT;
 		if (m_AnimationState != ANIMATION_STATE::JUMPING &&
 			m_AnimationState != ANIMATION_STATE::SPIN_JUMPING &&
 			m_AnimationState != ANIMATION_STATE::FALLING &&
@@ -444,7 +444,7 @@ void Player::HandleKeyboardInput(double deltaTime)
 	}
 	else if (GAME_ENGINE->IsKeyboardKeyDown(VK_RIGHT))
 	{
-		m_DirFacing = FacingDirection::RIGHT;
+		m_DirFacing = Direction::RIGHT;
 		if (m_AnimationState != ANIMATION_STATE::JUMPING &&
 			m_AnimationState != ANIMATION_STATE::SPIN_JUMPING &&
 			m_AnimationState != ANIMATION_STATE::FALLING &&
@@ -541,7 +541,7 @@ void Player::HandleKeyboardInput(double deltaTime)
 	DOUBLE2 newVel = oldVel;
 	if (horizontalVel != 0.0) 
 	{
-		if (m_DirFacing == FacingDirection::LEFT) horizontalVel = -horizontalVel;
+		if (m_DirFacing == Direction::LEFT) horizontalVel = -horizontalVel;
 		newVel.x = horizontalVel;
 	}
 	if (verticalVel != 0.0) 
@@ -661,11 +661,11 @@ void Player::Paint()
 	double centerX = m_ActPtr->GetPosition().x;
 	double centerY = m_ActPtr->GetPosition().y;
 
-	bool climbingFlip = m_AnimationState == ANIMATION_STATE::CLIMBING && m_LastClimbingPose == FacingDirection::LEFT;
+	bool climbingFlip = m_AnimationState == ANIMATION_STATE::CLIMBING && m_LastClimbingPose == Direction::LEFT;
 
 	bool changingDirections = m_ChangingDirectionsTimer.IsActive();
-	if ((m_DirFacing == FacingDirection::LEFT && !changingDirections) ||
-		(m_DirFacing == FacingDirection::RIGHT && changingDirections) ||
+	if ((m_DirFacing == Direction::LEFT && !changingDirections) ||
+		(m_DirFacing == Direction::RIGHT && changingDirections) ||
 		climbingFlip)
 	{
 		MATRIX3X2 matReflect = MATRIX3X2::CreateScalingMatrix(DOUBLE2(-1, 1));
@@ -1212,7 +1212,7 @@ void Player::ReleaseExtraItem(DOUBLE2 position)
 
 	delete m_ExtraItemPtr;
 
-	SuperMushroom* extraSuperMushroomPtr = new SuperMushroom(position, m_LevelPtr, FacingDirection::RIGHT);
+	SuperMushroom* extraSuperMushroomPtr = new SuperMushroom(position, m_LevelPtr, Direction::RIGHT);
 
 	// TODO: FIXME: Mushroom needs custom physics here to slowly fall down through the screen
 	

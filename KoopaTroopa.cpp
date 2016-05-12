@@ -16,7 +16,7 @@ KoopaTroopa::KoopaTroopa(DOUBLE2& startingPos, Level* levelPtr, COLOUR colour) :
 	Enemy(TYPE::KOOPA_TROOPA, startingPos, GetWidth(), GetHeight(), BodyType::DYNAMIC, levelPtr, this),
 	m_Colour(colour)
 {
-	m_DirFacing = FacingDirection::LEFT;
+	m_DirFacing = Direction::LEFT;
 	m_AnimInfo.secondsPerFrame = 0.14;
 	m_AnimationState = ANIMATION_STATE::WALKING;
 }
@@ -120,7 +120,7 @@ void KoopaTroopa::Tick(double deltaTime)
 	}
 
 	double xVel = WALK_VEL;
-	if (m_DirFacing == FacingDirection::LEFT)
+	if (m_DirFacing == Direction::LEFT)
 	{
 		xVel = -xVel;
 	}
@@ -159,7 +159,7 @@ void KoopaTroopa::Paint()
 			xScale = -m_DirFacing;
 		}
 	}
-	else if (m_DirFacing == FacingDirection::LEFT)
+	else if (m_DirFacing == Direction::LEFT)
 	{
 		xScale = -1;
 	}

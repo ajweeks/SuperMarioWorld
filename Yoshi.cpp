@@ -41,8 +41,8 @@ Yoshi::Yoshi(DOUBLE2 position, Level* levelPtr) :
 
 	m_ItemsEaten = 0;
 
-	m_DirFacing = FacingDirection::RIGHT;
-	m_DirFacingLastFrame = FacingDirection::RIGHT;
+	m_DirFacing = Direction::RIGHT;
+	m_DirFacingLastFrame = Direction::RIGHT;
 }
 
 Yoshi::~Yoshi()
@@ -121,13 +121,13 @@ void Yoshi::HandleKeyboardInput(double deltaTime)
 			if (GAME_ENGINE->IsKeyboardKeyDown(VK_LEFT))
 			{
 				m_AnimationState = ANIMATION_STATE::WALKING;
-				m_DirFacing = FacingDirection::LEFT;
+				m_DirFacing = Direction::LEFT;
 				horizontalVel = WALK_BASE_VEL * deltaTime;
 			}
 			else if (GAME_ENGINE->IsKeyboardKeyDown(VK_RIGHT))
 			{
 				m_AnimationState = ANIMATION_STATE::WALKING;
-				m_DirFacing = FacingDirection::RIGHT;
+				m_DirFacing = Direction::RIGHT;
 				horizontalVel = WALK_BASE_VEL * deltaTime;
 			}
 			else if (m_AnimationState == ANIMATION_STATE::WALKING)
@@ -182,7 +182,7 @@ void Yoshi::HandleKeyboardInput(double deltaTime)
 
 		if (horizontalVel != 0.0)
 		{
-			if (m_DirFacing == FacingDirection::RIGHT) newVel.x = horizontalVel;
+			if (m_DirFacing == Direction::RIGHT) newVel.x = horizontalVel;
 			else newVel.x = -horizontalVel;
 		}
 		if (verticalVel != 0.0)
@@ -226,8 +226,8 @@ void Yoshi::Paint()
 	bool firstHalf = m_ChangingDirectionsTimer.FramesElapsed() < m_ChangingDirectionsTimer.OriginalNumberOfFrames()/2;
 	if (!changingDirections) firstHalf = false;
 
-	if ((m_DirFacing == FacingDirection::LEFT && !changingDirections && !firstHalf) ||
-		(m_DirFacing == FacingDirection::RIGHT && changingDirections && firstHalf))
+	if ((m_DirFacing == Direction::LEFT && !changingDirections && !firstHalf) ||
+		(m_DirFacing == Direction::RIGHT && changingDirections && firstHalf))
 	{
 		MATRIX3X2 matReflect = MATRIX3X2::CreateScalingMatrix(DOUBLE2(-1, 1));
 		MATRIX3X2 matTranslate = MATRIX3X2::CreateTranslationMatrix(centerX, centerY);

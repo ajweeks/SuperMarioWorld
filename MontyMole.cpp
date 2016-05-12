@@ -10,10 +10,10 @@
 #include "DustParticle.h"
 #include "BlockBreakParticle.h"
 #include "EnemyPoofParticle.h"
-#include "NumberParticle.h"
 
-const double MontyMole::HORIZONTAL_ACCELERATION = 800.0;
+const double MontyMole::HORIZONTAL_ACCELERATION = 780.0;
 const double MontyMole::MAX_HORIZONTAL_VEL = 135.0;
+const double MontyMole::TARGET_OVERSHOOT_DISTANCE = 30.0;
 
 MontyMole::MontyMole(DOUBLE2& startingPos, Level* levelPtr, SPAWN_LOCATION_TYPE spawnLocationType, AI_TYPE aiType) :
 	Enemy(TYPE::MONTY_MOLE, startingPos + DOUBLE2(GetWidth()/2, GetHeight()/2), GetWidth(), GetHeight(), BodyType::DYNAMIC, levelPtr, this),
@@ -22,6 +22,9 @@ MontyMole::MontyMole(DOUBLE2& startingPos, Level* levelPtr, SPAWN_LOCATION_TYPE 
 	m_AnimationState = ANIMATION_STATE::INVISIBLE;
 	m_ActPtr->SetSensor(true);
 	m_ActPtr->SetActive(false);
+
+	m_FramesSpentWrigglingInDirtTimer = CountdownTimer(90);
+	m_SpawnDustCloudTimer = CountdownTimer(4);
 }
 
 MontyMole::~MontyMole()
@@ -41,6 +44,8 @@ void MontyMole::Tick(double deltaTime)
 		m_ShouldRemoveActor = false;
 	}
 
+	m_SpawnDustCloudTimer.Tick();
+
 	switch (m_AnimationState)
 	{
 	case ANIMATION_STATE::INVISIBLE:
@@ -50,15 +55,14 @@ void MontyMole::Tick(double deltaTime)
 		{
 			m_AnimationState = ANIMATION_STATE::IN_GROUND;
 			
-			m_FramesSpentWrigglingInTheDirt = 0;
+			m_FramesSpentWrigglingInDirtTimer.Start();
 		}
 
 	} break;
 	case ANIMATION_STATE::IN_GROUND:
 	{
-		if (++m_FramesSpentWrigglingInTheDirt > FRAMES_TO_WRIGGLE_IN_DIRT_FOR)
+		if (m_FramesSpentWrigglingInDirtTimer.Tick() && m_FramesSpentWrigglingInDirtTimer.IsComplete())
 		{
-			m_FramesSpentWrigglingInTheDirt = -1;
 			m_AnimationState = ANIMATION_STATE::JUMPING_OUT_OF_GROUND;
 			m_ActPtr->SetSensor(false);
 			m_ActPtr->SetActive(true);
@@ -80,11 +84,11 @@ void MontyMole::Tick(double deltaTime)
 
 			DOUBLE2 playerPos = m_LevelPtr->GetPlayer()->GetPosition();
 			if (playerPos.x > m_ActPtr->GetPosition().x)
-				m_DirFacing = FacingDirection::RIGHT;
+				m_DirFacing = Direction::RIGHT;
 			else
-				m_DirFacing = FacingDirection::LEFT;
+				m_DirFacing = Direction::LEFT;
 
-			m_TargetX = playerPos.x + m_TargetOffshoot * m_DirFacing;
+			CalculateNewTarget();
 
 			m_IsOnGround = true;
 		}
@@ -111,7 +115,7 @@ void MontyMole::Tick(double deltaTime)
 				{
 					m_AnimationState = ANIMATION_STATE::IN_GROUND;
 
-					m_FramesSpentWrigglingInTheDirt = 0;
+					m_FramesSpentWrigglingInDirtTimer.Start();
 				}
 			}
 		}
@@ -135,23 +139,25 @@ void MontyMole::UpdatePosition(double deltaTime)
 		DOUBLE2 molePos = m_ActPtr->GetPosition();
 		DOUBLE2 playerPos = m_LevelPtr->GetPlayer()->GetPosition();
 
-		// NOTE: We're either walking towards the player, or we're walking just past them before we turn around
-		bool passedTargetLeft = ((m_DirFacing == FacingDirection::LEFT && (molePos.x - m_TargetX) < 0.0));
-		bool passedTargetRight = ((m_DirFacing == FacingDirection::RIGHT && (m_TargetX - molePos.x) < 0.0));
-
-		// The player passed out target x! We should set the x to be father past them
-		bool targetChange = (m_DirFacing == FacingDirection::LEFT && playerPos.x < m_TargetX) ||
-			(m_DirFacing == FacingDirection::RIGHT && playerPos.x > m_TargetX);
-
-		bool directionChange = (m_DirFacing == FacingDirection::LEFT && playerPos.x > molePos.x) ||
-			(m_DirFacing == FacingDirection::RIGHT && playerPos.x < molePos.x);
-
-		CalculateNewTarget();
-
+		// We've walked past our target, time to turn around
+		bool passedTargetLeft = ((m_DirFacing == Direction::LEFT && (molePos.x - m_TargetX) < 0.0));
+		bool passedTargetRight = ((m_DirFacing == Direction::RIGHT && (m_TargetX - molePos.x) < 0.0));
 		if (passedTargetLeft || passedTargetRight)
 		{
 			// Turn around
 			m_DirFacing = -m_DirFacing;
+			CalculateNewTarget();
+		}
+
+		// The player passed our target x! We should set the x to be father past them
+		bool targetChange = (m_DirFacing == Direction::LEFT && playerPos.x < m_TargetX) ||
+							(m_DirFacing == Direction::RIGHT && playerPos.x > m_TargetX);
+		// The player is behind us, we should recalculate our target x
+		bool directionChange = (m_DirFacing == Direction::LEFT && playerPos.x > molePos.x) ||
+							   (m_DirFacing == Direction::RIGHT && playerPos.x < molePos.x);
+
+		if (targetChange || directionChange)
+		{
 			CalculateNewTarget();
 		}
 
@@ -161,18 +167,23 @@ void MontyMole::UpdatePosition(double deltaTime)
 
 		newXVel = CLAMP(newXVel, -MAX_HORIZONTAL_VEL, MAX_HORIZONTAL_VEL);
 
-		m_ActPtr->SetLinearVelocity(DOUBLE2(newXVel, prevVel.y));
-
-		if (m_IsOnGround &&
-			m_DirFacing != m_DirFacingLastFrame)
+		// Dust cloud spawning
+		if (m_SpawnDustCloudTimer.IsActive() == false &&
+			m_IsOnGround &&
+			((horizontalDelta > 0 && prevVel.x < 0) ||
+				(horizontalDelta < 0 && prevVel.x > 0)))
 		{
-			DustParticle* dustParticlePtr = new DustParticle(molePos + DOUBLE2(0, GetHeight() / 2));
+			DustParticle* dustParticlePtr = new DustParticle(m_ActPtr->GetPosition() + DOUBLE2(0, GetHeight() / 2 + 1));
 			m_LevelPtr->AddParticle(dustParticlePtr);
+
+			m_SpawnDustCloudTimer.Start();
 		}
+
+		m_ActPtr->SetLinearVelocity(DOUBLE2(newXVel, prevVel.y));
 	} break;
 	case AI_TYPE::DUMB:
 	{
-
+		// Just walk forward, jumping periodically, until you hit a wall, at which point turn around
 	} break;
 	default: 
 	{
@@ -184,7 +195,7 @@ void MontyMole::UpdatePosition(double deltaTime)
 void MontyMole::CalculateNewTarget()
 {
 	DOUBLE2 playerPos = m_LevelPtr->GetPlayer()->GetPosition();
-	m_TargetX = playerPos.x + m_TargetOffshoot * m_DirFacing;
+	m_TargetX = playerPos.x + TARGET_OVERSHOOT_DISTANCE * m_DirFacing;
 	double xScale = abs(m_ActPtr->GetLinearVelocity().x / MAX_HORIZONTAL_VEL);
 	m_TargetX += ((double((rand() % 10)) / 10.0) * xScale) * 40.0 - 20.0;
 }
@@ -212,8 +223,7 @@ void MontyMole::StompKill()
 	EnemyPoofParticle* poofParticlePtr = new EnemyPoofParticle(m_ActPtr->GetPosition());
 	m_LevelPtr->AddParticle(poofParticlePtr);
 
-	NumberParticle* numberParticlePtr = new NumberParticle(200, m_ActPtr->GetPosition());
-	m_LevelPtr->AddParticle(numberParticlePtr);
+	m_LevelPtr->GetPlayer()->AddScore(200, m_ActPtr->GetPosition());
 
 	m_AnimationState = ANIMATION_STATE::DEAD;
 	m_ShouldRemoveActor = true;
@@ -240,7 +250,7 @@ void MontyMole::Paint()
 	double centerY = m_ActPtr->GetPosition().y;
 
 	int xScale = 1, yScale = 1;
-	if (m_DirFacing == FacingDirection::LEFT)
+	if (m_DirFacing == Direction::LEFT)
 		xScale = -1;
 
 	if (m_AnimationState == ANIMATION_STATE::DEAD)
