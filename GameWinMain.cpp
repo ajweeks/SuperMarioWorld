@@ -45,7 +45,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char * szCmdLin
 
 		IDXGIDebug* pDXGIDebug;
 		DXGIGetDebugInterface(__uuidof(IDXGIDebug), (void**)&pDXGIDebug);
-		//_CrtSetBreakAlloc(334);
+		//_CrtSetBreakAlloc(1180);
 	#endif
 		
 #pragma endregion

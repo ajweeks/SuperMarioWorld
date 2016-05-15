@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
-#include "Game.h"
 #include "Camera.h"
+#include "Game.h"
 #include "Player.h"
 #include "Level.h"
 
@@ -22,7 +22,7 @@ void Camera::Reset()
 	m_UsingConstantYO = false;
 }
 
-DOUBLE2 Camera::GetOffset(DOUBLE2 playerPos, int directionFacing, Level* levelPtr)
+DOUBLE2 Camera::GetOffset(DOUBLE2 playerPos, int directionFacing, Level* levelPtr, double deltaTime)
 {
 #ifdef SMW_ENABLE_JUMP_TO
 	if (GAME_ENGINE->IsKeyboardKeyPressed('O'))
@@ -32,8 +32,8 @@ DOUBLE2 Camera::GetOffset(DOUBLE2 playerPos, int directionFacing, Level* levelPt
 	}
 #endif
 
-	double xo = CalculateXTranslation(playerPos, directionFacing, levelPtr);
-	double yo = CalculateYTranslation(playerPos, levelPtr);
+	double xo = CalculateXTranslation(playerPos, directionFacing, levelPtr, deltaTime);
+	double yo = CalculateYTranslation(playerPos, levelPtr, deltaTime);
 	DOUBLE2 newTranslation = DOUBLE2(xo, yo);
 
 	Clamp(newTranslation, levelPtr);
@@ -43,7 +43,7 @@ DOUBLE2 Camera::GetOffset(DOUBLE2 playerPos, int directionFacing, Level* levelPt
 	return newTranslation;
 }
 
-double Camera::CalculateXTranslation(DOUBLE2 playerPos, int directionFacing, Level* levelPtr)
+double Camera::CalculateXTranslation(DOUBLE2 playerPos, int directionFacing, Level* levelPtr, double deltaTime)
 {
 	double translationX = m_PrevTranslation.x;
 
@@ -85,11 +85,11 @@ double Camera::CalculateXTranslation(DOUBLE2 playerPos, int directionFacing, Lev
 	{
 		if (m_TargetOffset.x > m_PrevTranslation.x)
 		{
-			translationX = m_PrevTranslation.x + panSpeed;
+			translationX = m_PrevTranslation.x + panSpeed * deltaTime;
 		}
 		else
 		{
-			translationX = m_PrevTranslation.x - panSpeed;
+			translationX = m_PrevTranslation.x - panSpeed * deltaTime;
 		}
 	}
 	
@@ -146,7 +146,7 @@ camera.targetY = player.feetY - threshold;
 */
 
 // TODO: The camera actually does pay attention to the player's y pos *if* they are running at full speed
-double Camera::CalculateYTranslation(DOUBLE2 playerPos, Level* levelPtr)
+double Camera::CalculateYTranslation(DOUBLE2 playerPos, Level* levelPtr, double deltaTime)
 {
 	double translationY = m_PrevTranslation.y;
 	Player* playerPtr = levelPtr->GetPlayer();
@@ -185,7 +185,7 @@ double Camera::CalculateYTranslation(DOUBLE2 playerPos, Level* levelPtr)
 		}
 	}
 
-	double panSpeed = 0.15;
+	double panSpeed = 40;
 	double difference = abs(m_TargetOffset.y - m_PrevTranslation.y);
 	double epsilon = 0.01;
 
@@ -197,26 +197,28 @@ double Camera::CalculateYTranslation(DOUBLE2 playerPos, Level* levelPtr)
 	{
 		if (m_TargetOffset.y > m_PrevTranslation.y)
 		{
-			translationY = m_PrevTranslation.y + panSpeed;
+			translationY = m_PrevTranslation.y + panSpeed * deltaTime;
 		}
 		else
 		{
-			translationY = m_PrevTranslation.y - panSpeed;
+			translationY = m_PrevTranslation.y - panSpeed * deltaTime;
 		}
 	}
 
 	return translationY;
 }
 
-// TODO: Add yo functionality for certain levels
-MATRIX3X2 Camera::GetViewMatrix(DOUBLE2 playerPos, int directionFacing, Level* levelPtr)
+void Camera::CalculateViewMatrix(DOUBLE2 playerPos, int directionFacing, Level* levelPtr, double deltaTime)
 {
-	DOUBLE2 newTranslation = GetOffset(playerPos, directionFacing, levelPtr);
+	DOUBLE2 newTranslation = GetOffset(playerPos, directionFacing, levelPtr, deltaTime);
 	
 	// NOTE: Uses negative position instead of .Inverse()
-	MATRIX3X2 matCameraTranslation = MATRIX3X2::CreateTranslationMatrix(-newTranslation);
+	m_MatTranslation = MATRIX3X2::CreateTranslationMatrix(-newTranslation);
+}
 
-	return matCameraTranslation;
+MATRIX3X2 Camera::GetViewMatrix()
+{
+	return m_MatTranslation;
 }
 
 /* Paints extra debug info about the camera (Expects view matrix to be Game::matIdentity) */

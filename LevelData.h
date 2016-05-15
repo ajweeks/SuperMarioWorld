@@ -29,8 +29,9 @@ public:
 	void RemoveEnemy(Enemy* enemyPtr);
 	void RemoveEnemy(int enemyIndex);
 
-	void PaintItemsForeground();
+	void PaintEnemiesInBackground(); // These enemies are drawn behind the level image (piranha plants)
 	void PaintItemsAndEnemies();
+	void PaintItemsInForeground(); // These items are drawn in front of the player (Goal gates/ midway gates)
 	void TickItemsAndEnemies(double deltaTime, Level* levelPtr);
 
 	void SetItemsAndEnemiesPaused(bool paused);

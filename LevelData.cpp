@@ -319,7 +319,7 @@ void LevelData::RemoveItem(int itemIndex)
 
 void LevelData::AddEnemy(Enemy* newEnemyPtr)
 {
-	for (size_t i = 0; i < m_ItemsPtrArr.size(); ++i)
+	for (size_t i = 0; i < m_EnemiesPtrArr.size(); ++i)
 	{
 		if (m_EnemiesPtrArr[i] == nullptr)
 		{
@@ -333,7 +333,7 @@ void LevelData::AddEnemy(Enemy* newEnemyPtr)
 
 void LevelData::RemoveEnemy(Enemy* enemyPtr)
 {
-	for (size_t i = 0; i < m_ItemsPtrArr.size(); ++i)
+	for (size_t i = 0; i < m_EnemiesPtrArr.size(); ++i)
 	{
 		if (m_EnemiesPtrArr[i] == enemyPtr)
 		{
@@ -394,7 +394,7 @@ void LevelData::PaintItemsAndEnemies()
 	}
 }
 
-void LevelData::PaintItemsForeground()
+void LevelData::PaintItemsInForeground()
 {
 	for (size_t i = 0; i < m_ItemsPtrArr.size(); ++i)
 	{
@@ -404,6 +404,20 @@ void LevelData::PaintItemsForeground()
 				m_ItemsPtrArr[i]->GetType() == Item::TYPE::MIDWAY_GATE)
 			{
 				((Gate*)m_ItemsPtrArr[i])->PaintFrontPole();
+			}
+		}
+	}
+}
+
+void LevelData::PaintEnemiesInBackground()
+{
+	for (size_t i = 0; i < m_EnemiesPtrArr.size(); ++i)
+	{
+		if (m_EnemiesPtrArr[i] != nullptr)
+		{
+			if (m_EnemiesPtrArr[i]->GetType() == Enemy::TYPE::PIRHANA_PLANT)
+			{
+				m_EnemiesPtrArr[i]->Paint();
 			}
 		}
 	}

@@ -135,7 +135,8 @@ void Level::Tick(double deltaTime)
 
 	if (m_ShowingMessage)
 	{
-		if (GAME_ENGINE->IsKeyboardKeyPressed('A') ||
+		if (m_PlayerPtr->IsDead() == false &&
+			GAME_ENGINE->IsKeyboardKeyPressed('A') ||
 			GAME_ENGINE->IsKeyboardKeyPressed('S') ||
 			GAME_ENGINE->IsKeyboardKeyPressed('Z') ||
 			GAME_ENGINE->IsKeyboardKeyPressed('X') ||
@@ -146,7 +147,8 @@ void Level::Tick(double deltaTime)
 			return;
 		}
 	}
-	else if (m_GamePtr->ShowingSessionInfo() == false &&
+	else if (m_PlayerPtr->IsDead() == false &&
+			m_GamePtr->ShowingSessionInfo() == false &&
 			GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE))
 	{
 		TogglePaused();
@@ -208,53 +210,13 @@ void Level::Tick(double deltaTime)
 		SoundManager::SetSongPaused(SoundManager::SONG::OVERWORLD_BGM, true);
 		SoundManager::PlaySong(SoundManager::SONG::OVERWORLD_BGM_FAST);
 	}
-}
 
-void Level::AddYoshi(Yoshi* yoshiPtr)
-{
-	if (m_YoshiPtr != nullptr) 
-	{
-		OutputDebugString(String("ERROR: More than one yoshi was added to the level!\n"));
-		delete m_YoshiPtr;
-	}
-
-	m_YoshiPtr = yoshiPtr;
-	yoshiPtr->AddContactListener(this);
-}
-
-void Level::AddItem(Item* newItemPtr)
-{
-	m_LevelDataPtr->AddItem(newItemPtr);
-}
-
-void Level::RemoveItem(Item* itemPtr)
-{
-	m_LevelDataPtr->RemoveItem(itemPtr);
-}
-
-void Level::AddEnemy(Enemy* newEnemyPtr)
-{
-	m_LevelDataPtr->AddEnemy(newEnemyPtr);
-}
-
-void Level::RemoveEnemy(Enemy* enemyPtr)
-{
-	m_LevelDataPtr->RemoveEnemy(enemyPtr);
+	m_CameraPtr->CalculateViewMatrix(m_PlayerPtr->GetPosition(), m_PlayerPtr->GetDirectionFacing(), this, deltaTime);
 }
 
 void Level::Paint()
 {
-	MATRIX3X2 matPreviousView = GAME_ENGINE->GetViewMatrix();
-
-	MATRIX3X2 matCameraView; 
-	if (m_PlayerPtr->IsRidingYoshi()) 
-	{
-		matCameraView = m_CameraPtr->GetViewMatrix(m_YoshiPtr->GetPosition(), m_YoshiPtr->GetDirectionFacing(), this);
-	}
-	else
-	{
-		matCameraView = m_CameraPtr->GetViewMatrix(m_PlayerPtr->GetPosition(), m_PlayerPtr->GetDirectionFacing(), this);
-	}
+	MATRIX3X2 matCameraView = m_CameraPtr->GetViewMatrix();
 	MATRIX3X2 matTotalView = matCameraView *  Game::matIdentity;
 	GAME_ENGINE->SetViewMatrix(matTotalView);
 
@@ -270,17 +232,20 @@ void Level::Paint()
 		GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneBackgroundPtr, DOUBLE2(xo + bgWidth, -32));
 	}
 
+	m_LevelDataPtr->PaintEnemiesInBackground();
+
 	GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneForegroundPtr);
 
 	m_LevelDataPtr->PaintItemsAndEnemies();
 
-	if (m_YoshiPtr != nullptr)
+	if (m_YoshiPtr != nullptr && m_PlayerPtr->IsRidingYoshi() == false)
 	{
 		m_YoshiPtr->Paint();
 	}
+
 	m_PlayerPtr->Paint();
 
-	m_LevelDataPtr->PaintItemsForeground();
+	m_LevelDataPtr->PaintItemsInForeground();
 
 	m_ParticleManagerPtr->Paint();
 
@@ -326,7 +291,6 @@ void Level::Paint()
 			GAME_ENGINE->SetColor(COLOR(0, 0, 0, 0));
 		}
 
-
 		GAME_ENGINE->FillRect(0, 0, Game::WIDTH, Game::HEIGHT);
 	}
 
@@ -357,7 +321,6 @@ void Level::Paint()
 	}
 #endif
 
-
 	GAME_ENGINE->SetViewMatrix(matTotalView);
 }
 
@@ -370,7 +333,7 @@ void Level::PaintHUD()
 	int playerScore = m_PlayerPtr->GetScore();
 	Item::TYPE playerExtraItemType = m_PlayerPtr->GetExtraItemType();
 
-	// NOTE: 1 second in SMW is 2/3 of a real life second!
+	// NOTE: 1 second in game is 2/3 of a real life second!
 	m_TimeRemaining = m_TotalTime - (int(m_SecondsElapsed * 1.5)); 
 
 	int x = 15;
@@ -425,7 +388,7 @@ void Level::PaintHUD()
 	srcRect = RECT2(36, 52, 36 + 28, 52 + 28);
 	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, x, y, srcRect);
 
-	// TIME
+	// TIME LABEL
 	x += 37;
 	y = 15;
 	srcRect = RECT2(1, 52, 1 + 24, 52 + 7);
@@ -473,7 +436,24 @@ bool Level::ActorCanPassThroughPlatform(PhysicsActor *actPlatformPtr, DOUBLE2& a
 		actorFeetBelowPlatformBottom);
 }
 
-void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool & enableContactRef)
+void Level::CollidePlayerWithBlock(DOUBLE2 blockCenterPos, DOUBLE2 playerFeet, bool& enableContactRef)
+{
+	bool playerIsBesideBlock = (playerFeet.x + m_PlayerPtr->GetWidth() / 2 < blockCenterPos.x - Block::WIDTH / 2) ||
+		(playerFeet.x - m_PlayerPtr->GetWidth() / 2 > blockCenterPos.x + Block::WIDTH / 2);
+
+	if (playerIsBesideBlock)
+	{
+		enableContactRef = false;
+
+		bool playersFeetAreBelowTopOfBlock = (playerFeet.y >= blockCenterPos.y - Block::HEIGHT / 2);
+		if (playersFeetAreBelowTopOfBlock)
+		{
+			m_PlayerPtr->SetLinearVelocity(DOUBLE2(0, m_PlayerPtr->GetLinearVelocity().y));
+		}
+	}
+}
+
+void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool& enableContactRef)
 {
 	DOUBLE2 playerFeet(m_PlayerPtr->GetPosition().x, m_PlayerPtr->GetPosition().y + m_PlayerPtr->GetHeight() / 2);
 
@@ -513,48 +493,46 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 			Item* itemPtr = (Item*)actThisPtr->GetUserPointer();
 			switch (itemPtr->GetType())
 			{
-			case Item::TYPE::P_SWITCH:
-			{
-				// TODO: Temporarily change all coins into blocks and vice versa
-			} break;
 			case Item::TYPE::PRIZE_BLOCK:
 			case Item::TYPE::MESSAGE_BLOCK:
 			case Item::TYPE::EXCLAMATION_MARK_BLOCK:
-			case Item::TYPE::ROTATING_BLOCK:
 			case Item::TYPE::CLOUD_BLOCK:
 			{
-				if (itemPtr->GetType() == Item::TYPE::ROTATING_BLOCK)
-				{
-					if (((RotatingBlock*)itemPtr)->IsRotating())
-					{
-						enableContactRef = false;
-						return;
-					}
-				}
-
-				DOUBLE2 blockCenterPos = actThisPtr->GetPosition();
-				bool playerIsBesideBlock = (playerFeet.x + m_PlayerPtr->GetWidth() / 2 < blockCenterPos.x - Block::WIDTH / 2) ||
-										   (playerFeet.x - m_PlayerPtr->GetWidth() / 2 > blockCenterPos.x + Block::WIDTH / 2);
-				if (playerIsBesideBlock)
+				CollidePlayerWithBlock(itemPtr->GetPosition(), playerFeet, enableContactRef);
+			} break;
+			case Item::TYPE::ROTATING_BLOCK:
+			{
+				if (((RotatingBlock*)itemPtr)->IsRotating())
 				{
 					enableContactRef = false;
-
-					bool playersFeetAreBelowTopOfBlock = (playerFeet.y >= blockCenterPos.y - Block::HEIGHT / 2);
-					if (playersFeetAreBelowTopOfBlock)
-					{
-						m_PlayerPtr->SetLinearVelocity(DOUBLE2(0, m_PlayerPtr->GetLinearVelocity().y));
-					}
+					return;
+				}
+				else
+				{
+					CollidePlayerWithBlock(itemPtr->GetPosition(), playerFeet, enableContactRef);
 				}
 			} break;
 			case Item::TYPE::KOOPA_SHELL:
 			{
 				enableContactRef = false;
 			} break;
+			case Item::TYPE::COIN:
+			{
+				if (((Coin*)itemPtr)->IsBlock())
+				{
+					CollidePlayerWithBlock(itemPtr->GetPosition(), playerFeet, enableContactRef);
+				}
+			} break;
 			}
 		} break;
 		case int(ActorId::YOSHI):
 		{
-			if (m_PlayerPtr->IsRidingYoshi()) enableContactRef = false;
+			if (m_PlayerPtr->IsRidingYoshi() || 
+				m_YoshiPtr->IsHatching() ||
+				m_PlayerPtr->GetLinearVelocity().y <= 0)
+			{
+				enableContactRef = false;
+			}
 		} break;
 		case int(ActorId::ENEMY):
 		{
@@ -580,9 +558,9 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 		{
 		case int(ActorId::PLATFORM):
 		{
-			double enemyWidth = ((Enemy*)actOtherPtr->GetUserPointer())->GetWidth();
-			double enemyHeight = ((Enemy*)actOtherPtr->GetUserPointer())->GetHeight();
-			if (ActorCanPassThroughPlatform(actThisPtr, actOtherPtr->GetPosition(), enemyWidth, enemyHeight))
+			double enemyWidth = enemyPtr->GetWidth();
+			double enemyHeight = enemyPtr->GetHeight();
+			if (ActorCanPassThroughPlatform(actThisPtr, enemyPtr->GetPosition(), enemyWidth, enemyHeight))
 			{
 				enableContactRef = false;
 			}
@@ -590,9 +568,8 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 		case int(ActorId::ENEMY):
 		{
 			Enemy* thisEnemyPtr = (Enemy*)actThisPtr->GetUserPointer();
-			Enemy* otherEnemyPtr = (Enemy*)actOtherPtr->GetUserPointer();
-			if (otherEnemyPtr->GetType() == Enemy::TYPE::MONTY_MOLE && 
-				thisEnemyPtr->GetType() == otherEnemyPtr->GetType())
+			if (enemyPtr->GetType() == Enemy::TYPE::MONTY_MOLE &&
+				thisEnemyPtr->GetType() == Enemy::TYPE::MONTY_MOLE)
 			{
 				enableContactRef = false;
 			}
@@ -636,6 +613,8 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 				{
 					DOUBLE2 koopaShellVel = actOtherPtr->GetLinearVelocity();
 					koopaShellPtr->SetLinearVelocity(DOUBLE2(-koopaShellVel.x, koopaShellVel.y));
+					// When a shell hits a block it "hits" it as if the player hit it with their head
+					((Block*)thisItemPtr)->Hit(this);
 				}
 			}
 		} break;
@@ -680,6 +659,12 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			switch (itemPtr->GetType())
 			{
 			case Item::TYPE::COIN:
+			{
+				if (((Coin*)itemPtr)->IsBlock())
+				{
+					break;
+				}
+			} // NOTE: No break here! We want this case to fall through
 			case Item::TYPE::DRAGON_COIN:
 			case Item::TYPE::SUPER_MUSHROOM:
 			case Item::TYPE::STAR:
@@ -689,13 +674,12 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			case Item::TYPE::ONE_UP_MUSHROOM:
 			case Item::TYPE::THREE_UP_MOON:
 			{
-				((Player*)actOtherPtr->GetUserPointer())->OnItemPickup(itemPtr, this);
+				m_PlayerPtr->OnItemPickup(itemPtr, this);
 				m_ItemsToBeRemovedPtrArr.push_back(itemPtr);
 			} break;
 			case Item::TYPE::PRIZE_BLOCK:
 			case Item::TYPE::EXCLAMATION_MARK_BLOCK:
 			case Item::TYPE::MESSAGE_BLOCK:
-			case Item::TYPE::ROTATING_BLOCK:
 			case Item::TYPE::CLOUD_BLOCK:
 			{
 				bool playerCenterIsBelowBlock = m_PlayerPtr->GetPosition().y > (actThisPtr->GetPosition().y + Block::HEIGHT / 2);
@@ -708,8 +692,20 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 					// NOTE: This line prevents the player from slowly floating down after hitting a block
 					m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetLinearVelocity().x, 0.0));
 				}
-				else if (playerCenterIsAboveBlock)
+			} break;
+			case Item::TYPE::ROTATING_BLOCK:
+			{
+				if (((RotatingBlock*)itemPtr)->IsRotating()) break;
+
+				bool playerCenterIsBelowBlock = m_PlayerPtr->GetPosition().y > (actThisPtr->GetPosition().y + Block::HEIGHT / 2);
+				bool playerCenterIsAboveBlock = m_PlayerPtr->GetPosition().y < (actThisPtr->GetPosition().y - Block::HEIGHT / 2);
+
+				if (playerIsRising && playerCenterIsBelowBlock)
 				{
+					((Block*)itemPtr)->Hit(this);
+
+					// NOTE: This line prevents the player from slowly floating down after hitting a block
+					m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetLinearVelocity().x, 0.0));
 				}
 			} break;
 			case Item::TYPE::KOOPA_SHELL:
@@ -719,9 +715,18 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 				{
 					koopaShellPtr->Stomp();
 				}
-				else if (koopaShellPtr->IsMoving() && m_PlayerPtr->IsInvincible() == false)
+				else if (koopaShellPtr->IsMoving())
 				{
-					m_PlayerPtr->TakeDamage();
+					if (m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::JUMPING ||
+						m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::FALLING)
+					{
+						koopaShellPtr->SetMoving(false);
+						m_PlayerPtr->Bounce();
+					}
+					else
+					{
+						m_PlayerPtr->TakeDamage();
+					}
 				}
 				else if (m_PlayerPtr->IsRunning() && m_PlayerPtr->IsHoldingItem() == false)
 				{
@@ -733,7 +738,8 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 				}
 				else 
 				{
-					m_PlayerPtr->KickShell(koopaShellPtr);
+					bool wasThrown = m_PlayerPtr->GetHeldItemPtr() != nullptr;
+					m_PlayerPtr->KickShell(koopaShellPtr, wasThrown);
 				}
 			} break;
 			case Item::TYPE::BEANSTALK:
@@ -789,17 +795,18 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			{
 			case Enemy::TYPE::KOOPA_TROOPA:
 			{
-				if (playerFeet.y < enemyPtr->GetPosition().y)
+				KoopaTroopa* koopaTroopaPtr = (KoopaTroopa*)enemyPtr;
+				if (playerFeet.y < koopaTroopaPtr->GetPosition().y)
 				{
 					if (m_PlayerPtr->IsHoldingItem() == false &&
 						m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::SPIN_JUMPING)
 					{
-						((KoopaTroopa*)enemyPtr)->StompKill();
+						koopaTroopaPtr->StompKill();
 						m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetLinearVelocity().x, -58));
 					}
 					else
 					{
-						((KoopaTroopa*)enemyPtr)->HeadBonk();
+						koopaTroopaPtr->HeadBonk();
 						m_PlayerPtr->Bounce();
 					}
 				}
@@ -809,12 +816,12 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 					// all the player needs to do is touch them and they die
 					// Once the shelless koopa starts walking (ANIMATION_STATE::WALKING_SHELLESS) then the player
 					// needs to jump on their head, the player will die if they touch the side of a walking shelless koopa
-					if (((KoopaTroopa*)enemyPtr)->GetAnimationState() == KoopaTroopa::ANIMATION_STATE::SHELLESS)
+					if (koopaTroopaPtr->GetAnimationState() == KoopaTroopa::ANIMATION_STATE::SHELLESS)
 					{
 						// TODO: Rename this method because not only shell hits cause this behaviour
-						((KoopaTroopa*)enemyPtr)->ShellHit();
+						koopaTroopaPtr->ShellHit();
 					}
-					else if (m_PlayerPtr->IsInvincible() == false)
+					else
 					{
 						m_PlayerPtr->TakeDamage();
 					}
@@ -825,7 +832,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 				MontyMole* montyMolePtr = (MontyMole*)enemyPtr;
 				if (montyMolePtr->IsAlive())
 				{
-					if (playerFeet.y < enemyPtr->GetPosition().y)
+					if (playerFeet.y < montyMolePtr->GetPosition().y)
 					{
 						if (m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::SPIN_JUMPING)
 						{
@@ -1030,8 +1037,17 @@ bool Level::Raycast(DOUBLE2 point1, DOUBLE2 point2, int collisionBits, DOUBLE2 &
 		{
 			if (itemsPtrArr[i] != nullptr)
 			{
-				if ((collisionBits & COLLIDE_WITH_BLOCKS && itemsPtrArr[i]->IsBlock()) || 
-					(collisionBits & COLLIDE_WITH_SHELLS && itemsPtrArr[i]->GetType() == Item::TYPE::KOOPA_SHELL))
+				bool blockCollision = collisionBits & BLOCK && itemsPtrArr[i]->IsBlock();
+				if (blockCollision && itemsPtrArr[i]->GetType() == Item::TYPE::ROTATING_BLOCK)
+				{
+					if (((RotatingBlock*)itemsPtrArr[i])->IsRotating())
+					{
+						blockCollision = false;
+					}
+				}
+
+				bool shellCollision = collisionBits & SHELL && itemsPtrArr[i]->GetType() == Item::TYPE::KOOPA_SHELL;
+				if (blockCollision || shellCollision)
 				{
 					if (itemsPtrArr[i]->Raycast(point1, point2, intersectionRef, normalRef, fractionRef))
 					{
@@ -1058,15 +1074,15 @@ void Level::AddParticle(Particle* particlePtr)
 	m_ParticleManagerPtr->AddParticle(particlePtr);
 }
 
-DOUBLE2 Level::GetCameraOffset()
+DOUBLE2 Level::GetCameraOffset(double deltaTime)
 {
 	if (m_PlayerPtr->IsRidingYoshi())
 	{
-		return m_CameraPtr->GetOffset(m_YoshiPtr->GetPosition(), m_YoshiPtr->GetDirectionFacing(), this);
+		return m_CameraPtr->GetOffset(m_YoshiPtr->GetPosition(), m_YoshiPtr->GetDirectionFacing(), this, deltaTime);
 	}
 	else
 	{
-		return m_CameraPtr->GetOffset(m_PlayerPtr->GetPosition(), m_PlayerPtr->GetDirectionFacing(), this);
+		return m_CameraPtr->GetOffset(m_PlayerPtr->GetPosition(), m_PlayerPtr->GetDirectionFacing(), this, deltaTime);
 	}
 }
 
@@ -1078,6 +1094,38 @@ Player* Level::GetPlayer()
 void Level::GiveItemToPlayer(Item* itemPtr)
 {
 	m_PlayerPtr->OnItemPickup(itemPtr, this);
+}
+
+void Level::AddYoshi(Yoshi* yoshiPtr)
+{
+	if (m_YoshiPtr != nullptr)
+	{
+		OutputDebugString(String("ERROR: More than one yoshi was added to the level!\n"));
+		delete m_YoshiPtr;
+	}
+
+	m_YoshiPtr = yoshiPtr;
+	yoshiPtr->AddContactListener(this);
+}
+
+void Level::AddItem(Item* newItemPtr)
+{
+	m_LevelDataPtr->AddItem(newItemPtr);
+}
+
+void Level::RemoveItem(Item* itemPtr)
+{
+	m_LevelDataPtr->RemoveItem(itemPtr);
+}
+
+void Level::AddEnemy(Enemy* newEnemyPtr)
+{
+	m_LevelDataPtr->AddEnemy(newEnemyPtr);
+}
+
+void Level::RemoveEnemy(Enemy* enemyPtr)
+{
+	m_LevelDataPtr->RemoveEnemy(enemyPtr);
 }
 
 void Level::TogglePaused()
