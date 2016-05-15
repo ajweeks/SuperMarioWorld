@@ -26,14 +26,18 @@ const int Player::WALK_BASE_VEL = 5000;
 const int Player::RUN_BASE_VEL = 9500;
 const int Player::BOUNCE_VEL = -195;
 const int Player::STARTING_LIVES = 5;
+const int Player::YOSHI_DISMOUNT_XVEL = 2500;
+const double Player::MARIO_SECONDS_PER_FRAME = 0.065;
 
 Player::Player(Level* levelPtr) : 
 	Entity(DOUBLE2(), BodyType::DYNAMIC, levelPtr, ActorId::PLAYER, this)
 {
 	Reset();
 
-	// NOTE: This can't go in reset since that is called after the player dies
 	m_Lives = STARTING_LIVES;
+	m_AnimInfo.secondsPerFrame = MARIO_SECONDS_PER_FRAME;
+
+	// TODO: Slow down the player's animation frame rate when he slows down
 }
 
 Player::~Player()
@@ -67,11 +71,12 @@ void Player::Reset()
 	m_FramesSpentInAir = -1;
 
 	m_DeathAnimationTimer = CountdownTimer(240);
-	m_ChangingDirectionsTimer; // This depends on the player's velocity
-	m_InvincibilityTimer = CountdownTimer(115);
 	m_ShellKickAnimationTimer = CountdownTimer(10);
 	m_HeadStompSoundDelayTimer = CountdownTimer(10);
 	m_PowerupTransitionTimer = CountdownTimer(50);
+	m_InvincibilityTimer = CountdownTimer(115);
+	m_SpawnDustCloudTimer = CountdownTimer(4);
+	m_ChangingDirectionsTimer = CountdownTimer(3);
 
 	m_AnimationState = ANIMATION_STATE::WAITING;
 	m_IsDucking = false;
@@ -80,47 +85,17 @@ void Player::Reset()
 	m_IsHoldingItem = false;
 	m_IsDead = false;
 	m_IsRidingYoshi = false;
+	m_IsOverlappingWithBeanstalk = false;
 
 	m_PowerupState = POWERUP_STATE::NORMAL;
 	m_PrevPowerupState = POWERUP_STATE::NORMAL;
 	m_DirFacing = Direction::RIGHT;
 	m_DirFacingLastFrame = Direction::RIGHT;
 
-	m_IsOverlappingWithBeanstalk = false;
 	m_FramesClimbingSinceLastFlip = 0;
 	m_LastClimbingPose = Direction::RIGHT;
 
 	m_RidingYoshiPtr = nullptr;
-}
-
-int Player::GetWidth()
-{
-	static const int SMALL_WIDTH = 9;
-	static const int LARGE_WIDTH = 9;
-
-	if (m_PowerupState == POWERUP_STATE::NORMAL)
-	{
-		return SMALL_WIDTH;
-	}
-	else
-	{
-		return LARGE_WIDTH;
-	}
-}
-
-int Player::GetHeight()
-{
-	static const int SMALL_HEIGHT = 15;
-	static const int LARGE_HEIGHT = 23;
-
-	if (m_PowerupState == POWERUP_STATE::NORMAL)
-	{
-		return SMALL_HEIGHT;
-	}
-	else
-	{
-		return LARGE_HEIGHT;
-	}
 }
 
 void Player::Tick(double deltaTime)
@@ -131,7 +106,6 @@ void Player::Tick(double deltaTime)
 		m_ActPtr->SetPosition(DOUBLE2(SMW_JUMP_TO_POS_X, 250));
 	}
 #endif
-	m_VelLastFrame = m_ActPtr->GetLinearVelocity();
 	
 	if (m_IsDead)
 	{
@@ -143,8 +117,6 @@ void Player::Tick(double deltaTime)
 
 		if (m_DeathAnimationTimer.FramesElapsed() == 1)
 		{
-			// NOTE: We couldn't set active = true earlier since Box2D was locked,
-			// this is the next best thing
 			m_LevelPtr->SetPaused(true);
 		}
 
@@ -164,6 +136,7 @@ void Player::Tick(double deltaTime)
 
 	m_ChangingDirectionsTimer.Tick();
 	m_ShellKickAnimationTimer.Tick();
+	m_SpawnDustCloudTimer.Tick();
 
 	if (m_InvincibilityTimer.Tick() && m_InvincibilityTimer.IsComplete())
 	{
@@ -181,18 +154,11 @@ void Player::Tick(double deltaTime)
 			m_ActPtr->GetBody()->DestroyFixture(fixturePtr);
 			fixturePtr = nextFixturePtr;
 		}
-		if (m_IsRidingYoshi) 
-		{
-			m_NeedsNewFixture = false;
-			m_ActPtr->SetActive(false);
-			return;
-		}
-		m_ActPtr->SetActive(true);
 
-		m_ActPtr->AddBoxFixture(GetWidth(), GetHeight(), 0.0, 0.15);
+		m_ActPtr->SetActive(true);
+		m_ActPtr->AddBoxFixture(GetWidth(), GetHeight(), 0.0, 0.02);
 
 		double newHalfHeight = GetHeight() / 2;
-
 		double newCenterY = m_ActPtr->GetPosition().y + (newHalfHeight - oldHalfHeight);
 		m_ActPtr->SetPosition(DOUBLE2(m_ActPtr->GetPosition().x, newCenterY));
 
@@ -221,15 +187,6 @@ void Player::Tick(double deltaTime)
 		{
 			m_ItemHoldingPtr->Tick(deltaTime);
 		}
-	}
-
-	if (m_IsOnGround && 
-		m_DirFacing != m_DirFacingLastFrame)
-	{
-		DustParticle* dustParticlePtr = new DustParticle(m_ActPtr->GetPosition() + DOUBLE2(0, GetHeight() / 2));
-		m_LevelPtr->AddParticle(dustParticlePtr);
-
-		m_ChangingDirectionsTimer.Start();
 	}
 
 	TickAnimations(deltaTime);
@@ -291,32 +248,33 @@ void Player::HandleClimbingStateKeyboardInput(double deltaTime)
 
 void Player::HandleYoshiKeyboardInput(double deltaTime)
 {
+	assert(m_RidingYoshiPtr != nullptr);
+	assert(m_IsRidingYoshi);
+
+
+	double horizontalVel = 0.0;
+	double verticalVel = 0.0;
+
 	if (GAME_ENGINE->IsKeyboardKeyPressed('X')) // Spin jump
 	{
-		double newXv = 0.0, newYv = JUMP_VEL * deltaTime;
+		verticalVel = JUMP_VEL * deltaTime;
 		if (m_RidingYoshiPtr->IsAirborne())
 		{
 			m_AnimationState = ANIMATION_STATE::JUMPING;
-			m_DirFacing = m_RidingYoshiPtr->GetDirectionFacing();
 		}
 		else
 		{
 			m_AnimationState = ANIMATION_STATE::SPIN_JUMPING;
 			m_DirFacing = -m_RidingYoshiPtr->GetDirectionFacing();
-			newXv = m_DirFacing * 2500 * deltaTime;
+			horizontalVel = m_DirFacing * YOSHI_DISMOUNT_XVEL * deltaTime;
+			SoundManager::PlaySoundEffect(SoundManager::SOUND::PLAYER_SPIN_JUMP);
 		}
-		SoundManager::PlaySoundEffect(SoundManager::SOUND::PLAYER_SPIN_JUMP);
 		m_FramesSpentInAir = 0;
-		m_ActPtr->SetLinearVelocity(DOUBLE2(newXv, newYv));
+		m_ActPtr->SetLinearVelocity(DOUBLE2(horizontalVel, verticalVel));
+
 		DismountYoshi();
 		return;
 	}
-
-	DOUBLE2 prevPlayerPos = m_ActPtr->GetPosition();
-	DOUBLE2 prevPlayerVel = m_ActPtr->GetLinearVelocity();
-
-	double horizontalVel = 0.0;
-	double verticalVel = 0.0;
 
 	m_IsOnGround = CalculateOnGround();
 	if (m_IsOnGround && GAME_ENGINE->IsKeyboardKeyDown(VK_DOWN))
@@ -324,6 +282,96 @@ void Player::HandleYoshiKeyboardInput(double deltaTime)
 		m_IsDucking = true;
 		m_AnimationState = ANIMATION_STATE::WAITING;
 	}
+	else
+	{
+		m_IsDucking = false;
+	}
+
+	if (!m_WasOnGround && m_IsOnGround)
+	{
+		m_AnimationState = ANIMATION_STATE::WAITING;
+	}
+
+	if (m_IsDucking == false)
+	{
+		if (GAME_ENGINE->IsKeyboardKeyDown(VK_LEFT))
+		{
+			m_AnimationState = ANIMATION_STATE::WALKING;
+			m_DirFacing = Direction::LEFT;
+			horizontalVel = WALK_BASE_VEL * deltaTime;
+		}
+		else if (GAME_ENGINE->IsKeyboardKeyDown(VK_RIGHT))
+		{
+			m_AnimationState = ANIMATION_STATE::WALKING;
+			m_DirFacing = Direction::RIGHT;
+			horizontalVel = WALK_BASE_VEL * deltaTime;
+		}
+		else if (m_AnimationState == ANIMATION_STATE::WALKING)
+		{
+			m_AnimationState = ANIMATION_STATE::WAITING;
+		}
+
+		if (GAME_ENGINE->IsKeyboardKeyPressed('A') ||
+			GAME_ENGINE->IsKeyboardKeyPressed('S'))
+		{
+			m_RidingYoshiPtr->SpitOutItem();
+			
+			if (m_RidingYoshiPtr->IsToungeStuckOut() == false)
+			{
+				m_RidingYoshiPtr->StickToungeOut(deltaTime);
+			}
+		}
+
+		if (GAME_ENGINE->IsKeyboardKeyDown('A') ||
+			GAME_ENGINE->IsKeyboardKeyDown('S'))
+		{
+			if (m_AnimationState == ANIMATION_STATE::WALKING)
+			{
+				m_IsRunning = true;
+				horizontalVel = RUN_BASE_VEL * deltaTime;
+			}
+		}
+		else
+		{
+			m_IsRunning = false;
+		}
+	}
+
+	if (m_IsOnGround && GAME_ENGINE->IsKeyboardKeyPressed('Z'))
+	{
+		m_AnimationState = ANIMATION_STATE::JUMPING;
+		verticalVel = m_RidingYoshiPtr->JUMP_VEL * deltaTime;
+	}
+
+	DOUBLE2 oldVel = m_ActPtr->GetLinearVelocity();
+	DOUBLE2 newVel = oldVel;
+
+	if (horizontalVel != 0.0)
+	{
+		if (m_DirFacing == Direction::RIGHT) newVel.x = horizontalVel;
+		else newVel.x = -horizontalVel;
+	}
+	if (verticalVel != 0.0)
+	{
+		newVel.y = verticalVel;
+	}
+
+	if (m_DirFacingLastFrame != m_DirFacing)
+	{
+		m_ChangingDirectionsTimer.Start();
+
+		if (m_SpawnDustCloudTimer.IsActive() == false && m_IsOnGround)
+		{
+			DustParticle* dustParticlePtr = new DustParticle(m_ActPtr->GetPosition() + DOUBLE2(0, GetHeight() / 2 + 1));
+			m_LevelPtr->AddParticle(dustParticlePtr);
+			m_SpawnDustCloudTimer.Start();
+		}
+	}
+
+	m_ActPtr->SetLinearVelocity(newVel);
+
+	m_DirFacingLastFrame = m_DirFacing;
+	m_WasOnGround = m_IsOnGround;
 }
 
 void Player::HandleKeyboardInput(double deltaTime)
@@ -360,7 +408,6 @@ void Player::HandleKeyboardInput(double deltaTime)
 		m_IsLookingUp = false;
 	}
 
-
 	m_IsOnGround = CalculateOnGround();
 	if (m_IsOnGround)
 	{
@@ -371,7 +418,8 @@ void Player::HandleKeyboardInput(double deltaTime)
 
 		bool regularJumpKeyPressed = GAME_ENGINE->IsKeyboardKeyPressed('Z');
 		bool spinJumpKeyPressed = GAME_ENGINE->IsKeyboardKeyPressed('X');
-		if (regularJumpKeyPressed ||
+		if (m_AnimationState != ANIMATION_STATE::SPIN_JUMPING &&
+			regularJumpKeyPressed ||
 			(spinJumpKeyPressed && m_IsHoldingItem) ||
 			(spinJumpKeyPressed && m_IsRidingYoshi)) // NOTE: Regular jump
 		{
@@ -428,7 +476,6 @@ void Player::HandleKeyboardInput(double deltaTime)
 		}
 	}
 
-	// TODO: Fix running to walking animation update bug
 	if (GAME_ENGINE->IsKeyboardKeyDown(VK_LEFT))
 	{
 		m_DirFacing = Direction::LEFT;
@@ -458,6 +505,7 @@ void Player::HandleKeyboardInput(double deltaTime)
 
 	if (horizontalVel != 0.0)
 	{
+		// TODO: Move all keybindings out to external file
 		if (GAME_ENGINE->IsKeyboardKeyDown('A') || GAME_ENGINE->IsKeyboardKeyDown('S')) // Running
 		{
 			if (!m_IsDucking)
@@ -512,12 +560,6 @@ void Player::HandleKeyboardInput(double deltaTime)
 			m_AnimationState = ANIMATION_STATE::WAITING;
 			horizontalVel = 0.0;
 		}
-		
-		if (m_IsOnGround && m_IsDucking == false)
-		{ 
-			DustParticle* dustParticlePtr = new DustParticle(m_ActPtr->GetPosition() + DOUBLE2(0, GetHeight() / 2));
-			m_LevelPtr->AddParticle(dustParticlePtr);
-		}
 
 		m_IsDucking = true;
 
@@ -547,6 +589,18 @@ void Player::HandleKeyboardInput(double deltaTime)
 	if (verticalVel != 0.0) 
 	{
 		newVel.y = verticalVel;
+	}
+
+	if (m_DirFacingLastFrame != m_DirFacing)
+	{
+		m_ChangingDirectionsTimer.Start();
+
+		if (m_SpawnDustCloudTimer.IsActive() == false && m_IsOnGround)
+		{
+			DustParticle* dustParticlePtr = new DustParticle(m_ActPtr->GetPosition() + DOUBLE2(0, GetHeight() / 2 + 1));
+			m_LevelPtr->AddParticle(dustParticlePtr);
+			m_SpawnDustCloudTimer.Start();
+		}
 	}
 
 	double maxHorizontalAcceleration = 14;
@@ -580,17 +634,20 @@ void Player::HandleKeyboardInput(double deltaTime)
 	}
 
 	m_WasOnGround = m_IsOnGround;
+	m_DirFacingLastFrame = m_DirFacing;
 }
 
 // NOTE: Technically this isn't exactly the same as in the original, since when the player
 // stands on the edge of a block they can't jump, but it's definitely close enough
 bool Player::CalculateOnGround()
 {
+	if (m_ActPtr->GetLinearVelocity().y < 0) return false;
+
 	DOUBLE2 point1 = m_ActPtr->GetPosition();
 	DOUBLE2 point2 = m_ActPtr->GetPosition() + DOUBLE2(0, (GetHeight() / 2 + 3));
 	DOUBLE2 intersection, normal;
 	double fraction = -1.0;
-	int collisionBits = Level::COLLIDE_WITH_LEVEL | Level::COLLIDE_WITH_BLOCKS;
+	int collisionBits = Level::LEVEL | Level::BLOCK;
 
 	if (m_LevelPtr->Raycast(point1, point2, collisionBits, intersection, normal, fraction))
 	{
@@ -615,12 +672,23 @@ void Player::TickAnimations(double deltaTime)
 		case ANIMATION_STATE::FALLING:
 		case ANIMATION_STATE::CLIMBING:
 		{
-			// NOTE: 1 frame animation
-			m_AnimInfo.frameNumber = 0;
+			if (m_IsRidingYoshi && m_RidingYoshiPtr->IsToungeStuckOut())
+			{
+				m_AnimInfo.frameNumber %= 4;
+			}
+			else
+			{
+				// NOTE: 1 frame animation
+				m_AnimInfo.frameNumber = 0;
+			}
 		} break;
 		case ANIMATION_STATE::WALKING:
 		{
-			if (m_ChangingDirectionsTimer.IsActive())
+			if (m_IsRidingYoshi && m_RidingYoshiPtr->IsToungeStuckOut())
+			{
+				m_AnimInfo.frameNumber %= 4;
+			}
+			else if (m_ChangingDirectionsTimer.IsActive())
 			{
 				m_AnimInfo.frameNumber = 0;
 			}
@@ -650,9 +718,6 @@ void Player::Paint()
 		m_ExtraItemPtr->Paint();
 	}
 
-	// Yoshi paints the both of us while the player is on him
-	if (m_IsRidingYoshi) return;
-
 	if (m_InvincibilityTimer.IsActive() && m_InvincibilityTimer.FramesElapsed() % 10 < 5)
 	{
 		return; // NOTE: The player flashes while invincible
@@ -664,9 +729,16 @@ void Player::Paint()
 	bool climbingFlip = m_AnimationState == ANIMATION_STATE::CLIMBING && m_LastClimbingPose == Direction::LEFT;
 
 	bool changingDirections = m_ChangingDirectionsTimer.IsActive();
+	bool firstHalf = m_ChangingDirectionsTimer.FramesElapsed() < m_ChangingDirectionsTimer.OriginalNumberOfFrames() / 2;
+	bool yoshiFlip = m_RidingYoshiPtr &&
+					 ((m_DirFacing == Direction::LEFT && !changingDirections) ||
+					 (m_DirFacing == Direction::LEFT && changingDirections && !firstHalf) ||
+					 (m_DirFacing == Direction::RIGHT && changingDirections && firstHalf));
+	if (!changingDirections) firstHalf = false;
+
 	if ((m_DirFacing == Direction::LEFT && !changingDirections) ||
 		(m_DirFacing == Direction::RIGHT && changingDirections) ||
-		climbingFlip)
+		climbingFlip || yoshiFlip)
 	{
 		MATRIX3X2 matReflect = MATRIX3X2::CreateScalingMatrix(DOUBLE2(-1, 1));
 		MATRIX3X2 matTranslate = MATRIX3X2::CreateTranslationMatrix(centerX, centerY);
@@ -675,12 +747,12 @@ void Player::Paint()
 	}
 
 	POWERUP_STATE powerupStateToPaint;
-	int yo;
+	double yo;
 	if (m_PowerupTransitionTimer.Tick())
 	{
 		if (m_PowerupTransitionTimer.FramesElapsed() == 1)
 		{
-			m_LevelPtr->SetPausedTimer(m_PowerupTransitionTimer.OriginalNumberOfFrames()-1);
+ 			m_LevelPtr->SetPausedTimer(m_PowerupTransitionTimer.OriginalNumberOfFrames()-1);
 		}
 
 		yo = GetHeight() / 2 - (m_PrevPowerupState == POWERUP_STATE::NORMAL ? 6 : 4);
@@ -697,12 +769,40 @@ void Player::Paint()
 	else
 	{
 		powerupStateToPaint = m_PowerupState;
-		yo = GetHeight() / 2 - (m_PowerupState == POWERUP_STATE::NORMAL ? 6 : 2);
+		if (m_IsRidingYoshi)
+		{
+			yo = GetHeight() / 2 - 9.5;
+		}
+		else if (m_PowerupState == POWERUP_STATE::NORMAL)
+		{
+			yo = GetHeight() / 2 - 6;
+		}
+		else
+		{ 
+			yo = GetHeight() / 2 - 2;
+		}
 	}
 
 	SpriteSheet* spriteSheetToPaint = GetSpriteSheetForPowerupState(powerupStateToPaint);
 	INT2 spriteTile = CalculateAnimationFrame();
 	spriteSheetToPaint->Paint(centerX, centerY - GetHeight() / 2 + yo, spriteTile.x, spriteTile.y);
+
+	if (m_IsRidingYoshi && m_RidingYoshiPtr->IsToungeStuckOut())
+	{
+		int toungeTimerFramesElapsed = m_RidingYoshiPtr->GetToungeTimer().FramesElapsed();
+		int toungeTimerTotalFrames = m_RidingYoshiPtr->GetToungeTimer().OriginalNumberOfFrames();
+		
+		if (toungeTimerFramesElapsed > 14 &&
+			toungeTimerFramesElapsed < toungeTimerTotalFrames - 6)
+		{
+			int srcX = 12;
+			int srcY = 0;
+			SpriteSheetManager::yoshiWithMarioPtr->Paint(
+				centerX - m_RidingYoshiPtr->GetWidth() / 2 + 31, 
+				centerY - m_RidingYoshiPtr->GetHeight() / 2 - 1, 
+				srcX, srcY);
+		}
+	}
 
 	GAME_ENGINE->SetWorldMatrix(matPrevWorld);
 }
@@ -715,12 +815,8 @@ INT2 Player::CalculateAnimationFrame()
 	{
 		srcX = 6;
 		srcY = 1;
-		return INT2(srcX, srcY);
 	}
-
-	// NOTE: Since when holding an item behaviour is similar across all states
-	// it might as well be calculated all in one place
-	if (m_IsHoldingItem)
+	else if (m_IsHoldingItem)
 	{
 		if (m_IsDucking)
 		{
@@ -750,107 +846,150 @@ INT2 Player::CalculateAnimationFrame()
 			else if (m_AnimationState == ANIMATION_STATE::WAITING) srcX = 2;
 			else srcX = 2 + m_AnimInfo.frameNumber;
 		}
-
-		return INT2(srcX, srcY);
 	}
+	else if (m_IsRidingYoshi)
+	{
+		bool playerIsSmall = m_PowerupState == POWERUP_STATE::NORMAL;
+		srcY = playerIsSmall ? 0 : 1;
 
-	switch (m_AnimationState)
-	{
-	case ANIMATION_STATE::WAITING:
-	{
-		if (m_IsDead)
+		if (m_RidingYoshiPtr->IsToungeStuckOut())
 		{
-			srcX = 6;
-			srcY = 1;
-		}
-		else if (m_IsLookingUp)
-		{
-			srcX = 0;
-			srcY = 0;
-		}
-		else if (m_IsDucking)
-		{
-			srcX = 1;
-			srcY = 0;
-		}
-		else
-		{
-			srcX = 2;
-			srcY = 0;
-		}
-	} break;
-	case ANIMATION_STATE::WALKING:
-	{
-		if (m_ShellKickAnimationTimer.IsActive())
-		{
-			srcX = 5;
-			srcY = 1;
+			srcX = 8 + m_AnimInfo.frameNumber;
 		}
 		else if (m_ChangingDirectionsTimer.IsActive())
 		{
-			srcX = 6;
-			srcY = 0;
-		}
-		else if (m_IsRunning)
-		{
-			srcX = 4 + m_AnimInfo.frameNumber;
-			srcY = 0;
+			srcX = 4;
 		}
 		else
 		{
-			srcX = 2 + m_AnimInfo.frameNumber;
-			srcY = 0;
+			switch (m_AnimationState)
+			{
+			case ANIMATION_STATE::WAITING:
+			{
+				if (m_IsDucking)
+				{
+					srcX = 5;
+				}
+				else
+				{
+					srcX = 1;
+				}
+			} break;
+			case ANIMATION_STATE::WALKING:
+			{
+				srcX = 1 + m_AnimInfo.frameNumber;
+			} break;
+			case ANIMATION_STATE::JUMPING:
+			{
+				srcX = 3;
+			} break;
+			case ANIMATION_STATE::FALLING:
+			{
+				srcX = 2;
+			} break;
+			}
 		}
-	} break;
-	case ANIMATION_STATE::JUMPING:
-	{	
-		if (m_IsDucking)
-		{
-			srcX = 1;
-			srcY = 0;
-		}
-		else
-		{
-			srcX = 0;
-			srcY = 2;
-		}
-	} break;
-	case ANIMATION_STATE::SPIN_JUMPING:
+	}
+	else
 	{
-		srcX = 3 + m_AnimInfo.frameNumber;
-		srcY = 2;
-	} break;
-	case ANIMATION_STATE::FALLING:
-	{
-		if (m_IsDucking)
+		switch (m_AnimationState)
 		{
-			srcX = 1;
-			srcY = 0;
-		}
-		else if (m_IsRunning)
+		case ANIMATION_STATE::WAITING:
 		{
-			srcX = 2;
+			if (m_IsDead)
+			{
+				srcX = 6;
+				srcY = 1;
+			}
+			else if (m_IsLookingUp)
+			{
+				srcX = 0;
+				srcY = 0;
+			}
+			else if (m_IsDucking)
+			{
+				srcX = 1;
+				srcY = 0;
+			}
+			else
+			{
+				srcX = 2;
+				srcY = 0;
+			}
+		} break;
+		case ANIMATION_STATE::WALKING:
+		{
+			if (m_ShellKickAnimationTimer.IsActive())
+			{
+				srcX = 5;
+				srcY = 1;
+			}
+			else if (m_ChangingDirectionsTimer.IsActive())
+			{
+				srcX = 6;
+				srcY = 0;
+			}
+			else if (m_IsRunning)
+			{
+				srcX = 4 + m_AnimInfo.frameNumber;
+				srcY = 0;
+			}
+			else
+			{
+				srcX = 2 + m_AnimInfo.frameNumber;
+				srcY = 0;
+			}
+		} break;
+		case ANIMATION_STATE::JUMPING:
+		{	
+			if (m_IsDucking)
+			{
+				srcX = 1;
+				srcY = 0;
+			}
+			else
+			{
+				srcX = 0;
+				srcY = 2;
+			}
+		} break;
+		case ANIMATION_STATE::SPIN_JUMPING:
+		{
+			srcX = 3 + m_AnimInfo.frameNumber;
 			srcY = 2;
-		}
-		else
+		} break;
+		case ANIMATION_STATE::FALLING:
 		{
-			srcX = 1;
-			srcY = 2;
-		}
-	} break;
-	case ANIMATION_STATE::CLIMBING:
-	{
-		if (m_PowerupState == POWERUP_STATE::NORMAL)
+			if (m_IsDucking)
+			{
+				srcX = 1;
+				srcY = 0;
+			}
+			else if (m_IsRunning)
+			{
+				srcX = 2;
+				srcY = 2;
+			}
+			else
+			{
+				srcX = 1;
+				srcY = 2;
+			}
+		} break;
+		case ANIMATION_STATE::CLIMBING:
 		{
-			srcX = 7;
-			srcY = 0;
+			if (m_PowerupState == POWERUP_STATE::NORMAL)
+			{
+				srcX = 7;
+				srcY = 0;
+			}
+			else
+			{
+				srcX = 7;
+				srcY = 2;
+			}
+		} break;
 		}
-		else
-		{
-			srcX = 7;
-			srcY = 2;
-		}
-	} break;
 	}
 
 	return INT2(srcX, srcY);
@@ -868,23 +1007,36 @@ void Player::RideYoshi(Yoshi* yoshiPtr)
 
 	m_RidingYoshiPtr = yoshiPtr;
 	m_RidingYoshiPtr->SetCarryingPlayer(true, this);
-	
+
 	m_NeedsNewFixture = true;
+
+	m_ChangingDirectionsTimer = CountdownTimer(YOSHI_TURN_AROUND_FRAMES);
+	m_AnimInfo.secondsPerFrame = m_RidingYoshiPtr->TOUNGE_STUCK_OUT_SECONDS_PER_FRAME;
 
 	m_IsRidingYoshi = true;
 	m_AnimationState = ANIMATION_STATE::WAITING;
 }
 
-void Player::DismountYoshi()
+void Player::DismountYoshi(bool runWild)
 {
 	assert(m_RidingYoshiPtr != nullptr);
 
-	m_ActPtr->SetPosition(m_RidingYoshiPtr->GetPosition() + DOUBLE2(0, -m_RidingYoshiPtr->GetHeight()));
-
-	m_RidingYoshiPtr->SetCarryingPlayer(false);
+	if (runWild)
+	{
+		m_ActPtr->SetLinearVelocity(DOUBLE2(0, -350));
+		m_RidingYoshiPtr->RunWild();
+	}
+	else
+	{
+		m_ActPtr->SetPosition(m_ActPtr->GetPosition() + DOUBLE2(0, -4));
+		m_RidingYoshiPtr->SetCarryingPlayer(false);
+	}
 	m_RidingYoshiPtr = nullptr;
 
 	m_NeedsNewFixture = true;
+
+	m_ChangingDirectionsTimer = CountdownTimer(3);
+	m_AnimInfo.secondsPerFrame = MARIO_SECONDS_PER_FRAME;
 
 	m_IsRidingYoshi = false;
 }
@@ -902,16 +1054,19 @@ void Player::OnItemPickup(Item* itemPtr, Level* levelPtr)
 			coinPtr->GenerateParticles();
 		}
 
-		m_Score += 10;
+		AddScore(10, coinPtr->GetPosition() + DOUBLE2(5, -12));
 	} break;
 	case Item::TYPE::DRAGON_COIN:
 	{
 		AddDragonCoin(levelPtr);
-		m_Score += 2000; // NOTE: Not quite perfectly accurate, but enough for now
-		((DragonCoin*)itemPtr)->GenerateParticles();
+		DragonCoin* dragonCoinPtr = (DragonCoin*)itemPtr;
+		dragonCoinPtr->GenerateParticles();
+		AddScore(2000, dragonCoinPtr->GetPosition() + DOUBLE2(5, -12)); // NOTE: Not quite perfectly accurate, but enough for now
 	} break;
 	case Item::TYPE::SUPER_MUSHROOM:
 	{
+		AddScore(1000, m_ActPtr->GetPosition());
+
 		switch (m_PowerupState)
 		{
 		case POWERUP_STATE::NORMAL:
@@ -992,15 +1147,22 @@ void Player::ChangePowerupState(POWERUP_STATE newPowerupState, bool isUpgrade)
 
 SpriteSheet* Player::GetSpriteSheetForPowerupState(POWERUP_STATE powerupState)
 {
-	switch (powerupState)
+	if (m_IsRidingYoshi)
 	{
-	case POWERUP_STATE::NORMAL:
-		return SpriteSheetManager::smallMarioPtr;
-	case POWERUP_STATE::SUPER:
-		return SpriteSheetManager::superMarioPtr;
-	default:
-		OutputDebugString(String("Unhandled powerup state passed to Player::GetSpriteSheetForPowerupState!\n"));
-		return nullptr;
+		return SpriteSheetManager::yoshiWithMarioPtr;
+	}
+	else
+	{
+		switch (powerupState)
+		{
+		case POWERUP_STATE::NORMAL:
+			return SpriteSheetManager::smallMarioPtr;
+		case POWERUP_STATE::SUPER:
+			return SpriteSheetManager::superMarioPtr;
+		default:
+			OutputDebugString(String("Unhandled powerup state passed to Player::GetSpriteSheetForPowerupState!\n"));
+			return nullptr;
+		}
 	}
 }
 
@@ -1012,9 +1174,20 @@ void Player::AddItemToBeHeld(Item* itemPtr)
 	m_IsHoldingItem = true;
 }
 
-void Player::KickShell(KoopaShell* koopaShellPtr)
+void Player::KickShell(KoopaShell* koopaShellPtr, bool wasThrown)
 {
-	koopaShellPtr->KickHorizontally(m_DirFacing, true);
+	int direction;
+	if (wasThrown) 
+	{
+		direction = m_DirFacing;
+	}
+	else 
+	{
+		direction = (m_ActPtr->GetPosition().x > koopaShellPtr->GetPosition().x) ? Direction::LEFT : Direction::RIGHT;
+
+		m_LevelPtr->GetPlayer()->AddScore(200, koopaShellPtr->GetPosition() + DOUBLE2(0, -12));
+	}
+	koopaShellPtr->KickHorizontally(direction, wasThrown);
 }
 
 void Player::DropHeldItem()
@@ -1124,6 +1297,15 @@ void Player::Die()
 
 void Player::TakeDamage()
 {
+	if (m_IsInvincible) return;
+
+	if (m_IsRidingYoshi) 
+	{
+		DismountYoshi(true);
+
+		return;
+	}
+
 	switch (m_PowerupState)
 	{
 	case POWERUP_STATE::NORMAL:
@@ -1149,6 +1331,20 @@ void Player::TakeDamage()
 		OutputDebugString(String("ERROR: Unhandled powerup state in Player::TakeDamage()\n"));
 	} break;
 	}
+}
+
+void Player::AddScore(int score, DOUBLE2 particlePosition)
+{
+	if (score < 0)
+	{
+		OutputDebugString(String("ERROR: Negative score attempted to be added to player! ") + String(score) + String("\n"));
+		return;
+	}
+
+	m_Score += score;
+
+	NumberParticle* numberParticlePtr = new NumberParticle(score, particlePosition);
+	m_LevelPtr->AddParticle(numberParticlePtr);
 }
 
 void Player::SetOverlappingWithBeanstalk(bool overlapping)
@@ -1178,6 +1374,45 @@ void Player::SetClimbingBeanstalk(bool climbing)
 
 	m_FramesClimbingSinceLastFlip = FRAMES_OF_CLIMBING_ANIMATION;
 }
+
+int Player::GetWidth()
+{
+	static const int SMALL_WIDTH = 9;
+	static const int LARGE_WIDTH = 9;
+
+	if (m_IsRidingYoshi)
+	{
+		return m_RidingYoshiPtr->GetWidth();
+	}
+	else if (m_PowerupState == POWERUP_STATE::NORMAL)
+	{
+		return SMALL_WIDTH;
+	}
+	else
+	{
+		return LARGE_WIDTH;
+	}
+}
+
+int Player::GetHeight()
+{
+	static const int SMALL_HEIGHT = 15;
+	static const int LARGE_HEIGHT = 23;
+
+	if (m_IsRidingYoshi)
+	{
+		return m_RidingYoshiPtr->GetHeight();
+	}
+	else if (m_PowerupState == POWERUP_STATE::NORMAL)
+	{
+		return SMALL_HEIGHT;
+	}
+	else
+	{
+		return LARGE_HEIGHT;
+	}
+}
+
 
 bool Player::IsInvincible()
 {
@@ -1357,6 +1592,14 @@ String Player::AnimationStateToString(ANIMATION_STATE state)
 
 	return str;
 }
+
+bool Player::IsAirborne()
+{
+	return	m_AnimationState == ANIMATION_STATE::JUMPING ||
+			m_AnimationState == ANIMATION_STATE::SPIN_JUMPING ||
+			m_AnimationState == ANIMATION_STATE::FALLING;
+}
+
 
 bool Player::IsTransitioningPowerups()
 {

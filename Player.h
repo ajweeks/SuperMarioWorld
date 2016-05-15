@@ -26,18 +26,14 @@ public:
 	Player(Level* levelPtr);
 	virtual ~Player();
 
-	Player& operator=(const Player&) = delete;
 	Player(const Player&) = delete;
+	Player& operator=(const Player&) = delete;
 
 	void Tick(double deltaTime);
 	void TickAnimations(double deltaTime);
-
 	void Paint();
-
 	void Reset();
 	
-	POWERUP_STATE GetPowerupState();
-
 	static POWERUP_STATE StringToPowerupState(std::string powerupStateStr);
 	static std::string PowerupStateToString(POWERUP_STATE powerupState);
 
@@ -58,52 +54,44 @@ public:
 	DOUBLE2 GetPosition();
 	int GetDirectionFacing();
 
+	POWERUP_STATE GetPowerupState();
+
 	bool IsOnGround();
 
 	bool IsRidingYoshi();
-
 	void RideYoshi(Yoshi* yoshiPtr);
-	void DismountYoshi();
-
-	bool IsDucking();
-
-	void KickShell(KoopaShell* koopaShellPtr);
+	void DismountYoshi(bool runWild = false);
 
 	// Called when the player bounces off an enemy's head
 	void Bounce();
-
 	void Die();
 	void TakeDamage();
-
+	void KickShell(KoopaShell* koopaShellPtr, bool wasThrown);
+	
 	void ReleaseExtraItem(DOUBLE2 position);
-
 	void OnItemPickup(Item* itemPtr, Level* levelPtr);
 
-	void SetClimbingBeanstalk(bool climbing);
-
-	int GetWidth();
-	int GetHeight();
-
-	ANIMATION_STATE GetAnimationState();
-	bool IsDead();
-	bool IsRunning();
-
-	bool IsInvincible();
+	void AddScore(int score, DOUBLE2 particlePosition);
 
 	void MidwayGatePasshrough();
+	void SetClimbingBeanstalk(bool climbing);
+	ANIMATION_STATE GetAnimationState();
+	int GetWidth();
+	int GetHeight();
+	bool IsDead();
+	bool IsRunning();
+	bool IsDucking();
+	bool IsInvincible();
+	bool IsAirborne();
 
 	// NOTE: This should be called every time the player stomps on a KoopaTroopa's head
 	//       Every frames m_FramesUntilEnemyHeadBounceEndSound is decremented, and plays the
 	//		 sound when it reaches 0
 	void ResetNumberOfFramesUntilEndStompSound();
-
 	void SetOverlappingWithBeanstalk(bool overlapping);
-
 	bool IsTransitioningPowerups();
 
 private:
-	INT2 CalculateAnimationFrame();
-
 	void HandleKeyboardInput(double deltaTime);
 	void HandleClimbingStateKeyboardInput(double deltaTime);
 	void HandleYoshiKeyboardInput(double deltaTime);
@@ -111,17 +99,14 @@ private:
 	void AddCoin(Level* levelPtr, bool playSound = true);
 	void AddDragonCoin(Level* levelPtr);
 	void AddLife();
-
-	bool CalculateOnGround();
-
 	void KickHeldItem(bool gently = false);
-
-	String AnimationStateToString(ANIMATION_STATE state);
-
 	void ChangePowerupState(POWERUP_STATE newPowerupState, bool isUpgrade = true);
 
+	INT2 CalculateAnimationFrame();
+	bool CalculateOnGround();
 	SpriteSheet* GetSpriteSheetForPowerupState(POWERUP_STATE powerupState);
-
+	String AnimationStateToString(ANIMATION_STATE state);
+	
 	SpriteSheet* m_SpriteSheetPtr = nullptr;
 
 	static const double DEFAULT_GRAVITY;
@@ -129,8 +114,11 @@ private:
 	static const int JUMP_VEL;
 	static const int WALK_BASE_VEL;
 	static const int RUN_BASE_VEL;
-
+	static const int YOSHI_DISMOUNT_XVEL;
 	static const int BOUNCE_VEL;
+
+	static const int YOSHI_TURN_AROUND_FRAMES = 15;
+	static const double MARIO_SECONDS_PER_FRAME;
 
 	bool m_IsOnGround;
 	bool m_WasOnGround;
@@ -151,6 +139,7 @@ private:
 	CountdownTimer m_HeadStompSoundDelayTimer;
 	CountdownTimer m_PowerupTransitionTimer;
 	CountdownTimer m_InvincibilityTimer;
+	CountdownTimer m_SpawnDustCloudTimer;
 
 	POWERUP_STATE m_PrevPowerupState; // This is used to transition between states upon state change
 
@@ -159,7 +148,6 @@ private:
 
 	Item* m_ItemHoldingPtr;
 
-	DOUBLE2 m_VelLastFrame;
 	int m_DirFacingLastFrame;
 	int m_DirFacing;
 
