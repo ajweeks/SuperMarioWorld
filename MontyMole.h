@@ -5,7 +5,6 @@
 struct INT2;
 
 /*
-
 	Monty Moles spawn from dirt patches in walls and in the ground when the player comes nearby.
 	If the player doesn't kill them, they will respawn when the player goes away and comes back.
 	Once a mole has been spawned and has jumped out, whether or not they were killed, there will
@@ -14,7 +13,6 @@ struct INT2;
 	All moles are spawned at the start of the game and are invisible until
 	the player comes within a certain distance of them. When a mole is killed by 
 	the player, this instance is tol to not spawn a mole again. 
-
 */
 
 class MontyMole : public Enemy
@@ -28,6 +26,7 @@ public:
 	{
 		GROUND, WALL, NONE
 	};
+
 	/*
 		There are two types of AI:
 	  1) Stupid roomba
@@ -71,12 +70,17 @@ private:
 	void UpdatePosition(double deltaTime);
 	void CalculateNewTarget();
 
-	static const int WIDTH = 16;
-	static const int HEIGHT = 16;
+	static const int WIDTH = 12;
+	static const int HEIGHT = 14;
 
 	static const double HORIZONTAL_ACCELERATION;
 	static const double MAX_HORIZONTAL_VEL;
 	static const double TARGET_OVERSHOOT_DISTANCE;
+
+	static const double JUMP_VEL; // How high the "dumb" moles jump while walking around
+	static const double LAUNCH_OUT_OF_GROUND_VEL;
+
+	static const int PLAYER_PROXIMITY = 100; // How close the player has to get before we spawn
 
 	DOUBLE2 m_SpawingPosition;
 
@@ -84,6 +88,7 @@ private:
 
 	CountdownTimer m_SpawnDustCloudTimer;
 	CountdownTimer m_FramesSpentWrigglingInDirtTimer;
+	CountdownTimer m_FramesSinceLastHop; // NOTE: Only used by "dumb" moles
 
 	double m_TargetX;
 

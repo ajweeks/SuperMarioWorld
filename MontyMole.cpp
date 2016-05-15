@@ -7,13 +7,18 @@
 #include "Level.h"
 #include "Player.h"
 #include "SoundManager.h"
+
 #include "DustParticle.h"
 #include "BlockBreakParticle.h"
 #include "EnemyPoofParticle.h"
+#include "SplatParticle.h"
 
-const double MontyMole::HORIZONTAL_ACCELERATION = 780.0;
-const double MontyMole::MAX_HORIZONTAL_VEL = 135.0;
+const double MontyMole::HORIZONTAL_ACCELERATION = 880.0;
+const double MontyMole::MAX_HORIZONTAL_VEL = 125.0;
 const double MontyMole::TARGET_OVERSHOOT_DISTANCE = 30.0;
+
+const double MontyMole::LAUNCH_OUT_OF_GROUND_VEL = -22000.0;
+const double MontyMole::JUMP_VEL = -10000.0;
 
 MontyMole::MontyMole(DOUBLE2& startingPos, Level* levelPtr, SPAWN_LOCATION_TYPE spawnLocationType, AI_TYPE aiType) :
 	Enemy(TYPE::MONTY_MOLE, startingPos + DOUBLE2(GetWidth()/2, GetHeight()/2), GetWidth(), GetHeight(), BodyType::DYNAMIC, levelPtr, this),
@@ -25,6 +30,9 @@ MontyMole::MontyMole(DOUBLE2& startingPos, Level* levelPtr, SPAWN_LOCATION_TYPE 
 
 	m_FramesSpentWrigglingInDirtTimer = CountdownTimer(90);
 	m_SpawnDustCloudTimer = CountdownTimer(4);
+	m_FramesSinceLastHop = CountdownTimer(60);
+
+	if (m_AiType == AI_TYPE::DUMB) m_FramesSinceLastHop.Start();
 }
 
 MontyMole::~MontyMole()
@@ -50,8 +58,7 @@ void MontyMole::Tick(double deltaTime)
 	{
 	case ANIMATION_STATE::INVISIBLE:
 	{
-		// TODO: Ensure this check is similar enough to the original's functionality
-		if (abs(m_LevelPtr->GetPlayer()->GetPosition().x - m_SpawingPosition.x) < 150)
+		if (abs(m_LevelPtr->GetPlayer()->GetPosition().x - m_SpawingPosition.x) < PLAYER_PROXIMITY)
 		{
 			m_AnimationState = ANIMATION_STATE::IN_GROUND;
 			
@@ -64,10 +71,8 @@ void MontyMole::Tick(double deltaTime)
 		if (m_FramesSpentWrigglingInDirtTimer.Tick() && m_FramesSpentWrigglingInDirtTimer.IsComplete())
 		{
 			m_AnimationState = ANIMATION_STATE::JUMPING_OUT_OF_GROUND;
-			m_ActPtr->SetSensor(false);
 			m_ActPtr->SetActive(true);
-			// FIXME!!: Find out why moles only go through platforms when the player is nearby them
-			m_ActPtr->SetLinearVelocity(DOUBLE2(0, -350));
+			m_ActPtr->SetLinearVelocity(DOUBLE2(0, LAUNCH_OUT_OF_GROUND_VEL * deltaTime));
 			m_HaveSpawnedMole = true;
 
 			SoundManager::PlaySoundEffect(SoundManager::SOUND::BLOCK_BREAK);
@@ -78,15 +83,19 @@ void MontyMole::Tick(double deltaTime)
 	} break;
 	case ANIMATION_STATE::JUMPING_OUT_OF_GROUND:
 	{
+		if (m_ActPtr->IsSensor() &&
+			m_ActPtr->GetLinearVelocity().y > -0.5)
+		{
+			m_ActPtr->SetSensor(false);
+		}
+
 		if (m_ActPtr->GetLinearVelocity().y == 0.0)
 		{
 			m_AnimationState = ANIMATION_STATE::WALKING;
 
 			DOUBLE2 playerPos = m_LevelPtr->GetPlayer()->GetPosition();
-			if (playerPos.x > m_ActPtr->GetPosition().x)
-				m_DirFacing = Direction::RIGHT;
-			else
-				m_DirFacing = Direction::LEFT;
+			if (playerPos.x > m_ActPtr->GetPosition().x) m_DirFacing = Direction::RIGHT;
+			else m_DirFacing = Direction::LEFT;
 
 			CalculateNewTarget();
 
@@ -111,7 +120,7 @@ void MontyMole::Tick(double deltaTime)
 		{
 			if (!m_HasBeenKilledByPlayer)
 			{
-				if (abs(m_LevelPtr->GetPlayer()->GetPosition().x - m_SpawingPosition.x) < 150)
+				if (abs(m_LevelPtr->GetPlayer()->GetPosition().x - m_SpawingPosition.x) < PLAYER_PROXIMITY)
 				{
 					m_AnimationState = ANIMATION_STATE::IN_GROUND;
 
@@ -131,12 +140,16 @@ void MontyMole::Tick(double deltaTime)
 
 void MontyMole::UpdatePosition(double deltaTime) 
 {
+	DOUBLE2 prevVel = m_ActPtr->GetLinearVelocity();
+	DOUBLE2 molePos = m_ActPtr->GetPosition();
+
+	double newXVel = prevVel.x;
+	double newYVel = prevVel.y;
+
 	switch (m_AiType)
 	{
 	case AI_TYPE::SMART:
 	{
-		DOUBLE2 prevVel = m_ActPtr->GetLinearVelocity();
-		DOUBLE2 molePos = m_ActPtr->GetPosition();
 		DOUBLE2 playerPos = m_LevelPtr->GetPlayer()->GetPosition();
 
 		// We've walked past our target, time to turn around
@@ -160,36 +173,53 @@ void MontyMole::UpdatePosition(double deltaTime)
 		{
 			CalculateNewTarget();
 		}
-
-		// Keep walking towards the target
-		double horizontalDelta = (double(m_DirFacing) * HORIZONTAL_ACCELERATION * deltaTime);
-		double newXVel = prevVel.x + horizontalDelta;
-
-		newXVel = CLAMP(newXVel, -MAX_HORIZONTAL_VEL, MAX_HORIZONTAL_VEL);
-
-		// Dust cloud spawning
-		if (m_SpawnDustCloudTimer.IsActive() == false &&
-			m_IsOnGround &&
-			((horizontalDelta > 0 && prevVel.x < 0) ||
-				(horizontalDelta < 0 && prevVel.x > 0)))
-		{
-			DustParticle* dustParticlePtr = new DustParticle(m_ActPtr->GetPosition() + DOUBLE2(0, GetHeight() / 2 + 1));
-			m_LevelPtr->AddParticle(dustParticlePtr);
-
-			m_SpawnDustCloudTimer.Start();
-		}
-
-		m_ActPtr->SetLinearVelocity(DOUBLE2(newXVel, prevVel.y));
 	} break;
 	case AI_TYPE::DUMB:
 	{
 		// Just walk forward, jumping periodically, until you hit a wall, at which point turn around
+
+		// Test if we're running into an obstacle
+		DOUBLE2 point1 = m_ActPtr->GetPosition();
+		DOUBLE2 point2 = m_ActPtr->GetPosition() + DOUBLE2(m_DirFacing * (GetWidth() / 2 + 2), 0);
+		DOUBLE2 intersection, normal;
+		double fraction = -1.0;
+		int collisionBits = Level::LEVEL | Level::BLOCK;
+		if (m_LevelPtr->Raycast(point1, point2, collisionBits, intersection, normal, fraction))
+		{
+			// Turn around
+			m_DirFacing = -m_DirFacing;
+			CalculateNewTarget();
+		}
+
+		// See if it's time to hop again
+		if (prevVel.y == 0 &&
+			m_FramesSinceLastHop.Tick() && m_FramesSinceLastHop.IsComplete())
+		{
+			m_FramesSinceLastHop.Start();
+			newYVel = JUMP_VEL * deltaTime;
+		}
 	} break;
-	default: 
+	}
+
+	// Keep walking towards the target
+	double horizontalDelta = (double(m_DirFacing) * HORIZONTAL_ACCELERATION * deltaTime);
+	newXVel = prevVel.x + horizontalDelta;
+
+	newXVel = CLAMP(newXVel, -MAX_HORIZONTAL_VEL, MAX_HORIZONTAL_VEL);
+
+	// Dust cloud spawning
+	if (m_SpawnDustCloudTimer.IsActive() == false &&
+		m_IsOnGround &&
+		((horizontalDelta > 0 && prevVel.x < 0) ||
+			(horizontalDelta < 0 && prevVel.x > 0)))
 	{
-		OutputDebugString(String("Unhandled AI type in MontyMole::UpdatePosition! ") + String(int(m_AiType)) + String("\n"));
+		DustParticle* dustParticlePtr = new DustParticle(m_ActPtr->GetPosition() + DOUBLE2(0, GetHeight() / 2 + 1));
+		m_LevelPtr->AddParticle(dustParticlePtr);
+
+		m_SpawnDustCloudTimer.Start();
 	}
-	}
+
+	m_ActPtr->SetLinearVelocity(DOUBLE2(newXVel, newYVel));
 }
 
 void MontyMole::CalculateNewTarget()
@@ -197,7 +227,10 @@ void MontyMole::CalculateNewTarget()
 	DOUBLE2 playerPos = m_LevelPtr->GetPlayer()->GetPosition();
 	m_TargetX = playerPos.x + TARGET_OVERSHOOT_DISTANCE * m_DirFacing;
 	double xScale = abs(m_ActPtr->GetLinearVelocity().x / MAX_HORIZONTAL_VEL);
-	m_TargetX += ((double((rand() % 10)) / 10.0) * xScale) * 40.0 - 20.0;
+
+	// NOTE: Adds some randomness to the target to prevent several moles from walking the exact same path
+	double maxVariation = 40.0;
+	m_TargetX += ((double((rand() % 10)) / 9.0) * xScale) * maxVariation - maxVariation / 2;
 }
 
 void MontyMole::HeadBonk()
@@ -210,6 +243,14 @@ void MontyMole::HeadBonk()
 	case ANIMATION_STATE::JUMPING_OUT_OF_GROUND:
 	{
 		m_AnimationState = ANIMATION_STATE::DEAD;
+
+		m_ActPtr->SetLinearVelocity(DOUBLE2(0.0, 0.0));
+
+		SplatParticle* splatParticlePtr = new SplatParticle(m_ActPtr->GetPosition());
+		m_LevelPtr->AddParticle(splatParticlePtr);
+
+		m_LevelPtr->GetPlayer()->AddScore(200, m_ActPtr->GetPosition());
+
 		m_ActPtr->SetSensor(true);
 	} break;
 	}
@@ -265,12 +306,12 @@ void MontyMole::Paint()
 	}
 
 	INT2 animationFrame = GetAnimationFrame();
-	SpriteSheetManager::montyMolePtr->Paint(centerX, centerY + 2, animationFrame.x, animationFrame.y);
+	SpriteSheetManager::montyMolePtr->Paint(centerX, centerY + 1.5, animationFrame.x, animationFrame.y);
 	
 	GAME_ENGINE->SetWorldMatrix(matPrevWorld);
 
 #if SMW_DISPLAY_AI_DEBUG_INFO
-	GAME_ENGINE->SetColor(COLOR(255, 0, 0));
+	GAME_ENGINE->SetColor(COLOR(235, 50, 0));
 	GAME_ENGINE->DrawLine(m_TargetX, m_ActPtr->GetPosition().y - 300, m_TargetX, m_ActPtr->GetPosition().y + 300);
 #endif
 }
