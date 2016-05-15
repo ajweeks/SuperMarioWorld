@@ -17,8 +17,6 @@
 #include "Particle.h"
 #include "ParticleManager.h"
 #include "Player.h"
-#include "KoopaTroopa.h"
-#include "MontyMole.h"
 #include "SuperMushroom.h"
 #include "KoopaShell.h"
 #include "MidwayGate.h"
@@ -26,9 +24,12 @@
 #include "Coin.h"
 #include "PSwitch.h"
 
+#include "KoopaTroopa.h"
+#include "MontyMole.h"
+#include "CharginChuck.h"
+
 #define GAME_ENGINE (GameEngine::GetSingleton())
 
-// NOTE: Level::Reset *must* be called upon game initialization!
 Level::Level(Game* gamePtr) : m_GamePtr(gamePtr)
 {
 	m_PlayerPtr = new Player(this);
@@ -563,6 +564,18 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool &
 	} break;
 	case int(ActorId::ENEMY):
 	{
+		Enemy* enemyPtr = (Enemy*)actOtherPtr->GetUserPointer();
+
+		// Fixes chargin chuck's jumping:
+		if (enemyPtr->GetType() ==  Enemy::TYPE::CHARGIN_CHUCK)
+		{
+			CharginChuck* charginChuckPtr = (CharginChuck*)enemyPtr;
+			if (charginChuckPtr->GetAnimationState() == CharginChuck::ANIMATION_STATE::JUMPING)
+			{
+				enableContactRef = false;
+			}
+		}
+
 		switch (actThisPtr->GetUserData())
 		{
 		case int(ActorId::PLATFORM):

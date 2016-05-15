@@ -41,6 +41,8 @@ void SoundManager::InitialzeSoundsAndSongs()
 
 	LoadSound(SOUND::FIRE_BALL_THROW, m_ResourcePath + String("fire-ball-throw.wav"));
 
+	LoadSound(SOUND::CHARGIN_CHUCK_HEAD_BONK, m_ResourcePath + String("chargin-chuck-head-bonk.wav"));
+
 	LoadSound(SOUND::BEANSTALK_SPAWN, m_ResourcePath + String("beanstalk-spawn.wav"));
 
 	LoadSound(SOUND::SUPER_MUSHROOM_SPAWN, m_ResourcePath + String("super-mushroom-spawn.wav"));

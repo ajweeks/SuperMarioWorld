@@ -11,6 +11,7 @@
 #include "Enemy.h"
 #include "MontyMole.h"
 #include "KoopaTroopa.h"
+#include "CharginChuck.h"
 
 #include "Platform.h"
 #include "Pipe.h"
@@ -184,6 +185,10 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 			MontyMole::AI_TYPE aiType = MontyMole::StringToAIType(FileIO::GetTagContent(enemyContent, "AIType"));
 			MontyMole::SPAWN_LOCATION_TYPE spawnLocationType = MontyMole::StringToSpawnLocationType(FileIO::GetTagContent(enemyContent, "SpawnLocationType"));
 			m_EnemiesPtrArr.push_back(new MontyMole(topLeft, levelPtr, spawnLocationType, aiType));
+		} break;
+		case int(Enemy::TYPE::CHARGIN_CHUCK):
+		{
+			m_EnemiesPtrArr.push_back(new CharginChuck(topLeft, levelPtr));
 		} break;
 		default:
 		{

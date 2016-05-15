@@ -45,6 +45,8 @@ public:
 	static SpriteSheet* smallYoshiPtr;
 	static SpriteSheet* yoshiWithMarioPtr;
 
+	static SpriteSheet* charginChuckPtr;
+
 private:
 	SpriteSheetManager();
 
