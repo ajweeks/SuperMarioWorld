@@ -20,8 +20,8 @@ public:
 	void SetUsed(bool used);
 
 private:
-	int m_CurrentFrameOfBumpAnimation = -1;
-	static const int FRAMES_OF_BUMP_ANIMATION = 14;
+	CountdownTimer m_BumpAnimationTimer;
+
 	int m_yo = 0;
 	bool m_IsUsed = false;
 	bool m_ShouldSpawnItem = false;

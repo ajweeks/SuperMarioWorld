@@ -1,11 +1,17 @@
 #include "stdafx.h"
+
 #include "Enemy.h"
+#include "Level.h"
 
 Enemy::Enemy(TYPE type, DOUBLE2& posRef, double width, double height, BodyType bodyType, Level* levelPtr, void* userPointer) :
 	Entity(posRef, bodyType, levelPtr, ActorId::ENEMY, userPointer),
 	m_Type(type)
 {
 	m_ActPtr->AddBoxFixture(width, height, 0.0);
+	b2Filter collisionFilter;
+	collisionFilter.categoryBits = Level::ENEMY;
+	collisionFilter.maskBits = Level::LEVEL | Level::ENEMY | Level::BLOCK | Level::PLAYER | Level::SHELL | Level::YOSHI_TOUNGE;
+	m_ActPtr->SetCollisionFilter(collisionFilter);
 }
 
 Enemy::~Enemy()

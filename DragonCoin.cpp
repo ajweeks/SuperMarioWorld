@@ -1,7 +1,6 @@
 #include "stdafx.h"
 
 #include "DragonCoin.h"
-#include "NumberParticle.h"
 #include "CoinCollectParticle.h"
 #include "Level.h"
 #include "SpriteSheetManager.h"
@@ -21,10 +20,7 @@ void DragonCoin::Tick(double deltaTime)
 
 void DragonCoin::GenerateParticles()
 {
-	NumberParticle* numberParticlePtr = new NumberParticle(1000, m_ActPtr->GetPosition() + DOUBLE2(5, -12));
 	CoinCollectParticle* coinParticlePtr = new CoinCollectParticle(m_ActPtr->GetPosition() + DOUBLE2(0, -5));
-
-	m_LevelPtr->AddParticle(numberParticlePtr);
 	m_LevelPtr->AddParticle(coinParticlePtr);
 }
 

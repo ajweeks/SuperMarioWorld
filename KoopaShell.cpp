@@ -8,7 +8,6 @@
 #include "Level.h"
 #include "Player.h"
 #include "EnemyPoofParticle.h"
-#include "NumberParticle.h"
 #include "SoundManager.h"
 
 const double KoopaShell::HORIZONTAL_KICK_BASE_VEL = 190;
@@ -66,11 +65,17 @@ void KoopaShell::Tick(double deltaTime)
 		DOUBLE2 point2 = m_ActPtr->GetPosition() + DOUBLE2(m_DirMoving * (WIDTH / 2 + 2), 0);
 		DOUBLE2 intersection, normal;
 		double fraction = -1.0;
-		int collisionBits = Level::COLLIDE_WITH_LEVEL | Level::COLLIDE_WITH_BLOCKS;
+		int collisionBits = Level::LEVEL | Level::BLOCK;
 
 		if (m_LevelPtr->Raycast(point1, point2, collisionBits, intersection, normal, fraction))
 		{
 			m_DirMoving = -m_DirMoving;
+		}
+
+		// Prevent moving off the left side of the level
+		if (m_ActPtr->GetPosition().x < -WIDTH)
+		{
+			m_LevelPtr->RemoveItem(this);
 		}
 	}
 }
@@ -135,8 +140,7 @@ void KoopaShell::Stomp()
 	EnemyPoofParticle* poofParticlePtr = new EnemyPoofParticle(m_ActPtr->GetPosition());
 	m_LevelPtr->AddParticle(poofParticlePtr);
 
-	NumberParticle* numberParticlePtr = new NumberParticle(200, m_ActPtr->GetPosition());
-	m_LevelPtr->AddParticle(numberParticlePtr);
+	m_LevelPtr->GetPlayer()->AddScore(200, m_ActPtr->GetPosition());
 
 	SoundManager::PlaySoundEffect(SoundManager::SOUND::ENEMY_HEAD_STOMP_START);
 	m_LevelPtr->GetPlayer()->ResetNumberOfFramesUntilEndStompSound();
@@ -160,7 +164,7 @@ void KoopaShell::SetMoving(bool moving)
 
 	if (!moving)
 	{
-		m_ActPtr->SetLinearVelocity(DOUBLE2());
+		m_ActPtr->SetLinearVelocity(DOUBLE2(0.0, 0.0));
 	}
 }
 

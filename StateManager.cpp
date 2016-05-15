@@ -9,7 +9,11 @@
 StateManager::StateManager(Game* gamePtr) : 
 	m_GamePtr(gamePtr)
 {
+#if SMW_SKIP_MAIN_MENU
+	m_StatesPtrArr.push_back(new GameState(this));
+#else
 	m_StatesPtrArr.push_back(new MainMenuState(this));
+#endif
 }
 
 StateManager::~StateManager()

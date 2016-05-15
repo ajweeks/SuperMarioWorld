@@ -30,6 +30,7 @@
 
 		<Pipe>
 			<BoundingBox>242,20,244,22</BoundingBox>
+			<Enterable>1</Enterable>
 		</Pipe>
 		<Pipe>
 			<BoundingBox>253,19,255,22</BoundingBox>
@@ -40,6 +41,7 @@
 		</Pipe>
 		<Pipe>
 			<BoundingBox>273,19,275,22</BoundingBox>
+			<Spawns>PiranhaPlant</Spawns>
 		</Pipe>
 	</Pipes>
 
@@ -490,11 +492,16 @@
 			<TopLeft>104,21</TopLeft>
 			<Colour>Green</Colour>
 		</Enemy>
+		
+		<Enemy>
+			<Type>CharginChuck</Type>
+			<TopLeft>140,16</TopLeft>
+		</Enemy>
 	
 		<Enemy>
 			<Type>MontyMole</Type>
 			<TopLeft>193,17</TopLeft>
-			<AIType>Smart</AIType>
+			<AIType>Dumb</AIType>
 			<SpawnLocationType>Wall</SpawnLocationType>
 		</Enemy>
 		<Enemy>
@@ -513,14 +520,19 @@
 		<Enemy>
 			<Type>MontyMole</Type>
 			<TopLeft>235,21</TopLeft>
-			<AIType>Smart</AIType>
+			<AIType>Dumb</AIType>
 			<SpawnLocationType>Ground</SpawnLocationType>
 		</Enemy>
 		<Enemy>
 			<Type>MontyMole</Type>
 			<TopLeft>247,21</TopLeft>
-			<AIType>Smart</AIType>
+			<AIType>Dumb</AIType>
 			<SpawnLocationType>Ground</SpawnLocationType>
+		</Enemy>
+		
+		<Enemy>
+			<Type>CharginChuck</Type>
+			<TopLeft>291,20</TopLeft>
 		</Enemy>
 	</Enemies>
 	

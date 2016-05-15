@@ -3,12 +3,17 @@
 #include "Berry.h"
 #include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
+#include "Level.h"
 
 Berry::Berry(DOUBLE2& positionRef, Level* levelPtr, COLOUR colour) :
 	Item(positionRef, TYPE::BERRY, levelPtr),
 	m_Colour(colour)
 {
-	m_ActPtr->SetSensor(true);
+	b2Filter collisionFilter;
+	collisionFilter.categoryBits = Level::BERRY; // I am a berry
+	collisionFilter.maskBits = Level::YOSHI_TOUNGE; // I collide with yoshi's tounge
+	m_ActPtr->SetCollisionFilter(collisionFilter);
+
 	m_AnimInfo.secondsPerFrame = 0.125;
 }
 

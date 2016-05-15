@@ -9,10 +9,9 @@
 #include "SoundManager.h"
 
 #include "EnemyPoofParticle.h"
-#include "NumberParticle.h"
 #include "SplatParticle.h"
 
-KoopaTroopa::KoopaTroopa(DOUBLE2& startingPos, Level* levelPtr, COLOUR colour) :
+KoopaTroopa::KoopaTroopa(DOUBLE2 startingPos, Level* levelPtr, COLOUR colour) :
 	Enemy(TYPE::KOOPA_TROOPA, startingPos, GetWidth(), GetHeight(), BodyType::DYNAMIC, levelPtr, this),
 	m_Colour(colour)
 {
@@ -94,13 +93,12 @@ void KoopaTroopa::Tick(double deltaTime)
 	m_AnimInfo.Tick(deltaTime);
 	m_AnimInfo.frameNumber %= 2;
 
-
 	// NOTE: Checks if this koopa is near an obstacle, if true then turn around
 	DOUBLE2 point1 = m_ActPtr->GetPosition();
 	DOUBLE2 point2 = m_ActPtr->GetPosition() + DOUBLE2(m_DirFacing * (GetWidth() / 2 + 2), 0);
 	DOUBLE2 intersection, normal;
 	double fraction = -1.0;
-	int collisionBits = Level::COLLIDE_WITH_LEVEL | Level::COLLIDE_WITH_ENEMIES | Level::COLLIDE_WITH_SHELLS;
+	int collisionBits = Level::LEVEL | Level::BLOCK | Level::ENEMY | Level::SHELL;
 
 	if (m_LevelPtr->Raycast(point1, point2, collisionBits, intersection, normal, fraction))
 	{
@@ -112,7 +110,7 @@ void KoopaTroopa::Tick(double deltaTime)
 	point1 = m_ActPtr->GetPosition();
 	point2 = m_ActPtr->GetPosition() + DOUBLE2(m_DirFacing * (GetWidth() / 2 + 2), GetHeight() / 2 + 4);
 	fraction = -1.0;
-	collisionBits = Level::COLLIDE_WITH_LEVEL;
+	collisionBits = Level::LEVEL | Level::BLOCK;
 
 	if (!m_LevelPtr->Raycast(point1, point2, collisionBits, intersection, normal, fraction))
 	{
@@ -282,8 +280,8 @@ void KoopaTroopa::ShellHit()
 	SplatParticle* splatParticlePtr = new SplatParticle(m_ActPtr->GetPosition());
 	m_LevelPtr->AddParticle(splatParticlePtr);
 
-	NumberParticle* numberParticlePtr = new NumberParticle(200, m_ActPtr->GetPosition());
-	m_LevelPtr->AddParticle(numberParticlePtr);
+	// LATER: Add combo score here
+	m_LevelPtr->GetPlayer()->AddScore(200, m_ActPtr->GetPosition());
 
 	m_ShouldBeRemoved = true;
 }
@@ -293,8 +291,7 @@ void KoopaTroopa::StompKill()
 	EnemyPoofParticle* poofParticlePtr = new EnemyPoofParticle(m_ActPtr->GetPosition());
 	m_LevelPtr->AddParticle(poofParticlePtr);
 
-	NumberParticle* numberParticlePtr = new NumberParticle(200, m_ActPtr->GetPosition());
-	m_LevelPtr->AddParticle(numberParticlePtr);
+	m_LevelPtr->GetPlayer()->AddScore(200, m_ActPtr->GetPosition());
 
 	SoundManager::PlaySoundEffect(SoundManager::SOUND::ENEMY_HEAD_STOMP_START);
 	m_LevelPtr->GetPlayer()->ResetNumberOfFramesUntilEndStompSound();

@@ -5,10 +5,13 @@ enum class ActorId
 	PLAYER, PLATFORM, PIPE, ENEMY, LEVEL, ITEM, YOSHI, YOSHI_TOUNGE
 };
 
-struct FacingDirection
+struct Direction
 {
 	static const int LEFT = -1;
 	static const int RIGHT = 1;
+
+	static const int UP = -1;
+	static const int DOWN = 1;
 };
 
 enum class COLOUR

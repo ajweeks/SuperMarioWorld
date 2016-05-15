@@ -21,6 +21,18 @@ class SpriteSheet;
 class Level : public ContactListener
 {
 public:
+	enum CollisionFilter
+	{
+		LEVEL			= (1 << 0),
+		ENEMY			= (1 << 1),
+		PLAYER			= (1 << 2),
+		BLOCK			= (1 << 3),
+		SHELL			= (1 << 4),
+		YOSHI			= (1 << 5),
+		YOSHI_TOUNGE	= (1 << 6),
+		BERRY			= (1 << 7)
+	};
+
 	Level(Game* gamePtr);
 	virtual ~Level();
 
@@ -29,63 +41,45 @@ public:
 
 	void Tick(double deltaTime);
 	void Paint();
-
 	void Reset();
 
 	void AddItem(Item* newItemPtr);
 	void RemoveItem(Item* itemPtr);
-
 	void AddEnemy(Enemy* newEnemyPtr);
 	void RemoveEnemy(Enemy* enemyPtr);
-
 	void AddYoshi(Yoshi* yoshiPtr);
 
 	double GetWidth();
 	double GetHeight();
-
 	int GetTimeRemaining();
-
 	void SetShowingMessage(bool showingMessage);
 	bool IsShowingMessage();
-
 	void SetPaused(bool paused);
-
 	bool IsCheckpointCleared();
-
 	void SetAllDragonCoinsCollected(bool allCollected);
 	bool AllDragonCoinsCollected();
-
 	Player* GetPlayer();
-	void GiveItemToPlayer(Item* itemPtr);
-
-	DOUBLE2 GetCameraOffset();
-
-	void AddParticle(Particle* particlePtr);
-
-	static const int COLLIDE_WITH_LEVEL		= (2 << 0);
-	static const int COLLIDE_WITH_ENEMIES	= (2 << 1);
-	static const int COLLIDE_WITH_PLAYER	= (2 << 2);
-	static const int COLLIDE_WITH_BLOCKS    = (2 << 3);
-	static const int COLLIDE_WITH_SHELLS	= (2 << 4);
-	bool Raycast(DOUBLE2 point1, DOUBLE2 point2, int collisionBits, DOUBLE2 &intersectionRef, DOUBLE2 &normalRef, double &fractionRef);
-
-	void TriggerEndScreen();
-
+	DOUBLE2 GetCameraOffset(double deltaTime);
 	void SetPausedTimer(int duration);
+	bool IsPaused();
+
+	void GiveItemToPlayer(Item* itemPtr);
+	void AddParticle(Particle* particlePtr);
+	bool Raycast(DOUBLE2 point1, DOUBLE2 point2, int collisionBits, DOUBLE2 &intersectionRef, DOUBLE2 &normalRef, double &fractionRef);
+	void TriggerEndScreen();
 
 private:
 	void PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool & enableContactRef);
 	void BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr);
 	void EndContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr);
+
 	bool ActorCanPassThroughPlatform(PhysicsActor *actPlatformPtr, DOUBLE2& actorPosRef, double actorWidth, double actorHeight);
+	void CollidePlayerWithBlock(DOUBLE2 blockCenterPos, DOUBLE2 playerFeet, bool& enableContactRef);
 
 	void DEBUGPaintZoomedOut();
-	
 	void ResetMembers();
-
 	void PaintHUD();
 	unsigned int GetNumberOfDigits(unsigned int i);
-
 	void TogglePaused();
 	void TurnCoinsToBlocks(bool toBlocks);
 
@@ -104,25 +98,24 @@ private:
 	PhysicsActor* m_ActLevelPtr = nullptr;
 
 	bool m_Paused;
-
 	bool m_ShowingMessage;
 
 	int m_TotalTime; // How long the player has to complete this level
 	double m_SecondsElapsed; // How many real-time seconds have elapsed
 	int m_TimeRemaining;
-
+	
 	// How many pixels wide the foreground of the level is
 	double m_Width;
 	// How many pixels high the foreground of the level is
 	double m_Height;
-
+	
 	bool m_AllDragonCoinsCollected;
-
 	bool m_IsCheckpointCleared;
 	
 	// This can be set by various classes to pause the game for a short duration
 	// (eg. when the player changes powerup states, when a message block is animating in or out, etc.)
 	CountdownTimer m_GamePausedTimer;
+	CountdownTimer m_CoinsToBlocksTimer;
 
 	Player *m_PlayerPtr = nullptr;
 	Camera* m_CameraPtr = nullptr;

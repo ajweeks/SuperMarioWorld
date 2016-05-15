@@ -40,22 +40,22 @@ bool CountdownTimer::Tick()
 	}
 }
 
-bool CountdownTimer::IsComplete()
+bool CountdownTimer::IsComplete() const
 {
 	return m_FramesRemaining == 0;
 }
 
-bool CountdownTimer::IsActive()
+bool CountdownTimer::IsActive() const
 {
 	return m_IsActive;
 }
 
-int CountdownTimer::FramesElapsed()
+int CountdownTimer::FramesElapsed() const
 {
 	return (TOTAL_FRAMES - m_FramesRemaining);
 }
 
-int CountdownTimer::OriginalNumberOfFrames()
+int CountdownTimer::OriginalNumberOfFrames() const
 {
 	return TOTAL_FRAMES;
 }

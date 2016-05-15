@@ -10,6 +10,4 @@ private:
 	static const int CHARACTER_HEIGHT = 9;
 
 	static const int CHARS_WIDE = 18;
-
-	static const char m_LetterIndicies[];
 };

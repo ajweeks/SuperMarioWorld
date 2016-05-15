@@ -34,11 +34,11 @@ public:
 		WALKING, SHELLESS, WALKING_SHELLESS, SQUASHED, UPSIDEDOWN_SHELLESS
 	};
 
-	KoopaTroopa(DOUBLE2& startingPos, Level* levelPtr, COLOUR colour);
+	KoopaTroopa(DOUBLE2 startingPos, Level* levelPtr, COLOUR colour);
 	virtual ~KoopaTroopa();
 
 	KoopaTroopa(const KoopaTroopa&) = delete;
-	KoopaTroopa&operator=(const KoopaTroopa&) = delete;
+	KoopaTroopa& operator=(const KoopaTroopa&) = delete;
 
 	void Tick(double deltaTime);
 	void Paint();

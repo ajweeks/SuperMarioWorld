@@ -2,8 +2,10 @@
 
 #include "Pipe.h"
 #include "Enumerations.h"
+#include "Level.h"
 
-Pipe::Pipe(DOUBLE2 topLeft, DOUBLE2 bottomRight, bool canAccess) : m_CanAccess(canAccess)
+Pipe::Pipe(DOUBLE2 topLeft, DOUBLE2 bottomRight, Level* levelPtr, bool canAccess) : 
+	m_CanAccess(canAccess)
 {
 	m_Bounds = RECT2(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
 	double width = bottomRight.x - topLeft.x;

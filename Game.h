@@ -21,16 +21,18 @@
 
 #define GAME_ENGINE (GameEngine::GetSingleton())
 
-#define SMW_DEBUG_ZOOM_OUT false
-
+#define SMW_SKIP_MAIN_MENU true
 #define SMW_DISPLAY_GENERAL_DEBUG_INFO true
 #define SMW_DISPLAY_CAMERA_DEBUG_INFO false
+#define SMW_DEBUG_ZOOM_OUT false
 #define SMW_DISPLAY_AI_DEBUG_INFO false
 
 #define SMW_ENABLE_JUMP_TO
-//#define SMW_JUMP_TO_POS_X 840
-//#define SMW_JUMP_TO_POS_X 4700
-#define SMW_JUMP_TO_POS_X 3000
+#define SMW_JUMP_TO_POS_X 840 // Yoshi
+//#define SMW_JUMP_TO_POS_X 2000 // Chargin Chuck
+//#define SMW_JUMP_TO_POS_X 3000 // Monty Moles
+//#define SMW_JUMP_TO_POS_X 4270 // Piranha Plant
+//#define SMW_JUMP_TO_POS_X 4700 // Goal Gate
 
 #define ARRAY_SIZE(array) (sizeof((array))/sizeof((array[0])))
 

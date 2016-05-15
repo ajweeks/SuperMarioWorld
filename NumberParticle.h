@@ -15,7 +15,7 @@ public:
 	void Paint();
 
 private:
-	static const int LIFETIME = 38;
+	static const int LIFETIME = 44;
 
 	int m_Value;
 	DOUBLE2 m_Velocity;

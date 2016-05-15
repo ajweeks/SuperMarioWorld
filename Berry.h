@@ -19,4 +19,3 @@ private:
 	COLOUR m_Colour;
 
 };
-

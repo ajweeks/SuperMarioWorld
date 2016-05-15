@@ -13,6 +13,7 @@ PrizeBlock::PrizeBlock(DOUBLE2 topLeft, Level* levelPtr, bool spawnsYoshi) :
 	m_SpawnsYoshi(spawnsYoshi)
 {
 	m_AnimInfo.secondsPerFrame = 0.09;
+	m_BumpAnimationTimer = CountdownTimer(14);
 }
 
 void PrizeBlock::Tick(double deltaTime)
@@ -34,24 +35,22 @@ void PrizeBlock::Tick(double deltaTime)
 		}
 	}
 
-	if (m_CurrentFrameOfBumpAnimation > -1)
+	if (m_BumpAnimationTimer.Tick())
 	{
 		// NOTE: I *think* what happens during the bump animation is
 		//		 the block renders the normal question mark (not spinning)
 		//       and moves up then down around 3 or 5 pixels.
 		//		 Then the block is "used" and renders the brown used block texture
 
-		m_yo = m_CurrentFrameOfBumpAnimation;
-		if (m_yo > FRAMES_OF_BUMP_ANIMATION / 2)
+		m_yo = m_BumpAnimationTimer.FramesElapsed();
+		if (m_yo > m_BumpAnimationTimer.OriginalNumberOfFrames() / 2)
 		{
-			m_yo = (FRAMES_OF_BUMP_ANIMATION / 2) - (m_yo - (FRAMES_OF_BUMP_ANIMATION / 2));
+			m_yo = (m_BumpAnimationTimer.OriginalNumberOfFrames() / 2) - (m_yo - (m_BumpAnimationTimer.OriginalNumberOfFrames() / 2));
 		}
 		m_yo = int(m_yo * -0.5);
 
-		m_CurrentFrameOfBumpAnimation++;
-		if (m_CurrentFrameOfBumpAnimation > FRAMES_OF_BUMP_ANIMATION)
+		if (m_BumpAnimationTimer.IsComplete())
 		{
-			m_CurrentFrameOfBumpAnimation = -1;
 			m_yo = 0;
 		}
 	}
@@ -84,7 +83,7 @@ void PrizeBlock::Hit(Level* levelPtr)
 	if (m_IsUsed == false)
 	{
 		m_IsUsed = true;
-		m_CurrentFrameOfBumpAnimation = 2;
+		m_BumpAnimationTimer.Start();
 		m_yo = 0;
 
 		m_ShouldSpawnItem = true;

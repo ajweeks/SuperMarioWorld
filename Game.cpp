@@ -153,17 +153,17 @@ void Game::GameTick(double deltaTime)
 
 void Game::GamePaint()
 {
-	MATRIX3X2 matPrevious = GAME_ENGINE->GetViewMatrix();
 	GAME_ENGINE->SetViewMatrix(matIdentity);
 
 	m_StateManagerPtr->Paint();
 
 	if (m_ShowingSessionInfo)
 	{
+		MATRIX3X2 matPrevView = GAME_ENGINE->GetViewMatrix();
+		GAME_ENGINE->SetViewMatrix(matIdentity);
 		GameSession::PaintCurrentSessionInfo();
+		GAME_ENGINE->SetViewMatrix(matPrevView);
 	}
-
-	GAME_ENGINE->SetViewMatrix(matPrevious);
 }
 
 bool Game::ShowingSessionInfo()

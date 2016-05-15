@@ -48,6 +48,12 @@ void SuperMushroom::Tick(double deltaTime)
 			m_DirFacing = -m_DirFacing;
 		}
 
+		// Prevent moving off the left side of the level
+		if (m_ActPtr->GetPosition().x < -WIDTH)
+		{
+			m_LevelPtr->RemoveItem(this);
+		}
+
 		double xVel = HORIZONTAL_VEL * m_DirFacing;
 		m_ActPtr->SetLinearVelocity(DOUBLE2(xVel, m_ActPtr->GetLinearVelocity().y));
 	}

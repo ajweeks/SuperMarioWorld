@@ -23,7 +23,7 @@ public:
 
 private:
 	static const int HORIZONTAL_VEL = 80;
-	const int m_CollisionBits = Level::COLLIDE_WITH_LEVEL | Level::COLLIDE_WITH_PLAYER;
+	const int m_CollisionBits = Level::LEVEL | Level::PLAYER | Level::BLOCK;
 
 	DOUBLE2 m_SpawnLocation;
 

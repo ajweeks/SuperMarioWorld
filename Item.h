@@ -45,6 +45,4 @@ protected:
 
 private:
 	TYPE m_Type;
-
-	// TODO: Add velocity member? (And an isStatic field? or just a vel of 0)
 };

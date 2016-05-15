@@ -5,8 +5,6 @@
 #include "SpriteSheetManager.h"
 #include "HUD.h"
 
-const char SMWFont::m_LetterIndicies[] = { 'A', 'B', 'C' };
-
 void SMWFont::PaintPhrase(std::string phrase, int left, int top, bool outlined)
 {
 	int xo = left;

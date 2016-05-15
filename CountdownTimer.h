@@ -10,10 +10,10 @@ struct CountdownTimer
 	// Returns true if this timer is active, or if it just completed
 	bool Tick();
 
-	bool IsComplete();
-	bool IsActive();
-	int FramesElapsed();
-	int OriginalNumberOfFrames();
+	bool IsComplete() const;
+	bool IsActive() const;
+	int FramesElapsed() const;
+	int OriginalNumberOfFrames() const;
 
 	void SetComplete();
 

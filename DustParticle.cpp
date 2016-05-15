@@ -5,9 +5,10 @@
 #include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
 
-DustParticle::DustParticle(DOUBLE2 position) : Particle(LIFETIME, position)
+DustParticle::DustParticle(DOUBLE2 position) : 
+	Particle(LIFETIME, position)
 {
-	m_AnimInfo.secondsPerFrame = 0.11;
+	m_AnimInfo.secondsPerFrame = 0.08;
 }
 
 DustParticle::~DustParticle()

@@ -19,6 +19,7 @@ GoalGate::GoalGate(DOUBLE2 topLeft, Level* levelPtr) :
 	m_TopLeft = topLeft;
 
 	m_ActPtr->SetSensor(true);
+	m_BarDirectionMoving = 1;
 }
 
 GoalGate::~GoalGate()
