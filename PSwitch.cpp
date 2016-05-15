@@ -3,14 +3,24 @@
 #include "PSwitch.h"
 #include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
+#include "Level.h"
+#include "EnemyDeathCloudParticle.h"
 
 PSwitch::PSwitch(DOUBLE2 topLeft, COLOUR colour, Level* levelPtr) :
 	Item(topLeft, Item::TYPE::P_SWITCH, levelPtr, BodyType::DYNAMIC), m_Colour(colour)
 {
+	m_PressedTimer = CountdownTimer(20);
 }
 
 void PSwitch::Tick(double deltaTime)
 {
+	if (m_PressedTimer.Tick() && m_PressedTimer.IsComplete())
+	{
+		EnemyDeathCloudParticle* cloudParticlePtr = new EnemyDeathCloudParticle(m_ActPtr->GetPosition());
+		m_LevelPtr->AddParticle(cloudParticlePtr);
+
+		m_LevelPtr->RemoveItem(this);
+	}
 }
 
 void PSwitch::Paint()
@@ -23,5 +33,13 @@ void PSwitch::Paint()
 	{
 		srcCol += 1;
 	}
-	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);
+	SpriteSheetManager::generalTilesPtr->Paint(left, top + 2, srcCol, srcRow);
+}
+
+void PSwitch::Hit()
+{
+	m_IsPressed = true;
+	m_PressedTimer.Start();
+
+	// TODO: Add screenshake here!
 }

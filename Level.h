@@ -87,6 +87,7 @@ private:
 	unsigned int GetNumberOfDigits(unsigned int i);
 
 	void TogglePaused();
+	void TurnCoinsToBlocks(bool toBlocks);
 
 	static const int TIME_WARNING = 100; // When this many in game seconds are remaining the player is notified
 

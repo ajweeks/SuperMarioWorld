@@ -23,6 +23,8 @@
 #include "KoopaShell.h"
 #include "MidwayGate.h"
 #include "GoalGate.h"
+#include "Coin.h"
+#include "PSwitch.h"
 
 #define GAME_ENGINE (GameEngine::GetSingleton())
 
@@ -44,6 +46,8 @@ Level::Level(Game* gamePtr) : m_GamePtr(gamePtr)
 	m_CameraPtr = new Camera(Game::WIDTH, Game::HEIGHT, this);
 
 	m_ParticleManagerPtr = new ParticleManager();
+
+	m_CoinsToBlocksTimer = CountdownTimer(480);
 
 	ResetMembers();
 }
@@ -175,11 +179,16 @@ void Level::Tick(double deltaTime)
 	if (m_PlayerPtr->GetExtraItemType() != Item::TYPE::NONE &&
 		m_Paused && GAME_ENGINE->IsKeyboardKeyPressed(VK_RETURN))
 	{
-		DOUBLE2 cameraOffset = GetCameraOffset();
+		DOUBLE2 cameraOffset = GetCameraOffset(deltaTime);
 		double xPos = cameraOffset.x + Game::WIDTH / 2;
 		double yPos = cameraOffset.y + 25;
 
 		m_PlayerPtr->ReleaseExtraItem(DOUBLE2(xPos, yPos));
+	}
+
+	if (m_CoinsToBlocksTimer.Tick() && m_CoinsToBlocksTimer.IsComplete())
+	{
+		TurnCoinsToBlocks(false);
 	}
 
 	if (m_YoshiPtr != nullptr)
@@ -736,6 +745,27 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 					goalGatePtr->Hit();
 				}
 			} break;
+			case Item::TYPE::P_SWITCH:
+			{
+				PSwitch* pSwitchPtr = (PSwitch*)itemPtr;
+
+				if (m_PlayerPtr->IsRunning() && m_PlayerPtr->IsHoldingItem() == false)
+				{
+					m_PlayerPtr->AddItemToBeHeld(pSwitchPtr);
+				}
+				else
+				{
+					if (m_PlayerPtr->GetLinearVelocity().y > 0)
+					{
+						pSwitchPtr->Hit();
+						TurnCoinsToBlocks(true);
+					}
+					else
+					{
+						
+					}
+				}
+			} break;
 			}
 		} break;
 		case int(ActorId::ENEMY):
@@ -1048,6 +1078,34 @@ void Level::SetShowingMessage(bool showingMessage)
 bool Level::IsShowingMessage()
 {
 	return m_ShowingMessage;
+}
+
+void Level::TurnCoinsToBlocks(bool toBlocks)
+{
+	std::vector<Item*> itemsPtrArr = m_LevelDataPtr->GetItems();
+	for (size_t i = 0; i < itemsPtrArr.size(); ++i)
+	{
+		if (itemsPtrArr[i] != nullptr && itemsPtrArr[i]->GetType() == Item::TYPE::COIN)
+		{
+			((Coin*)itemsPtrArr[i])->TurnToBlock(toBlocks);
+		}
+	}
+	
+	if (toBlocks) 
+	{
+		m_CoinsToBlocksTimer.Start();
+		// LATER: play sound here
+		// LATER: play song here
+	}
+	else
+	{
+		// LATER: play sound here
+	}
+}
+
+bool Level::IsPaused()
+{
+	return m_Paused;
 }
 
 double Level::GetWidth()

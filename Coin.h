@@ -17,11 +17,16 @@ public:
 
 	static const int LIFETIME = 25;
 
+	void TurnToBlock(bool toBlock);
+
+	bool IsBlock();
+
 protected:
 	static const int WIDTH = 16;
 	static const int HEIGHT = 16;
 
 private:
 	int m_Life;
+	bool m_IsBlock = false; // This is true for a short period of time after mario hits a p-switch
 
 };

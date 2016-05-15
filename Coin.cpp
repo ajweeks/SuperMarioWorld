@@ -2,7 +2,6 @@
 
 #include "Coin.h"
 #include "Level.h"
-#include "NumberParticle.h"
 #include "CoinCollectParticle.h"
 #include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
@@ -52,10 +51,7 @@ int Coin::GetLifeRemaining()
 
 void Coin::GenerateParticles()
 {
-	NumberParticle* numberParticlePtr = new NumberParticle(10, m_ActPtr->GetPosition() + DOUBLE2(5, -12));
 	CoinCollectParticle* coinParticlePtr = new CoinCollectParticle(m_ActPtr->GetPosition() + DOUBLE2(0, -5));
-
-	m_LevelPtr->AddParticle(numberParticlePtr);
 	m_LevelPtr->AddParticle(coinParticlePtr);
 }
 
@@ -65,5 +61,24 @@ void Coin::Paint()
 	int srcRow = 0;
 	double left = m_ActPtr->GetPosition().x;
 	double top = m_ActPtr->GetPosition().y;
+
+	if (m_IsBlock)
+	{
+		srcRow = 4;
+		srcCol = 4;
+	}
+
 	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);
+}
+
+// If toBlock is false, then we are being turned back to a coin
+void Coin::TurnToBlock(bool toBlock)
+{
+	m_ActPtr->SetSensor(!toBlock);
+	m_IsBlock = toBlock;
+}
+
+bool Coin::IsBlock()
+{
+	return m_IsBlock;
 }

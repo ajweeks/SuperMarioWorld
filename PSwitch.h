@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Item.h"
+#include "CountdownTimer.h"
 
 class PSwitch : public Item
 {
@@ -12,9 +13,13 @@ public:
 
 	void Tick(double deltaTime);
 	void Paint();
+	void Hit();
 
 private:
 	COLOUR m_Colour;
 	bool m_IsPressed = false;
+
+	// This timer starts when we get pressed by the player and we are removed when it finishes
+	CountdownTimer m_PressedTimer; 
 
 };
