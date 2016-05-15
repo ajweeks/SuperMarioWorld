@@ -15,6 +15,7 @@ Bitmap* SpriteSheetManager::starParticlePtr = nullptr;
 Bitmap* SpriteSheetManager::splatParticlePtr = nullptr;
 
 Bitmap* SpriteSheetManager::mainMenuScreenPtr = nullptr;
+Bitmap* SpriteSheetManager::mainMenuScreenBGPtr = nullptr;
 Bitmap* SpriteSheetManager::fontPtr = nullptr;
 
 
@@ -62,7 +63,7 @@ void SpriteSheetManager::Load()
 	splatParticlePtr = new Bitmap(String("Resources/splat-particle.png"));
 
 	mainMenuScreenPtr = new Bitmap(String("Resources/main-menu-screen.png"));
-	mainMenuScreenPtr->SetTransparencyColor(COLOR(0, 128, 0));
+	mainMenuScreenBGPtr = new Bitmap(String("Resources/main-menu-bg.png"));
 	fontPtr = new Bitmap(String("Resources/font.png"));
 
 
@@ -75,7 +76,7 @@ void SpriteSheetManager::Load()
 	beanstalkPtr = new SpriteSheet(String("Resources/beanstalk.png"), 1, 3, 16, 16);
 
 	coinCollectParticlePtr = new SpriteSheet(String("Resources/coin-collect-particle.png"), 10, 1, 16, 28);
-	runningDustCloudParticlePtr = new SpriteSheet(String("Resources/dust-cloud-particle.png"), 4, 1, 8, 12);
+	runningDustCloudParticlePtr = new SpriteSheet(String("Resources/dust-cloud-particle.png"), 4, 1, 6, 6);
 	numberParticlePtr = new SpriteSheet(String("Resources/number-particle.png"), 10, 1, 4, 7);
 	enemyDeathCloudParticlePtr = new SpriteSheet(String("Resources/enemy-death-cloud-particle.png"), 5, 1, 22, 18);
 
@@ -85,7 +86,8 @@ void SpriteSheetManager::Load()
 
 	yoshiPtr = new SpriteSheet(String("Resources/yoshi.png"), 5, 1, 26, 32);
 	smallYoshiPtr = new SpriteSheet(String("Resources/yoshi-small.png"), 3, 2, 16, 16);
-	yoshiWithMarioPtr = new SpriteSheet(String("Resources/yoshi-with-mario.png"), 14, 2, 33, 39);
+	yoshiWithMarioPtr = new SpriteSheet(String("Resources/yoshi-with-mario.png"), 13, 2, 33, 39);
+
 	piranhaPlantPtr = new SpriteSheet(String("Resources/piranha-plant.png"), 4, 1, 16, 21);
 	charginChuckPtr = new SpriteSheet(String("Resources/chargin-chuck.png"), 4, 3, 28, 27);
 }
@@ -104,6 +106,7 @@ void SpriteSheetManager::Unload()
 	delete splatParticlePtr;
 
 	delete mainMenuScreenPtr;
+	delete mainMenuScreenBGPtr;
 	delete fontPtr;
 
 	delete enemyDeathCloudParticlePtr;

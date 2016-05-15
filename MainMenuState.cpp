@@ -11,15 +11,17 @@
 MainMenuState::MainMenuState(StateManager* stateManagerPtr) :
 	BaseState(stateManagerPtr, STATE_TYPE::MAIN_MENU)
 {
-	m_ScreenShowing = SCREEN::START;
+	EnterScreen(SCREEN::START);
 
 	SoundManager::PlaySong(SoundManager::SONG::MENU_SCREEN_BGM);
 
-	m_IntroTitleTimer = CountdownTimer(140);
+	m_IntroTitleTimer = CountdownTimer(190);
 	m_IntroFadeInTimer = CountdownTimer(75);
 	m_OutroFadeOutTimer = CountdownTimer(75);
 
 	m_IntroTitleTimer.Start();
+
+	SoundManager::PlaySoundEffect(SoundManager::SOUND::COIN_COLLECT);
 }
 
 MainMenuState::~MainMenuState()
@@ -32,7 +34,7 @@ void MainMenuState::Tick(double deltaTime)
 	{
 		m_IntroFadeInTimer.Start();
 	}
-
+	
 	if (m_IntroFadeInTimer.Tick())
 	{
 		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE) ||
@@ -58,54 +60,8 @@ void MainMenuState::Tick(double deltaTime)
 	m_CursorAnimationTimer++;
 	m_CursorAnimationTimer %= MAX_CURSOR_TIMER_VALUE;
 
-	switch (m_ScreenShowing)
-	{
-	case SCREEN::START:
-	{
-		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE) ||
-			GAME_ENGINE->IsKeyboardKeyPressed('A') ||
-			GAME_ENGINE->IsKeyboardKeyPressed('S') ||
-			GAME_ENGINE->IsKeyboardKeyPressed('Z') ||
-			GAME_ENGINE->IsKeyboardKeyPressed('X'))
-		{
-			m_ScreenShowing = SCREEN::SAVE_SELECTION;
-			m_CursorIndex = 0;
-			m_MaxCursorIndex = 3;
-		}
-	} break;
-	case SCREEN::SAVE_SELECTION:
-	{
-		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_DOWN))
-		{
-			++m_CursorIndex;
-			if (m_CursorIndex > m_MaxCursorIndex) m_CursorIndex = 0;
-
-			SoundManager::PlaySoundEffect(SoundManager::SOUND::FIRE_BALL_THROW);
-			m_CursorAnimationTimer = 0;
-		}
-		else if (GAME_ENGINE->IsKeyboardKeyPressed(VK_UP))
-		{
-			--m_CursorIndex;			
-			if (m_CursorIndex < 0) m_CursorIndex = m_MaxCursorIndex;
-		
-			SoundManager::PlaySoundEffect(SoundManager::SOUND::FIRE_BALL_THROW);
-			m_CursorAnimationTimer = 0;
-		}
-		else if (GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE) ||
-			GAME_ENGINE->IsKeyboardKeyPressed('Z') ||
-			GAME_ENGINE->IsKeyboardKeyPressed('X'))
-		{
-			// TODO: Actually use the selected save state here
-
-			m_ScreenShowing = SCREEN::PARTY_SIZE;
-			m_CursorIndex = 0;
-			m_MaxCursorIndex = 1;
-			m_CursorAnimationTimer = 0;
-
-			SoundManager::PlaySoundEffect(SoundManager::SOUND::COIN_COLLECT);
-		}
-	} break;
-	case SCREEN::PARTY_SIZE:
+	// All states but start state handle up/down presses identically
+	if (m_ScreenShowing != SCREEN::START)
 	{
 		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_DOWN))
 		{
@@ -123,7 +79,68 @@ void MainMenuState::Tick(double deltaTime)
 			SoundManager::PlaySoundEffect(SoundManager::SOUND::FIRE_BALL_THROW);
 			m_CursorAnimationTimer = 0;
 		}
-		else if (GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE) ||
+	}
+	
+	switch (m_ScreenShowing)
+	{
+	case SCREEN::START:
+	{
+		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE) ||
+			GAME_ENGINE->IsKeyboardKeyPressed('A') ||
+			GAME_ENGINE->IsKeyboardKeyPressed('S') ||
+			GAME_ENGINE->IsKeyboardKeyPressed('Z') ||
+			GAME_ENGINE->IsKeyboardKeyPressed('X'))
+		{
+			EnterScreen(SCREEN::SAVE_SELECTION);
+		}
+	} break;
+	case SCREEN::SAVE_SELECTION:
+	{
+		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE) ||
+			GAME_ENGINE->IsKeyboardKeyPressed('Z') ||
+			GAME_ENGINE->IsKeyboardKeyPressed('X'))
+		{
+			if (m_CursorIndex == 3)
+			{
+				EnterScreen(SCREEN::ERASE_DATA);	
+			}
+			else
+			{
+				// TODO: Actually use the selected save state here
+
+				EnterScreen(SCREEN::PARTY_SIZE);
+			}
+
+			SoundManager::PlaySoundEffect(SoundManager::SOUND::COIN_COLLECT);
+		}
+	} break;
+	case SCREEN::ERASE_DATA:
+	{
+		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE) ||
+			GAME_ENGINE->IsKeyboardKeyPressed('Z') ||
+			GAME_ENGINE->IsKeyboardKeyPressed('X'))
+		{
+			if (m_CursorIndex == 3)
+			{
+				EnterScreen(SCREEN::START);
+				m_IntroFadeInTimer.Start();
+			}
+			else
+			{
+				// LATER: Actually erase the data here
+			}
+
+			SoundManager::PlaySoundEffect(SoundManager::SOUND::COIN_COLLECT);
+		}
+		else if (GAME_ENGINE->IsKeyboardKeyPressed('A') ||
+			GAME_ENGINE->IsKeyboardKeyPressed('S'))
+		{
+			EnterScreen(SCREEN::SAVE_SELECTION);
+		}
+	} break;
+	case SCREEN::PARTY_SIZE:
+	{
+		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE) ||
 			GAME_ENGINE->IsKeyboardKeyPressed('Z') ||
 			GAME_ENGINE->IsKeyboardKeyPressed('X'))
 		{
@@ -133,14 +150,40 @@ void MainMenuState::Tick(double deltaTime)
 		else if (GAME_ENGINE->IsKeyboardKeyPressed('A') ||
 				 GAME_ENGINE->IsKeyboardKeyPressed('S'))
 		{	
-			m_ScreenShowing = SCREEN::SAVE_SELECTION;
-			m_CursorIndex = 0;
-			m_MaxCursorIndex = 3;
-			m_CursorAnimationTimer = 0;
+			EnterScreen(SCREEN::SAVE_SELECTION);
 		}
 	} break;
 	default:
 		OutputDebugString(String("ERROR: Unhandled main menu state!\n"));
+	}
+}
+
+void MainMenuState::EnterScreen(SCREEN newScreen)
+{
+	m_ScreenShowing = newScreen;
+	switch (newScreen)
+	{
+	case SCREEN::START:
+	{
+	} break;
+	case SCREEN::SAVE_SELECTION:
+	{
+		m_CursorIndex = 0;
+		m_MaxCursorIndex = 3;
+		m_CursorAnimationTimer = 0;
+	} break;
+	case SCREEN::PARTY_SIZE:
+	{
+		m_CursorIndex = 0;
+		m_MaxCursorIndex = 1;
+		m_CursorAnimationTimer = 0;
+	} break;
+	case SCREEN::ERASE_DATA:
+	{
+		m_CursorIndex = 0;
+		m_CursorAnimationTimer = 0;
+		m_MaxCursorIndex = 3;
+	} break;
 	}
 }
 
@@ -151,28 +194,37 @@ void MainMenuState::Paint()
 		GAME_ENGINE->SetColor(COLOR(0, 0, 0));
 		GAME_ENGINE->FillRect(0, 0, Game::WIDTH, Game::HEIGHT);
 
+		// - Nintendo Presentes -
+		int left = Game::WIDTH / 2 - 32;
+		int top = Game::HEIGHT / 2 - 8;
+		RECT2 srcRect = RECT2(212, 1, 212 + 64, 1 + 16);
+		GAME_ENGINE->DrawBitmap(SpriteSheetManager::mainMenuScreenPtr, left, top, srcRect);
+		
+		int fadeStartTime = 85;
+		int fadeEndTime = 125;
+		// Fade to Black
+		if (m_IntroTitleTimer.FramesElapsed() >= fadeStartTime)
+		{
+			int fadeLength = fadeEndTime - fadeStartTime;
+			int alpha;
+			if (m_IntroTitleTimer.FramesElapsed() < fadeEndTime) 
+				alpha = int((double(m_IntroTitleTimer.FramesElapsed() - fadeStartTime) / double(fadeLength))*255);
+			else 
+				alpha = 255;
+
+			GAME_ENGINE->SetColor(COLOR(0, 0, 0, alpha));
+			GAME_ENGINE->FillRect(0, 0, Game::WIDTH, Game::HEIGHT);
+		}
+
 		return;
 	}
 
-	GAME_ENGINE->SetColor(COLOR(35, 35, 35));
-	GAME_ENGINE->FillRect(0, 0, Game::WIDTH, Game::HEIGHT);
-
-
-	PaintBorder();
-
-	// Main title
-	int left = 25, top = 38;
-	RECT2 srcRect = RECT2(0, 0, 208, 66);
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::mainMenuScreenPtr, left, top, srcRect);
-
-	// Copyright
-	left = 55;
-	top += 156;
-	srcRect = RECT2(208, 58, 359, 66);
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::mainMenuScreenPtr, left, top, srcRect);
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::mainMenuScreenBGPtr);
 
 	int lineHeight = 16;
-	
+	int left = 0, top = 0;
+	const int textStartY = 117;
+
 	switch (m_ScreenShowing)
 	{
 	case SCREEN::START:
@@ -181,7 +233,7 @@ void MainMenuState::Paint()
 	case SCREEN::SAVE_SELECTION:
 	{
 		left = 80;
-		top = 125;
+		top = textStartY;
 		SMWFont::PaintPhrase("MARIO A ... 2", left, top, true);
 		top += lineHeight;
 		SMWFont::PaintPhrase("MARIO B ...EMPTY", left, top, true);
@@ -191,7 +243,26 @@ void MainMenuState::Paint()
 		SMWFont::PaintPhrase("ERASE DATA", left, top, true);
 
 		left -= 16;
-		top = 125 + m_CursorIndex * lineHeight;
+		top = textStartY + m_CursorIndex * lineHeight;
+		PaintCursor(left, top);
+	} break;
+	case SCREEN::ERASE_DATA:
+	{
+		GAME_ENGINE->SetColor(COLOR(0, 0, 0, 120));
+		GAME_ENGINE->FillRect(0, 0, Game::WIDTH, Game::HEIGHT);
+
+		left = 55;
+		top = textStartY;
+		SMWFont::PaintPhrase("ERASE MARIO A ... 2", left, top, true);
+		top += lineHeight;
+		SMWFont::PaintPhrase("ERASE MARIO B ...EMPTY", left, top, true);
+		top += lineHeight;
+		SMWFont::PaintPhrase("ERASE MARIO C ...EMPTY", left, top, true);
+		top += lineHeight;
+		SMWFont::PaintPhrase("END", left, top, true);
+
+		left -= 16;
+		top = textStartY + m_CursorIndex * lineHeight;
 		PaintCursor(left, top);
 	} break;
 	case SCREEN::PARTY_SIZE:
@@ -209,6 +280,20 @@ void MainMenuState::Paint()
 	default:
 		OutputDebugString(String("ERROR: Unhandled main menu state!\n"));
 	}
+
+	// Main title
+	left = 25;
+	top = 38;
+	RECT2 srcRect = RECT2(0, 0, 208, 66);
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::mainMenuScreenPtr, left, top, srcRect);
+
+	// Copyright
+	left = 55;
+	top += 156;
+	srcRect = RECT2(208, 58, 359, 66);
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::mainMenuScreenPtr, left, top, srcRect);
+
+	PaintBorder();
 
 	if (m_IntroFadeInTimer.IsActive())
 	{

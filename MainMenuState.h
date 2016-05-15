@@ -11,7 +11,7 @@ public:
 	// NOTE: This state will always be showing one of the following screens
 	enum class SCREEN
 	{
-		START, SAVE_SELECTION, PARTY_SIZE
+		START, SAVE_SELECTION, ERASE_DATA, PARTY_SIZE
 	};
 
 	MainMenuState(StateManager* stateManagerPtr);
@@ -31,6 +31,7 @@ private:
 	void PaintBorder();
 	void DrawBorderPlank(int plankIndex, int left, int top, bool flipV = false, bool flipH = false);
 	void PaintCursor(int left, int top);
+	void EnterScreen(SCREEN newScreen);
 
 	static const int MAX_CURSOR_TIMER_VALUE = 35;
 	int m_CursorAnimationTimer = 0;

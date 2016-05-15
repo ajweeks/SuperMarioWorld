@@ -25,6 +25,7 @@ public:
 	static Bitmap* splatParticlePtr;
 
 	static Bitmap* mainMenuScreenPtr;
+	static Bitmap* mainMenuScreenBGPtr;
 	static Bitmap* fontPtr;
 
 	static SpriteSheet* smallMarioPtr;
