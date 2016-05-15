@@ -36,6 +36,7 @@ SpriteSheet* SpriteSheetManager::yoshiPtr = nullptr;
 SpriteSheet* SpriteSheetManager::smallYoshiPtr = nullptr;
 SpriteSheet* SpriteSheetManager::yoshiWithMarioPtr = nullptr;
 
+SpriteSheet* SpriteSheetManager::piranhaPlantPtr = nullptr;
 SpriteSheet* SpriteSheetManager::charginChuckPtr = nullptr;
 
 
@@ -85,6 +86,7 @@ void SpriteSheetManager::Load()
 	yoshiPtr = new SpriteSheet(String("Resources/yoshi.png"), 5, 1, 26, 32);
 	smallYoshiPtr = new SpriteSheet(String("Resources/yoshi-small.png"), 3, 2, 16, 16);
 	yoshiWithMarioPtr = new SpriteSheet(String("Resources/yoshi-with-mario.png"), 14, 2, 33, 39);
+	piranhaPlantPtr = new SpriteSheet(String("Resources/piranha-plant.png"), 4, 1, 16, 21);
 	charginChuckPtr = new SpriteSheet(String("Resources/chargin-chuck.png"), 4, 3, 28, 27);
 }
 
@@ -123,5 +125,7 @@ void SpriteSheetManager::Unload()
 	delete numberParticlePtr;
 
 	delete montyMolePtr;
+
+	delete piranhaPlantPtr;
 	delete charginChuckPtr;
 }

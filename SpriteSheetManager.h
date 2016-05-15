@@ -45,6 +45,7 @@ public:
 	static SpriteSheet* smallYoshiPtr;
 	static SpriteSheet* yoshiWithMarioPtr;
 
+	static SpriteSheet* piranhaPlantPtr;
 	static SpriteSheet* charginChuckPtr;
 
 private:

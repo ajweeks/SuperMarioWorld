@@ -11,6 +11,7 @@
 #include "Enemy.h"
 #include "MontyMole.h"
 #include "KoopaTroopa.h"
+#include "PiranhaPlant.h"
 #include "CharginChuck.h"
 
 #include "Platform.h"
@@ -69,7 +70,15 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 		DOUBLE2 topLeft = DOUBLE2(boundingBox.left, boundingBox.top) * TILE_SIZE;
 		DOUBLE2 bottomRight = DOUBLE2(boundingBox.right, boundingBox.bottom) * TILE_SIZE;
 
-		m_PipesPtrArr.push_back(new Pipe(topLeft, bottomRight, false));
+		std::string spawnsString = FileIO::GetTagContent(pipeContent, "Spawns");
+		bool spawnsPiranhaPlant = false;
+		if (spawnsString.length() > 0 && !spawnsString.compare("PiranhaPlant"))
+		{
+			int pipeWidth = int(bottomRight.x - topLeft.x);
+			m_EnemiesPtrArr.push_back(new PiranhaPlant(topLeft + DOUBLE2(pipeWidth / 2, Item::TILE_SIZE * 2), levelPtr));
+		}
+
+		m_PipesPtrArr.push_back(new Pipe(topLeft, bottomRight, levelPtr, false));
 	}
 
 
@@ -80,8 +89,12 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 	{
 		std::string itemContent = FileIO::GetTagContent(items, "Item", itemTagBeginIndex);
 
+		// GENERAL PROPERTIES
 		DOUBLE2 topLeft = StringToDOUBLE2(FileIO::GetTagContent(itemContent, "TopLeft")) * TILE_SIZE;
-		int itemType = int(Item::StringToTYPE(FileIO::GetTagContent(itemContent, "Type")));
+		std::string itemTypeString = FileIO::GetTagContent(itemContent, "Type");
+		int itemType = int(Item::StringToTYPE(itemTypeString));
+
+		// UNIQUE PROPERTIES
 		// NOTE: Not all items have the following properties, but there is no harm is seeing if a tag is there
 		COLOUR itemColour = Colour::StringToCOLOUR(FileIO::GetTagContent(itemContent, "Colour"));
 
@@ -119,7 +132,6 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 		{
 			std::string spawnItem = FileIO::GetTagContent(itemContent, "Spawns");
 			bool spawnsBeanstalk = !spawnItem.compare("Beanstalk");
-
 			m_ItemsPtrArr.push_back(new RotatingBlock(topLeft, levelPtr, spawnsBeanstalk));
 		} break;
 		case int(Item::TYPE::P_SWITCH):
@@ -134,11 +146,6 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 		{
 			m_ItemsPtrArr.push_back(new KoopaShell(topLeft, levelPtr, itemColour));
 		} break;
-		// NOTE: I don't think 1-UP mushrooms are ever spawned at the start of level..
-		//case int(Item::TYPE::ONE_UP_MUSHROOM):
-		//{
-		//	m_ItemsPtrArr.push_back(new OneUpMushroom(topLeft));
-		//} break;
 		case int(Item::TYPE::THREE_UP_MOON):
 		{
 			m_ItemsPtrArr.push_back(new ThreeUpMoon(topLeft, levelPtr));
@@ -158,7 +165,7 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 		} break;
 		default:
 		{
-			OutputDebugString(String("ERROR: Unhandled item passed LevelData(): ") + String(int(itemType)) + String("\n"));
+			OutputDebugString(String("ERROR: Unhandled item passed LevelData(): ") + String(itemTypeString.c_str()) + String("\n"));
 		} break;
 		}
 	}
@@ -171,7 +178,9 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 		std::string enemyContent = FileIO::GetTagContent(enemies, "Enemy", enemyTagBeginIndex);
 
 		DOUBLE2 topLeft = (StringToDOUBLE2(FileIO::GetTagContent(enemyContent, "TopLeft")) * TILE_SIZE) + DOUBLE2(0, -2);
-		int enemyType = int(Enemy::StringToTYPE(FileIO::GetTagContent(enemyContent, "Type")));
+		std::string enemyTypeString = FileIO::GetTagContent(enemyContent, "Type");
+		int enemyType = int(Enemy::StringToTYPE(enemyTypeString));
+
 		COLOUR enemyColour = Colour::StringToCOLOUR(FileIO::GetTagContent(enemyContent, "Colour"));
 
 		switch (enemyType)
@@ -192,7 +201,7 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 		} break;
 		default:
 		{
-			OutputDebugString(String("ERROR: Unhandled enemy passed to LevelData(): ") + String(int(enemyType)) + String("\n"));
+			OutputDebugString(String("ERROR: Unhandled enemy passed to LevelData(): ") + String(enemyTypeString.c_str()) + String("\n"));
 		} break;
 		}
 	}
@@ -377,7 +386,8 @@ void LevelData::PaintItemsAndEnemies()
 
 	for (size_t i = 0; i < m_EnemiesPtrArr.size(); ++i)
 	{
-		if (m_EnemiesPtrArr[i] != nullptr)
+		// NOTE: Piranha plants are drawn behind everything else, they are not drawn here!
+		if (m_EnemiesPtrArr[i] != nullptr && m_EnemiesPtrArr[i]->GetType() != Enemy::TYPE::PIRHANA_PLANT)
 		{
 			m_EnemiesPtrArr[i]->Paint();
 		}

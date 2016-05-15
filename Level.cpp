@@ -829,19 +829,37 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 					{
 						if (m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::SPIN_JUMPING)
 						{
-							((MontyMole*)enemyPtr)->StompKill();
+							montyMolePtr->StompKill();
 							m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetLinearVelocity().x, 0));
 						}
 						else
 						{
-							((MontyMole*)enemyPtr)->HeadBonk();
+							montyMolePtr->HeadBonk();
 							m_PlayerPtr->Bounce();
 						}
 					}
-					else if(m_PlayerPtr->IsInvincible() == false)
+					else
 					{
 						m_PlayerPtr->TakeDamage();
 					}
+				}
+			} break;
+			case Enemy::TYPE::PIRHANA_PLANT:
+			{
+				m_PlayerPtr->TakeDamage();
+			} break;
+			case Enemy::TYPE::CHARGIN_CHUCK:
+			{
+				CharginChuck* charginChuckPtr = (CharginChuck*)enemyPtr;
+				if (charginChuckPtr->GetAnimationState() != CharginChuck::ANIMATION_STATE::DEAD &&
+					m_PlayerPtr->IsAirborne())
+				{
+					charginChuckPtr->HeadBonk();
+					m_PlayerPtr->Bounce();
+				}
+				else
+				{
+					m_PlayerPtr->TakeDamage();
 				}
 			} break;
 			}
@@ -956,7 +974,7 @@ void Level::EndContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 
 bool Level::Raycast(DOUBLE2 point1, DOUBLE2 point2, int collisionBits, DOUBLE2 &intersectionRef, DOUBLE2 &normalRef, double &fractionRef)
 {
-	if (collisionBits & COLLIDE_WITH_LEVEL)
+	if (collisionBits & LEVEL)
 	{
 		if (m_ActLevelPtr->Raycast(point1, point2, intersectionRef, normalRef, fractionRef))
 		{
@@ -982,7 +1000,7 @@ bool Level::Raycast(DOUBLE2 point1, DOUBLE2 point2, int collisionBits, DOUBLE2 &
 		}
 	}
 
-	if (collisionBits & COLLIDE_WITH_ENEMIES)
+	if (collisionBits & ENEMY)
 	{
 		std::vector<Enemy*> enemiesPtrArr = m_LevelDataPtr->GetEnemies();
 		for (size_t i = 0; i < enemiesPtrArr.size(); ++i)
@@ -997,7 +1015,7 @@ bool Level::Raycast(DOUBLE2 point1, DOUBLE2 point2, int collisionBits, DOUBLE2 &
 		}
 	}
 
-	if (collisionBits & COLLIDE_WITH_PLAYER)
+	if (collisionBits & PLAYER)
 	{
 		if (m_PlayerPtr->Raycast(point1, point2, intersectionRef, normalRef, fractionRef))
 		{
@@ -1005,8 +1023,7 @@ bool Level::Raycast(DOUBLE2 point1, DOUBLE2 point2, int collisionBits, DOUBLE2 &
 		}
 	}
 
-
-	if (collisionBits & COLLIDE_WITH_BLOCKS || collisionBits & COLLIDE_WITH_SHELLS)
+	if (collisionBits & BLOCK || collisionBits & SHELL)
 	{
 		std::vector<Item*> itemsPtrArr = m_LevelDataPtr->GetItems();
 		for (size_t i = 0; i < itemsPtrArr.size(); ++i)
