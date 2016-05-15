@@ -24,4 +24,6 @@ private:
 
 	Level *m_LevelPtr = nullptr;
 	bool m_RenderDebugOverlay;
+	
+	bool m_InFrameByFrameMode = false;
 };

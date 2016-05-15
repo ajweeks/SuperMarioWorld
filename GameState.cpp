@@ -25,6 +25,31 @@ GameState::~GameState()
 
 void GameState::Tick(double deltaTime)
 {
+	if (m_InFrameByFrameMode && m_LevelPtr->IsPaused() == false)
+	{
+		// We've advanced by one frame, now we need to pause again
+		m_LevelPtr->SetPaused(true);
+	}
+		
+	if (GAME_ENGINE->IsKeyboardKeyPressed(VK_OEM_PERIOD))
+	{
+		if (m_InFrameByFrameMode)
+		{
+			// Advance by one frame
+			m_LevelPtr->SetPaused(false);
+		}
+		else
+		{
+			m_InFrameByFrameMode = true;
+			m_LevelPtr->SetPaused(true);
+		}
+	}
+	else if (GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE) && m_InFrameByFrameMode)
+	{
+		m_InFrameByFrameMode = false;
+		m_LevelPtr->SetPaused(false);
+	}
+
 	if (GAME_ENGINE->IsKeyboardKeyPressed('R'))
 	{
 		Reset();
