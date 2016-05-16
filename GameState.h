@@ -18,11 +18,17 @@ public:
 
 	void SetPaused(bool paused);
 
+	void EnterUnderground();
+	void LeaveUnderground();
+
 private:
 	void Reset();
 	void ResetMembers();
 
-	Level *m_LevelPtr = nullptr;
+	Level* m_CurrentLevelPtr = nullptr;
+	Level* m_LevelOverworldPtr = nullptr;
+	Level* m_LevelUndergroundPtr = nullptr; // This is used so that we can keep the overworld 
+
 	bool m_RenderDebugOverlay;
 	
 	bool m_InFrameByFrameMode = false;

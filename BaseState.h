@@ -22,6 +22,7 @@ public:
 	virtual void Paint() = 0;
 
 	STATE_TYPE GetType();
+	StateManager* GetStateManagerPtr();
 
 protected:
 	StateManager* m_StateManagerPtr = nullptr;

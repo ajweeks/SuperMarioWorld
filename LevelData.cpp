@@ -20,6 +20,8 @@
 #include "PrizeBlock.h"
 #include "RotatingBlock.h"
 #include "ExclamationMarkBlock.h"
+#include "CloudBlock.h"
+#include "GrabBlock.h"
 #include "SuperMushroom.h"
 #include "OneUpMushroom.h"
 #include "MessageBlock.h"
@@ -30,11 +32,10 @@
 #include "Berry.h"
 #include "KoopaShell.h"
 #include "Beanstalk.h"
-#include "CloudBlock.h"
 #include "MidwayGate.h"
 #include "GoalGate.h"
 
-LevelData* LevelData::m_LevelOneDataPtr = nullptr;
+std::vector<LevelData*> LevelData::m_LevelDataPtrArr = std::vector<LevelData*>(Constants::NUM_LEVELS);
 
 LevelData::LevelData(std::string platforms, std::string pipes, std::string items, std::string enemies, Level* levelPtr) : 
 	m_LevelPtr(levelPtr)
@@ -70,6 +71,9 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 		DOUBLE2 topLeft = DOUBLE2(boundingBox.left, boundingBox.top) * TILE_SIZE;
 		DOUBLE2 bottomRight = DOUBLE2(boundingBox.right, boundingBox.bottom) * TILE_SIZE;
 
+		Pipe::Orientation pipeOrientation = Pipe::StringToOrientation(FileIO::GetTagContent(pipeContent, "Orientation"));
+		bool pipeIsEnterable = FileIO::GetTagContent(pipeContent, "Enterable") == "1";
+
 		std::string spawnsString = FileIO::GetTagContent(pipeContent, "Spawns");
 		bool spawnsPiranhaPlant = false;
 		if (spawnsString.length() > 0 && !spawnsString.compare("PiranhaPlant"))
@@ -78,7 +82,7 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 			m_EnemiesPtrArr.push_back(new PiranhaPlant(topLeft + DOUBLE2(pipeWidth / 2, Item::TILE_SIZE * 2), levelPtr));
 		}
 
-		m_PipesPtrArr.push_back(new Pipe(topLeft, bottomRight, levelPtr, false));
+		m_PipesPtrArr.push_back(new Pipe(topLeft, bottomRight, levelPtr, pipeOrientation, pipeIsEnterable));
 	}
 
 
@@ -134,6 +138,14 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 			bool spawnsBeanstalk = !spawnItem.compare("Beanstalk");
 			m_ItemsPtrArr.push_back(new RotatingBlock(topLeft, levelPtr, spawnsBeanstalk));
 		} break;
+		case int(Item::TYPE::CLOUD_BLOCK):
+		{
+			m_ItemsPtrArr.push_back(new CloudBlock(topLeft, levelPtr));
+		} break;
+		case int(Item::TYPE::GRAB_BLOCK):
+		{
+			m_ItemsPtrArr.push_back(new GrabBlock(topLeft, levelPtr));
+		} break;
 		case int(Item::TYPE::P_SWITCH):
 		{
 			m_ItemsPtrArr.push_back(new PSwitch(topLeft, itemColour, levelPtr));
@@ -149,10 +161,6 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 		case int(Item::TYPE::THREE_UP_MOON):
 		{
 			m_ItemsPtrArr.push_back(new ThreeUpMoon(topLeft, levelPtr));
-		} break;
-		case int(Item::TYPE::CLOUD_BLOCK):
-		{
-			m_ItemsPtrArr.push_back(new CloudBlock(topLeft, levelPtr));
 		} break;
 		case int(Item::TYPE::MIDWAY_GATE):
 		{
@@ -229,29 +237,15 @@ LevelData::~LevelData()
 
 LevelData* LevelData::GetLevelData(int levelIndex, Level* levelPtr)
 {
-	// LATER: Add more levels in here
-	// TODO: Make m_LevelOneDataPtr an array with all the levels?
-	if (m_LevelOneDataPtr == nullptr)
+	assert(levelIndex >= 0 && levelIndex < int(m_LevelDataPtrArr.size()));
+
+	if (m_LevelDataPtrArr[levelIndex] == nullptr)
 	{
-		GenerateLevelData(levelIndex, levelPtr);
+		delete m_LevelDataPtrArr[levelIndex];
+		m_LevelDataPtrArr[levelIndex] = CreateLevelData(levelIndex, levelPtr);
 	}
 
-	return m_LevelOneDataPtr;
-}
-
-void LevelData::GenerateLevelData(int levelIndex, Level* levelPtr)
-{
-	if (levelIndex == 1)
-	{
-		delete m_LevelOneDataPtr;
-		m_LevelOneDataPtr = CreateLevelData(levelIndex, levelPtr);
-		return;
-	}
-	else
-	{
-		OutputDebugString(String("ERROR: Invalid level index passed to LevelData::RegenerateLevel: ") + String(levelIndex) + String("\n"));
-		return;
-	}
+	return m_LevelDataPtrArr[levelIndex];
 }
 
 LevelData* LevelData::CreateLevelData(int levelIndex, Level* levelPtr)
@@ -259,8 +253,16 @@ LevelData* LevelData::CreateLevelData(int levelIndex, Level* levelPtr)
 	std::ifstream fileInStream;
 	std::stringstream stringStream;
 
-	fileInStream.open("Resources/levels/01/level-data.txt");
+	std::stringstream levelIndexStr;
+	levelIndexStr << std::setw(2) << std::setfill('0') << levelIndex;
+	fileInStream.open("Resources/levels/" + levelIndexStr.str() + "/level-data.txt");
 	
+	if (fileInStream.fail())
+	{
+		GAME_ENGINE->MessageBox(String(("Invalid level index: " + levelIndexStr.str() + "\n").c_str()));
+		return nullptr;
+	}
+
 	std::string line;
 	while (fileInStream.eof() == false)
 	{
@@ -443,7 +445,11 @@ DOUBLE2 LevelData::StringToDOUBLE2(std::string double2String)
 
 void LevelData::Unload()
 {
-	delete m_LevelOneDataPtr;
+	for (size_t i = 0; i < m_LevelDataPtrArr.size(); ++i)
+	{
+		delete m_LevelDataPtrArr[i];
+		m_LevelDataPtrArr[i] = nullptr;
+	}
 }
 
 void LevelData::SetItemsAndEnemiesPaused(bool paused)

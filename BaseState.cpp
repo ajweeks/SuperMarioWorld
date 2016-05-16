@@ -15,3 +15,8 @@ STATE_TYPE BaseState::GetType()
 {
 	return m_StateType;
 }
+
+StateManager* BaseState::GetStateManagerPtr()
+{
+	return m_StateManagerPtr;
+}

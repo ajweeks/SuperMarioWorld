@@ -2,6 +2,7 @@
 
 #include "Item.h"
 #include "SpriteSheetManager.h"
+#include "Block.h"
 
 Item::Item(DOUBLE2 topLeft, TYPE type, Level* levelPtr, BodyType bodyType, int width, int height) :
 	Entity(topLeft + DOUBLE2(width / 2, height / 2), bodyType, levelPtr, ActorId::ITEM, this),
@@ -50,8 +51,9 @@ std::string Item::TYPEToString(TYPE type)
 	case TYPE::MESSAGE_BLOCK: return "MessageBlock";
 	case TYPE::ROTATING_BLOCK: return "RotatingBlock";
 	case TYPE::EXCLAMATION_MARK_BLOCK: return "ExclamationMarkBlock";
-	case TYPE::BEANSTALK: return "Beanstalk";
 	case TYPE::CLOUD_BLOCK: return "Cloud";
+	case TYPE::GRAB_BLOCK: return "GrabBlock";
+	case TYPE::BEANSTALK: return "Beanstalk";
 	case TYPE::MIDWAY_GATE: return "MidwayGate";
 	case TYPE::GOAL_GATE: return "GoalGate";
 	default:
@@ -83,8 +85,9 @@ Item::TYPE Item::StringToTYPE(std::string string)
 	else if (!string.compare("MessageBlock")) return TYPE::MESSAGE_BLOCK;
 	else if (!string.compare("RotatingBlock")) return TYPE::ROTATING_BLOCK;
 	else if (!string.compare("ExclamationMarkBlock")) return TYPE::EXCLAMATION_MARK_BLOCK;
-	else if (!string.compare("Beanstalk")) return TYPE::BEANSTALK;
 	else if (!string.compare("Cloud")) return TYPE::CLOUD_BLOCK;
+	else if (!string.compare("GrabBlock")) return TYPE::GRAB_BLOCK;
+	else if (!string.compare("Beanstalk")) return TYPE::BEANSTALK;
 	else if (!string.compare("MidwayGate")) return TYPE::MIDWAY_GATE;
 	else if (!string.compare("GoalGate")) return TYPE::GOAL_GATE;
 	else
@@ -100,5 +103,6 @@ bool Item::IsBlock()
 			m_Type == TYPE::MESSAGE_BLOCK ||
 			m_Type == TYPE::PRIZE_BLOCK ||
 			m_Type == TYPE::ROTATING_BLOCK ||
-			m_Type == TYPE::CLOUD_BLOCK);
+			m_Type == TYPE::CLOUD_BLOCK ||
+			m_Type == TYPE::GRAB_BLOCK);
 }

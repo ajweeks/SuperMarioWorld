@@ -3,8 +3,11 @@
 #include "ContactListener.h"
 #include "Enumerations.h"
 #include "CountdownTimer.h"
+#include "SoundManager.h"
+#include "AnimationInfo.h"
 
 class Game;
+class GameState;
 class LevelData;
 class Platform;
 class Pipe;
@@ -17,6 +20,8 @@ class Camera;
 class Particle;
 class ParticleManager;
 class SpriteSheet;
+
+struct LevelInfo;
 
 class Level : public ContactListener
 {
@@ -33,7 +38,7 @@ public:
 		BERRY			= (1 << 7)
 	};
 
-	Level(Game* gamePtr);
+	Level(LevelInfo levelInfo, Game* gamePtr, GameState* gameStatePtr);
 	virtual ~Level();
 
 	Level(const Level&) = delete;
@@ -82,13 +87,24 @@ private:
 	unsigned int GetNumberOfDigits(unsigned int i);
 	void TogglePaused();
 	void TurnCoinsToBlocks(bool toBlocks);
+	void ReadLevelData(int levelIndex);
 
 	static const int TIME_WARNING = 100; // When this many in game seconds are remaining the player is notified
 
-	void ReadLevelData(int levelIndex);
+	int m_Index;
+
 	LevelData* m_LevelDataPtr = nullptr;
+	SoundManager::SONG m_BackgroundSong;
+	SoundManager::SONG m_BackgroundSongFast;
 
 	Game* m_GamePtr = nullptr;
+
+	bool m_IsBackgroundAnimated;
+	const int TOTAL_FRAMES_OF_BACKGROUND_ANIMATION;
+	AnimationInfo m_BackgroundAnimInfo;
+
+	Bitmap* m_BmpForegroundPtr = nullptr;
+	Bitmap* m_BmpBackgroundPtr = nullptr;
 
 	// NOTE: We *could* make this an array, in case the player tries to collect two items
 	// in the same frame, but that isn't very likely and will be caught in the next frame

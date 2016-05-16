@@ -16,6 +16,7 @@ public:
 	enum class SONG 
 	{
 		OVERWORLD_BGM, OVERWORLD_BGM_FAST, MENU_SCREEN_BGM,
+		UNDERGROUND_BGM, UNDERGROUND_BGM_FAST,
 		// NOTE: All entries must be above this line
 		_LAST_ELEMENT
 	};

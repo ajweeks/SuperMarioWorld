@@ -7,9 +7,12 @@
 #include "INT2.h"
 
 class Level;
+class GameState;
 class Entity;
 class KoopaShell;
 class Yoshi;
+class GrabBlock;
+class Pipe;
 
 class Player : public Entity
 {
@@ -20,10 +23,10 @@ public:
 	};
 	enum class ANIMATION_STATE
 	{
-		WAITING, WALKING, JUMPING, SPIN_JUMPING, FALLING, CLIMBING, NONE
+		WAITING, WALKING, JUMPING, SPIN_JUMPING, FALLING, CLIMBING, ENTERING_PIPE, NONE
 	};
 
-	Player(Level* levelPtr);
+	Player(Level* levelPtr, GameState* gameStatePtr);
 	virtual ~Player();
 
 	Player(const Player&) = delete;
@@ -72,9 +75,14 @@ public:
 	void OnItemPickup(Item* itemPtr, Level* levelPtr);
 
 	void AddScore(int score, DOUBLE2 particlePosition);
+	void SetTouchingGrabBlock(bool touching, GrabBlock* grabBlockPtr);
+	void SetTouchingPipe(bool touching, Pipe* pipePtr = nullptr);
+
+	bool EnteringAPipe();
 
 	void MidwayGatePasshrough();
 	void SetClimbingBeanstalk(bool climbing);
+	void SetOverlappingWithBeanstalk(bool overlapping);
 	ANIMATION_STATE GetAnimationState();
 	int GetWidth();
 	int GetHeight();
@@ -88,7 +96,6 @@ public:
 	//       Every frames m_FramesUntilEnemyHeadBounceEndSound is decremented, and plays the
 	//		 sound when it reaches 0
 	void ResetNumberOfFramesUntilEndStompSound();
-	void SetOverlappingWithBeanstalk(bool overlapping);
 	bool IsTransitioningPowerups();
 
 private:
@@ -101,13 +108,14 @@ private:
 	void AddLife();
 	void KickHeldItem(bool gently = false);
 	void ChangePowerupState(POWERUP_STATE newPowerupState, bool isUpgrade = true);
+	void EnterPipe();
 
 	INT2 CalculateAnimationFrame();
 	bool CalculateOnGround();
 	SpriteSheet* GetSpriteSheetForPowerupState(POWERUP_STATE powerupState);
 	String AnimationStateToString(ANIMATION_STATE state);
 	
-	SpriteSheet* m_SpriteSheetPtr = nullptr;
+	SpriteSheet* m_SpriteSheetPtr;
 
 	static const double DEFAULT_GRAVITY;
 
@@ -140,8 +148,11 @@ private:
 	CountdownTimer m_PowerupTransitionTimer;
 	CountdownTimer m_InvincibilityTimer;
 	CountdownTimer m_SpawnDustCloudTimer;
+	CountdownTimer m_EnteringPipeTimer;
 
 	POWERUP_STATE m_PrevPowerupState; // This is used to transition between states upon state change
+
+	GameState* m_GameStatePtr;
 
 	Item::TYPE m_ExtraItemToBeSpawnedType;
 	Item* m_ExtraItemPtr; // This is the extra item slot mario has at the top of the screen
@@ -167,4 +178,8 @@ private:
 	int m_LastClimbingPose; // Flips between left and right as the player climbs
 
 	Yoshi* m_RidingYoshiPtr;
+	Pipe* m_PipeTouchingPtr;
+	bool m_TouchingPipe;
+
+	std::vector<GrabBlock*> m_RecentlyTouchedGrabBlocksPtrArr;
 };

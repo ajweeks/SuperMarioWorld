@@ -2,6 +2,8 @@
 
 #include "Player.h"
 #include "Game.h"
+#include "GameState.h"
+#include "StateManager.h"
 #include "Enumerations.h"
 #include "SpriteSheetManager.h"
 #include "INT2.h"
@@ -10,12 +12,14 @@
 #include "DustParticle.h"
 #include "NumberParticle.h"
 #include "SplatParticle.h"
+#include "GrabBlock.h"
 
 #include "SuperMushroom.h"
 #include "Coin.h"
 #include "DragonCoin.h"
 #include "KoopaShell.h"
 #include "Yoshi.h"
+#include "Pipe.h"
 
 #define ENTITY_MANAGER (EntityManager::GetInstance())
 
@@ -29,13 +33,16 @@ const int Player::STARTING_LIVES = 5;
 const int Player::YOSHI_DISMOUNT_XVEL = 2500;
 const double Player::MARIO_SECONDS_PER_FRAME = 0.065;
 
-Player::Player(Level* levelPtr) : 
-	Entity(DOUBLE2(), BodyType::DYNAMIC, levelPtr, ActorId::PLAYER, this)
+Player::Player(Level* levelPtr, GameState* gameStatePtr) :
+	Entity(DOUBLE2(), BodyType::DYNAMIC, levelPtr, ActorId::PLAYER, this),
+	m_GameStatePtr(gameStatePtr)
 {
 	Reset();
 
 	m_Lives = STARTING_LIVES;
 	m_AnimInfo.secondsPerFrame = MARIO_SECONDS_PER_FRAME;
+
+	m_RecentlyTouchedGrabBlocksPtrArr = std::vector<GrabBlock*>(2);
 
 	// TODO: Slow down the player's animation frame rate when he slows down
 }
@@ -77,6 +84,7 @@ void Player::Reset()
 	m_InvincibilityTimer = CountdownTimer(115);
 	m_SpawnDustCloudTimer = CountdownTimer(4);
 	m_ChangingDirectionsTimer = CountdownTimer(3);
+	m_EnteringPipeTimer = CountdownTimer(60);
 
 	m_AnimationState = ANIMATION_STATE::WAITING;
 	m_IsDucking = false;
@@ -96,6 +104,13 @@ void Player::Reset()
 	m_LastClimbingPose = Direction::RIGHT;
 
 	m_RidingYoshiPtr = nullptr;
+	m_PipeTouchingPtr = nullptr;
+	m_TouchingPipe = false;
+
+	for (size_t i = 0; i < m_RecentlyTouchedGrabBlocksPtrArr.size(); ++i)
+	{
+		m_RecentlyTouchedGrabBlocksPtrArr[i] = nullptr;
+	}
 }
 
 void Player::Tick(double deltaTime)
@@ -127,6 +142,16 @@ void Player::Tick(double deltaTime)
 			m_ActPtr->SetActive(true);
 			m_ActPtr->SetLinearVelocity(DOUBLE2(0, -420));
 		}
+	}
+
+	if (m_EnteringPipeTimer.Tick())
+	{
+		if (m_EnteringPipeTimer.IsComplete())
+		{
+			m_GameStatePtr->EnterUnderground();
+		}
+
+		return;
 	}
 
 	if (m_HeadStompSoundDelayTimer.Tick() && m_HeadStompSoundDelayTimer.IsComplete())
@@ -398,12 +423,29 @@ void Player::HandleKeyboardInput(double deltaTime)
 	if (m_IsDucking &&
 		GAME_ENGINE->IsKeyboardKeyDown(VK_DOWN) == false)
 	{
+		if (m_TouchingPipe && m_PipeTouchingPtr->GetOrientation() == Pipe::Orientation::UP)
+		{
+			if (m_PipeTouchingPtr->IsPlayerInPositionToEnter(this))
+			{
+				EnterPipe();
+				return;
+			}
+		}
+
 		m_AnimationState = ANIMATION_STATE::WAITING;
 		m_IsDucking = false;
 	}
 	if (m_IsLookingUp &&
 		GAME_ENGINE->IsKeyboardKeyDown(VK_UP) == false)
 	{
+		if (m_TouchingPipe && m_PipeTouchingPtr->GetOrientation() == Pipe::Orientation::DOWN)
+		{
+			if (m_PipeTouchingPtr->IsPlayerInPositionToEnter(this))
+			{
+				EnterPipe();
+			}
+		}
+
 		m_AnimationState = ANIMATION_STATE::WAITING;
 		m_IsLookingUp = false;
 	}
@@ -478,6 +520,14 @@ void Player::HandleKeyboardInput(double deltaTime)
 
 	if (GAME_ENGINE->IsKeyboardKeyDown(VK_LEFT))
 	{
+		if (m_TouchingPipe && m_PipeTouchingPtr->GetOrientation() == Pipe::Orientation::RIGHT)
+		{
+			if (m_PipeTouchingPtr->IsPlayerInPositionToEnter(this))
+			{
+				EnterPipe();
+			}
+		}
+
 		m_DirFacing = Direction::LEFT;
 		if (m_AnimationState != ANIMATION_STATE::JUMPING &&
 			m_AnimationState != ANIMATION_STATE::SPIN_JUMPING &&
@@ -491,6 +541,14 @@ void Player::HandleKeyboardInput(double deltaTime)
 	}
 	else if (GAME_ENGINE->IsKeyboardKeyDown(VK_RIGHT))
 	{
+		if (m_TouchingPipe && m_PipeTouchingPtr->GetOrientation() == Pipe::Orientation::LEFT)
+		{
+			if (m_PipeTouchingPtr->IsPlayerInPositionToEnter(this))
+			{
+				EnterPipe();
+			}
+		}
+
 		m_DirFacing = Direction::RIGHT;
 		if (m_AnimationState != ANIMATION_STATE::JUMPING &&
 			m_AnimationState != ANIMATION_STATE::SPIN_JUMPING &&
@@ -501,6 +559,23 @@ void Player::HandleKeyboardInput(double deltaTime)
 			m_AnimationState = ANIMATION_STATE::WALKING;
 		}
 		horizontalVel = WALK_BASE_VEL * deltaTime;
+	}
+
+	// Grab blocks
+	if (m_IsHoldingItem == false &&
+		GAME_ENGINE->IsKeyboardKeyPressed('A') || GAME_ENGINE->IsKeyboardKeyPressed('S'))
+	{
+		if (m_RecentlyTouchedGrabBlocksPtrArr[0] != nullptr)
+		{
+			AddItemToBeHeld((Item*)m_RecentlyTouchedGrabBlocksPtrArr[0]);
+			m_RecentlyTouchedGrabBlocksPtrArr[0] = nullptr;
+
+			if (m_RecentlyTouchedGrabBlocksPtrArr[1] != nullptr)
+			{
+				m_RecentlyTouchedGrabBlocksPtrArr[0] = m_RecentlyTouchedGrabBlocksPtrArr[1];
+				m_RecentlyTouchedGrabBlocksPtrArr[1] = nullptr;
+			}
+		}
 	}
 
 	if (horizontalVel != 0.0)
@@ -1193,10 +1268,18 @@ void Player::KickShell(KoopaShell* koopaShellPtr, bool wasThrown)
 void Player::DropHeldItem()
 {
 	assert(m_IsHoldingItem);
-	// LATER: Add other item type handling here
-	assert(m_ItemHoldingPtr->GetType() == Item::TYPE::KOOPA_SHELL);
 
-	((KoopaShell*)m_ItemHoldingPtr)->ShellHit();
+	switch (m_ItemHoldingPtr->GetType())
+	{
+	case Item::TYPE::KOOPA_SHELL:
+	{
+		((KoopaShell*)m_ItemHoldingPtr)->ShellHit();
+	} break;
+	case Item::TYPE::GRAB_BLOCK:
+	{
+		((GrabBlock*)m_ItemHoldingPtr)->SetMoving(DOUBLE2(100, 0));
+	} break;
+	}
 	m_ItemHoldingPtr = nullptr;
 	m_IsHoldingItem = false;
 }
@@ -1347,6 +1430,60 @@ void Player::AddScore(int score, DOUBLE2 particlePosition)
 	m_LevelPtr->AddParticle(numberParticlePtr);
 }
 
+void Player::SetTouchingGrabBlock(bool touching, GrabBlock* grabBlockPtr)
+{
+	if (touching)
+	{
+		if (m_RecentlyTouchedGrabBlocksPtrArr[0] != nullptr)
+		{
+			if (m_RecentlyTouchedGrabBlocksPtrArr[1] == nullptr)
+			{
+				m_RecentlyTouchedGrabBlocksPtrArr[1] = m_RecentlyTouchedGrabBlocksPtrArr[0];
+				m_RecentlyTouchedGrabBlocksPtrArr[0] = grabBlockPtr;
+			}
+		}
+		else
+		{
+			m_RecentlyTouchedGrabBlocksPtrArr[0] = grabBlockPtr;
+		}
+	}
+	else
+	{
+		if (m_RecentlyTouchedGrabBlocksPtrArr[0] == grabBlockPtr)
+		{
+			m_RecentlyTouchedGrabBlocksPtrArr[0] = nullptr;
+			if (m_RecentlyTouchedGrabBlocksPtrArr[1] != nullptr)
+			{
+				m_RecentlyTouchedGrabBlocksPtrArr[0] = m_RecentlyTouchedGrabBlocksPtrArr[1];
+				m_RecentlyTouchedGrabBlocksPtrArr[1] = nullptr;
+			}
+		}
+		else if (m_RecentlyTouchedGrabBlocksPtrArr[1] == grabBlockPtr)
+		{
+			m_RecentlyTouchedGrabBlocksPtrArr[1] = nullptr;
+		}
+		else
+		{
+			OutputDebugString(String("ERROR: Player::SetTouchingGrabBlock called with unknown grab block!\n"));
+		}
+	}
+}
+
+void Player::SetTouchingPipe(bool touching, Pipe* pipePtr)
+{
+	m_TouchingPipe = touching;
+
+	if (touching)
+		m_PipeTouchingPtr = pipePtr;
+	else
+		m_PipeTouchingPtr = nullptr;
+}
+
+bool Player::EnteringAPipe()
+{
+	return m_AnimationState == ANIMATION_STATE::ENTERING_PIPE;
+}
+
 void Player::SetOverlappingWithBeanstalk(bool overlapping)
 {
 	m_IsOverlappingWithBeanstalk = overlapping;
@@ -1452,6 +1589,13 @@ void Player::ReleaseExtraItem(DOUBLE2 position)
 	// TODO: FIXME: Mushroom needs custom physics here to slowly fall down through the screen
 	
 	m_ExtraItemPtr = extraSuperMushroomPtr;
+}
+
+void Player::EnterPipe()
+{
+	m_AnimationState = ANIMATION_STATE::ENTERING_PIPE;
+	m_LevelPtr->SetPaused(true);
+	m_EnteringPipeTimer.Start();
 }
 
 Player::ANIMATION_STATE Player::GetAnimationState()

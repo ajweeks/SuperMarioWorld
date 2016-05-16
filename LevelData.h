@@ -18,7 +18,6 @@ public:
 	LevelData& operator=(const LevelData&) = delete;
 
 	static LevelData* GetLevelData(int levelIndex, Level* levelPtr);
-	static void GenerateLevelData(int levelIndex, Level* levelPtr);
 	static void Unload();
 
 	void AddItem(Item* newItemPtr);
@@ -45,7 +44,8 @@ private:
 	LevelData(std::string platforms, std::string pipes, std::string items, std::string enemies, Level* levelPtr);
 
 	static LevelData* CreateLevelData(int levelIndex, Level* levelPtr);
-	static LevelData* m_LevelOneDataPtr;
+
+	static std::vector<LevelData*> m_LevelDataPtrArr;
 
 	// Everything is stored in terms of tile col/row, we need to multiply by
 	// this scale to get actual world coordinates

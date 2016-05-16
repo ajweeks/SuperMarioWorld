@@ -2,11 +2,12 @@
 
 #include "Level.h"
 #include "Game.h"
+#include "GameState.h"
 #include "Camera.h"
 #include "LevelData.h"
 #include "SpriteSheetManager.h"
-#include "SoundManager.h"
 #include "HUD.h"
+#include "LevelInfo.h"
 
 #include "Platform.h"
 #include "Pipe.h"
@@ -30,25 +31,32 @@
 
 #define GAME_ENGINE (GameEngine::GetSingleton())
 
-Level::Level(Game* gamePtr) : m_GamePtr(gamePtr)
+Level::Level(LevelInfo levelInfo, Game* gamePtr, GameState* gameStatePtr) : 
+	m_GamePtr(gamePtr), 
+	m_Index(levelInfo.m_Index),
+	m_Width(levelInfo.m_Width),
+	m_Height(levelInfo.m_Height),
+	m_BmpBackgroundPtr((Bitmap*)levelInfo.m_BmpBackgroundPtr),
+	TOTAL_FRAMES_OF_BACKGROUND_ANIMATION(levelInfo.m_NumberOfBackgroundAnimationFrames),
+	m_BmpForegroundPtr((Bitmap*)levelInfo.m_BmpForegroundPtr),
+	m_BackgroundSong(levelInfo.m_BackgroundMusic),
+	m_BackgroundSongFast(levelInfo.m_BackgroundMusicFast)
 {
-	m_PlayerPtr = new Player(this);
+	m_PlayerPtr = new Player(this, gameStatePtr);
 
 	m_ActLevelPtr = new PhysicsActor(DOUBLE2(0, 0), 0, BodyType::STATIC);
-	m_ActLevelPtr->AddSVGFixture(String("Resources/levels/01/Level01hit.svg"), 0.0);
+	m_ActLevelPtr->AddSVGFixture(levelInfo.m_LevelSVGFilePath, 0.0);
 	m_ActLevelPtr->AddContactListener(this);
 	m_ActLevelPtr->SetUserData(int(ActorId::LEVEL));
-
-	SpriteSheetManager::levelOneForegroundPtr->SetTransparencyColor(COLOR(255, 0, 255));
-
-	m_Width = SpriteSheetManager::levelOneForegroundPtr->GetWidth();
-	m_Height = SpriteSheetManager::levelOneForegroundPtr->GetHeight();
 
 	m_CameraPtr = new Camera(Game::WIDTH, Game::HEIGHT, this);
 
 	m_ParticleManagerPtr = new ParticleManager();
 
 	m_CoinsToBlocksTimer = CountdownTimer(480);
+
+	m_IsBackgroundAnimated = levelInfo.m_NumberOfBackgroundAnimationFrames > -1;
+	m_BackgroundAnimInfo.secondsPerFrame = 0.135;
 
 	ResetMembers();
 }
@@ -83,8 +91,8 @@ void Level::ResetMembers()
 
 	m_AllDragonCoinsCollected = false;
 
-	m_LevelDataPtr->GenerateLevelData(1, this);
-	ReadLevelData(1);
+	LevelData::Unload();
+	ReadLevelData(m_Index);
 
 	delete m_YoshiPtr;
 	m_YoshiPtr = nullptr;
@@ -96,7 +104,7 @@ void Level::ResetMembers()
 
 	SoundManager::RestartSongs();
 
-	SoundManager::PlaySong(SoundManager::SONG::OVERWORLD_BGM);
+	SoundManager::PlaySong(m_BackgroundSong);
 }
 
 void Level::ReadLevelData(int levelIndex)
@@ -155,7 +163,9 @@ void Level::Tick(double deltaTime)
 		SoundManager::PlaySoundEffect(SoundManager::SOUND::GAME_PAUSE);
 	}
 	if (m_Paused && 
-		(m_PlayerPtr->IsDead() || m_PlayerPtr->IsTransitioningPowerups()))
+		(m_PlayerPtr->IsDead() || 
+		 m_PlayerPtr->IsTransitioningPowerups() || 
+		 m_PlayerPtr->EnteringAPipe()))
 	{
 		// NOTE: The player needs to still be ticked so they can animate
 		m_PlayerPtr->Tick(deltaTime);
@@ -188,6 +198,12 @@ void Level::Tick(double deltaTime)
 
 		m_PlayerPtr->ReleaseExtraItem(DOUBLE2(xPos, yPos));
 	}
+	
+	if (m_IsBackgroundAnimated)
+	{
+		m_BackgroundAnimInfo.Tick(deltaTime);
+		m_BackgroundAnimInfo.frameNumber %= (TOTAL_FRAMES_OF_BACKGROUND_ANIMATION * 2 - 2);
+	}
 
 	if (m_CoinsToBlocksTimer.Tick() && m_CoinsToBlocksTimer.IsComplete())
 	{
@@ -200,15 +216,13 @@ void Level::Tick(double deltaTime)
 	}
 
 	m_PlayerPtr->Tick(deltaTime);
-
 	m_ParticleManagerPtr->Tick(deltaTime);
-
 	m_LevelDataPtr->TickItemsAndEnemies(deltaTime, this);
 
 	if (m_TimeRemaining == TIME_WARNING)
 	{
-		SoundManager::SetSongPaused(SoundManager::SONG::OVERWORLD_BGM, true);
-		SoundManager::PlaySong(SoundManager::SONG::OVERWORLD_BGM_FAST);
+		SoundManager::SetSongPaused(m_BackgroundSong, true);
+		SoundManager::PlaySong(m_BackgroundSongFast);
 	}
 
 	m_CameraPtr->CalculateViewMatrix(m_PlayerPtr->GetPosition(), m_PlayerPtr->GetDirectionFacing(), this, deltaTime);
@@ -220,21 +234,38 @@ void Level::Paint()
 	MATRIX3X2 matTotalView = matCameraView *  Game::matIdentity;
 	GAME_ENGINE->SetViewMatrix(matTotalView);
 
-	int bgWidth = SpriteSheetManager::levelOneBackgroundPtr->GetWidth();
+	int bgWidth = m_BmpBackgroundPtr->GetWidth();
 	double cameraX = -matCameraView.orig.x;
 	double parallax = (1.0 - 0.50); // 50% of the speed of the camera
 	int xo = int(cameraX * parallax);
 	xo += (int(cameraX - xo) / bgWidth) * bgWidth;
 
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneBackgroundPtr, DOUBLE2(xo, -32));
+	RECT2 bgSrcRect;
+	if (m_IsBackgroundAnimated)
+	{
+		int frameToShow = m_BackgroundAnimInfo.frameNumber;
+		if (frameToShow >= TOTAL_FRAMES_OF_BACKGROUND_ANIMATION)
+		{
+			frameToShow = TOTAL_FRAMES_OF_BACKGROUND_ANIMATION - m_BackgroundAnimInfo.frameNumber + 1;
+		}
+
+		int bgWidth = m_BmpBackgroundPtr->GetWidth() / TOTAL_FRAMES_OF_BACKGROUND_ANIMATION;
+		int bgHeight = m_BmpBackgroundPtr->GetHeight();
+		bgSrcRect = RECT2(frameToShow * bgWidth, 0, (frameToShow + 1) * bgWidth, bgHeight);
+	}
+	else
+	{
+		bgSrcRect = RECT2(0, 0, m_BmpBackgroundPtr->GetWidth(), m_BmpBackgroundPtr->GetHeight());
+	}
+	GAME_ENGINE->DrawBitmap(m_BmpBackgroundPtr, DOUBLE2(xo, -32), bgSrcRect);
 	if (Game::WIDTH - (cameraX - xo) < 0)
 	{
-		GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneBackgroundPtr, DOUBLE2(xo + bgWidth, -32));
+		GAME_ENGINE->DrawBitmap(m_BmpBackgroundPtr, DOUBLE2(xo + bgWidth, -32), bgSrcRect);
 	}
 
 	m_LevelDataPtr->PaintEnemiesInBackground();
 
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::levelOneForegroundPtr);
+	GAME_ENGINE->DrawBitmap(m_BmpForegroundPtr);
 
 	m_LevelDataPtr->PaintItemsAndEnemies();
 
@@ -251,13 +282,14 @@ void Level::Paint()
 
 	GAME_ENGINE->SetViewMatrix(Game::matIdentity);
 
-	int fadeTransition = 1600; // after this many frames, the transition will occur
-	int drumrollStart = fadeTransition + 1600;
-	int fadeFromBlackTransition = 3550 + fadeTransition;
-	int backToClearTransition = fadeTransition + fadeFromBlackTransition;
-	int resetGameTransition = backToClearTransition + 128;
 	if (m_IsShowingEndScreen)
 	{
+		const int fadeTransition = 1600; // after this many frames, the transition will occur
+		const int drumrollStart = fadeTransition + 1600;
+		const int fadeFromBlackTransition = 3550 + fadeTransition;
+		const int backToClearTransition = fadeTransition + fadeFromBlackTransition;
+		const int resetGameTransition = backToClearTransition + 128;
+
 		++m_FramesShowingEndScreen;
 
 		if (m_FramesShowingEndScreen < fadeTransition)
@@ -708,6 +740,10 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 					m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetLinearVelocity().x, 0.0));
 				}
 			} break;
+			case Item::TYPE::GRAB_BLOCK:
+			{
+				m_PlayerPtr->SetTouchingGrabBlock(true, (GrabBlock*)itemPtr);
+			} break;
 			case Item::TYPE::KOOPA_SHELL:
 			{
 				KoopaShell* koopaShellPtr = (KoopaShell*)itemPtr;
@@ -786,6 +822,10 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 				}
 			} break;
 			}
+		} break;
+		case int(ActorId::PIPE):
+		{
+			m_PlayerPtr->SetTouchingPipe(true, (Pipe*)actThisPtr->GetUserPointer());
 		} break;
 		case int(ActorId::ENEMY):
 		{
@@ -969,11 +1009,15 @@ void Level::EndContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			{
 				m_PlayerPtr->SetOverlappingWithBeanstalk(false);
 			} break;
+			case Item::TYPE::GRAB_BLOCK:
+			{
+				m_PlayerPtr->SetTouchingGrabBlock(false, (GrabBlock*)otherItemPtr);
+			} break;
 			}
 		} break;
-		case int(ActorId::YOSHI):
+		case int(ActorId::PIPE):
 		{
-			
+			m_PlayerPtr->SetTouchingPipe(false);
 		} break;
 		}
 	}

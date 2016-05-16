@@ -4,31 +4,49 @@
 #include "Game.h"
 #include "GameSession.h"
 #include "StateManager.h"
+#include "LevelInfo.h"
+#include "SpriteSheetManager.h"
+#include "SoundManager.h"
 
 GameState::GameState(StateManager* stateManagerPtr) :
 	BaseState(stateManagerPtr, STATE_TYPE::GAME)
 {
-
 	GameSession::ReadSessionInfoFromFile();
 
-	m_LevelPtr = new Level(m_StateManagerPtr->GetGamePtr());
+	int index = 0;
+	std::stringstream stream; 
+	stream << std::setw(2) << std::setfill('0') << index;
+	LevelInfo levelInfo { 
+		index, String(("Resources/levels/" + stream.str() + "/level.svg").c_str()),
+		SpriteSheetManager::levelOneBackgroundPtr,
+		-1,
+		SpriteSheetManager::levelForegroundPtrArr[index],
+		SoundManager::SONG::OVERWORLD_BGM,
+		SoundManager::SONG::OVERWORLD_BGM_FAST,
+		SpriteSheetManager::levelForegroundPtrArr[index]->GetWidth(),
+		SpriteSheetManager::levelForegroundPtrArr[index]->GetHeight() };
+
+	m_LevelOverworldPtr = new Level(levelInfo, m_StateManagerPtr->GetGamePtr(), this);
+	m_CurrentLevelPtr = m_LevelOverworldPtr;
+
 	ResetMembers();
 	
-	GameSession::RecordStartSessionInfo(m_LevelPtr);
+	GameSession::RecordStartSessionInfo(m_CurrentLevelPtr);
 }
 
 GameState::~GameState()
 {
-	GameSession::WriteSessionInfoToFile(m_LevelPtr);
-	delete m_LevelPtr;
+	GameSession::WriteSessionInfoToFile(m_CurrentLevelPtr);
+	delete m_LevelOverworldPtr;
+	delete m_LevelUndergroundPtr;
 }
 
 void GameState::Tick(double deltaTime)
 {
-	if (m_InFrameByFrameMode && m_LevelPtr->IsPaused() == false)
+	if (m_InFrameByFrameMode && m_CurrentLevelPtr->IsPaused() == false)
 	{
 		// We've advanced by one frame, now we need to pause again
-		m_LevelPtr->SetPaused(true);
+		m_CurrentLevelPtr->SetPaused(true);
 	}
 		
 	if (GAME_ENGINE->IsKeyboardKeyPressed(VK_OEM_PERIOD))
@@ -36,18 +54,18 @@ void GameState::Tick(double deltaTime)
 		if (m_InFrameByFrameMode)
 		{
 			// Advance by one frame
-			m_LevelPtr->SetPaused(false);
+			m_CurrentLevelPtr->SetPaused(false);
 		}
 		else
 		{
 			m_InFrameByFrameMode = true;
-			m_LevelPtr->SetPaused(true);
+			m_CurrentLevelPtr->SetPaused(true);
 		}
 	}
 	else if (GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE) && m_InFrameByFrameMode)
 	{
 		m_InFrameByFrameMode = false;
-		m_LevelPtr->SetPaused(false);
+		m_CurrentLevelPtr->SetPaused(false);
 	}
 
 	if (GAME_ENGINE->IsKeyboardKeyPressed('R'))
@@ -57,22 +75,21 @@ void GameState::Tick(double deltaTime)
 
 	if (GAME_ENGINE->IsKeyboardKeyPressed('P'))
 	{
-		// TODO: Find out why the game is so laggy when physics debug overlay is rendering
 		m_RenderDebugOverlay = !m_RenderDebugOverlay;
 		GAME_ENGINE->EnablePhysicsDebugRendering(m_RenderDebugOverlay);
 	}
 
-	m_LevelPtr->Tick(deltaTime);
+	m_CurrentLevelPtr->Tick(deltaTime);
 }
 
 void GameState::Paint()
 {
-	m_LevelPtr->Paint();
+	m_CurrentLevelPtr->Paint();
 }
 
 void GameState::Reset()
 {
-	m_LevelPtr->Reset();
+	m_CurrentLevelPtr->Reset();
 
 	m_StateManagerPtr->GetGamePtr()->Reset();
 
@@ -87,5 +104,36 @@ void GameState::ResetMembers()
 
 void GameState::SetPaused(bool paused)
 {
-	m_LevelPtr->SetPaused(paused);
+	m_CurrentLevelPtr->SetPaused(paused);
+}
+
+void GameState::EnterUnderground()
+{
+	if (m_LevelUndergroundPtr == nullptr)
+	{
+		int index = 1;
+		std::stringstream stream;
+		stream << std::setw(2) << std::setfill('0') << index;
+		LevelInfo levelInfo{
+			index, String(("Resources/levels/" + stream.str() + "/level.svg").c_str()),
+			SpriteSheetManager::levelOneUndergroundBackgroundPtr,
+			3,
+			SpriteSheetManager::levelForegroundPtrArr[index],
+			SoundManager::SONG::UNDERGROUND_BGM,
+			SoundManager::SONG::UNDERGROUND_BGM_FAST,
+			SpriteSheetManager::levelForegroundPtrArr[index]->GetWidth(),
+			SpriteSheetManager::levelForegroundPtrArr[index]->GetHeight() };
+
+		m_LevelUndergroundPtr = new Level(levelInfo, m_StateManagerPtr->GetGamePtr(), this);
+		m_CurrentLevelPtr = m_LevelUndergroundPtr;
+	}
+}
+
+void GameState::LeaveUnderground()
+{
+	if (m_LevelUndergroundPtr != nullptr)
+	{
+		m_CurrentLevelPtr = m_LevelOverworldPtr;
+		delete m_LevelUndergroundPtr;
+	}
 }

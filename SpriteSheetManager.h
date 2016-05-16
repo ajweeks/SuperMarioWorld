@@ -14,16 +14,14 @@ public:
 	static void Unload();
 
 	static Bitmap* levelOneBackgroundPtr;
-	static Bitmap* levelOneForegroundPtr;
+	static Bitmap* levelOneUndergroundBackgroundPtr;
+	static std::vector<Bitmap*> levelForegroundPtrArr;
 
 	static Bitmap* hudPtr;
 
 	static Bitmap* messageBox_01Ptr;
 	static Bitmap* messageBox_02Ptr;
 	
-	static Bitmap* starParticlePtr;
-	static Bitmap* splatParticlePtr;
-
 	static Bitmap* mainMenuScreenPtr;
 	static Bitmap* mainMenuScreenBGPtr;
 	static Bitmap* fontPtr;
@@ -33,6 +31,8 @@ public:
 	static SpriteSheet* generalTilesPtr;
 	static SpriteSheet* beanstalkPtr;
 
+	static Bitmap* starParticlePtr;
+	static Bitmap* splatParticlePtr;
 	static SpriteSheet* coinCollectParticlePtr;
 	static SpriteSheet* runningDustCloudParticlePtr;
 	static SpriteSheet* numberParticlePtr;
@@ -41,13 +41,12 @@ public:
 	static SpriteSheet* montyMolePtr;
 	static SpriteSheet* koopaTroopaPtr;
 	static SpriteSheet* koopaShellPtr;
+	static SpriteSheet* piranhaPlantPtr;
+	static SpriteSheet* charginChuckPtr;
 
 	static SpriteSheet* yoshiPtr;
 	static SpriteSheet* smallYoshiPtr;
 	static SpriteSheet* yoshiWithMarioPtr;
-
-	static SpriteSheet* piranhaPlantPtr;
-	static SpriteSheet* charginChuckPtr;
 
 private:
 	SpriteSheetManager();

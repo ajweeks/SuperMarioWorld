@@ -22,11 +22,15 @@ SoundManager::~SoundManager()
 void SoundManager::InitialzeSoundsAndSongs()
 {
 	// TODO: Only repeat middle section of song, not intro
+	// SONGS
 	LoadSong(SONG::OVERWORLD_BGM, m_ResourcePath + String("music/overworld-bgm.wav"));
 	LoadSong(SONG::OVERWORLD_BGM_FAST, m_ResourcePath + String("music/overworld-bgm-fast.wav"));
+	LoadSong(SONG::UNDERGROUND_BGM, m_ResourcePath + String("music/underground-bgm.wav"));
+	LoadSong(SONG::UNDERGROUND_BGM_FAST, m_ResourcePath + String("music/underground-bgm-fast.wav"));
 
 	LoadSong(SONG::MENU_SCREEN_BGM, m_ResourcePath + String("music/menu-screen-bgm.wav"));
 
+	// SOUNDS
 	LoadSound(SOUND::GAME_PAUSE, m_ResourcePath + String("game-pause.wav"));
 
 	LoadSound(SOUND::PLAYER_JUMP, m_ResourcePath + String("player-jump.wav"));
@@ -40,11 +44,8 @@ void SoundManager::InitialzeSoundsAndSongs()
 	LoadSound(SOUND::BLOCK_BREAK, m_ResourcePath + String("block-break.wav"));
 
 	LoadSound(SOUND::FIRE_BALL_THROW, m_ResourcePath + String("fire-ball-throw.wav"));
-
 	LoadSound(SOUND::CHARGIN_CHUCK_HEAD_BONK, m_ResourcePath + String("chargin-chuck-head-bonk.wav"));
-
 	LoadSound(SOUND::BEANSTALK_SPAWN, m_ResourcePath + String("beanstalk-spawn.wav"));
-
 	LoadSound(SOUND::SUPER_MUSHROOM_SPAWN, m_ResourcePath + String("super-mushroom-spawn.wav"));
 	LoadSound(SOUND::MESSAGE_BLOCK_HIT, m_ResourcePath + String("message-block-hit.wav"));
 

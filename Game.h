@@ -28,9 +28,10 @@
 #define SMW_DISPLAY_AI_DEBUG_INFO false
 
 #define SMW_ENABLE_JUMP_TO
-#define SMW_JUMP_TO_POS_X 840 // Yoshi
+//#define SMW_JUMP_TO_POS_X 840 // Yoshi
 //#define SMW_JUMP_TO_POS_X 2000 // Chargin Chuck
 //#define SMW_JUMP_TO_POS_X 3000 // Monty Moles
+#define SMW_JUMP_TO_POS_X 3890 // Underground Pipe Entrance
 //#define SMW_JUMP_TO_POS_X 4270 // Piranha Plant
 //#define SMW_JUMP_TO_POS_X 4700 // Goal Gate
 
