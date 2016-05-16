@@ -12,7 +12,7 @@ public:
 
 	void Tick(double deltaTime);
 	void Paint();
-	void Hit(Level* levelPtr);
+	void Hit();
 	bool IsRotating();
 
 private:

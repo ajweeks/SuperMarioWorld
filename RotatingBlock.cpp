@@ -86,7 +86,7 @@ void RotatingBlock::Paint()
 	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);
 }
 
-void RotatingBlock::Hit(Level* levelPtr)
+void RotatingBlock::Hit()
 {
 	if (m_SpawnsBeanstalk)
 	{

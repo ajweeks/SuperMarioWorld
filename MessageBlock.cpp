@@ -117,7 +117,7 @@ void MessageBlock::Paint()
 	GAME_ENGINE->SetViewMatrix(matViewPrevious);
 }
 
-void MessageBlock::Hit(Level* levelPtr)
+void MessageBlock::Hit()
 {
 	SoundManager::PlaySoundEffect(SoundManager::SOUND::BLOCK_HIT);
 

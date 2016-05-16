@@ -13,7 +13,7 @@ public:
 	void Tick(double deltaTime);
 	void Paint();
 	void SetSolid(bool solid);
-	void Hit(Level* levelPtr);
+	void Hit();
 
 private:
 	COLOUR m_Colour;

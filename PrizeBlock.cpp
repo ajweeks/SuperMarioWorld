@@ -76,7 +76,7 @@ void PrizeBlock::Paint()
 	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);
 }
 
-void PrizeBlock::Hit(Level* levelPtr)
+void PrizeBlock::Hit()
 {
 	SoundManager::PlaySoundEffect(SoundManager::SOUND::BLOCK_HIT);
 

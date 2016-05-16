@@ -13,10 +13,8 @@ public:
 
 	void Tick(double deltaTime);
 	void Paint();
-	// NOTE: I think Box2D prevents you from adding physics actors during preSolve, therefore
-	// we need to set a flag when the player hits a prize block and generate the coin in the next tick,
-	// or at least after pre-solve
-	void Hit(Level* levelPtr);
+
+	void Hit();
 	void SetUsed(bool used);
 
 private:

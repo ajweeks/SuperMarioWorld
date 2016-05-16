@@ -614,7 +614,7 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool& 
 					DOUBLE2 koopaShellVel = actOtherPtr->GetLinearVelocity();
 					koopaShellPtr->SetLinearVelocity(DOUBLE2(-koopaShellVel.x, koopaShellVel.y));
 					// When a shell hits a block it "hits" it as if the player hit it with their head
-					((Block*)thisItemPtr)->Hit(this);
+					((Block*)thisItemPtr)->Hit();
 				}
 			}
 		} break;
@@ -687,7 +687,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 
 				if (playerIsRising && playerCenterIsBelowBlock)
 				{
-					((Block*)itemPtr)->Hit(this);
+					((Block*)itemPtr)->Hit();
 
 					// NOTE: This line prevents the player from slowly floating down after hitting a block
 					m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetLinearVelocity().x, 0.0));
@@ -702,7 +702,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 
 				if (playerIsRising && playerCenterIsBelowBlock)
 				{
-					((Block*)itemPtr)->Hit(this);
+					((Block*)itemPtr)->Hit();
 
 					// NOTE: This line prevents the player from slowly floating down after hitting a block
 					m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetLinearVelocity().x, 0.0));

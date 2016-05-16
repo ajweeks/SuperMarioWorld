@@ -13,7 +13,7 @@ public:
 
 	void Tick(double deltaTime);
 	void Paint();
-	void Hit(Level* levelPtr);
+	void Hit();
 
 private:
 	static int m_BitmapWidth;

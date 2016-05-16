@@ -74,7 +74,7 @@ void ExclamationMarkBlock::SetSolid(bool solid)
 	m_ActPtr->SetSensor(!solid);
 }
 
-void ExclamationMarkBlock::Hit(Level* levelPtr)
+void ExclamationMarkBlock::Hit()
 {
 	SoundManager::PlaySoundEffect(SoundManager::SOUND::BLOCK_HIT);
 

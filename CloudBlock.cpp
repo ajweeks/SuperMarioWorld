@@ -24,6 +24,6 @@ void CloudBlock::Paint()
 	SpriteSheetManager::generalTilesPtr->Paint(centerX, centerY, 3, 11);
 }
 
-void CloudBlock::Hit(Level* levelPtr)
+void CloudBlock::Hit()
 {
 }
