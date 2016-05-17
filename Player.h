@@ -23,7 +23,7 @@ public:
 	};
 	enum class ANIMATION_STATE
 	{
-		WAITING, WALKING, JUMPING, SPIN_JUMPING, FALLING, CLIMBING, ENTERING_PIPE, NONE
+		WAITING, WALKING, JUMPING, SPIN_JUMPING, FALLING, CLIMBING, IN_PIPE, NONE
 	};
 
 	Player(Level* levelPtr, GameState* gameStatePtr);
@@ -76,9 +76,11 @@ public:
 
 	void AddScore(int score, DOUBLE2 particlePosition);
 	void SetTouchingGrabBlock(bool touching, GrabBlock* grabBlockPtr);
-	void SetTouchingPipe(bool touching, Pipe* pipePtr = nullptr);
 
-	bool EnteringAPipe();
+	void SetTouchingPipe(bool touching, Pipe* pipePtr = nullptr);
+	void SetExitingPipe(Pipe* pipePtr);
+
+	void SetPosition(DOUBLE2 newPosition);
 
 	void MidwayGatePasshrough();
 	void SetClimbingBeanstalk(bool climbing);
@@ -114,6 +116,9 @@ private:
 	bool CalculateOnGround();
 	SpriteSheet* GetSpriteSheetForPowerupState(POWERUP_STATE powerupState);
 	String AnimationStateToString(ANIMATION_STATE state);
+
+	// Returns whether or not we were successful in entering a pipe
+	bool AttemptToEnterPipes(); 
 	
 	SpriteSheet* m_SpriteSheetPtr;
 
@@ -149,6 +154,7 @@ private:
 	CountdownTimer m_InvincibilityTimer;
 	CountdownTimer m_SpawnDustCloudTimer;
 	CountdownTimer m_EnteringPipeTimer;
+	CountdownTimer m_ExitingPipeTimer;
 
 	POWERUP_STATE m_PrevPowerupState; // This is used to transition between states upon state change
 

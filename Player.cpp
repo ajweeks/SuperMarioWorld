@@ -7,6 +7,7 @@
 #include "Enumerations.h"
 #include "SpriteSheetManager.h"
 #include "INT2.h"
+#include "GameSession.h"
 
 #include "SoundManager.h"
 #include "DustParticle.h"
@@ -85,6 +86,7 @@ void Player::Reset()
 	m_SpawnDustCloudTimer = CountdownTimer(4);
 	m_ChangingDirectionsTimer = CountdownTimer(3);
 	m_EnteringPipeTimer = CountdownTimer(60);
+	m_ExitingPipeTimer = CountdownTimer(35);
 
 	m_AnimationState = ANIMATION_STATE::WAITING;
 	m_IsDucking = false;
@@ -146,11 +148,54 @@ void Player::Tick(double deltaTime)
 
 	if (m_EnteringPipeTimer.Tick())
 	{
+		// Move 0.6 units per frame while in a pipe
+		double delta = 0.6;
+		double dx = 0.0, dy = 0.0;
+		switch (m_PipeTouchingPtr->GetOrientation())
+		{
+		case Pipe::Orientation::LEFT:	dx = delta; break;
+		case Pipe::Orientation::RIGHT:	dx = -delta; break;
+		case Pipe::Orientation::UP:		dy = delta; break;
+		case Pipe::Orientation::DOWN:	dy = -delta; break;
+		}
+		m_ActPtr->SetPosition(m_ActPtr->GetPosition() + DOUBLE2(dx, dy));
+
 		if (m_EnteringPipeTimer.IsComplete())
 		{
-			m_GameStatePtr->EnterUnderground();
+			SessionInfo currentSessionInfo;
+			GameSession::RecordSessionInfo(currentSessionInfo, m_LevelPtr);
+			
+			if (m_LevelPtr->IsUnderground())
+			{
+				m_GameStatePtr->LeaveUnderground(currentSessionInfo, m_PipeTouchingPtr);
+			}
+			else
+			{
+				m_GameStatePtr->EnterUnderground(currentSessionInfo, m_PipeTouchingPtr);
+			}
 		}
+		return;
+	}
+	if (m_ExitingPipeTimer.Tick())
+	{
+		double delta = 0.6;
+		double dx = 0.0, dy = 0.0;
+		switch (m_PipeTouchingPtr->GetOrientation())
+		{
+		case Pipe::Orientation::LEFT:	dx = -delta; break;
+		case Pipe::Orientation::RIGHT:	dx =  delta; break;
+		case Pipe::Orientation::UP:		dy = -delta; break;
+		case Pipe::Orientation::DOWN:	dy =  delta; break;
+		}
+		m_ActPtr->SetPosition(m_ActPtr->GetPosition() + DOUBLE2(dx, dy));
 
+		if (m_ExitingPipeTimer.IsComplete())
+		{
+			m_ActPtr->SetSensor(false);
+			m_ActPtr->SetGravityScale(DEFAULT_GRAVITY);
+			m_LevelPtr->SetPaused(false);
+			m_AnimationState = ANIMATION_STATE::WAITING;
+		}
 		return;
 	}
 
@@ -276,6 +321,8 @@ void Player::HandleYoshiKeyboardInput(double deltaTime)
 	assert(m_RidingYoshiPtr != nullptr);
 	assert(m_IsRidingYoshi);
 
+
+	if (AttemptToEnterPipes()) return;
 
 	double horizontalVel = 0.0;
 	double verticalVel = 0.0;
@@ -417,35 +464,20 @@ void Player::HandleKeyboardInput(double deltaTime)
 		return;
 	}
 
+	
+	if (AttemptToEnterPipes()) return;
+
 	double verticalVel = 0.0;
 	double horizontalVel = 0.0;
-
 	if (m_IsDucking &&
 		GAME_ENGINE->IsKeyboardKeyDown(VK_DOWN) == false)
 	{
-		if (m_TouchingPipe && m_PipeTouchingPtr->GetOrientation() == Pipe::Orientation::UP)
-		{
-			if (m_PipeTouchingPtr->IsPlayerInPositionToEnter(this))
-			{
-				EnterPipe();
-				return;
-			}
-		}
-
 		m_AnimationState = ANIMATION_STATE::WAITING;
 		m_IsDucking = false;
 	}
 	if (m_IsLookingUp &&
 		GAME_ENGINE->IsKeyboardKeyDown(VK_UP) == false)
 	{
-		if (m_TouchingPipe && m_PipeTouchingPtr->GetOrientation() == Pipe::Orientation::DOWN)
-		{
-			if (m_PipeTouchingPtr->IsPlayerInPositionToEnter(this))
-			{
-				EnterPipe();
-			}
-		}
-
 		m_AnimationState = ANIMATION_STATE::WAITING;
 		m_IsLookingUp = false;
 	}
@@ -520,14 +552,6 @@ void Player::HandleKeyboardInput(double deltaTime)
 
 	if (GAME_ENGINE->IsKeyboardKeyDown(VK_LEFT))
 	{
-		if (m_TouchingPipe && m_PipeTouchingPtr->GetOrientation() == Pipe::Orientation::RIGHT)
-		{
-			if (m_PipeTouchingPtr->IsPlayerInPositionToEnter(this))
-			{
-				EnterPipe();
-			}
-		}
-
 		m_DirFacing = Direction::LEFT;
 		if (m_AnimationState != ANIMATION_STATE::JUMPING &&
 			m_AnimationState != ANIMATION_STATE::SPIN_JUMPING &&
@@ -541,14 +565,6 @@ void Player::HandleKeyboardInput(double deltaTime)
 	}
 	else if (GAME_ENGINE->IsKeyboardKeyDown(VK_RIGHT))
 	{
-		if (m_TouchingPipe && m_PipeTouchingPtr->GetOrientation() == Pipe::Orientation::LEFT)
-		{
-			if (m_PipeTouchingPtr->IsPlayerInPositionToEnter(this))
-			{
-				EnterPipe();
-			}
-		}
-
 		m_DirFacing = Direction::RIGHT;
 		if (m_AnimationState != ANIMATION_STATE::JUMPING &&
 			m_AnimationState != ANIMATION_STATE::SPIN_JUMPING &&
@@ -746,6 +762,7 @@ void Player::TickAnimations(double deltaTime)
 		case ANIMATION_STATE::JUMPING:
 		case ANIMATION_STATE::FALLING:
 		case ANIMATION_STATE::CLIMBING:
+		case ANIMATION_STATE::IN_PIPE:
 		{
 			if (m_IsRidingYoshi && m_RidingYoshiPtr->IsToungeStuckOut())
 			{
@@ -1063,6 +1080,11 @@ INT2 Player::CalculateAnimationFrame()
 				srcX = 7;
 				srcY = 2;
 			}
+		} break;
+		case ANIMATION_STATE::IN_PIPE:
+		{
+			srcX = 3;
+			srcY = 2;
 		} break;
 		}
 	}
@@ -1469,21 +1491,6 @@ void Player::SetTouchingGrabBlock(bool touching, GrabBlock* grabBlockPtr)
 	}
 }
 
-void Player::SetTouchingPipe(bool touching, Pipe* pipePtr)
-{
-	m_TouchingPipe = touching;
-
-	if (touching)
-		m_PipeTouchingPtr = pipePtr;
-	else
-		m_PipeTouchingPtr = nullptr;
-}
-
-bool Player::EnteringAPipe()
-{
-	return m_AnimationState == ANIMATION_STATE::ENTERING_PIPE;
-}
-
 void Player::SetOverlappingWithBeanstalk(bool overlapping)
 {
 	m_IsOverlappingWithBeanstalk = overlapping;
@@ -1591,11 +1598,82 @@ void Player::ReleaseExtraItem(DOUBLE2 position)
 	m_ExtraItemPtr = extraSuperMushroomPtr;
 }
 
+bool Player::AttemptToEnterPipes()
+{
+	if (m_TouchingPipe)
+	{
+		if (GAME_ENGINE->IsKeyboardKeyDown(VK_DOWN) &&
+			m_PipeTouchingPtr->GetOrientation() == Pipe::Orientation::UP &&
+			m_PipeTouchingPtr->IsPlayerInPositionToEnter(this))
+		{
+			EnterPipe();
+			return true;
+		}
+		else if (GAME_ENGINE->IsKeyboardKeyDown(VK_UP) &&
+			m_PipeTouchingPtr->GetOrientation() == Pipe::Orientation::DOWN &&
+			m_PipeTouchingPtr->IsPlayerInPositionToEnter(this))
+		{
+			EnterPipe();
+			return true;
+		}
+		else if (GAME_ENGINE->IsKeyboardKeyDown(VK_RIGHT) &&
+			m_PipeTouchingPtr->GetOrientation() == Pipe::Orientation::LEFT &&
+			m_PipeTouchingPtr->IsPlayerInPositionToEnter(this))
+		{
+			EnterPipe();
+			return true;
+		}
+		else if (GAME_ENGINE->IsKeyboardKeyDown(VK_LEFT) &&
+			m_PipeTouchingPtr->GetOrientation() == Pipe::Orientation::RIGHT &&
+			m_PipeTouchingPtr->IsPlayerInPositionToEnter(this))
+		{
+			EnterPipe();
+			return true;
+		}
+	}
+	return false;
+}
+
 void Player::EnterPipe()
 {
-	m_AnimationState = ANIMATION_STATE::ENTERING_PIPE;
+	m_AnimationState = ANIMATION_STATE::IN_PIPE;
+	m_ActPtr->SetSensor(true);
+	m_ActPtr->SetGravityScale(0.0);
 	m_LevelPtr->SetPaused(true);
 	m_EnteringPipeTimer.Start();
+}
+
+void Player::SetTouchingPipe(bool touching, Pipe* pipePtr)
+{
+	m_TouchingPipe = touching;
+
+	if (touching)
+	{
+		m_PipeTouchingPtr = pipePtr;
+	}
+	else 
+	{
+		// When we start to enter a pipe, end contact is called since we turn into a sensor,
+		// but we don't want to forget which pipe we're entering
+		if (m_AnimationState != ANIMATION_STATE::IN_PIPE)
+		{
+			m_PipeTouchingPtr = nullptr;
+		}
+	}
+}
+
+void Player::SetExitingPipe(Pipe* pipePtr)
+{
+	m_PipeTouchingPtr = pipePtr;
+	m_ActPtr->SetSensor(true);
+	m_ActPtr->SetGravityScale(0.0);
+	m_ExitingPipeTimer.Start();
+	m_AnimationState = ANIMATION_STATE::IN_PIPE;
+}
+
+void Player::SetPosition(DOUBLE2 newPosition)
+{
+	m_ActPtr->SetPosition(newPosition);
 }
 
 Player::ANIMATION_STATE Player::GetAnimationState()

@@ -31,7 +31,7 @@
 
 #define GAME_ENGINE (GameEngine::GetSingleton())
 
-Level::Level(LevelInfo levelInfo, Game* gamePtr, GameState* gameStatePtr) : 
+Level::Level(Game* gamePtr, GameState* gameStatePtr, LevelInfo levelInfo, SessionInfo sessionInfo) :
 	m_GamePtr(gamePtr), 
 	m_Index(levelInfo.m_Index),
 	m_Width(levelInfo.m_Width),
@@ -54,6 +54,8 @@ Level::Level(LevelInfo levelInfo, Game* gamePtr, GameState* gameStatePtr) :
 	m_ParticleManagerPtr = new ParticleManager();
 
 	m_CoinsToBlocksTimer = CountdownTimer(480);
+
+	m_IsUnderground = levelInfo.m_IsUnderground;
 
 	m_IsBackgroundAnimated = levelInfo.m_NumberOfBackgroundAnimationFrames > -1;
 	m_BackgroundAnimInfo.secondsPerFrame = 0.135;
@@ -91,7 +93,7 @@ void Level::ResetMembers()
 
 	m_AllDragonCoinsCollected = false;
 
-	LevelData::Unload();
+	LevelData::UnloadLevel(m_Index);
 	ReadLevelData(m_Index);
 
 	delete m_YoshiPtr;
@@ -165,9 +167,10 @@ void Level::Tick(double deltaTime)
 	if (m_Paused && 
 		(m_PlayerPtr->IsDead() || 
 		 m_PlayerPtr->IsTransitioningPowerups() || 
-		 m_PlayerPtr->EnteringAPipe()))
+		 m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::IN_PIPE))
 	{
 		// NOTE: The player needs to still be ticked so they can animate
+		m_CameraPtr->CalculateViewMatrix(m_PlayerPtr->GetPosition(), m_PlayerPtr->GetDirectionFacing(), this, deltaTime);
 		m_PlayerPtr->Tick(deltaTime);
 		return;
 	}
@@ -257,27 +260,30 @@ void Level::Paint()
 	{
 		bgSrcRect = RECT2(0, 0, m_BmpBackgroundPtr->GetWidth(), m_BmpBackgroundPtr->GetHeight());
 	}
+	// Background
 	GAME_ENGINE->DrawBitmap(m_BmpBackgroundPtr, DOUBLE2(xo, -32), bgSrcRect);
 	if (Game::WIDTH - (cameraX - xo) < 0)
 	{
 		GAME_ENGINE->DrawBitmap(m_BmpBackgroundPtr, DOUBLE2(xo + bgWidth, -32), bgSrcRect);
 	}
-
 	m_LevelDataPtr->PaintEnemiesInBackground();
+	if (m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::IN_PIPE)
+	{
+		m_PlayerPtr->Paint();
+	}
 
+	// Foreground
 	GAME_ENGINE->DrawBitmap(m_BmpForegroundPtr);
-
 	m_LevelDataPtr->PaintItemsAndEnemies();
-
 	if (m_YoshiPtr != nullptr && m_PlayerPtr->IsRidingYoshi() == false)
 	{
 		m_YoshiPtr->Paint();
 	}
-
-	m_PlayerPtr->Paint();
-
+	if (m_PlayerPtr->GetAnimationState() != Player::ANIMATION_STATE::IN_PIPE)
+	{
+		m_PlayerPtr->Paint();
+	}
 	m_LevelDataPtr->PaintItemsInForeground();
-
 	m_ParticleManagerPtr->Paint();
 
 	GAME_ENGINE->SetViewMatrix(Game::matIdentity);
@@ -493,14 +499,12 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool& 
 	{
 	case int(ActorId::PLAYER):
 	{
-		assert(m_PlayerPtr == actOtherPtr->GetUserPointer());
-
 		if (m_PlayerPtr->IsDead())
 		{
 			break;
 		}
 
-		bool playerIsRising = actOtherPtr->GetLinearVelocity().y < -0.001;
+		bool playerIsRising = m_PlayerPtr->GetLinearVelocity().y < -0.001;
 
 		switch (actThisPtr->GetUserData())
 		{
@@ -512,11 +516,19 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool& 
 			}
 		} break;
 		case int(ActorId::LEVEL):
-		case int(ActorId::PIPE):
 		{
 			if (playerIsRising)
 			{
-				actOtherPtr->SetLinearVelocity(DOUBLE2(0, actOtherPtr->GetLinearVelocity().y));
+				m_PlayerPtr->SetLinearVelocity(DOUBLE2(0, m_PlayerPtr->GetLinearVelocity().y));
+				enableContactRef = false;
+			}
+		} break;
+		case int(ActorId::PIPE):
+		{
+			if (playerIsRising && 
+				((Pipe*)actThisPtr->GetUserPointer())->GetOrientation() != Pipe::Orientation::DOWN)
+			{
+				m_PlayerPtr->SetLinearVelocity(DOUBLE2(0, m_PlayerPtr->GetLinearVelocity().y));
 				enableContactRef = false;
 			}
 		} break;
@@ -1118,6 +1130,13 @@ void Level::AddParticle(Particle* particlePtr)
 	m_ParticleManagerPtr->AddParticle(particlePtr);
 }
 
+void Level::WarpPlayerToPipe(int pipeIndex)
+{
+	Pipe* pipePtr = m_LevelDataPtr->GetPipeWithIndex(pipeIndex);
+	m_PlayerPtr->SetPosition(pipePtr->GetWarpToPosition());
+	m_PlayerPtr->SetExitingPipe(pipePtr);
+}
+
 DOUBLE2 Level::GetCameraOffset(double deltaTime)
 {
 	if (m_PlayerPtr->IsRidingYoshi())
@@ -1189,7 +1208,7 @@ void Level::SetPaused(bool paused)
 		m_YoshiPtr->SetPaused(paused);
 	}
 
-	SoundManager::SetAllSongsPaused(m_Paused);
+	SoundManager::SetSongPaused(m_BackgroundSong, m_Paused);
 }
 
 void Level::SetShowingMessage(bool showingMessage)
@@ -1228,6 +1247,11 @@ void Level::TurnCoinsToBlocks(bool toBlocks)
 bool Level::IsPaused()
 {
 	return m_Paused;
+}
+
+bool Level::IsUnderground()
+{
+	return m_IsUnderground;
 }
 
 double Level::GetWidth()

@@ -1,5 +1,6 @@
 
 <LevelData>
+
 	# NOTE: Once the player collects all dragon coins, they will 
 	# 		not respawn again, at least not until they reset their save
 	<AllDragonCoinsCollected>false</AllDragonCoinsCollected>
@@ -33,7 +34,8 @@
 		<Pipe>
 			<BoundingBox>242,20,244,22</BoundingBox>
 			<Orientation>Up</Orientation>
-			<Enterable>1</Enterable>
+			<WarpLevelIndex>1</WarpLevelIndex>
+			<WarpPipeIndex>0</WarpPipeIndex>
 		</Pipe>
 		<Pipe>
 			<BoundingBox>253,19,255,22</BoundingBox>

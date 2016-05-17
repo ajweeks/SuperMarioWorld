@@ -18,6 +18,7 @@
 #include "Enumerations.h"
 #include "StateManager.h"
 #include "GameState.h"
+#include "LevelInfo.h"
 
 Font* Game::Font12Ptr = nullptr;
 Font* Game::Font9Ptr = nullptr;
@@ -71,6 +72,8 @@ void Game::GameStart()
 	Game::Font9Ptr = new Font(String("consolas"), 9);
 	Game::Font6Ptr = new Font(String("consolas"), 6);
 
+	LevelInfo::Initialize();
+
 	matIdentity = MATRIX3X2::CreateScalingMatrix(WINDOW_SCALE);
 
 #if SMW_DEBUG_ZOOM_OUT
@@ -109,7 +112,7 @@ void Game::GameEnd()
 	delete Font9Ptr;
 	delete Font6Ptr;
 
-	LevelData::Unload();
+	LevelData::UnloadAllLevels();
 	SpriteSheetManager::Unload();
 
 	SoundManager::UnloadSoundsAndSongs();

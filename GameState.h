@@ -3,6 +3,8 @@
 #include "BaseState.h"
 
 class Level;
+class Pipe;
+struct SessionInfo;
 
 class GameState : public BaseState
 {
@@ -18,8 +20,8 @@ public:
 
 	void SetPaused(bool paused);
 
-	void EnterUnderground();
-	void LeaveUnderground();
+	void EnterUnderground(SessionInfo sessionInfo, Pipe* pipePtr);
+	void LeaveUnderground(SessionInfo sessionInfo, Pipe* pipeEnteredPtr);
 
 private:
 	void Reset();

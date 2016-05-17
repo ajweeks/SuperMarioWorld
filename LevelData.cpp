@@ -62,6 +62,7 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 	// PIPES
 	pipes.erase(std::remove_if(pipes.begin(), pipes.end(), isspace), pipes.end());
 	int pipeTagBeginIndex = -1;
+	int pipeIndex = 0; // Keep track of how many pipes we've added so far
 	while ((pipeTagBeginIndex = pipes.find("<Pipe>", pipeTagBeginIndex + 1)) != std::string::npos)
 	{
 		std::string pipeContent = FileIO::GetTagContent(pipes, "Pipe", pipeTagBeginIndex);
@@ -82,7 +83,16 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 			m_EnemiesPtrArr.push_back(new PiranhaPlant(topLeft + DOUBLE2(pipeWidth / 2, Item::TILE_SIZE * 2), levelPtr));
 		}
 
-		m_PipesPtrArr.push_back(new Pipe(topLeft, bottomRight, levelPtr, pipeOrientation, pipeIsEnterable));
+		int warpLevelIndex = -1;
+		std::string warpLevelIndexStr = FileIO::GetTagContent(pipeContent, "WarpLevelIndex");
+		if (warpLevelIndexStr.length() > 0) warpLevelIndex = stoi(warpLevelIndexStr);
+
+		int warpPipeIndex = -1;
+		std::string warpPipeIndexStr = FileIO::GetTagContent(pipeContent, "WarpPipeIndex");
+		if (warpPipeIndexStr.length() > 0) warpPipeIndex = stoi(warpPipeIndexStr);
+
+		m_PipesPtrArr.push_back(new Pipe(topLeft, bottomRight, levelPtr, pipeOrientation, pipeIndex, warpLevelIndex, warpPipeIndex));
+		++pipeIndex;
 	}
 
 
@@ -443,12 +453,20 @@ DOUBLE2 LevelData::StringToDOUBLE2(std::string double2String)
 	return result;
 }
 
-void LevelData::Unload()
+void LevelData::UnloadAllLevels()
 {
 	for (size_t i = 0; i < m_LevelDataPtrArr.size(); ++i)
 	{
-		delete m_LevelDataPtrArr[i];
-		m_LevelDataPtrArr[i] = nullptr;
+		UnloadLevel(i);
+	}
+}
+
+void LevelData::UnloadLevel(int index)
+{
+	if (m_LevelDataPtrArr[index] != nullptr)
+	{
+		delete m_LevelDataPtrArr[index];
+		m_LevelDataPtrArr[index] = nullptr;
 	}
 }
 
@@ -469,6 +487,20 @@ void LevelData::SetItemsAndEnemiesPaused(bool paused)
 			m_EnemiesPtrArr[i]->SetPaused(paused);
 		}
 	}
+}
+
+Pipe* LevelData::GetPipeWithIndex(int index)
+{
+	for (size_t i = 0; i < m_PipesPtrArr.size(); ++i)
+	{
+		if (m_PipesPtrArr[i] != nullptr && 
+			m_PipesPtrArr[i]->GetIndex() == index)
+		{
+			return m_PipesPtrArr[i];
+		}
+	}
+
+	return nullptr;
 }
 
 std::vector<Platform*> LevelData::GetPlatforms()

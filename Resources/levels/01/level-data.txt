@@ -9,10 +9,10 @@
 		<Pipe>
 			<BoundingBox>28,20,31,22</BoundingBox>
 			<Orientation>Left</Orientation>
-			<Enterable>1</Enterable>
+			<WarpLevelIndex>0</WarpLevelIndex>
+			<WarpPipeIndex>4</WarpPipeIndex>
 		</Pipe>
 	</Pipes>
-
 	
 	
 	<Items>

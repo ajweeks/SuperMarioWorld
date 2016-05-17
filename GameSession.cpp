@@ -17,6 +17,12 @@ COLOR GameSession::OFF_WHITE = COLOR(245, 245, 250);
 COLOR GameSession::GREEN = COLOR(16, 181, 16);
 COLOR GameSession::RED = COLOR(193, 36, 36);
 
+GameSession::GameSession()
+{}
+
+GameSession::~GameSession()
+{}
+
 void GameSession::RecordStartSessionInfo(Level* levelPtr)
 {
 	RecordSessionInfo(m_CurrentSessionInfo.sessionInfoStart, levelPtr);
@@ -315,26 +321,7 @@ void GameSession::PaintCurrentSessionInfo()
 		x, y);
 }
 
-void GameSession::PaintInfoString(std::string preString, int value1, int value2, int x, int& y)
-{
-	if (value1 == -1 || value2 == -1) return;
-
-	GAME_ENGINE->SetColor(OFF_WHITE);
-	GAME_ENGINE->DrawString(String(preString.c_str()) + String(value1), x, y);
-	if (value1 > value2)
-	{
-		GAME_ENGINE->SetColor(RED);
-		GAME_ENGINE->DrawString(String(value2), x + COL_WIDTH, y);
-	}
-	else if (value1 < value2)
-	{
-		GAME_ENGINE->SetColor(GREEN);
-		GAME_ENGINE->DrawString(String(value2), x + COL_WIDTH, y);
-	}
-	y += LINE_HEIGHT;
-}
-
-void GameSession::PaintInfoString(std::string preString, std::string value1, std::string value2, int x, int& y)
+void GameSession::PaintInfoString(std::string preString, std::string value1, std::string value2, int& x, int& y, bool positive)
 {
 	if (!value1.compare("") || !value2.compare("")) return;
 
@@ -353,23 +340,25 @@ void GameSession::PaintInfoString(std::string preString, std::string value1, std
 	y += LINE_HEIGHT;
 }
 
-void GameSession::PaintInfoString(std::string preString, bool value1, bool value2, int x, int& y)
+void GameSession::PaintInfoString(std::string preString, int value1, int value2, int& x, int& y)
+{
+	if (value1 == -1 || value2 == -1) return;
+
+	PaintInfoString(preString, std::to_string(value1), std::to_string(value2), x, y, value1 < value2);
+}
+
+void GameSession::PaintInfoString(std::string preString, std::string value1, std::string value2, int& x, int& y)
+{
+	if (!value1.compare("") || !value2.compare("")) return;
+
+	PaintInfoString(preString, value1, value2, x, y, value1.compare(value2) < 0);
+}
+
+void GameSession::PaintInfoString(std::string preString, bool value1, bool value2, int& x, int& y)
 {
 	if (int(value1) == -1 || int(value2) == -1) return;
-
-	GAME_ENGINE->SetColor(OFF_WHITE);
-	GAME_ENGINE->DrawString(String(preString.c_str()) + String(FileIO::BoolToString(value1).c_str()), x, y);
-	if (value1 && !value2)
-	{
-		GAME_ENGINE->SetColor(RED);
-		GAME_ENGINE->DrawString(String(FileIO::BoolToString(value2).c_str()), x + COL_WIDTH, y);
-	}
-	else if (value2 && !value1)
-	{
-		GAME_ENGINE->SetColor(GREEN);
-		GAME_ENGINE->DrawString(String(FileIO::BoolToString(value2).c_str()), x + COL_WIDTH, y);
-	}
-	y += LINE_HEIGHT;
+	
+	PaintInfoString(preString, FileIO::BoolToString(value1), FileIO::BoolToString(value2), x, y, value2 && !value1);
 }
 
 // This function expects both input strings to be formatted as such: "HH:MM:SS"
@@ -424,9 +413,3 @@ void GameSession::Reset()
 	m_CurrentSessionIndex = 0;
 	m_CurrentSessionInfo = GameSession::GetSessionInfo(m_CurrentSessionIndex);
 }
-
-GameSession::GameSession()
-{}
-
-GameSession::~GameSession()
-{}

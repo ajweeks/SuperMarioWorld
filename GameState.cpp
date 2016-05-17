@@ -7,26 +7,16 @@
 #include "LevelInfo.h"
 #include "SpriteSheetManager.h"
 #include "SoundManager.h"
+#include "SessionInfo.h"
+#include "Pipe.h"
 
 GameState::GameState(StateManager* stateManagerPtr) :
 	BaseState(stateManagerPtr, STATE_TYPE::GAME)
 {
 	GameSession::ReadSessionInfoFromFile();
 
-	int index = 0;
-	std::stringstream stream; 
-	stream << std::setw(2) << std::setfill('0') << index;
-	LevelInfo levelInfo { 
-		index, String(("Resources/levels/" + stream.str() + "/level.svg").c_str()),
-		SpriteSheetManager::levelOneBackgroundPtr,
-		-1,
-		SpriteSheetManager::levelForegroundPtrArr[index],
-		SoundManager::SONG::OVERWORLD_BGM,
-		SoundManager::SONG::OVERWORLD_BGM_FAST,
-		SpriteSheetManager::levelForegroundPtrArr[index]->GetWidth(),
-		SpriteSheetManager::levelForegroundPtrArr[index]->GetHeight() };
-
-	m_LevelOverworldPtr = new Level(levelInfo, m_StateManagerPtr->GetGamePtr(), this);
+	int levelIndex = 0; // Start the player in level 0
+	m_LevelOverworldPtr = new Level(m_StateManagerPtr->GetGamePtr(), this, LevelInfo::levelInfoArr[levelIndex]);
 	m_CurrentLevelPtr = m_LevelOverworldPtr;
 
 	ResetMembers();
@@ -38,7 +28,11 @@ GameState::~GameState()
 {
 	GameSession::WriteSessionInfoToFile(m_CurrentLevelPtr);
 	delete m_LevelOverworldPtr;
-	delete m_LevelUndergroundPtr;
+
+	if (m_LevelUndergroundPtr != nullptr)
+	{
+		delete m_LevelUndergroundPtr;
+	}
 }
 
 void GameState::Tick(double deltaTime)
@@ -107,33 +101,42 @@ void GameState::SetPaused(bool paused)
 	m_CurrentLevelPtr->SetPaused(paused);
 }
 
-void GameState::EnterUnderground()
+void GameState::EnterUnderground(SessionInfo sessionInfo, Pipe* pipePtr)
 {
 	if (m_LevelUndergroundPtr == nullptr)
 	{
-		int index = 1;
-		std::stringstream stream;
-		stream << std::setw(2) << std::setfill('0') << index;
-		LevelInfo levelInfo{
-			index, String(("Resources/levels/" + stream.str() + "/level.svg").c_str()),
-			SpriteSheetManager::levelOneUndergroundBackgroundPtr,
-			3,
-			SpriteSheetManager::levelForegroundPtrArr[index],
-			SoundManager::SONG::UNDERGROUND_BGM,
-			SoundManager::SONG::UNDERGROUND_BGM_FAST,
-			SpriteSheetManager::levelForegroundPtrArr[index]->GetWidth(),
-			SpriteSheetManager::levelForegroundPtrArr[index]->GetHeight() };
+		int warpLevelIndex = pipePtr->GetWarpLevelIndex();
+		int warpPipeIndex = pipePtr->GetWarpPipeIndex();
 
-		m_LevelUndergroundPtr = new Level(levelInfo, m_StateManagerPtr->GetGamePtr(), this);
+		assert(warpLevelIndex != -1);
+
+		m_LevelUndergroundPtr = new Level(m_StateManagerPtr->GetGamePtr(), this, LevelInfo::levelInfoArr[warpLevelIndex], sessionInfo);
 		m_CurrentLevelPtr = m_LevelUndergroundPtr;
+
+		if (warpPipeIndex != -1)
+		{
+			m_CurrentLevelPtr->WarpPlayerToPipe(warpPipeIndex);
+		}
+
+		m_CurrentLevelPtr->SetPaused(true);
 	}
 }
 
-void GameState::LeaveUnderground()
+void GameState::LeaveUnderground(SessionInfo sessionInfo, Pipe* pipeEnteredPtr)
 {
+	m_CurrentLevelPtr = m_LevelOverworldPtr;
+
 	if (m_LevelUndergroundPtr != nullptr)
 	{
-		m_CurrentLevelPtr = m_LevelOverworldPtr;
+		int warpLevelIndex = pipeEnteredPtr->GetWarpLevelIndex();
+		int warpPipeIndex = pipeEnteredPtr->GetWarpPipeIndex();
+
+		if (warpPipeIndex != -1)
+		{
+			m_CurrentLevelPtr->WarpPlayerToPipe(warpPipeIndex);
+		}
+
 		delete m_LevelUndergroundPtr;
+		m_LevelUndergroundPtr = nullptr;
 	}
 }

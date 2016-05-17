@@ -5,6 +5,7 @@
 #include "CountdownTimer.h"
 #include "SoundManager.h"
 #include "AnimationInfo.h"
+#include "SessionInfo.h"
 
 class Game;
 class GameState;
@@ -38,7 +39,7 @@ public:
 		BERRY			= (1 << 7)
 	};
 
-	Level(LevelInfo levelInfo, Game* gamePtr, GameState* gameStatePtr);
+	Level(Game* gamePtr, GameState* gameStatePtr, LevelInfo levelInfo, SessionInfo sessionInfo = {});
 	virtual ~Level();
 
 	Level(const Level&) = delete;
@@ -67,6 +68,9 @@ public:
 	DOUBLE2 GetCameraOffset(double deltaTime);
 	void SetPausedTimer(int duration);
 	bool IsPaused();
+	bool IsUnderground();
+	
+	void WarpPlayerToPipe(int pipeIndex);
 
 	void GiveItemToPlayer(Item* itemPtr);
 	void AddParticle(Particle* particlePtr);
@@ -92,6 +96,7 @@ private:
 	static const int TIME_WARNING = 100; // When this many in game seconds are remaining the player is notified
 
 	int m_Index;
+	bool m_IsUnderground;
 
 	LevelData* m_LevelDataPtr = nullptr;
 	SoundManager::SONG m_BackgroundSong;

@@ -18,7 +18,8 @@ public:
 	LevelData& operator=(const LevelData&) = delete;
 
 	static LevelData* GetLevelData(int levelIndex, Level* levelPtr);
-	static void Unload();
+	static void UnloadAllLevels();
+	static void UnloadLevel(int levelIndex);
 
 	void AddItem(Item* newItemPtr);
 	void RemoveItem(Item* itemPtr);
@@ -27,6 +28,8 @@ public:
 	void AddEnemy(Enemy* newEnemyPtr);
 	void RemoveEnemy(Enemy* enemyPtr);
 	void RemoveEnemy(int enemyIndex);
+
+	Pipe* GetPipeWithIndex(int index);
 
 	void PaintEnemiesInBackground(); // These enemies are drawn behind the level image (piranha plants)
 	void PaintItemsAndEnemies();

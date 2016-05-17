@@ -3,15 +3,22 @@
 #include "INT2.h"
 #include "SoundManager.h"
 
+class Pipe;
+
 struct LevelInfo
 {
-	const int m_Index;
-	const String m_LevelSVGFilePath;
-	const Bitmap* m_BmpBackgroundPtr;
-	const int m_NumberOfBackgroundAnimationFrames; // Set this to -1 if the background doen't animate
-	const Bitmap* m_BmpForegroundPtr;
-	const SoundManager::SONG m_BackgroundMusic;
-	const SoundManager::SONG m_BackgroundMusicFast;
-	const int m_Width;
-	const int m_Height;
+	int m_Index;
+	String m_LevelSVGFilePath;
+	Bitmap* m_BmpBackgroundPtr;
+	// Leave this set to -1 if the background doen't animate
+	int m_NumberOfBackgroundAnimationFrames = -1; 
+	bool m_IsUnderground;
+	Bitmap* m_BmpForegroundPtr;
+	SoundManager::SONG m_BackgroundMusic;
+	SoundManager::SONG m_BackgroundMusicFast;
+	int m_Width;
+	int m_Height;
+
+	static void Initialize();
+	static std::vector<LevelInfo> levelInfoArr;
 };
