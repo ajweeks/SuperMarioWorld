@@ -16,6 +16,7 @@ class Item;
 class Enemy;
 class Player;
 class Yoshi;
+class MessageBlock;
 
 class Camera;
 class Particle;
@@ -58,8 +59,6 @@ public:
 	double GetWidth();
 	double GetHeight();
 	int GetTimeRemaining();
-	void SetShowingMessage(bool showingMessage);
-	bool IsShowingMessage();
 	void SetPaused(bool paused);
 	bool IsCheckpointCleared();
 	void SetAllDragonCoinsCollected(bool allCollected);
@@ -70,6 +69,7 @@ public:
 	bool IsPaused();
 	bool IsUnderground();
 	
+	void SetActiveMessageBlock(MessageBlock* activeMessageBlockPtr);
 	void WarpPlayerToPipe(int pipeIndex);
 
 	void GiveItemToPlayer(Item* itemPtr);
@@ -119,7 +119,7 @@ private:
 	PhysicsActor* m_ActLevelPtr = nullptr;
 
 	bool m_Paused;
-	bool m_ShowingMessage;
+	MessageBlock* m_ActiveMessageBlockPtr = nullptr; // This is set toa message block address when the player hits it
 
 	int m_TotalTime; // How long the player has to complete this level
 	double m_SecondsElapsed; // How many real-time seconds have elapsed

@@ -7,9 +7,8 @@
 #include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
 
-int MessageBlock::m_BitmapWidth = -1;
-int MessageBlock::m_BitmapHeight = -1;
-const int MessageBlock::FRAMES_OF_ANIMATION = 360;
+int MessageBlock::m_BitmapWidth;
+int MessageBlock::m_BitmapHeight;
 
 MessageBlock::MessageBlock(DOUBLE2 topLeft, String bmpFilePath, Level* levelPtr) :
 	Block(topLeft, TYPE::MESSAGE_BLOCK, levelPtr)
@@ -18,6 +17,11 @@ MessageBlock::MessageBlock(DOUBLE2 topLeft, String bmpFilePath, Level* levelPtr)
 	m_BitmapWidth = m_BmpPtr->GetWidth();
 	m_BitmapHeight = m_BmpPtr->GetHeight();
 	m_AnimInfo.frameNumber = 0;
+
+	m_DelayBeforeIntroAnimationTimer = CountdownTimer(12);
+	m_IntroAnimationTimer = CountdownTimer(26);
+	m_OutroAnimationTimer = CountdownTimer(26);
+	m_BumpAnimationTimer = CountdownTimer(FRAMES_OF_BUMP_ANIMATION);
 }
 
 MessageBlock::~MessageBlock()
@@ -27,40 +31,33 @@ MessageBlock::~MessageBlock()
 
 void MessageBlock::Tick(double deltaTime)
 {
-	if (m_FramesUntilPause != -1 && --m_FramesUntilPause <= 0)
+	if (m_DelayBeforeIntroAnimationTimer.Tick() && m_DelayBeforeIntroAnimationTimer.IsComplete())
 	{
-		m_LevelPtr->SetShowingMessage(true);
-		m_FramesUntilPause = -1;
-		m_FramesOfIntroAnimation = 0;
+		m_IntroAnimationTimer.Start();
+		return;
 	}
 
-	if (m_FramesOfIntroAnimation > -1)
+	if (m_IntroAnimationTimer.Tick() && m_IntroAnimationTimer.IsComplete())
 	{
-		if (m_LevelPtr->IsShowingMessage() == false)
-		{
-			m_FramesOfIntroAnimation = -1;
-			m_FramesOfOutroAnimation = 0;
-		}
+		m_ShowingMessage = true;
 	}
 
-	if (m_FramesOfOutroAnimation > FRAMES_OF_ANIMATION)
+	if (m_OutroAnimationTimer.Tick() && m_OutroAnimationTimer.IsComplete())
 	{
-		m_FramesOfOutroAnimation = -1;
+		m_LevelPtr->SetActiveMessageBlock(nullptr); // We are no longer the active message block
 	}
 
-	if (m_CurrentFrameOfBumpAnimation > -1)
+	if (m_BumpAnimationTimer.Tick())
 	{
-		m_yo = m_CurrentFrameOfBumpAnimation;
+		m_yo = m_BumpAnimationTimer.FramesElapsed();
 		if (m_yo > FRAMES_OF_BUMP_ANIMATION / 2)
 		{
 			m_yo = (FRAMES_OF_BUMP_ANIMATION / 2) - (m_yo - (FRAMES_OF_BUMP_ANIMATION / 2));
 		}
 		m_yo = int((double(-m_yo) / FRAMES_OF_BUMP_ANIMATION) * BUMP_HEIGHT);
 
-		m_CurrentFrameOfBumpAnimation++;
-		if (m_CurrentFrameOfBumpAnimation > FRAMES_OF_BUMP_ANIMATION)
+		if (m_BumpAnimationTimer.IsComplete())
 		{
-			m_CurrentFrameOfBumpAnimation = -1;
 			m_yo = 0;
 		}
 	}
@@ -79,39 +76,36 @@ void MessageBlock::Paint()
 	MATRIX3X2 matViewPrevious = GAME_ENGINE->GetViewMatrix();
 	GAME_ENGINE->SetViewMatrix(Game::matIdentity);
 
-	if (m_FramesOfIntroAnimation > -1)
+	if (m_IntroAnimationTimer.IsActive())
 	{
-		m_FramesOfIntroAnimation++;
-
-		// NOTE: Paints a growing rectangle for the first 'FRAMES_OF_ANIMATION' frames
-		if (m_FramesOfIntroAnimation < FRAMES_OF_ANIMATION)
-		{
-			double width = double(m_FramesOfIntroAnimation) * (double(m_BitmapWidth) / double(FRAMES_OF_ANIMATION));
-			double height = double(m_FramesOfIntroAnimation) * (double(m_BitmapHeight) / double(FRAMES_OF_ANIMATION));
-			double x = Game::WIDTH / 2 - width / 2;
-			double y = Game::HEIGHT / 2 - height / 2 - yo;
-			GAME_ENGINE->FillRect(RECT2(x, y, x + width, y + height));
-		}
-		else
-		{
-			double x = Game::WIDTH / 2 - m_BmpPtr->GetWidth() / 2;
-			double y = 25;
-			GAME_ENGINE->DrawBitmap(m_BmpPtr, x, Game::HEIGHT / 2 - m_BmpPtr->GetHeight() / 2 - yo);
-		}
+		// NOTE: Paints a growing black rectangle
+		double framesElapsed = m_IntroAnimationTimer.FramesElapsed();
+		double totalFrames = m_IntroAnimationTimer.OriginalNumberOfFrames();
+		double width = double(framesElapsed) * (double(m_BitmapWidth) / double(totalFrames));
+		double height = double(framesElapsed) * (double(m_BitmapHeight) / double(totalFrames));
+		
+		double x = Game::WIDTH / 2 - width / 2;
+		double y = Game::HEIGHT / 2 - height / 2 - yo;
+		GAME_ENGINE->FillRect(RECT2(x, y, x + width, y + height));
 	}
-	else if (m_FramesOfOutroAnimation > -1)
+	else if (m_OutroAnimationTimer.IsActive())
 	{
-		m_FramesOfOutroAnimation++;
+		// NOTE: Paints a shrinking black rectangle
+		double framesElapsed = m_OutroAnimationTimer.FramesElapsed();
+		double totalFrames = m_OutroAnimationTimer.OriginalNumberOfFrames();
+		double width = m_BitmapWidth - double(framesElapsed) * (double(m_BitmapWidth) / double(totalFrames));
+		double height = m_BitmapHeight - double(framesElapsed) * (double(m_BitmapHeight) / double(totalFrames));
 
-		// NOTE: Paints a shrinking rectangle for 'FRAMES_OF_ANIMATION' frames
-		if (m_FramesOfOutroAnimation < FRAMES_OF_ANIMATION)
-		{
-			double width = m_BitmapWidth - double(m_FramesOfOutroAnimation) * (double(m_BitmapWidth) / double(FRAMES_OF_ANIMATION));
-			double height = m_BitmapHeight - double(m_FramesOfOutroAnimation) * (double(m_BitmapHeight) / double(FRAMES_OF_ANIMATION));
-			double x = Game::WIDTH / 2 - width / 2;
-			double y = Game::HEIGHT / 2 - height / 2 - yo;
-			GAME_ENGINE->FillRect(RECT2(x, y, x + width, y + height));
-		}
+		double x = Game::WIDTH / 2 - width / 2;
+		double y = Game::HEIGHT / 2 - height / 2 - yo;
+		GAME_ENGINE->FillRect(RECT2(x, y, x + width, y + height));
+	}
+	else if (m_ShowingMessage)
+	{
+		// NOTE: Paints a static black rectangle
+		double x = Game::WIDTH / 2 - m_BmpPtr->GetWidth() / 2;
+		double y = 25;
+		GAME_ENGINE->DrawBitmap(m_BmpPtr, x, Game::HEIGHT / 2 - m_BmpPtr->GetHeight() / 2 - yo);
 	}
 
 	GAME_ENGINE->SetViewMatrix(matViewPrevious);
@@ -120,11 +114,29 @@ void MessageBlock::Paint()
 void MessageBlock::Hit()
 {
 	SoundManager::PlaySoundEffect(SoundManager::SOUND::BLOCK_HIT);
-
-	m_FramesUntilPause = FRAMES_TO_WAIT;
-
-	m_CurrentFrameOfBumpAnimation = 2;
-	m_yo = 0;
-
 	SoundManager::PlaySoundEffect(SoundManager::SOUND::MESSAGE_BLOCK_HIT);
+
+	m_LevelPtr->SetActiveMessageBlock(this);
+	m_DelayBeforeIntroAnimationTimer.Start();
+	m_BumpAnimationTimer.Start();
+	m_yo = 0;
+}
+
+bool MessageBlock::PauseInput()
+{
+	return m_ShowingMessage || m_IntroAnimationTimer.IsActive() || m_OutroAnimationTimer.IsActive();
+}
+
+bool MessageBlock::ShowingMessage()
+{
+	return m_ShowingMessage;
+}
+
+void MessageBlock::ClearShowingMessage()
+{
+	if (m_ShowingMessage)
+	{
+		m_OutroAnimationTimer.Start();
+		m_ShowingMessage = false;
+	}
 }

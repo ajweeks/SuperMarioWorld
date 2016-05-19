@@ -24,6 +24,7 @@
 #include "GoalGate.h"
 #include "Coin.h"
 #include "PSwitch.h"
+#include "MessageBlock.h"
 
 #include "KoopaTroopa.h"
 #include "MontyMole.h"
@@ -83,7 +84,6 @@ void Level::Reset()
 void Level::ResetMembers()
 {
 	m_Paused = false;
-	m_ShowingMessage = false;
 
 	m_TotalTime = 400; // This changes for every level, TODO: Put this info in the level save
 	m_SecondsElapsed = 0.0;
@@ -143,18 +143,27 @@ void Level::Tick(double deltaTime)
 		SetPaused(false);
 	}
 
-	if (m_ShowingMessage)
+	if (m_ActiveMessageBlockPtr != nullptr)
 	{
-		if (m_PlayerPtr->IsDead() == false &&
-			GAME_ENGINE->IsKeyboardKeyPressed('A') ||
-			GAME_ENGINE->IsKeyboardKeyPressed('S') ||
-			GAME_ENGINE->IsKeyboardKeyPressed('Z') ||
-			GAME_ENGINE->IsKeyboardKeyPressed('X') ||
-			GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE))
+		if (m_ActiveMessageBlockPtr->PauseInput())
 		{
-			m_ShowingMessage = false;
-			// NOTE: Return here so that the input isn't registered as movement input
-			return;
+			// This message block won't be ticked unless we do it here
+			m_ActiveMessageBlockPtr->Tick(deltaTime);
+			if (m_ActiveMessageBlockPtr == nullptr) return; // If this is the last frame of outro anim, they are no longer our active message block
+		}
+
+		if (m_ActiveMessageBlockPtr->ShowingMessage())
+		{
+			if (m_PlayerPtr->IsDead() == false &&
+				GAME_ENGINE->IsKeyboardKeyPressed('A') ||
+				GAME_ENGINE->IsKeyboardKeyPressed('S') ||
+				GAME_ENGINE->IsKeyboardKeyPressed('Z') ||
+				GAME_ENGINE->IsKeyboardKeyPressed('X') ||
+				GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE))
+			{
+				m_ActiveMessageBlockPtr->ClearShowingMessage();
+				return;
+			}
 		}
 	}
 	else if (m_PlayerPtr->IsDead() == false &&
@@ -174,7 +183,11 @@ void Level::Tick(double deltaTime)
 		m_PlayerPtr->Tick(deltaTime);
 		return;
 	}
-	else if (m_Paused || m_ShowingMessage) return;
+	else if (m_Paused || 
+			(m_ActiveMessageBlockPtr != nullptr && m_ActiveMessageBlockPtr->PauseInput())) 
+	{
+		return;
+	}
 
 	if (m_IsShowingEndScreen)
 	{
@@ -1211,14 +1224,9 @@ void Level::SetPaused(bool paused)
 	SoundManager::SetSongPaused(m_BackgroundSong, m_Paused);
 }
 
-void Level::SetShowingMessage(bool showingMessage)
+void Level::SetActiveMessageBlock(MessageBlock* activeMessageBlockPtr)
 {
-	m_ShowingMessage = showingMessage;
-}
-
-bool Level::IsShowingMessage()
-{
-	return m_ShowingMessage;
+	m_ActiveMessageBlockPtr = activeMessageBlockPtr;
 }
 
 void Level::TurnCoinsToBlocks(bool toBlocks)
@@ -1288,5 +1296,8 @@ void Level::SetPausedTimer(int duration)
 {
 	m_GamePausedTimer = CountdownTimer(duration);
 	m_GamePausedTimer.Start();
-	SetPaused(true);
+	if (m_Paused == false)
+	{
+		SetPaused(true);
+	}
 }
