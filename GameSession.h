@@ -44,7 +44,7 @@ private:
 
 	static int GetNumberOfSessions();
 
-	static SessionInfoPair GetSessionInfo(int reverseSessionIndex);
+	static SessionInfoPair GetSessionInfo();
 	static SessionInfo GetSessionInfo(std::string sessionString);
 	static std::string GetSessionInfoMarkedUp(SessionInfo sessionInfo);
 
@@ -55,8 +55,12 @@ private:
 	static void PaintInfoString(std::string preString, int value1, int value2, int& x, int& y);
 	static void PaintInfoString(std::string preString, bool value1, bool value2, int& x, int& y);
 
-	static int m_CurrentSessionIndex;
+	static int m_CurrentSessionIndexShowing;
+	static SessionInfoPair m_CurrentSessionInfoShowing;
+
+	// This should only be modified at the start and end of a game!
+	static SessionInfoPair m_CurrentSessionInfoRecording;
+	
 	static int m_TotalSessionsWithInfo;
-	static SessionInfoPair m_CurrentSessionInfo;
 	static std::string m_AllSessionsInfoString;
 };

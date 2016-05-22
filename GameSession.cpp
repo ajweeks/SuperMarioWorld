@@ -8,9 +8,10 @@
 #include "CountdownTimer.h"
 #include "FileIO.h"
 
-int GameSession::m_CurrentSessionIndex = 0;
+int GameSession::m_CurrentSessionIndexShowing = 0;
 int GameSession::m_TotalSessionsWithInfo = 0;
-SessionInfoPair GameSession::m_CurrentSessionInfo = {};
+SessionInfoPair GameSession::m_CurrentSessionInfoShowing = {};
+SessionInfoPair GameSession::m_CurrentSessionInfoRecording = {};
 std::string GameSession::m_AllSessionsInfoString = "";
 
 COLOR GameSession::OFF_WHITE = COLOR(245, 245, 250);
@@ -25,7 +26,7 @@ GameSession::~GameSession()
 
 void GameSession::RecordStartSessionInfo(Level* levelPtr)
 {
-	RecordSessionInfo(m_CurrentSessionInfo.sessionInfoStart, levelPtr);
+	RecordSessionInfo(m_CurrentSessionInfoRecording.sessionInfoStart, levelPtr);
 }
 
 void GameSession::RecordSessionInfo(SessionInfo &sessionInfo, Level* levelPtr)
@@ -64,7 +65,7 @@ void GameSession::RecordSessionInfo(SessionInfo &sessionInfo, Level* levelPtr)
 
 void GameSession::WriteSessionInfoToFile(Level* levelPtr)
 {
-	RecordSessionInfo(m_CurrentSessionInfo.sessionInfoEnd, levelPtr);
+	RecordSessionInfo(m_CurrentSessionInfoRecording.sessionInfoEnd, levelPtr);
 
 	std::ofstream fileOutStream;
 
@@ -75,11 +76,11 @@ void GameSession::WriteSessionInfoToFile(Level* levelPtr)
 		fileOutStream << "<Session>" << std::endl;
 
 		fileOutStream << "\t<Start>" << std::endl;
-		fileOutStream << GetSessionInfoMarkedUp(m_CurrentSessionInfo.sessionInfoStart);
+		fileOutStream << GetSessionInfoMarkedUp(m_CurrentSessionInfoRecording.sessionInfoStart);
 		fileOutStream << "\t</Start>" << std::endl;
 
 		fileOutStream << "\t<End>" << std::endl;
-		fileOutStream << GetSessionInfoMarkedUp(m_CurrentSessionInfo.sessionInfoEnd);
+		fileOutStream << GetSessionInfoMarkedUp(m_CurrentSessionInfoRecording.sessionInfoEnd);
 		fileOutStream << "\t</End>" << std::endl;
 
 		fileOutStream << "</Session>" << std::endl;
@@ -125,7 +126,7 @@ void GameSession::ReadSessionInfoFromFile()
 	m_AllSessionsInfoString = stringStream.str();
 	m_AllSessionsInfoString.erase(std::remove_if(m_AllSessionsInfoString.begin(), m_AllSessionsInfoString.end(), isspace), m_AllSessionsInfoString.end());
 	m_TotalSessionsWithInfo = GetNumberOfSessions();
-	m_CurrentSessionInfo = GetSessionInfo(m_CurrentSessionIndex);
+	m_CurrentSessionInfoShowing = GetSessionInfo();
 }
 
 int GameSession::GetNumberOfSessions()
@@ -138,12 +139,12 @@ int GameSession::GetNumberOfSessions()
 		numberOfSessions++;
 	} while (currentIndex != std::string::npos);
 
-	numberOfSessions--;
+	numberOfSessions -= 1; // Avoid off by one error
 
 	return numberOfSessions;
 }
 
-SessionInfoPair GameSession::GetSessionInfo(int sessionIndex)
+SessionInfoPair GameSession::GetSessionInfo()
 {
 	int sessionsFound = 0;
 	int currentIndex = -1;
@@ -151,7 +152,7 @@ SessionInfoPair GameSession::GetSessionInfo(int sessionIndex)
 	{
 		currentIndex = m_AllSessionsInfoString.find("<Session>", currentIndex + 1);
 		sessionsFound++;
-	} while (currentIndex != std::string::npos && m_TotalSessionsWithInfo - sessionsFound > sessionIndex);
+	} while (currentIndex != std::string::npos && m_TotalSessionsWithInfo - sessionsFound > m_CurrentSessionIndexShowing);
 
 	int sessionTagStart = currentIndex;
 	int sessionTagEnd = m_AllSessionsInfoString.find("</Session>", sessionTagStart);
@@ -182,7 +183,7 @@ SessionInfoPair GameSession::GetSessionInfo(int sessionIndex)
 		SessionInfoPair sessionInfoPair;
 		sessionInfoPair.sessionInfoStart = currentSessionInfoStart;
 		sessionInfoPair.sessionInfoEnd = currentSessionInfoEnd;
-		sessionInfoPair.m_SessionIndex = sessionIndex;
+		sessionInfoPair.m_SessionIndex = m_CurrentSessionIndexShowing;
 		return sessionInfoPair;
 	}
 	return {};
@@ -225,7 +226,7 @@ SessionInfo GameSession::GetSessionInfo(std::string sessionString)
 void GameSession::PaintCurrentSessionInfo()
 {
 	// BACKGROUND ROWS
-	int rows = 11;
+	int rows = 12;
 	int yOffset = 34;
 	GAME_ENGINE->SetColor(COLOR(5, 5, 5, 185));
 	GAME_ENGINE->FillRect(0, 0, Game::WIDTH, yOffset);
@@ -251,7 +252,7 @@ void GameSession::PaintCurrentSessionInfo()
 	GAME_ENGINE->DrawString(String("<-PgUp|PgDn->"), Game::WIDTH - 48, y - 6);
 
 	GAME_ENGINE->SetFont(Game::Font9Ptr);
-	GAME_ENGINE->DrawString(String("Current session: ") + String(m_TotalSessionsWithInfo - m_CurrentSessionInfo.m_SessionIndex) +
+	GAME_ENGINE->DrawString(String("Current session: ") + String(m_TotalSessionsWithInfo - m_CurrentSessionInfoShowing.m_SessionIndex) +
 		String("/") + String(m_TotalSessionsWithInfo), x, y);
 	y += 16;
 
@@ -265,59 +266,58 @@ void GameSession::PaintCurrentSessionInfo()
 
 	// MAIN INFO
 	GAME_ENGINE->SetFont(Game::Font9Ptr);
-	m_CurrentSessionInfo;
 	
 	PaintInfoString("Date: ",
-		m_CurrentSessionInfo.sessionInfoStart.m_Date,
-		m_CurrentSessionInfo.sessionInfoEnd.m_Date,
+		m_CurrentSessionInfoShowing.sessionInfoStart.m_Date,
+		m_CurrentSessionInfoShowing.sessionInfoEnd.m_Date,
 		x, y);
 
 	PaintInfoString("Time: ",
-		m_CurrentSessionInfo.sessionInfoStart.m_Time,
-		m_CurrentSessionInfo.sessionInfoEnd.m_Time,
+		m_CurrentSessionInfoShowing.sessionInfoStart.m_Time,
+		m_CurrentSessionInfoShowing.sessionInfoEnd.m_Time,
 		x, y);
-	std::string timeDurationStr = GetTimeDuration(m_CurrentSessionInfo.sessionInfoStart.m_Time, m_CurrentSessionInfo.sessionInfoEnd.m_Time);
+	std::string timeDurationStr = GetTimeDuration(m_CurrentSessionInfoShowing.sessionInfoStart.m_Time, m_CurrentSessionInfoShowing.sessionInfoEnd.m_Time);
 	GAME_ENGINE->DrawString(String("(") + String(timeDurationStr.c_str())+ String(")"), x + COL_WIDTH, y);
 	y += LINE_HEIGHT;
 
 	PaintInfoString("Player lives: ",
-		m_CurrentSessionInfo.sessionInfoStart.m_PlayerLives,
-		m_CurrentSessionInfo.sessionInfoEnd.m_PlayerLives,
+		m_CurrentSessionInfoShowing.sessionInfoStart.m_PlayerLives,
+		m_CurrentSessionInfoShowing.sessionInfoEnd.m_PlayerLives,
 		x, y);
 
 	PaintInfoString("Score: ",
-		m_CurrentSessionInfo.sessionInfoStart.m_PlayerScore,
-		m_CurrentSessionInfo.sessionInfoEnd.m_PlayerScore,
+		m_CurrentSessionInfoShowing.sessionInfoStart.m_PlayerScore,
+		m_CurrentSessionInfoShowing.sessionInfoEnd.m_PlayerScore,
 		x, y);
 
 	PaintInfoString("Coins: ",
-		m_CurrentSessionInfo.sessionInfoStart.m_CoinsCollected,
-		m_CurrentSessionInfo.sessionInfoEnd.m_CoinsCollected,
+		m_CurrentSessionInfoShowing.sessionInfoStart.m_CoinsCollected,
+		m_CurrentSessionInfoShowing.sessionInfoEnd.m_CoinsCollected,
 		x, y);
 
 	PaintInfoString("Player powerup state: ",
-		m_CurrentSessionInfo.sessionInfoStart.m_PlayerPowerupState,
-		m_CurrentSessionInfo.sessionInfoEnd.m_PlayerPowerupState,
+		m_CurrentSessionInfoShowing.sessionInfoStart.m_PlayerPowerupState,
+		m_CurrentSessionInfoShowing.sessionInfoEnd.m_PlayerPowerupState,
 		x, y);
 
 	PaintInfoString("Time remaining: ",
-		m_CurrentSessionInfo.sessionInfoStart.m_TimeRemaining,
-		m_CurrentSessionInfo.sessionInfoEnd.m_TimeRemaining,
+		m_CurrentSessionInfoShowing.sessionInfoStart.m_TimeRemaining,
+		m_CurrentSessionInfoShowing.sessionInfoEnd.m_TimeRemaining,
 		x, y);
 
 	PaintInfoString("Checkpoint cleared: ",
-		m_CurrentSessionInfo.sessionInfoStart.m_CheckpointCleared,
-		m_CurrentSessionInfo.sessionInfoEnd.m_CheckpointCleared,
+		m_CurrentSessionInfoShowing.sessionInfoStart.m_CheckpointCleared,
+		m_CurrentSessionInfoShowing.sessionInfoEnd.m_CheckpointCleared,
 		x, y);
 
 	PaintInfoString("Riding yoshi: ",
-		m_CurrentSessionInfo.sessionInfoStart.m_PlayerRidingYoshi,
-		m_CurrentSessionInfo.sessionInfoEnd.m_PlayerRidingYoshi,
+		m_CurrentSessionInfoShowing.sessionInfoStart.m_PlayerRidingYoshi,
+		m_CurrentSessionInfoShowing.sessionInfoEnd.m_PlayerRidingYoshi,
 		x, y);
 
 	PaintInfoString("All dragon coins collected: ",
-		m_CurrentSessionInfo.sessionInfoStart.m_AllDragonCoinsCollected,
-		m_CurrentSessionInfo.sessionInfoEnd.m_AllDragonCoinsCollected,
+		m_CurrentSessionInfoShowing.sessionInfoStart.m_AllDragonCoinsCollected,
+		m_CurrentSessionInfoShowing.sessionInfoEnd.m_AllDragonCoinsCollected,
 		x, y);
 }
 
@@ -392,24 +392,24 @@ std::string GameSession::GetTimeDuration(std::string startTimeStr, std::string e
 
 void GameSession::ShowNextSession()
 {
-	if (m_CurrentSessionIndex + 1 < m_TotalSessionsWithInfo)
+	if (m_CurrentSessionIndexShowing + 1 < m_TotalSessionsWithInfo)
 	{
-		m_CurrentSessionIndex++;
-		m_CurrentSessionInfo = GetSessionInfo(m_CurrentSessionIndex);
+		m_CurrentSessionIndexShowing++;
+		m_CurrentSessionInfoShowing = GetSessionInfo();
 	}
 }
 
 void GameSession::ShowPreviousSession()
 {
-	if (m_CurrentSessionIndex - 1 >= 0)
+	if (m_CurrentSessionIndexShowing - 1 >= 0)
 	{
-		m_CurrentSessionIndex--;
-		m_CurrentSessionInfo = GetSessionInfo(m_CurrentSessionIndex);
+		m_CurrentSessionIndexShowing--;
+		m_CurrentSessionInfoShowing = GetSessionInfo();
 	}
 }
 
 void GameSession::Reset()
 {
-	m_CurrentSessionIndex = 0;
-	m_CurrentSessionInfo = GameSession::GetSessionInfo(m_CurrentSessionIndex);
+	m_CurrentSessionIndexShowing = 0;
+	m_CurrentSessionInfoShowing = GetSessionInfo();
 }
