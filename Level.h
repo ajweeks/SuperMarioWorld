@@ -39,7 +39,16 @@ public:
 		YOSHI_TOUNGE	= (1 << 6),
 		BERRY			= (1 << 7)
 	};
-
+	// Used to caculate/show the player's extra score at the end of the level
+	struct FinalExtraScore
+	{
+		// How much time was remaining when the player crossed through the goal gate
+		int m_FinalTimeRemaining;
+		// This value is set to final time * 50, then gradually is "moved" to the player's score value (100 pts, per frame)
+		int m_ScoreShowing;
+		// The higher the bar is when the player hits it, the larger this value is (-1 if they don't hit it)
+		int m_BonusScoreShowing;
+	};
 	Level(Game* gamePtr, GameState* gameStatePtr, LevelInfo levelInfo, SessionInfo sessionInfo = {});
 	virtual ~Level();
 
@@ -76,7 +85,7 @@ public:
 	void GiveItemToPlayer(Item* itemPtr);
 	void AddParticle(Particle* particlePtr);
 	bool Raycast(DOUBLE2 point1, DOUBLE2 point2, int collisionBits, DOUBLE2 &intersectionRef, DOUBLE2 &normalRef, double &fractionRef);
-	void TriggerEndScreen();
+	void TriggerEndScreen(int barHitHeight = -1);
 
 private:
 	void PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool & enableContactRef);
@@ -93,11 +102,15 @@ private:
 	void TogglePaused();
 	void TurnCoinsToBlocks(bool toBlocks);
 	void ReadLevelData(int levelIndex);
+	void PaintEnclosingCircle(DOUBLE2 circleCenter, double innerCircleRadius);
 
-	static const int TIME_WARNING = 100; // When this many in game seconds are remaining the player is notified
+	static const int TIME_UP_WARNING = 100; // When this many in game seconds are remaining a sound is played
+	static const int MESSAGE_BLOCK_WARNING_TIME = 60; // Play a warning sound when this many frames are remaining in the pressed timer
 
 	int m_Index;
 	bool m_IsUnderground;
+
+	FinalExtraScore m_FinalExtraScore;
 
 	LevelData* m_LevelDataPtr = nullptr;
 	SoundManager::SONG m_BackgroundSong;
@@ -122,9 +135,9 @@ private:
 	bool m_Paused;
 	MessageBlock* m_ActiveMessageBlockPtr = nullptr; // This is set toa message block address when the player hits it
 
-	int m_TotalTime; // How long the player has to complete this level
 	double m_SecondsElapsed; // How many real-time seconds have elapsed
-	int m_TimeRemaining;
+	int m_TotalTime; // How many in-game seconds the player has to complete this level
+	int m_TimeRemaining; // How many in-game seconds are remaining
 	
 	// How many pixels wide the foreground of the level is
 	double m_Width;

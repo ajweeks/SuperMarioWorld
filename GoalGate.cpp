@@ -121,7 +121,7 @@ void GoalGate::PaintFrontPole()
 void GoalGate::Hit()
 {
 	m_IsHit = true;
-	m_LevelPtr->TriggerEndScreen();
+	m_LevelPtr->TriggerEndScreen(m_BarHeight);
 }
 
 bool GoalGate::IsHit()

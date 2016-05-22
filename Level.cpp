@@ -8,6 +8,7 @@
 #include "SpriteSheetManager.h"
 #include "HUD.h"
 #include "LevelInfo.h"
+#include "SMWFont.h"
 
 #include "Platform.h"
 #include "Pipe.h"
@@ -103,6 +104,7 @@ void Level::ResetMembers()
 	m_FramesShowingEndScreen = 0;
 
 	m_ParticleManagerPtr->Reset();
+	m_FinalExtraScore = {};
 
 	SoundManager::RestartSongs();
 
@@ -305,15 +307,18 @@ void Level::Paint()
 	{
 		const int fadeTransition = 1600; // after this many frames, the transition will occur
 		const int drumrollStart = fadeTransition + 1600;
-		const int fadeFromBlackTransition = 3550 + fadeTransition;
+		const int fadeFromBlackTransition = fadeTransition + 3550;
 		const int backToClearTransition = fadeTransition + fadeFromBlackTransition;
-		const int resetGameTransition = backToClearTransition + 128;
+		const int resetGameTransition = backToClearTransition + 600;
 
 		++m_FramesShowingEndScreen;
 
 		if (m_FramesShowingEndScreen < fadeTransition)
 		{
-			GAME_ENGINE->SetColor(COLOR(0, 0, 0, int((double(m_FramesShowingEndScreen) / double(fadeTransition)) * 255)));
+			// Fade from clear to black
+			int alpha = int((double(m_FramesShowingEndScreen) / double(fadeTransition)) * 255);
+			GAME_ENGINE->SetColor(COLOR(0, 0, 0, alpha));
+			GAME_ENGINE->FillRect(0, 0, Game::WIDTH, Game::HEIGHT);
 		}
 		else if (m_FramesShowingEndScreen < fadeFromBlackTransition)
 		{
@@ -321,12 +326,79 @@ void Level::Paint()
 			{
 				SoundManager::PlaySoundEffect(SoundManager::SOUND::DRUMROLL);
 			}
+
 			GAME_ENGINE->SetColor(COLOR(0, 0, 0));
+			GAME_ENGINE->FillRect(0, 0, Game::WIDTH, Game::HEIGHT);
+
+			// Once the drumroll starts, the final score begins "moving" to the score in the top right
+			if (m_FramesShowingEndScreen > drumrollStart)
+			{
+				if (m_FinalExtraScore.m_ScoreShowing > 0)
+				{
+					int delta = 50;
+					if (m_FinalExtraScore.m_ScoreShowing - delta < 0) delta = m_FinalExtraScore.m_ScoreShowing;
+
+					m_FinalExtraScore.m_ScoreShowing -= delta;
+					m_PlayerPtr->AddScore(delta);
+				}
+
+				if (m_FinalExtraScore.m_BonusScoreShowing > 0)
+				{
+					m_FinalExtraScore.m_BonusScoreShowing -= 1;
+					m_PlayerPtr->AddRedStars(1);
+				}
+			}
+
+			int left = 75;
+			int top = 60;
+
+			// MARIO
+			RECT2 srcRect = RECT2(1, 1, 41, 9);
+			GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, left + 32, top, srcRect);
+			top += 16;
+			
+			GAME_ENGINE->SetColor(COLOR(255, 255, 255));
+			SMWFont::PaintPhrase("COURSE CLEAR!", left, top, true);
+			top += 22;
+
+			// Bonus time score
+			SMWFont::PaintPhrase("@" + std::to_string(m_FinalExtraScore.m_FinalTimeRemaining) + "*50=", left, top, true);
+			std::stringstream scoreShowingStream;
+			scoreShowingStream << std::setw(5) << std::setfill(' ') << std::to_string(m_FinalExtraScore.m_ScoreShowing);
+			SMWFont::PaintPhrase(scoreShowingStream.str(), left + 65, top, true);
+			top += 22;
+
+			// Bonus red stars
+			if (m_FinalExtraScore.m_BonusScoreShowing > 0)
+			{
+				std::stringstream bonusRedStarsStream;
+				bonusRedStarsStream << std::setw(5) << std::setfill(' ') << std::to_string(m_FinalExtraScore.m_BonusScoreShowing);
+				SMWFont::PaintPhrase(bonusRedStarsStream.str(), left, top, true);
+
+				// RED STAR
+				top += 8;
+				srcRect = RECT2(19, 60, 19 + 8, 60 + 8);
+				GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, left, top, srcRect);
+
+				// X
+				left += 10;
+				top += 2;
+				srcRect = RECT2(10, 61, 10 + 7, 61 + 7);
+				GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, left, top, srcRect);
+
+				// NUMBER OF STARS
+				left += 24;
+				top -= 7;
+				HUD::PaintSeveralDigitLargeNumber(left, top, m_FinalExtraScore.m_BonusScoreShowing);
+			}
+
 		}
 		else if (m_FramesShowingEndScreen < backToClearTransition)
 		{
+			// Fade from black to clear
 			int alpha = int(255 - (double(m_FramesShowingEndScreen - fadeFromBlackTransition) / double(fadeTransition)) * 255);
 			GAME_ENGINE->SetColor(COLOR(0, 0, 0, alpha));
+			GAME_ENGINE->FillRect(0, 0, Game::WIDTH, Game::HEIGHT);
 		}
 		else
 		{
@@ -334,15 +406,19 @@ void Level::Paint()
 			{
 				SoundManager::PlaySoundEffect(SoundManager::SOUND::OUTRO_CIRCLE_TRANSITION);
 			}
-			else if (m_FramesShowingEndScreen >= resetGameTransition)
+			else if (m_FramesShowingEndScreen < resetGameTransition)
+			{
+				double percentage = (resetGameTransition - m_FramesShowingEndScreen) / double(resetGameTransition - backToClearTransition);
+				double innerCircleRadius = percentage * Game::WIDTH;
+				DOUBLE2 playerPosScreenSpace = m_CameraPtr->GetViewMatrix().TransformPoint(m_PlayerPtr->GetPosition());
+				PaintEnclosingCircle(playerPosScreenSpace, innerCircleRadius);
+			}
+			else
 			{
 				Reset();
 				return;
 			}
-			GAME_ENGINE->SetColor(COLOR(0, 0, 0, 0));
 		}
-
-		GAME_ENGINE->FillRect(0, 0, Game::WIDTH, Game::HEIGHT);
 	}
 
 
@@ -373,6 +449,43 @@ void Level::Paint()
 #endif
 
 	GAME_ENGINE->SetViewMatrix(matTotalView);
+}
+
+// Paints everything black except a circle with the specified radius at the specified pos
+void Level::PaintEnclosingCircle(DOUBLE2 circleCenter, double innerCircleRadius)
+{
+	GAME_ENGINE->SetColor(COLOR(0, 0, 0));
+
+	// Fill the largest four rectangles you can, and then draw several circles (just outlines)
+	double circleLeft = circleCenter.x - innerCircleRadius;
+	double circleRight = circleCenter.x + innerCircleRadius;
+	double circleTop = circleCenter.y - innerCircleRadius;
+	double circleBottom = circleCenter.y + innerCircleRadius;
+	if (circleLeft > 1)
+	{
+		GAME_ENGINE->FillRect(0, 0, circleLeft, Game::HEIGHT);
+	}
+	if (circleRight < Game::WIDTH - 1)
+	{
+		GAME_ENGINE->FillRect(circleRight, 0, Game::WIDTH, Game::HEIGHT);
+	}
+	if (circleTop > 1)
+	{
+		GAME_ENGINE->FillRect(0, 0, Game::WIDTH, circleTop);
+	}
+	if (circleBottom < Game::HEIGHT - 1)
+	{
+		GAME_ENGINE->FillRect(0, circleBottom, Game::WIDTH, Game::HEIGHT);
+	}
+
+	int numOfCircles = 15;
+	double radius = innerCircleRadius;
+	for (int i = 0; i < numOfCircles; ++i)
+	{
+		GAME_ENGINE->DrawEllipse(circleCenter, radius, radius, 7);
+		radius += 5;
+	}
+
 }
 
 void Level::PaintHUD()
@@ -1130,9 +1243,13 @@ bool Level::Raycast(DOUBLE2 point1, DOUBLE2 point2, int collisionBits, DOUBLE2 &
 	return false;
 }
 
-void Level::TriggerEndScreen()
+void Level::TriggerEndScreen(int barHitHeight)
 {
 	m_IsShowingEndScreen = true;
+
+	m_FinalExtraScore.m_FinalTimeRemaining = m_TimeRemaining;
+	m_FinalExtraScore.m_ScoreShowing = 50 * m_TimeRemaining;
+	m_FinalExtraScore.m_BonusScoreShowing = barHitHeight;
 
 	SoundManager::PlaySoundEffect(SoundManager::SOUND::COURSE_CLEAR_FANFARE);
 	SoundManager::SetAllSongsPaused(true);
