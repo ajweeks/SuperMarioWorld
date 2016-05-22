@@ -3,6 +3,7 @@
 #include "PSwitch.h"
 #include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
+#include "SoundManager.h"
 #include "Level.h"
 #include "EnemyDeathCloudParticle.h"
 
@@ -40,6 +41,9 @@ void PSwitch::Hit()
 {
 	m_IsPressed = true;
 	m_PressedTimer.Start();
+	
+	SoundManager::PlaySoundEffect(SoundManager::SOUND::PSWITCH_ACTIVATE);
 
 	// TODO: Add screenshake here!
+	
 }

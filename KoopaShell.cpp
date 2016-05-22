@@ -112,6 +112,8 @@ void KoopaShell::Paint()
 
 void KoopaShell::KickHorizontally(int facingDir, bool wasThrown)
 {
+	SoundManager::PlaySoundEffect(SoundManager::SOUND::SHELL_KICK);
+
 	m_IsMoving = true;
 	m_DirMoving = facingDir;
 
@@ -124,6 +126,8 @@ void KoopaShell::KickHorizontally(int facingDir, bool wasThrown)
 
 void KoopaShell::KickVertically(double horizontalVel)
 {
+	SoundManager::PlaySoundEffect(SoundManager::SOUND::SHELL_KICK);
+
 	SplatParticle* splatParticlePtr = new SplatParticle(m_ActPtr->GetPosition() + DOUBLE2(m_DirMoving * -3, 0));
 	m_LevelPtr->AddParticle(splatParticlePtr);
 

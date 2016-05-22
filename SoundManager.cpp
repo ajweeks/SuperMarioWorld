@@ -27,16 +27,20 @@ void SoundManager::InitialzeSoundsAndSongs()
 	LoadSong(SONG::OVERWORLD_BGM_FAST, m_ResourcePath + String("music/overworld-bgm-fast.wav"));
 	LoadSong(SONG::UNDERGROUND_BGM, m_ResourcePath + String("music/underground-bgm.wav"));
 	LoadSong(SONG::UNDERGROUND_BGM_FAST, m_ResourcePath + String("music/underground-bgm-fast.wav"));
-
 	LoadSong(SONG::MENU_SCREEN_BGM, m_ResourcePath + String("music/menu-screen-bgm.wav"));
+	LoadSong(SONG::MAP1_YOSHIS_ISLAND, m_ResourcePath + String("music/map-1-yoshis-island.wav"));
 
 	// SOUNDS
 	LoadSound(SOUND::GAME_PAUSE, m_ResourcePath + String("game-pause.wav"));
+	LoadSound(SOUND::TIME_WARNING, m_ResourcePath + String("time-warning.wav"));
+	LoadSound(SOUND::PSWITCH_ACTIVATE, m_ResourcePath + String("pswitch-activate.wav"));
+	LoadSound(SOUND::PSWITCH_TIME_WARNING, m_ResourcePath + String("pswitch-time-warning.wav"));
 
 	LoadSound(SOUND::PLAYER_JUMP, m_ResourcePath + String("player-jump.wav"));
 	LoadSound(SOUND::PLAYER_SPIN_JUMP, m_ResourcePath + String("player-spin-jump.wav"));
 	LoadSound(SOUND::PLAYER_SUPER_MUSHROOM_COLLECT, m_ResourcePath + String("player-super-mushroom-collect.wav"));
 	LoadSound(SOUND::PLAYER_DEATH, m_ResourcePath + String("player-death.wav"));
+	LoadSound(SOUND::PLAYER_DAMAGE, m_ResourcePath + String("player-damage+pipe-enter.wav"));
 
 	LoadSound(SOUND::COIN_COLLECT, m_ResourcePath + String("coin-collect.wav"));
 	LoadSound(SOUND::DRAGON_COIN_COLLECT, m_ResourcePath + String("dragon-coin-collect.wav"));
@@ -48,17 +52,17 @@ void SoundManager::InitialzeSoundsAndSongs()
 	LoadSound(SOUND::BEANSTALK_SPAWN, m_ResourcePath + String("beanstalk-spawn.wav"));
 	LoadSound(SOUND::SUPER_MUSHROOM_SPAWN, m_ResourcePath + String("super-mushroom-spawn.wav"));
 	LoadSound(SOUND::MESSAGE_BLOCK_HIT, m_ResourcePath + String("message-block-hit.wav"));
+	LoadSound(SOUND::SHELL_KICK, m_ResourcePath + String("shell-kick.wav"));
 
 	// TODO: Add pitch variation to this sound based on how many enemies a shell has hit in a row
-	LoadSound(SOUND::KOOPA_DEATH, m_ResourcePath + String("koopa-death.wav"));
 	LoadSound(SOUND::ENEMY_HEAD_STOMP_START, m_ResourcePath + String("enemy-head-stomp-start.wav"));
 	LoadSound(SOUND::ENEMY_HEAD_STOMP_END, m_ResourcePath + String("enemy-head-stomp-end.wav"));
 
 	LoadSound(SOUND::MIDWAY_GATE_PASSTHROUGH, m_ResourcePath + String("midway-gate-passthrough.wav"));
 	LoadSound(SOUND::COURSE_CLEAR_FANFARE, m_ResourcePath + String("course-clear-fanfare.wav"));
-
 	LoadSound(SOUND::DRUMROLL, m_ResourcePath + String("outro-drumroll.wav"));
 	LoadSound(SOUND::OUTRO_CIRCLE_TRANSITION, m_ResourcePath + String("outro-circle-transition.wav"));
+	LoadSound(SOUND::MAP_NEW_LOCATION_STOMP, m_ResourcePath + String("map-new-location-stomp.wav"));
 
 	LoadSound(SOUND::YOSHI_SPAWN, m_ResourcePath + String("yoshi-spawn.wav"));
 	LoadSound(SOUND::YOSHI_EGG_BREAK, m_ResourcePath + String("yoshi-egg-break.wav"));

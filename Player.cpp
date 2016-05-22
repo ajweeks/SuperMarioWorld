@@ -1443,6 +1443,7 @@ void Player::TakeDamage()
 	case POWERUP_STATE::FIRE:
 	case POWERUP_STATE::BALLOON:
 	{
+		SoundManager::PlaySoundEffect(SoundManager::SOUND::PLAYER_DAMAGE);
 		ChangePowerupState(POWERUP_STATE::NORMAL, false);
 		m_InvincibilityTimer.Start();
 		m_IsInvincible = true;
@@ -1657,6 +1658,8 @@ bool Player::AttemptToEnterPipes()
 
 void Player::EnterPipe()
 {
+	SoundManager::PlaySoundEffect(SoundManager::SOUND::PLAYER_DAMAGE); // Same sound as taking damage
+
 	m_AnimationState = ANIMATION_STATE::IN_PIPE;
 	m_ActPtr->SetSensor(true);
 	m_ActPtr->SetGravityScale(0.0);

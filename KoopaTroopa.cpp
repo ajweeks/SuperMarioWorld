@@ -242,7 +242,7 @@ INT2 KoopaTroopa::DetermineAnimationFrame()
 
 void KoopaTroopa::HeadBonk()
 {
-	SoundManager::PlaySoundEffect(SoundManager::SOUND::KOOPA_DEATH);
+	SoundManager::PlaySoundEffect(SoundManager::SOUND::SHELL_KICK);
 
 	switch (m_AnimationState)
 	{
@@ -268,14 +268,14 @@ void KoopaTroopa::HeadBonk()
 	}
 }
 
-void KoopaTroopa::ShellHit()
+void KoopaTroopa::ShellHit(bool shellWasBeingHeld)
 {
 	if (m_AnimationState == ANIMATION_STATE::WALKING)
 	{
 		m_ShouldAddMovingUpwardKoopaShell = true;
 	}
 
-	SoundManager::PlaySoundEffect(SoundManager::SOUND::KOOPA_DEATH);
+	SoundManager::PlaySoundEffect(SoundManager::SOUND::SHELL_KICK);
 
 	SplatParticle* splatParticlePtr = new SplatParticle(m_ActPtr->GetPosition());
 	m_LevelPtr->AddParticle(splatParticlePtr);

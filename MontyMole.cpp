@@ -235,7 +235,7 @@ void MontyMole::CalculateNewTarget()
 
 void MontyMole::HeadBonk()
 {
-	SoundManager::PlaySoundEffect(SoundManager::SOUND::KOOPA_DEATH);
+	SoundManager::PlaySoundEffect(SoundManager::SOUND::SHELL_KICK);
 
 	switch (m_AnimationState)
 	{

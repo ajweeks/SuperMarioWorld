@@ -76,14 +76,18 @@ void ExclamationMarkBlock::SetSolid(bool solid)
 
 void ExclamationMarkBlock::Hit()
 {
-	SoundManager::PlaySoundEffect(SoundManager::SOUND::BLOCK_HIT);
-
 	if (m_IsUsed == false)
 	{
+		SoundManager::PlaySoundEffect(SoundManager::SOUND::SUPER_MUSHROOM_SPAWN);
+
 		m_IsUsed = true;
 		m_CurrentFrameOfBumpAnimation = 2;
 		m_yo = 0;
 
 		m_ShouldSpawnSuperMushroom = true;
+	}
+	else
+	{
+		SoundManager::PlaySoundEffect(SoundManager::SOUND::BLOCK_HIT);
 	}
 }

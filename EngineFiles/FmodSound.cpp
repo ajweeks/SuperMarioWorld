@@ -200,6 +200,8 @@ int FmodSound::GetCurrentLoopCount()
 	if (m_ChannelPtr)
 	{
 		m_FMODResult = m_ChannelPtr->getLoopCount(&loopcount);
+		if (m_FMODResult == 30) return 0;
+
 		ErrCheck(m_FMODResult);
 	}
 	return loopcount;
