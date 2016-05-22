@@ -1,24 +1,8 @@
 #include "stdafx.h"
 
 #include "OneUpMushroom.h"
-#include "SpriteSheetManager.h"
-#include "SpriteSheet.h"
 
-OneUpMushroom::OneUpMushroom(DOUBLE2 topLeft, Level* levelPtr) :
-	Item(topLeft, TYPE::ONE_UP_MUSHROOM, levelPtr)
+OneUpMushroom::OneUpMushroom(DOUBLE2 topLeft, Level* levelPtr, int directionFacing) :
+	MoveableItem(topLeft, TYPE::ONE_UP_MUSHROOM, 3, 12, levelPtr, directionFacing)
 {
-}
-
-void OneUpMushroom::Tick(double deltaTime)
-{
-}
-
-void OneUpMushroom::Paint()
-{
-	double left = m_ActPtr->GetPosition().x;
-	double top = m_ActPtr->GetPosition().y;
-	int srcCol = 2;
-	int srcRow = 12;
-
-	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);
 }

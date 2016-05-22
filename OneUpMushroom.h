@@ -1,16 +1,13 @@
 #pragma once
 
-#include "Item.h"
+#include "MoveableItem.h"
 
-class OneUpMushroom : public Item
+class OneUpMushroom : public MoveableItem
 {
 public:
-	OneUpMushroom(DOUBLE2 topLeft, Level* levelPtr);
+	OneUpMushroom(DOUBLE2 topLeft, Level* levelPtr, int directionFacing = Direction::RIGHT);
 
 	OneUpMushroom(const OneUpMushroom&) = delete;
 	OneUpMushroom& operator=(const OneUpMushroom&) = delete;
-
-	void Tick(double deltaTime);
-	void Paint();
 
 };
