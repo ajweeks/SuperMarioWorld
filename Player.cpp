@@ -388,9 +388,9 @@ void Player::HandleYoshiKeyboardInput(double deltaTime)
 		{
 			m_RidingYoshiPtr->SpitOutItem();
 			
-			if (m_RidingYoshiPtr->IsToungeStuckOut() == false)
+			if (m_RidingYoshiPtr->IsTongueStuckOut() == false)
 			{
-				m_RidingYoshiPtr->StickToungeOut(deltaTime);
+				m_RidingYoshiPtr->StickTongueOut(deltaTime);
 			}
 		}
 
@@ -764,7 +764,7 @@ void Player::TickAnimations(double deltaTime)
 		case ANIMATION_STATE::CLIMBING:
 		case ANIMATION_STATE::IN_PIPE:
 		{
-			if (m_IsRidingYoshi && m_RidingYoshiPtr->IsToungeStuckOut())
+			if (m_IsRidingYoshi && m_RidingYoshiPtr->IsTongueStuckOut())
 			{
 				m_AnimInfo.frameNumber %= 4;
 			}
@@ -776,7 +776,7 @@ void Player::TickAnimations(double deltaTime)
 		} break;
 		case ANIMATION_STATE::WALKING:
 		{
-			if (m_IsRidingYoshi && m_RidingYoshiPtr->IsToungeStuckOut())
+			if (m_IsRidingYoshi && m_RidingYoshiPtr->IsTongueStuckOut())
 			{
 				m_AnimInfo.frameNumber %= 4;
 			}
@@ -879,20 +879,37 @@ void Player::Paint()
 	INT2 spriteTile = CalculateAnimationFrame();
 	spriteSheetToPaint->Paint(centerX, centerY - GetHeight() / 2 + yo, spriteTile.x, spriteTile.y);
 
-	if (m_IsRidingYoshi && m_RidingYoshiPtr->IsToungeStuckOut())
+	// Yoshi's Tongue
+	if (m_IsRidingYoshi && m_RidingYoshiPtr->IsTongueStuckOut())
 	{
-		int toungeTimerFramesElapsed = m_RidingYoshiPtr->GetToungeTimer().FramesElapsed();
-		int toungeTimerTotalFrames = m_RidingYoshiPtr->GetToungeTimer().OriginalNumberOfFrames();
+		int toungeTimerFramesElapsed = m_RidingYoshiPtr->GetTongueTimer().FramesElapsed();
+		int toungeTimerTotalFrames = m_RidingYoshiPtr->GetTongueTimer().OriginalNumberOfFrames();
 		
-		if (toungeTimerFramesElapsed > 14 &&
-			toungeTimerFramesElapsed < toungeTimerTotalFrames - 6)
+		if (toungeTimerFramesElapsed > 12 &&
+			toungeTimerFramesElapsed < toungeTimerTotalFrames - 7)
 		{
-			int srcX = 12;
-			int srcY = 0;
-			SpriteSheetManager::yoshiWithMarioPtr->Paint(
-				centerX - m_RidingYoshiPtr->GetWidth() / 2 + 31, 
-				centerY - m_RidingYoshiPtr->GetHeight() / 2 - 1, 
-				srcX, srcY);
+			int tileWidth = SpriteSheetManager::yoshiWithMarioPtr->GetTileWidth();
+			int tileHeight = SpriteSheetManager::yoshiWithMarioPtr->GetTileHeight();
+			int srcX = 12 * tileWidth;
+			int srcY = 0 * tileHeight;
+			int width = int(m_RidingYoshiPtr->GetTongueLength() - 7);
+			int height = tileHeight;
+			int left = int(centerX - m_RidingYoshiPtr->GetWidth() / 2 + 31 - tileWidth / 2);
+			int top = int(centerY - m_RidingYoshiPtr->GetHeight() / 2 - 1 - tileHeight / 2);
+			RECT2 srcRect(srcX, srcY, srcX + width, srcY + height);
+			// NOTE: We can't use the normal sprite sheet paint here since
+			// we need to draw only part of yoshi's tounge at times
+			GAME_ENGINE->DrawBitmap(SpriteSheetManager::yoshiWithMarioPtr->GetBitmap(), left, top, srcRect);
+
+			// Tongue tip
+			left += width - 3;
+			top += tileHeight / 2 + 7;
+			srcX = 422;
+			srcY = 26;
+			width = 7;
+			height = 6;
+			srcRect = RECT2(srcX, srcY, srcX + width, srcY + height);
+			GAME_ENGINE->DrawBitmap(SpriteSheetManager::yoshiWithMarioPtr->GetBitmap(), left, top, srcRect);
 		}
 	}
 
@@ -944,7 +961,7 @@ INT2 Player::CalculateAnimationFrame()
 		bool playerIsSmall = m_PowerupState == POWERUP_STATE::NORMAL;
 		srcY = playerIsSmall ? 0 : 1;
 
-		if (m_RidingYoshiPtr->IsToungeStuckOut())
+		if (m_RidingYoshiPtr->IsTongueStuckOut())
 		{
 			srcX = 8 + m_AnimInfo.frameNumber;
 		}
@@ -1102,13 +1119,15 @@ void Player::RideYoshi(Yoshi* yoshiPtr)
 	assert(m_IsHoldingItem == false);
 	assert(m_RidingYoshiPtr == nullptr);
 
+	SoundManager::PlaySoundEffect(SoundManager::SOUND::YOSHI_PLAYER_MOUNT);
+
 	m_RidingYoshiPtr = yoshiPtr;
 	m_RidingYoshiPtr->SetCarryingPlayer(true, this);
 
 	m_NeedsNewFixture = true;
 
 	m_ChangingDirectionsTimer = CountdownTimer(YOSHI_TURN_AROUND_FRAMES);
-	m_AnimInfo.secondsPerFrame = m_RidingYoshiPtr->TOUNGE_STUCK_OUT_SECONDS_PER_FRAME;
+	m_AnimInfo.secondsPerFrame = Yoshi::TONGUE_STUCK_OUT_SECONDS_PER_FRAME;
 
 	m_IsRidingYoshi = true;
 	m_AnimationState = ANIMATION_STATE::WAITING;
@@ -1122,6 +1141,8 @@ void Player::DismountYoshi(bool runWild)
 	{
 		m_ActPtr->SetLinearVelocity(DOUBLE2(0, -350));
 		m_RidingYoshiPtr->RunWild();
+
+		SoundManager::PlaySoundEffect(SoundManager::SOUND::YOSHI_RUN_AWAY);
 	}
 	else
 	{

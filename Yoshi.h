@@ -34,17 +34,18 @@ public:
 	void RunWild();
 	void SetCarryingPlayer(bool carryingPlayer, Player* playerPtr = nullptr);
 
+	double GetTongueLength();
 	int GetDirectionFacing();
 
 	ANIMATION_STATE GetAnimationState();
 	bool IsAirborne();
 	void SpitOutItem();
-	bool IsToungeStuckOut();
-	void StickToungeOut(double deltaTime);
+	bool IsTongueStuckOut();
+	void StickTongueOut(double deltaTime);
 
 	void SetPaused(bool paused);
 
-	const CountdownTimer GetToungeTimer();
+	const CountdownTimer GetTongueTimer();
 
 	static const int JUMP_VEL; // Yoshi never uses this field directly, but the player class does while they are riding yoshi
 
@@ -52,7 +53,7 @@ public:
 	static const float WAITING_SECONDS_PER_FRAME;
 	static const float WALKING_SECONDS_PER_FRAME;
 	static const float RUNNING_SECONDS_PER_FRAME;
-	static const float TOUNGE_STUCK_OUT_SECONDS_PER_FRAME;
+	static const float TONGUE_STUCK_OUT_SECONDS_PER_FRAME;
 
 private:
 	void PaintAnimationFrame(double left, double top);
@@ -65,7 +66,7 @@ private:
 	std::string AnimationStateToString();
 
 	static const int RUN_VEL;
-	static const int TOUNGE_VEL;
+	static const int TONGUE_VEL;
 
 	static const int MAX_ITEMS_EATEN = 9;
 
@@ -75,17 +76,18 @@ private:
 	ANIMATION_STATE m_AnimationState;
 
 	bool m_IsCarryingPlayer = false;
-	bool m_IsToungeStuckOut = false;
+	bool m_IsTongueStuckOut = false;
 
 	bool m_IsOnGround = false;
 	bool m_WasOnGround = false;
 	bool m_NeedsNewFixture = false;
+	bool m_ShouldSpawnMushroom = false;
 
-	double m_ToungeXVel = 0.0;
-	double m_ToungeLength = 0.0; // How far our tounge is stuck out
+	double m_TongueXVel = 0.0;
+	double m_TongueLength = 0.0;
 
 	CountdownTimer m_HatchingTimer;
-	CountdownTimer m_ToungeTimer; // Records how long yoshi's tounge has been stuck out for
+	CountdownTimer m_TongueTimer; // Records how long yoshi's tongue has been stuck out for
 	
 	SpriteSheet* m_SpriteSheetPtr = nullptr;
 	PhysicsActor* m_ActToungePtr = nullptr;

@@ -7,10 +7,12 @@
 #include "Level.h"
 #include "Coin.h"
 #include "Yoshi.h"
+#include "OneUpMushroom.h"
+#include "SuperMushroom.h"
 
-PrizeBlock::PrizeBlock(DOUBLE2 topLeft, Level* levelPtr, bool spawnsYoshi) :
+PrizeBlock::PrizeBlock(DOUBLE2 topLeft, Level* levelPtr, std::string spawnTypeStr) :
 	Block(topLeft, TYPE::PRIZE_BLOCK, levelPtr),
-	m_SpawnsYoshi(spawnsYoshi)
+	m_SpawnTypeStr(spawnTypeStr)
 {
 	m_AnimInfo.secondsPerFrame = 0.09;
 	m_BumpAnimationTimer = CountdownTimer(14);
@@ -22,15 +24,23 @@ void PrizeBlock::Tick(double deltaTime)
 	{
 		m_ShouldSpawnItem = false;
 
-		if (m_SpawnsYoshi)
+		DOUBLE2 itemPos(m_ActPtr->GetPosition().x - WIDTH / 2, m_ActPtr->GetPosition().y - HEIGHT / 2);
+		if (!m_SpawnTypeStr.compare("Yoshi"))
 		{
-			Yoshi* newYoshiPtr = new Yoshi(DOUBLE2(m_ActPtr->GetPosition().x - WIDTH / 2, m_ActPtr->GetPosition().y - HEIGHT), m_LevelPtr);
-			m_LevelPtr->AddYoshi(newYoshiPtr);
+			if (m_LevelPtr->IsYoshiAlive())
+			{
+				OneUpMushroom* oneUpMushroomPtr = new OneUpMushroom(itemPos + DOUBLE2(3, -2), m_LevelPtr);
+				m_LevelPtr->AddItem(oneUpMushroomPtr, true);
+			}
+			else
+			{
+				Yoshi* newYoshiPtr = new Yoshi(itemPos - DOUBLE2(0, HEIGHT/2), m_LevelPtr);
+				m_LevelPtr->AddYoshi(newYoshiPtr);
+			}
 		}
 		else
 		{
-			DOUBLE2 coinPos(m_ActPtr->GetPosition().x - WIDTH / 2, m_ActPtr->GetPosition().y - HEIGHT);
-			Coin* newCoinPtr = new Coin(coinPos, m_LevelPtr, Coin::LIFETIME);
+			Coin* newCoinPtr = new Coin(itemPos, m_LevelPtr, Coin::LIFETIME);
 			m_LevelPtr->AddItem(newCoinPtr);
 		}
 	}

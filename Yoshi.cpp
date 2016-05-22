@@ -12,10 +12,11 @@
 #include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
 #include "DustParticle.h"
+#include "SuperMushroom.h"
 
 // STATIC INITIALIZATIONS
 const int Yoshi::JUMP_VEL = -25000;
-const int Yoshi::TOUNGE_VEL = 150;
+const int Yoshi::TONGUE_VEL = 130;
 
 const int Yoshi::RUN_VEL = 5000;
 
@@ -23,30 +24,49 @@ const float Yoshi::HATCHING_SECONDS_PER_FRAME = 0.6f;
 const float Yoshi::WAITING_SECONDS_PER_FRAME = 0.3f;
 const float Yoshi::WALKING_SECONDS_PER_FRAME = 0.03f;
 const float Yoshi::RUNNING_SECONDS_PER_FRAME = 0.015f;
-const float Yoshi::TOUNGE_STUCK_OUT_SECONDS_PER_FRAME = 0.14f;
+const float Yoshi::TONGUE_STUCK_OUT_SECONDS_PER_FRAME = 0.14f;
 
 Yoshi::Yoshi(DOUBLE2 position, Level* levelPtr) : 
 	Entity(position, BodyType::DYNAMIC, levelPtr, ActorId::YOSHI, this)
 {
 	m_ActPtr->AddBoxFixture(GetWidth(), GetHeight(), 0.0);
 
-	b2Filter collisionFilter;
-	collisionFilter.categoryBits = Level::YOSHI;
-	collisionFilter.maskBits = Level::LEVEL | Level::BLOCK;
-	m_ActPtr->SetCollisionFilter(collisionFilter);
+	b2Filter bodyCollisionFilter;
+	bodyCollisionFilter.categoryBits = Level::YOSHI;
+	bodyCollisionFilter.maskBits = Level::LEVEL | Level::BLOCK;
+	m_ActPtr->SetCollisionFilter(bodyCollisionFilter);
+
+	// NOTE: The tounge actor can _**NOT**_ have a body type of kinematic,
+	// even though that is the most intuitive. This is because kinematic actors 
+	// will not collide with static actors other (Berries)!
+	m_ActToungePtr = new PhysicsActor(m_ActPtr->GetPosition(), 0, BodyType::DYNAMIC);
+	m_ActToungePtr->SetGravityScale(0.0);
+	m_ActToungePtr->AddBoxFixture(8, 8);
+	m_ActToungePtr->SetUserData(int(ActorId::YOSHI_TOUNGE));
+	m_ActToungePtr->SetUserPointer(this);
+	m_ActToungePtr->SetFixedRotation(true);
+
+	b2Filter toungeCollisionFilter;
+	toungeCollisionFilter.categoryBits = Level::YOSHI_TOUNGE;		// I am Yoshi's tounge
+	toungeCollisionFilter.maskBits = Level::BERRY | Level::ENEMY | Level::ITEM; // I collide with berries and enemies
+	m_ActToungePtr->SetCollisionFilter(toungeCollisionFilter);
+
 
 	m_AnimInfo.secondsPerFrame = HATCHING_SECONDS_PER_FRAME;
 	m_AnimationState = ANIMATION_STATE::EGG;
 
 	m_SpriteSheetPtr = SpriteSheetManager::smallYoshiPtr;
 
-	m_ToungeTimer = CountdownTimer(35);
+	m_TongueTimer = CountdownTimer(35);
 	m_HatchingTimer = CountdownTimer(80);
 	m_HatchingTimer.Start();
 
 	m_DirFacing = Direction::RIGHT;
 
 	m_ItemsEaten = 0;
+
+	SoundManager::PlaySoundEffect(SoundManager::SOUND::YOSHI_SPAWN);
+	SoundManager::PlaySoundEffect(SoundManager::SOUND::YOSHI_EGG_BREAK); // LATER: add delay here?
 }
 
 Yoshi::~Yoshi()
@@ -65,6 +85,15 @@ void Yoshi::Tick(double deltaTime)
 	{
 		m_LevelPtr->RemoveEnemy(m_EnemyToBeRemovedPtr);
 		m_EnemyToBeRemovedPtr = nullptr;
+	}
+
+	if (m_ShouldSpawnMushroom)
+	{
+		m_ShouldSpawnMushroom = false;
+		SoundManager::PlaySoundEffect(SoundManager::SOUND::YOSHI_EGG_BREAK);
+
+		SuperMushroom* superMushroomPtr = new SuperMushroom(m_ActPtr->GetPosition(), m_LevelPtr, -m_DirFacing);
+		m_LevelPtr->AddItem(superMushroomPtr);
 	}
 
 	if (m_NeedsNewFixture)
@@ -109,12 +138,11 @@ void Yoshi::Tick(double deltaTime)
 		m_AnimInfo.frameNumber %= 2;
 	}
 
-	if (m_ToungeTimer.Tick() && m_ToungeTimer.IsComplete())
+	if (m_TongueTimer.Tick() && m_TongueTimer.IsComplete())
 	{
-		delete m_ActToungePtr;
-		m_ActToungePtr = nullptr;
-
-		m_IsToungeStuckOut = false;
+		m_TongueXVel = 0.0;
+		m_TongueLength = 0;
+		m_IsTongueStuckOut = false;
 	}
 
 	if (m_HatchingTimer.Tick() && m_HatchingTimer.IsComplete())
@@ -133,16 +161,22 @@ void Yoshi::Tick(double deltaTime)
 		UpdatePosition(deltaTime);
 	}
 
-	if (m_IsToungeStuckOut)
+	if (m_IsTongueStuckOut)
 	{
-		if (m_ToungeTimer.FramesElapsed() == m_ToungeTimer.OriginalNumberOfFrames() / 2)
+		if (m_TongueTimer.FramesElapsed() == m_TongueTimer.OriginalNumberOfFrames() / 2)
 		{
-			m_ToungeXVel = -m_ToungeXVel;
+			m_TongueXVel = -m_TongueXVel;
 		}
 		
-		m_ToungeLength += m_ToungeXVel * deltaTime;
-		m_ActToungePtr->SetPosition(m_ActPtr->GetPosition() + DOUBLE2(m_ToungeLength, 0));
+		m_TongueLength += m_TongueXVel * deltaTime;
 	}
+	double yo = 0.0, xo = 0.0;
+	if (m_IsTongueStuckOut == false)
+	{
+		yo = -9;
+		xo = 3;
+	}
+	m_ActToungePtr->SetPosition(m_ActPtr->GetPosition() + DOUBLE2(m_TongueLength + xo, yo));
 }
 
 void Yoshi::UpdatePosition(double deltaTime)
@@ -213,7 +247,7 @@ void Yoshi::Paint()
 		GAME_ENGINE->SetWorldMatrix(matTranslateInverse * matReflect * matTranslate * matPrevWorld);
 	}
 
-	PaintAnimationFrame(centerX - WIDTH/2 + 10, centerY - HEIGHT/2 + 2);
+	PaintAnimationFrame(centerX - WIDTH/2 + 10, centerY - HEIGHT/2 + 7);
 
 	// LATER: Figure out a way to paint yoshi's tounge when the player isn't riding him
 
@@ -227,7 +261,7 @@ void Yoshi::PaintAnimationFrame(double left, double top)
 
 	if (m_PlayerPtr != nullptr) playerIsSmall = (m_PlayerPtr->GetPowerupState() == Player::POWERUP_STATE::NORMAL);
 
-	if (m_IsToungeStuckOut)
+	if (m_IsTongueStuckOut)
 	{
 		if (m_IsCarryingPlayer)
 		{
@@ -387,7 +421,11 @@ void Yoshi::SwallowItem()
 	{
 		m_ItemsEaten = 0;
 
-		// TODO: Set flag for spawning a super mushroom here
+		m_ShouldSpawnMushroom = true;
+	}
+	else
+	{
+		SoundManager::PlaySoundEffect(SoundManager::SOUND::YOSHI_SWALLOW);
 	}
 }
 
@@ -404,43 +442,32 @@ void Yoshi::SpitOutItem()
 			m_LevelPtr->AddItem(koopaShellPtr);
 
 			m_ItemInMouthType = Item::TYPE::NONE;
+
+			// TODO: if red, spit fire ballz
+			//SoundManager::PlaySoundEffect(SoundManager::SOUND::YOSHI_FIRE_SPIT);
+
+			SoundManager::PlaySoundEffect(SoundManager::SOUND::YOSHI_SPIT);
 		} break;
 		}
 	}
 }
 
-void Yoshi::StickToungeOut(double deltaTime)
+void Yoshi::StickTongueOut(double deltaTime)
 {
-	m_IsToungeStuckOut = true;
-	m_ToungeTimer.Start();
+	m_IsTongueStuckOut = true;
+	m_TongueTimer.Start();
 	
-	m_ToungeXVel = TOUNGE_VEL * m_DirFacing;
-	m_ToungeLength = m_DirFacing * 4;
-
-	DOUBLE2 toungePos = m_ActPtr->GetPosition() + DOUBLE2(m_ToungeLength, 0);
-	// NOTE: The tounge actor can _**NOT**_ have a body type of kinematic,
-	// even though that is the most intuitive. This is because kinematic actors 
-	// will not collide with static actors other (Berries)!
-	m_ActToungePtr = new PhysicsActor(toungePos, 0, BodyType::DYNAMIC);
-	m_ActToungePtr->SetGravityScale(0.0);
-	m_ActToungePtr->AddBoxFixture(10, 10);
-	m_ActToungePtr->SetUserData(int(ActorId::YOSHI_TOUNGE));
-	m_ActToungePtr->SetUserPointer(this);
-
-	b2Filter collisionFilter;
-	collisionFilter.categoryBits = Level::YOSHI_TOUNGE;		// I am Yoshi's tounge
-	collisionFilter.maskBits = Level::BERRY | Level::ENEMY; // I collide with berries and enemies
-	m_ActToungePtr->SetCollisionFilter(collisionFilter);
+	m_TongueXVel = TONGUE_VEL * m_DirFacing;
 }
 
-bool Yoshi::IsToungeStuckOut()
+bool Yoshi::IsTongueStuckOut()
 {
-	return m_IsToungeStuckOut;
+	return m_IsTongueStuckOut;
 }
 
-const CountdownTimer Yoshi::GetToungeTimer()
+const CountdownTimer Yoshi::GetTongueTimer()
 {
-	return m_ToungeTimer;
+	return m_TongueTimer;
 }
 
 int Yoshi::GetWidth()
@@ -481,6 +508,11 @@ void Yoshi::SetPaused(bool paused)
 	{
 		m_ActToungePtr->SetActive(!paused);
 	}
+}
+
+double Yoshi::GetTongueLength()
+{
+	return m_TongueLength;
 }
 
 std::string Yoshi::AnimationStateToString()

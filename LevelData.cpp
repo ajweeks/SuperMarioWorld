@@ -117,12 +117,7 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 		case int(Item::TYPE::PRIZE_BLOCK):
 		{
 			std::string spawnsString = FileIO::GetTagContent(itemContent, "Spawns");
-			bool spawnsYoshi = false;
-			if (!spawnsString.compare("Yoshi"))
-			{
-				spawnsYoshi = true;
-			}
-			m_ItemsPtrArr.push_back(new PrizeBlock(topLeft, levelPtr, spawnsYoshi));
+			m_ItemsPtrArr.push_back(new PrizeBlock(topLeft, levelPtr, spawnsString));
 		} break;
 		case int(Item::TYPE::EXCLAMATION_MARK_BLOCK):
 		{

@@ -1222,6 +1222,12 @@ void Level::SetPaused(bool paused)
 	}
 
 	SoundManager::SetSongPaused(m_BackgroundSong, m_Paused);
+
+bool Level::IsYoshiAlive()
+{
+	return m_YoshiPtr != nullptr;
+}
+
 }
 
 void Level::SetActiveMessageBlock(MessageBlock* activeMessageBlockPtr)

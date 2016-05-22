@@ -60,6 +60,15 @@ void SoundManager::InitialzeSoundsAndSongs()
 	LoadSound(SOUND::DRUMROLL, m_ResourcePath + String("outro-drumroll.wav"));
 	LoadSound(SOUND::OUTRO_CIRCLE_TRANSITION, m_ResourcePath + String("outro-circle-transition.wav"));
 
+	LoadSound(SOUND::YOSHI_SPAWN, m_ResourcePath + String("yoshi-spawn.wav"));
+	LoadSound(SOUND::YOSHI_EGG_BREAK, m_ResourcePath + String("yoshi-egg-break.wav"));
+	LoadSound(SOUND::YOSHI_FIRE_SPIT, m_ResourcePath + String("yoshi-fire-spit.wav"));
+	LoadSound(SOUND::YOSHI_SPIT, m_ResourcePath + String("yoshi-spit.wav"));
+	LoadSound(SOUND::YOSHI_PLAYER_MOUNT, m_ResourcePath + String("yoshi-player-mount.wav"));
+	LoadSound(SOUND::YOSHI_RUN_AWAY, m_ResourcePath + String("yoshi-run-away.wav"));
+	LoadSound(SOUND::YOSHI_SWALLOW, m_ResourcePath + String("yoshi-swallow.wav"));
+	LoadSound(SOUND::YOSHI_TOUNGE_OUT, m_ResourcePath + String("yoshi-tounge-out.wav"));
+
 	m_IsInitialized = true;
 }
 

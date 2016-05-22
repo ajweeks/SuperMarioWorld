@@ -55,6 +55,7 @@ public:
 	void AddEnemy(Enemy* newEnemyPtr);
 	void RemoveEnemy(Enemy* enemyPtr);
 	void AddYoshi(Yoshi* yoshiPtr);
+	bool IsYoshiAlive();
 
 	double GetWidth();
 	double GetHeight();

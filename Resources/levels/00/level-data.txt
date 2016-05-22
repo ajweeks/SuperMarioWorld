@@ -200,6 +200,7 @@
 		<Item>
 			<Type>PrizeBlock</Type>
 			<TopLeft>179,19</TopLeft>
+			<Spawns>Yoshi</Spawns>
 		</Item>
 		<Item>
 			<Type>PrizeBlock</Type>
