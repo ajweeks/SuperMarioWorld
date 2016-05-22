@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Entity.h"
+#include "Level.h"
 
 class Item : public Entity
 {
@@ -18,6 +19,7 @@ public:
 	};
 
 	Item(DOUBLE2 topLeft, TYPE type, Level* levelPtr,
+		int filterCategoryBits = Level::ITEM,
 		BodyType bodyType = BodyType::STATIC, int width = TILE_SIZE, int height = TILE_SIZE);
 	virtual ~Item();
 

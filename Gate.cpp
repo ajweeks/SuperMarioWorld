@@ -7,7 +7,7 @@
 #include "SoundManager.h"
 
 Gate::Gate(DOUBLE2 topLeft, Level* levelPtr, TYPE itemType, int barLength, int barDiameter) :
-	Item(topLeft, itemType, levelPtr,
+	Item(topLeft, itemType, levelPtr, Level::ITEM,
 		BodyType::STATIC, barLength, barDiameter),
 	m_TopLeft(topLeft)
 {

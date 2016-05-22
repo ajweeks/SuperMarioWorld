@@ -9,7 +9,7 @@
 // NOTE: If 'life == -1', this coin has an infinite lifetime (until the player picks it up), 
 // otherwise it lives for 'life' ticks before it is removed
 Coin::Coin(DOUBLE2 topLeft, Level* levelPtr, int life, TYPE type, DOUBLE2 size) :
-	Item(topLeft, type, levelPtr, BodyType::STATIC, int(size.x), int(size.y)),
+	Item(topLeft, type, levelPtr, Level::ITEM, BodyType::STATIC, int(size.x), int(size.y)),
 	m_Life(life)
 {
 	m_ActPtr->SetSensor(true);

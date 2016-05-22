@@ -7,7 +7,7 @@
 #include "EnemyDeathCloudParticle.h"
 
 PSwitch::PSwitch(DOUBLE2 topLeft, COLOUR colour, Level* levelPtr) :
-	Item(topLeft, Item::TYPE::P_SWITCH, levelPtr, BodyType::DYNAMIC), m_Colour(colour)
+	Item(topLeft, Item::TYPE::P_SWITCH, levelPtr, Level::ITEM, BodyType::DYNAMIC), m_Colour(colour)
 {
 	m_PressedTimer = CountdownTimer(20);
 }

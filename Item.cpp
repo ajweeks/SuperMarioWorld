@@ -3,12 +3,18 @@
 #include "Item.h"
 #include "SpriteSheetManager.h"
 #include "Block.h"
+#include "Level.h"
 
-Item::Item(DOUBLE2 topLeft, TYPE type, Level* levelPtr, BodyType bodyType, int width, int height) :
+Item::Item(DOUBLE2 topLeft, TYPE type, Level* levelPtr, int filterCategoryBits, BodyType bodyType, int width, int height) :
 	Entity(topLeft + DOUBLE2(width / 2, height / 2), bodyType, levelPtr, ActorId::ITEM, this),
 	m_Type(type), WIDTH(width), HEIGHT(height)
 {
 	m_ActPtr->AddBoxFixture(width, height, 0.0);
+
+	b2Filter collisionFilter;
+	collisionFilter.categoryBits = filterCategoryBits;
+	collisionFilter.maskBits = Level::LEVEL | Level::PLAYER | Level::BLOCK | Level::YOSHI_TOUNGE;
+	m_ActPtr->SetCollisionFilter(collisionFilter);
 }
 
 Item::~Item() {}

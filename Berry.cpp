@@ -6,12 +6,11 @@
 #include "Level.h"
 
 Berry::Berry(DOUBLE2& positionRef, Level* levelPtr, COLOUR colour) :
-	Item(positionRef, TYPE::BERRY, levelPtr),
+	Item(positionRef, TYPE::BERRY, levelPtr, Level::BERRY),
 	m_Colour(colour)
 {
-	b2Filter collisionFilter;
-	collisionFilter.categoryBits = Level::BERRY; // I am a berry
-	collisionFilter.maskBits = Level::YOSHI_TOUNGE; // I collide with yoshi's tounge
+	b2Filter collisionFilter = m_ActPtr->GetCollisionFilter();
+	collisionFilter.maskBits = Level::YOSHI_TOUNGE; // I *only* collide with yoshi's tounge
 	m_ActPtr->SetCollisionFilter(collisionFilter);
 
 	m_AnimInfo.secondsPerFrame = 0.125;

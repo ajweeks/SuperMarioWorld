@@ -15,9 +15,13 @@ const double KoopaShell::VERTICAL_KICK_VEL = -520.0;
 const double KoopaShell::SHELL_HIT_VEL = -180.0;
 
 KoopaShell::KoopaShell(DOUBLE2 topLeft, Level* levelPtr, COLOUR colour, bool upsideDown)  :
-	Item(topLeft, TYPE::KOOPA_SHELL, levelPtr, BodyType::DYNAMIC, WIDTH, HEIGHT),
+	Item(topLeft, TYPE::KOOPA_SHELL, levelPtr, Level::SHELL, BodyType::DYNAMIC, WIDTH, HEIGHT),
 	m_Colour(colour)
 {
+	b2Filter collisionFilter = m_ActPtr->GetCollisionFilter();
+	collisionFilter.maskBits |= Level::ENEMY | Level::SHELL;
+	m_ActPtr->SetCollisionFilter(collisionFilter);
+
 	if (upsideDown)
 	{
 		ShellHit();
