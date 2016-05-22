@@ -1184,8 +1184,9 @@ void Level::AddYoshi(Yoshi* yoshiPtr)
 	yoshiPtr->AddContactListener(this);
 }
 
-void Level::AddItem(Item* newItemPtr)
+void Level::AddItem(Item* newItemPtr, bool addContactListener)
 {
+	if (addContactListener) newItemPtr->AddContactListener(this);
 	m_LevelDataPtr->AddItem(newItemPtr);
 }
 

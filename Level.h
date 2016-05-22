@@ -50,7 +50,7 @@ public:
 	void Paint();
 	void Reset();
 
-	void AddItem(Item* newItemPtr);
+	void AddItem(Item* newItemPtr, bool addContactListener = false);
 	void RemoveItem(Item* itemPtr);
 	void AddEnemy(Enemy* newEnemyPtr);
 	void RemoveEnemy(Enemy* enemyPtr);

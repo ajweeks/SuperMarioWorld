@@ -24,8 +24,7 @@ void RotatingBlock::Tick(double deltaTime)
 		m_ShouldSpawnBeanstalk = false;
 
 		Beanstalk* beanstalkPtr = new Beanstalk(m_ActPtr->GetPosition() - DOUBLE2(WIDTH / 2, HEIGHT), m_LevelPtr, 14);
-		beanstalkPtr->AddContactListener(m_LevelPtr);
-		m_LevelPtr->AddItem(beanstalkPtr);
+		m_LevelPtr->AddItem(beanstalkPtr, true);
 		
 		SoundManager::PlaySoundEffect(SoundManager::SOUND::BEANSTALK_SPAWN);
 

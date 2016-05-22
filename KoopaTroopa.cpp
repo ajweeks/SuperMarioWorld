@@ -29,16 +29,15 @@ void KoopaTroopa::Tick(double deltaTime)
 	if (m_ShouldAddKoopaShell)
 	{
 		m_ShouldAddKoopaShell = false;
-		KoopaShell* koopaShellPtr = new KoopaShell(m_ActPtr->GetPosition() + DOUBLE2(0, -10), m_LevelPtr, m_Colour);
-		koopaShellPtr->AddContactListener(m_LevelPtr);
-		m_LevelPtr->AddItem(koopaShellPtr);
+		KoopaShell* koopaShellPtr = new KoopaShell(m_ActPtr->GetPosition() + DOUBLE2(0, -2), m_LevelPtr, m_Colour);
+		m_LevelPtr->AddItem(koopaShellPtr, true);
 	}
 	if (m_ShouldAddMovingUpwardKoopaShell)
 	{
 		m_ShouldAddMovingUpwardKoopaShell = false;
 		KoopaShell* koopaShellPtr = new KoopaShell(m_ActPtr->GetPosition(), m_LevelPtr, m_Colour, true);
-		//koopaShellPtr->AddContactListener(m_LevelPtr);
-		m_LevelPtr->AddItem(koopaShellPtr);
+		// No need for a contact listener, all this shell is going to do is fall off the screen, then be deleted
+		m_LevelPtr->AddItem(koopaShellPtr, false); 
 	}
 
 	if (m_ShouldBeRemoved)
