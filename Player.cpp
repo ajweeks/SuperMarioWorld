@@ -134,7 +134,7 @@ void Player::Tick(double deltaTime)
 
 		if (m_DeathAnimationTimer.FramesElapsed() == 1)
 		{
-			m_LevelPtr->SetPaused(true);
+			m_LevelPtr->SetPaused(true, true);
 		}
 
 		// NOTE: The player doesn't fly upward until after a short delay
@@ -193,7 +193,7 @@ void Player::Tick(double deltaTime)
 		{
 			m_ActPtr->SetSensor(false);
 			m_ActPtr->SetGravityScale(DEFAULT_GRAVITY);
-			m_LevelPtr->SetPaused(false);
+			m_LevelPtr->SetPaused(false, true);
 			m_AnimationState = ANIMATION_STATE::WAITING;
 		}
 		return;
@@ -251,7 +251,7 @@ void Player::Tick(double deltaTime)
 		if (!m_IsRunning)
 		{
 			// When ducking, the player gently releases the item
-			KickHeldItem(m_IsDucking);
+			KickHeldItem(deltaTime, m_IsDucking);
 		}
 		else
 		{
@@ -844,18 +844,23 @@ void Player::Paint()
 	{
 		if (m_PowerupTransitionTimer.FramesElapsed() == 1)
 		{
- 			m_LevelPtr->SetPausedTimer(m_PowerupTransitionTimer.OriginalNumberOfFrames()-1);
+ 			m_LevelPtr->SetPausedTimer(m_PowerupTransitionTimer.OriginalNumberOfFrames()-1, false);
 		}
 
 		yo = GetHeight() / 2 - (m_PrevPowerupState == POWERUP_STATE::NORMAL ? 6 : 4);
 		
-		if (m_PowerupTransitionTimer.FramesElapsed() % 12 > 6)
+		if (m_PowerupTransitionTimer.FramesElapsed() % 20 > 10)
 		{
 			powerupStateToPaint = m_PrevPowerupState;
 		}
 		else
 		{
 			powerupStateToPaint = m_PowerupState;
+		}
+
+		if (m_PowerupTransitionTimer.IsComplete())
+		{
+			m_NeedsNewFixture = true;
 		}
 	}
 	else
@@ -1258,9 +1263,7 @@ void Player::ChangePowerupState(POWERUP_STATE newPowerupState, bool isUpgrade)
 	{
 		// TODO: Play sound effect here
 		// NOTE: Sound effect changes based on what state you were in before!
-	}
-	
-	m_NeedsNewFixture = true;
+	}	
 }
 
 SpriteSheet* Player::GetSpriteSheetForPowerupState(POWERUP_STATE powerupState)
@@ -1316,18 +1319,18 @@ void Player::DropHeldItem()
 	{
 	case Item::TYPE::KOOPA_SHELL:
 	{
-		((KoopaShell*)m_ItemHoldingPtr)->ShellHit();
+		((KoopaShell*)m_ItemHoldingPtr)->ShellHit(-m_DirFacing);
 	} break;
 	case Item::TYPE::GRAB_BLOCK:
 	{
-		((GrabBlock*)m_ItemHoldingPtr)->SetMoving(DOUBLE2(100, 0));
+		((GrabBlock*)m_ItemHoldingPtr)->SetMoving(DOUBLE2(m_DirFacing * 150, 0));
 	} break;
 	}
 	m_ItemHoldingPtr = nullptr;
 	m_IsHoldingItem = false;
 }
 
-void Player::KickHeldItem(bool gently)
+void Player::KickHeldItem(double deltaTime, bool gently)
 {
 	assert(m_ItemHoldingPtr != nullptr);
 
@@ -1339,9 +1342,9 @@ void Player::KickHeldItem(bool gently)
 	{
 		if (GAME_ENGINE->IsKeyboardKeyDown(VK_UP))
 		{
-			double horizontalVel = RUN_BASE_VEL * m_DirFacing;
-			if (m_ActPtr->GetLinearVelocity().x == 0.0) horizontalVel = 0.0;
-			((KoopaShell*)m_ItemHoldingPtr)->KickVertically(horizontalVel);
+			double scale = 0.5;
+			double horizontalVel = (m_ActPtr->GetLinearVelocity().x) * scale;
+			((KoopaShell*)m_ItemHoldingPtr)->KickVertically(deltaTime, horizontalVel);
 		}
 		else
 		{
@@ -1470,8 +1473,18 @@ void Player::AddScore(int score, DOUBLE2 particlePosition)
 
 	m_Score += score;
 
-	NumberParticle* numberParticlePtr = new NumberParticle(score, particlePosition);
-	m_LevelPtr->AddParticle(numberParticlePtr);
+	if (particlePosition != DOUBLE2())
+	{
+		NumberParticle* numberParticlePtr = new NumberParticle(score, particlePosition);
+		m_LevelPtr->AddParticle(numberParticlePtr);
+	}
+}
+
+void Player::AddRedStars(int numberOfRedStars)
+{
+	assert(numberOfRedStars > 0);
+
+	m_Stars += numberOfRedStars;
 }
 
 void Player::SetTouchingGrabBlock(bool touching, GrabBlock* grabBlockPtr)
@@ -1663,7 +1676,7 @@ void Player::EnterPipe()
 	m_AnimationState = ANIMATION_STATE::IN_PIPE;
 	m_ActPtr->SetSensor(true);
 	m_ActPtr->SetGravityScale(0.0);
-	m_LevelPtr->SetPaused(true);
+	m_LevelPtr->SetPaused(true, false);
 	m_EnteringPipeTimer.Start();
 }
 

@@ -18,7 +18,7 @@ public:
 	void Tick(double deltaTime);
 	void Paint();
 
-	void SetPaused(bool paused);
+	void SetPaused(bool paused, bool pauseSongs);
 
 	void EnterUnderground(SessionInfo sessionInfo, Pipe* pipePtr);
 	void LeaveUnderground(SessionInfo sessionInfo, Pipe* pipeEnteredPtr);

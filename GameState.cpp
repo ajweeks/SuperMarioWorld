@@ -35,12 +35,27 @@ GameState::~GameState()
 	}
 }
 
+void GameState::Reset()
+{
+	m_CurrentLevelPtr->Reset();
+
+	m_StateManagerPtr->GetGamePtr()->Reset();
+
+	ResetMembers();
+}
+
+void GameState::ResetMembers()
+{
+	m_RenderDebugOverlay = false;
+	GAME_ENGINE->EnablePhysicsDebugRendering(m_RenderDebugOverlay);
+}
+
 void GameState::Tick(double deltaTime)
 {
 	if (m_InFrameByFrameMode && m_CurrentLevelPtr->IsPaused() == false)
 	{
 		// We've advanced by one frame, now we need to pause again
-		m_CurrentLevelPtr->SetPaused(true);
+		m_CurrentLevelPtr->SetPaused(true, true);
 	}
 		
 	if (GAME_ENGINE->IsKeyboardKeyPressed(VK_OEM_PERIOD))
@@ -48,18 +63,18 @@ void GameState::Tick(double deltaTime)
 		if (m_InFrameByFrameMode)
 		{
 			// Advance by one frame
-			m_CurrentLevelPtr->SetPaused(false);
+			m_CurrentLevelPtr->SetPaused(false, false);
 		}
 		else
 		{
 			m_InFrameByFrameMode = true;
-			m_CurrentLevelPtr->SetPaused(true);
+			m_CurrentLevelPtr->SetPaused(true, true);
 		}
 	}
 	else if (GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE) && m_InFrameByFrameMode)
 	{
 		m_InFrameByFrameMode = false;
-		m_CurrentLevelPtr->SetPaused(false);
+		m_CurrentLevelPtr->SetPaused(false, true);
 	}
 
 	if (GAME_ENGINE->IsKeyboardKeyPressed('R'))
@@ -81,24 +96,9 @@ void GameState::Paint()
 	m_CurrentLevelPtr->Paint();
 }
 
-void GameState::Reset()
+void GameState::SetPaused(bool paused, bool pauseSongs)
 {
-	m_CurrentLevelPtr->Reset();
-
-	m_StateManagerPtr->GetGamePtr()->Reset();
-
-	ResetMembers();
-}
-
-void GameState::ResetMembers()
-{
-	m_RenderDebugOverlay = false;
-	GAME_ENGINE->EnablePhysicsDebugRendering(m_RenderDebugOverlay);
-}
-
-void GameState::SetPaused(bool paused)
-{
-	m_CurrentLevelPtr->SetPaused(paused);
+	m_CurrentLevelPtr->SetPaused(paused, pauseSongs);
 }
 
 void GameState::EnterUnderground(SessionInfo sessionInfo, Pipe* pipePtr)
@@ -118,7 +118,7 @@ void GameState::EnterUnderground(SessionInfo sessionInfo, Pipe* pipePtr)
 			m_CurrentLevelPtr->WarpPlayerToPipe(warpPipeIndex);
 		}
 
-		m_CurrentLevelPtr->SetPaused(true);
+		m_CurrentLevelPtr->SetPaused(true, false);
 	}
 }
 

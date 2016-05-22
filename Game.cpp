@@ -20,6 +20,7 @@
 #include "GameState.h"
 #include "LevelInfo.h"
 
+// Static initializations
 Font* Game::Font12Ptr = nullptr;
 Font* Game::Font9Ptr = nullptr;
 Font* Game::Font6Ptr = nullptr;
@@ -65,7 +66,9 @@ void Game::GameStart()
 	SpriteSheetManager::Load();
 
 	SoundManager::InitialzeSoundsAndSongs();
+#if SMW_DEFAULT_MUTE
 	SoundManager::SetMuted(true);
+#endif
 
 	// TODO: Add mario fonts
 	Game::Font12Ptr = new Font(String("consolas"), 12);
@@ -128,7 +131,7 @@ void Game::GameTick(double deltaTime)
 
 		if (m_StateManagerPtr->CurrentState()->GetType() == STATE_TYPE::GAME)
 		{
-			((GameState*)m_StateManagerPtr->CurrentState())->SetPaused(m_ShowingSessionInfo);
+			((GameState*)m_StateManagerPtr->CurrentState())->SetPaused(m_ShowingSessionInfo, true);
 		}
 	}
 

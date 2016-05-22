@@ -18,11 +18,11 @@ public:
 	// NOTE: wasThrown is true when this shell was being held by Mario and was then thrown
 	// An extra splat particle is generated
 	void KickHorizontally(int facingDir, bool wasThrown);
-	void KickVertically(double horizontalVel);
-	void ShellHit();
+	void KickVertically(double deltaTime, double horizontalVel);
+	void ShellHit(int dirX = 0);
 	void Stomp();
 
-	bool IsFalling();
+	bool IsFallingOffScreen();
 
 	bool IsMoving();
 	void SetMoving(bool moving);
@@ -39,6 +39,7 @@ private:
 	static const double HORIZONTAL_KICK_BASE_VEL;
 	static const double VERTICAL_KICK_VEL;
 	static const double SHELL_HIT_VEL;
+	static const double HORIZONTAL_SHELL_SHELL_HIT_VEL;
 
 	COLOUR m_Colour;
 	// NOTE: Moving is true when this shell is sliding on the ground, and animating
@@ -48,6 +49,6 @@ private:
 	// NOTE: This is true when this shell has been thrown into the air by the player
 	// and hasn't hit the ground yet
 	bool m_IsBouncing = false;
-	bool m_IsFalling = false;
+	bool m_IsFallingOffScreen = false;
 	bool m_ShouldBeRemoved = false;
 };

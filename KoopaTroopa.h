@@ -60,7 +60,7 @@ public:
 	// Called when this koopa is hit by a shell
 	// This kills the koopa and spawns a shell with a vertical velocity
 	// that is removed once it reaches the bottom of the screen
-	void ShellHit();
+	void ShellHit(bool shellWasBeingHeld = false);
 
 	bool IsShelless();
 

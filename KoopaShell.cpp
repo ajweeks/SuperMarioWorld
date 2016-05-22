@@ -11,8 +11,9 @@
 #include "SoundManager.h"
 
 const double KoopaShell::HORIZONTAL_KICK_BASE_VEL = 190;
-const double KoopaShell::VERTICAL_KICK_VEL = -520.0;
+const double KoopaShell::VERTICAL_KICK_VEL = -30520.0;
 const double KoopaShell::SHELL_HIT_VEL = -180.0;
+const double KoopaShell::HORIZONTAL_SHELL_SHELL_HIT_VEL = 40.0;
 
 KoopaShell::KoopaShell(DOUBLE2 topLeft, Level* levelPtr, COLOUR colour, bool upsideDown)  :
 	Item(topLeft, TYPE::KOOPA_SHELL, levelPtr, Level::SHELL, BodyType::DYNAMIC, WIDTH, HEIGHT),
@@ -40,7 +41,7 @@ void KoopaShell::Tick(double deltaTime)
 		return;
 	}
 
-	if (m_IsFalling)
+	if (m_IsFallingOffScreen)
 	{
 		if (m_ActPtr->GetPosition().y > m_LevelPtr->GetHeight() + HEIGHT)
 		{
@@ -95,7 +96,7 @@ void KoopaShell::Paint()
 	double centerY = m_ActPtr->GetPosition().y;
 
 	MATRIX3X2 matPrevWorld = GAME_ENGINE->GetWorldMatrix();
-	if (m_IsFalling)
+	if (m_IsFallingOffScreen)
 	{
 		srcRow = 0;
 
@@ -105,7 +106,7 @@ void KoopaShell::Paint()
 		GAME_ENGINE->SetWorldMatrix(matTranslateInverse * matReflect * matTranslate * matPrevWorld);
 	}
 
-	SpriteSheetManager::koopaShellPtr->Paint(centerX, centerY + 2.5, srcCol, srcRow);
+	SpriteSheetManager::koopaShellPtr->Paint(centerX, centerY + 2, srcCol, srcRow);
 
 	GAME_ENGINE->SetWorldMatrix(matPrevWorld);
 }
@@ -124,23 +125,29 @@ void KoopaShell::KickHorizontally(int facingDir, bool wasThrown)
 	}
 }
 
-void KoopaShell::KickVertically(double horizontalVel)
+void KoopaShell::KickVertically(double deltaTime, double horizontalVel)
 {
 	SoundManager::PlaySoundEffect(SoundManager::SOUND::SHELL_KICK);
 
 	SplatParticle* splatParticlePtr = new SplatParticle(m_ActPtr->GetPosition() + DOUBLE2(m_DirMoving * -3, 0));
 	m_LevelPtr->AddParticle(splatParticlePtr);
 
-	m_ActPtr->SetLinearVelocity(DOUBLE2(horizontalVel, VERTICAL_KICK_VEL));
+	m_ActPtr->SetLinearVelocity(DOUBLE2(horizontalVel, VERTICAL_KICK_VEL * deltaTime));
 	m_IsBouncing = true;
 }
 
-void KoopaShell::ShellHit()
+void KoopaShell::ShellHit(int dirX)
 {
-	m_ActPtr->SetLinearVelocity(DOUBLE2(m_ActPtr->GetLinearVelocity().x, SHELL_HIT_VEL));
+	assert(dirX >= -1 && dirX <= 1);
+
+	double xv;
+	if (dirX != 0) xv = HORIZONTAL_SHELL_SHELL_HIT_VEL * dirX;
+	else xv = m_ActPtr->GetLinearVelocity().x;
+
+	m_ActPtr->SetLinearVelocity(DOUBLE2(xv, SHELL_HIT_VEL));
 	m_ActPtr->SetSensor(true);
 
-	m_IsFalling = true;
+	m_IsFallingOffScreen = true;
 }
 
 void KoopaShell::Stomp()
@@ -156,9 +163,9 @@ void KoopaShell::Stomp()
 	m_ShouldBeRemoved = true;
 }
 
-bool KoopaShell::IsFalling()
+bool KoopaShell::IsFallingOffScreen()
 {
-	return m_IsFalling;
+	return m_IsFallingOffScreen;
 }
 
 bool KoopaShell::IsMoving()

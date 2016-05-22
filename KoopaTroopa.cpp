@@ -279,8 +279,9 @@ void KoopaTroopa::ShellHit(bool shellWasBeingHeld)
 	SplatParticle* splatParticlePtr = new SplatParticle(m_ActPtr->GetPosition());
 	m_LevelPtr->AddParticle(splatParticlePtr);
 
-	// LATER: Add combo score here
-	m_LevelPtr->GetPlayer()->AddScore(200, m_ActPtr->GetPosition());
+	int score = 200;
+	if (shellWasBeingHeld) score = 1000;
+	m_LevelPtr->GetPlayer()->AddScore(score, m_ActPtr->GetPosition());
 
 	m_ShouldBeRemoved = true;
 }
@@ -305,7 +306,6 @@ COLOUR KoopaTroopa::GetColour()
 
 void KoopaTroopa::ChangeAnimationState(ANIMATION_STATE newAnimationState)
 {
-
 	m_AnimationState = newAnimationState;
 }
 

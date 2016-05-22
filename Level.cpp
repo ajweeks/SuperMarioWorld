@@ -93,6 +93,8 @@ void Level::ResetMembers()
 	m_IsCheckpointCleared = false;
 
 	m_AllDragonCoinsCollected = false;
+	m_TimeWarningPlayed = false;
+	m_PSwitchTimeWarningPlayed = false;
 
 	LevelData::UnloadLevel(m_Index);
 	ReadLevelData(m_Index);
@@ -142,7 +144,7 @@ void Level::Tick(double deltaTime)
 {
 	if (m_GamePausedTimer.Tick() && m_GamePausedTimer.IsComplete())
 	{
-		SetPaused(false);
+		SetPaused(false, false);
 	}
 
 	if (m_ActiveMessageBlockPtr != nullptr)
@@ -172,7 +174,7 @@ void Level::Tick(double deltaTime)
 			m_GamePtr->ShowingSessionInfo() == false &&
 			GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE))
 	{
-		TogglePaused();
+		TogglePaused(true);
 		SoundManager::PlaySoundEffect(SoundManager::SOUND::GAME_PAUSE);
 	}
 	if (m_Paused && 
@@ -223,9 +225,19 @@ void Level::Tick(double deltaTime)
 		m_BackgroundAnimInfo.frameNumber %= (TOTAL_FRAMES_OF_BACKGROUND_ANIMATION * 2 - 2);
 	}
 
-	if (m_CoinsToBlocksTimer.Tick() && m_CoinsToBlocksTimer.IsComplete())
+	if (m_CoinsToBlocksTimer.Tick())
 	{
-		TurnCoinsToBlocks(false);
+		if (m_PSwitchTimeWarningPlayed == false && 
+			m_CoinsToBlocksTimer.OriginalNumberOfFrames() - m_CoinsToBlocksTimer.FramesElapsed() <= MESSAGE_BLOCK_WARNING_TIME)
+		{
+			m_PSwitchTimeWarningPlayed = true;
+			SoundManager::PlaySoundEffect(SoundManager::SOUND::PSWITCH_TIME_WARNING);
+		}
+
+		if (m_CoinsToBlocksTimer.IsComplete())
+		{
+			TurnCoinsToBlocks(false);
+		}
 	}
 
 	if (m_YoshiPtr != nullptr)
@@ -236,12 +248,6 @@ void Level::Tick(double deltaTime)
 	m_PlayerPtr->Tick(deltaTime);
 	m_ParticleManagerPtr->Tick(deltaTime);
 	m_LevelDataPtr->TickItemsAndEnemies(deltaTime, this);
-
-	if (m_TimeRemaining == TIME_WARNING)
-	{
-		SoundManager::SetSongPaused(m_BackgroundSong, true);
-		SoundManager::PlaySong(m_BackgroundSongFast);
-	}
 
 	m_CameraPtr->CalculateViewMatrix(m_PlayerPtr->GetPosition(), m_PlayerPtr->GetDirectionFacing(), this, deltaTime);
 }
@@ -499,6 +505,10 @@ void Level::PaintHUD()
 
 	// NOTE: 1 second in game is 2/3 of a real life second!
 	m_TimeRemaining = m_TotalTime - (int(m_SecondsElapsed * 1.5)); 
+	if (m_TimeWarningPlayed == false && m_TimeRemaining <= TIME_UP_WARNING)
+	{
+		SpeedUpMusic();
+	}
 
 	int x = 15;
 	int y = 15;
@@ -697,7 +707,7 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool& 
 		} break;
 		case int(ActorId::YOSHI):
 		{
-			if (m_PlayerPtr->IsRidingYoshi() || 
+			if (m_PlayerPtr->IsRidingYoshi() ||
 				m_YoshiPtr->IsHatching() ||
 				m_PlayerPtr->GetLinearVelocity().y <= 0)
 			{
@@ -715,7 +725,7 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool& 
 		Enemy* enemyPtr = (Enemy*)actOtherPtr->GetUserPointer();
 
 		// Fixes chargin chuck's jumping:
-		if (enemyPtr->GetType() ==  Enemy::TYPE::CHARGIN_CHUCK)
+		if (enemyPtr->GetType() == Enemy::TYPE::CHARGIN_CHUCK)
 		{
 			CharginChuck* charginChuckPtr = (CharginChuck*)enemyPtr;
 			if (charginChuckPtr->GetAnimationState() == CharginChuck::ANIMATION_STATE::JUMPING)
@@ -758,7 +768,7 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool& 
 				Item* thisItem = (Item*)actThisPtr->GetUserPointer();
 				if (thisItem->GetType() == Item::TYPE::ROTATING_BLOCK)
 				{
-					// NOTE: Only let it fall through if the rotating block is spinning
+					// NOTE: Only let p-switches fall through if the rotating block is spinning
 					if (((RotatingBlock*)thisItem)->IsRotating())
 					{
 						enableContactRef = false;
@@ -766,26 +776,17 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool& 
 				}
 			}
 		} break;
-		case Item::TYPE::SUPER_MUSHROOM:
-		{
-			if (((SuperMushroom*)otherItemPtr)->IsAnimating())
-			{
-				enableContactRef = false;
-			}
-		} break;
 		case Item::TYPE::KOOPA_SHELL:
 		{
-			KoopaShell* koopaShellPtr =(KoopaShell*)otherItemPtr;
-			if (actThisPtr->GetUserData() == int(ActorId::ITEM))
+			KoopaShell* koopaShellPtr = (KoopaShell*)otherItemPtr;
+			// When the player is holding a shell, it doesn't collide with anything except enemies
+			bool shellIsBeingHeld = m_PlayerPtr->GetHeldItemPtr() == koopaShellPtr;
+
+			if (actThisPtr->GetUserData() != int(ActorId::ENEMY) && 
+				shellIsBeingHeld || 
+				(actOtherPtr->GetLinearVelocity().y < 0.0))
 			{
-				Item* thisItemPtr = (Item*)actThisPtr->GetUserPointer();
-				if (thisItemPtr->IsBlock())
-				{
-					DOUBLE2 koopaShellVel = actOtherPtr->GetLinearVelocity();
-					koopaShellPtr->SetLinearVelocity(DOUBLE2(-koopaShellVel.x, koopaShellVel.y));
-					// When a shell hits a block it "hits" it as if the player hit it with their head
-					((Block*)thisItemPtr)->Hit();
-				}
+				enableContactRef = false;
 			}
 		} break;
 		}
@@ -865,14 +866,15 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			} break;
 			case Item::TYPE::ROTATING_BLOCK:
 			{
-				if (((RotatingBlock*)itemPtr)->IsRotating()) break;
+				RotatingBlock* rotatingBlockPtr = (RotatingBlock*)itemPtr;
+				if (rotatingBlockPtr->IsRotating()) break;
 
-				bool playerCenterIsBelowBlock = m_PlayerPtr->GetPosition().y > (actThisPtr->GetPosition().y + Block::HEIGHT / 2);
-				bool playerCenterIsAboveBlock = m_PlayerPtr->GetPosition().y < (actThisPtr->GetPosition().y - Block::HEIGHT / 2);
+				bool playerCenterIsBelowBlock = m_PlayerPtr->GetPosition().y > (rotatingBlockPtr->GetPosition().y + Block::HEIGHT / 2);
+				bool playerCenterIsAboveBlock = m_PlayerPtr->GetPosition().y < (rotatingBlockPtr->GetPosition().y - Block::HEIGHT / 2);
 
 				if (playerIsRising && playerCenterIsBelowBlock)
 				{
-					((Block*)itemPtr)->Hit();
+					rotatingBlockPtr->Hit();
 
 					// NOTE: This line prevents the player from slowly floating down after hitting a block
 					m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetLinearVelocity().x, 0.0));
@@ -891,8 +893,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 				}
 				else if (koopaShellPtr->IsMoving())
 				{
-					if (m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::JUMPING ||
-						m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::FALLING)
+					if (m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::FALLING)
 					{
 						koopaShellPtr->SetMoving(false);
 						m_PlayerPtr->Bounce();
@@ -904,7 +905,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 				}
 				else if (m_PlayerPtr->IsRunning() && m_PlayerPtr->IsHoldingItem() == false)
 				{
-					if (koopaShellPtr->IsFalling() == false)
+					if (koopaShellPtr->IsFallingOffScreen() == false)
 					{
 						koopaShellPtr->SetMoving(false);
 						m_PlayerPtr->AddItemToBeHeld(itemPtr);
@@ -1071,23 +1072,42 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 		{
 		case Item::TYPE::KOOPA_SHELL:
 		{
-			KoopaShell* otherKoopaShellPtr = (KoopaShell*) otherItemPtr;
+			KoopaShell* otherKoopaShellPtr = (KoopaShell*)otherItemPtr;
 			switch (actThisPtr->GetUserData())
 			{
 			case int(ActorId::ITEM):
 			{
 				Item* thisItemPtr = (Item*)actThisPtr->GetUserPointer();
-				switch (thisItemPtr->GetType())
+				if (thisItemPtr->IsBlock() && m_PlayerPtr->GetHeldItemPtr() != otherKoopaShellPtr)
 				{
-				case Item::TYPE::KOOPA_SHELL:
+					Block* blockPtr = (Block*)thisItemPtr;
+					DOUBLE2 koopaShellPos = otherKoopaShellPtr->GetPosition();
+					DOUBLE2 blockPos = blockPtr->GetPosition();
+					bool shellBelowBlock = koopaShellPos.y > blockPos.y;
+					bool shellBesideBlock = koopaShellPos.x + KoopaShell::WIDTH / 2 <= blockPos.x - Block::WIDTH / 2 ||
+						koopaShellPos.x - KoopaShell::WIDTH / 2 >= blockPos.x + Block::WIDTH / 2;
+
+					if (shellBelowBlock || shellBesideBlock)
+					{
+						DOUBLE2 koopaShellVel = actOtherPtr->GetLinearVelocity();
+						otherKoopaShellPtr->SetLinearVelocity(DOUBLE2(-koopaShellVel.x, koopaShellVel.y));
+						// When a shell hits a block it "hits" it as if the player hit it with their head
+						blockPtr->Hit();
+					}
+				}
+				else if (thisItemPtr->GetType() == Item::TYPE::KOOPA_SHELL)
 				{
-					// NOTE: If both shells are moving this check won't work, but
-					// since that situation is very very unlikely this is fine
-					if (!otherKoopaShellPtr->IsMoving())
+					KoopaShell* thisKoopaShellPtr = (KoopaShell*)thisItemPtr;
+					if (m_PlayerPtr->GetHeldItemPtr() == otherKoopaShellPtr)
+					{
+						m_PlayerPtr->DropHeldItem();
+						thisKoopaShellPtr->ShellHit(m_PlayerPtr->GetDirectionFacing());
+						m_PlayerPtr->AddScore(1000, thisKoopaShellPtr->GetPosition());
+					}
+					else if (!otherKoopaShellPtr->IsMoving())
 					{
 						otherKoopaShellPtr->ShellHit();
 					}
-				} break;
 				}
 			} break;
 			case int(ActorId::ENEMY):
@@ -1097,10 +1117,10 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 				{
 				case Enemy::TYPE::KOOPA_TROOPA:
 				{
-					if (m_PlayerPtr->IsHoldingItem() && m_PlayerPtr->GetHeldItemPtr() == otherKoopaShellPtr)
+					if (m_PlayerPtr->GetHeldItemPtr() == otherKoopaShellPtr)
 					{
 						m_PlayerPtr->DropHeldItem();
-						((KoopaTroopa*)enemyPtr)->ShellHit();
+						((KoopaTroopa*)enemyPtr)->ShellHit(true);
 					}
 					else if (otherKoopaShellPtr->IsMoving() || otherKoopaShellPtr->IsBouncing())
 					{
@@ -1322,12 +1342,12 @@ void Level::RemoveEnemy(Enemy* enemyPtr)
 	m_LevelDataPtr->RemoveEnemy(enemyPtr);
 }
 
-void Level::TogglePaused()
+void Level::TogglePaused(bool pauseSongs)
 {
-	SetPaused(!m_Paused);
+	SetPaused(!m_Paused, pauseSongs);
 }
 
-void Level::SetPaused(bool paused)
+void Level::SetPaused(bool paused, bool pauseSongs)
 {
 	m_Paused = paused;
 
@@ -1339,13 +1359,24 @@ void Level::SetPaused(bool paused)
 		m_YoshiPtr->SetPaused(paused);
 	}
 
-	SoundManager::SetSongPaused(m_BackgroundSong, m_Paused);
+	if (pauseSongs)
+	{
+		SoundManager::SetSongPaused(m_BackgroundSong, m_Paused);
+	}
+}
 
 bool Level::IsYoshiAlive()
 {
 	return m_YoshiPtr != nullptr;
 }
 
+void Level::SpeedUpMusic()
+{
+	m_TimeWarningPlayed = true;
+	SoundManager::SetSongPaused(m_BackgroundSong, true);
+	SoundManager::PlaySong(m_BackgroundSongFast);
+
+	SoundManager::PlaySoundEffect(SoundManager::SOUND::TIME_WARNING);
 }
 
 void Level::SetActiveMessageBlock(MessageBlock* activeMessageBlockPtr)
@@ -1416,12 +1447,12 @@ bool Level::AllDragonCoinsCollected()
 	return m_AllDragonCoinsCollected;
 }
 
-void Level::SetPausedTimer(int duration)
+void Level::SetPausedTimer(int duration, bool pauseSongs)
 {
 	m_GamePausedTimer = CountdownTimer(duration);
 	m_GamePausedTimer.Start();
 	if (m_Paused == false)
 	{
-		SetPaused(true);
+		SetPaused(true, pauseSongs);
 	}
 }

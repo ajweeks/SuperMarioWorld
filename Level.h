@@ -37,7 +37,9 @@ public:
 		SHELL			= (1 << 4),
 		YOSHI			= (1 << 5),
 		YOSHI_TOUNGE	= (1 << 6),
-		BERRY			= (1 << 7)
+		BERRY			= (1 << 7),
+		ITEM			= (1 << 8),
+		BEANSTALK		= (1 << 9),
 	};
 	// Used to caculate/show the player's extra score at the end of the level
 	struct FinalExtraScore
@@ -69,16 +71,18 @@ public:
 	double GetWidth();
 	double GetHeight();
 	int GetTimeRemaining();
-	void SetPaused(bool paused);
+	void SetPaused(bool paused, bool pauseSongs);
+	void SetPausedTimer(int duration, bool pauseSongs);
+	bool IsPaused();
+
 	bool IsCheckpointCleared();
 	void SetAllDragonCoinsCollected(bool allCollected);
 	bool AllDragonCoinsCollected();
 	Player* GetPlayer();
 	DOUBLE2 GetCameraOffset(double deltaTime);
-	void SetPausedTimer(int duration);
-	bool IsPaused();
 	bool IsUnderground();
-	
+	void SpeedUpMusic();
+
 	void SetActiveMessageBlock(MessageBlock* activeMessageBlockPtr);
 	void WarpPlayerToPipe(int pipeIndex);
 
@@ -99,7 +103,7 @@ private:
 	void ResetMembers();
 	void PaintHUD();
 	unsigned int GetNumberOfDigits(unsigned int i);
-	void TogglePaused();
+	void TogglePaused(bool pauseSongs);
 	void TurnCoinsToBlocks(bool toBlocks);
 	void ReadLevelData(int levelIndex);
 	void PaintEnclosingCircle(DOUBLE2 circleCenter, double innerCircleRadius);
@@ -132,6 +136,8 @@ private:
 
 	PhysicsActor* m_ActLevelPtr = nullptr;
 
+	bool m_TimeWarningPlayed;
+	bool m_PSwitchTimeWarningPlayed;
 	bool m_Paused;
 	MessageBlock* m_ActiveMessageBlockPtr = nullptr; // This is set toa message block address when the player hits it
 

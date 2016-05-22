@@ -65,7 +65,7 @@ public:
 	void RideYoshi(Yoshi* yoshiPtr);
 	void DismountYoshi(bool runWild = false);
 
-	// Called when the player bounces off an enemy's head
+	// Called when the player bounces off an enemy's head, or off a moving koopa shell
 	void Bounce();
 	void Die();
 	void TakeDamage();
@@ -74,12 +74,13 @@ public:
 	void ReleaseExtraItem(DOUBLE2 position);
 	void OnItemPickup(Item* itemPtr, Level* levelPtr);
 
-	void AddScore(int score, DOUBLE2 particlePosition);
-	void SetTouchingGrabBlock(bool touching, GrabBlock* grabBlockPtr);
+	// If no particle is neccessary, leave particlePosition as DOUBLE2()
+	void AddScore(int score, DOUBLE2 particlePosition = DOUBLE2());
+	void AddRedStars(int numberOfRedStars);
 
+	void SetTouchingGrabBlock(bool touching, GrabBlock* grabBlockPtr);
 	void SetTouchingPipe(bool touching, Pipe* pipePtr = nullptr);
 	void SetExitingPipe(Pipe* pipePtr);
-
 	void SetPosition(DOUBLE2 newPosition);
 
 	void MidwayGatePasshrough();
@@ -108,7 +109,7 @@ private:
 	void AddCoin(Level* levelPtr, bool playSound = true);
 	void AddDragonCoin(Level* levelPtr);
 	void AddLife();
-	void KickHeldItem(bool gently = false);
+	void KickHeldItem(double deltaTime, bool gently = false);
 	void ChangePowerupState(POWERUP_STATE newPowerupState, bool isUpgrade = true);
 	void EnterPipe();
 
