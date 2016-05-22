@@ -5,7 +5,7 @@
 #include "SpriteSheet.h"
 
 CapeFeather::CapeFeather(DOUBLE2 topLeft, Level* levelPtr) :
-	Item(topLeft, TYPE::CAPE_FEATHER, levelPtr)
+	Item(topLeft, Type::CAPE_FEATHER, levelPtr)
 {
 }
 

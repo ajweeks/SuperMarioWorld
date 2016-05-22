@@ -129,7 +129,7 @@ void Game::GameTick(double deltaTime)
 	{
 		m_ShowingSessionInfo = !m_ShowingSessionInfo;
 
-		if (m_StateManagerPtr->CurrentState()->GetType() == STATE_TYPE::GAME)
+		if (m_StateManagerPtr->CurrentState()->GetType() == StateType::GAME)
 		{
 			((GameState*)m_StateManagerPtr->CurrentState())->SetPaused(m_ShowingSessionInfo, true);
 		}

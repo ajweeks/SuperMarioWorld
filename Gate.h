@@ -5,7 +5,7 @@
 class Gate : public Item
 {
 public:
-	Gate(DOUBLE2 topLeft, Level* levelPtr, TYPE itemType, int barLength, int barDiameter);
+	Gate(DOUBLE2 topLeft, Level* levelPtr, Type itemType, int barLength, int barDiameter);
 	virtual ~Gate();
 
 	Gate(const Gate&) = delete;

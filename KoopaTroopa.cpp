@@ -11,13 +11,13 @@
 #include "EnemyPoofParticle.h"
 #include "SplatParticle.h"
 
-KoopaTroopa::KoopaTroopa(DOUBLE2 startingPos, Level* levelPtr, COLOUR colour) :
-	Enemy(TYPE::KOOPA_TROOPA, startingPos, GetWidth(), GetHeight(), BodyType::DYNAMIC, levelPtr, this),
+KoopaTroopa::KoopaTroopa(DOUBLE2 startingPos, Level* levelPtr, Colour colour) :
+	Enemy(Type::KOOPA_TROOPA, startingPos, GetWidth(), GetHeight(), BodyType::DYNAMIC, levelPtr, this),
 	m_Colour(colour)
 {
 	m_DirFacing = Direction::LEFT;
 	m_AnimInfo.secondsPerFrame = 0.14;
-	m_AnimationState = ANIMATION_STATE::WALKING;
+	m_AnimationState = AnimationState::WALKING;
 }
 
 KoopaTroopa::~KoopaTroopa()
@@ -46,7 +46,7 @@ void KoopaTroopa::Tick(double deltaTime)
 		return;
 	}
 
-	if (m_AnimationState == ANIMATION_STATE::UPSIDEDOWN_SHELLESS)
+	if (m_AnimationState == AnimationState::UPSIDEDOWN_SHELLESS)
 	{
 		if (m_ActPtr->GetPosition().y > Game::HEIGHT + GetHeight())
 		{
@@ -70,7 +70,7 @@ void KoopaTroopa::Tick(double deltaTime)
 		{
 			m_FramesSpentBeingShelless = -1;
 
-			ChangeAnimationState(ANIMATION_STATE::WALKING_SHELLESS);
+			ChangeAnimationState(AnimationState::WALKING_SHELLESS);
 
 			// LATER: Move in the direction of the player
 		}
@@ -130,7 +130,7 @@ void KoopaTroopa::ChangeDirections()
 	m_DirFacing = -m_DirFacing;
 
 	// NOTE: Only trigger the turn around animation if we're walking
-	if (m_AnimationState == ANIMATION_STATE::WALKING)
+	if (m_AnimationState == AnimationState::WALKING)
 	{
 		m_FramesSpentTurningAround = 0;
 	}
@@ -160,7 +160,7 @@ void KoopaTroopa::Paint()
 	{
 		xScale = -1;
 	}
-	if (m_AnimationState == ANIMATION_STATE::UPSIDEDOWN_SHELLESS)
+	if (m_AnimationState == AnimationState::UPSIDEDOWN_SHELLESS)
 	{
 		yScale = -1;
 		centerY += 5;
@@ -189,10 +189,10 @@ INT2 KoopaTroopa::DetermineAnimationFrame()
 
 	switch (m_Colour)
 	{
-	case COLOUR::GREEN:
+	case Colour::GREEN:
 		row = 0;
 		break;
-	case COLOUR::RED:
+	case Colour::RED:
 		row = 1;
 		break;
 	default:
@@ -202,7 +202,7 @@ INT2 KoopaTroopa::DetermineAnimationFrame()
 
 	switch (m_AnimationState)
 	{
-	case ANIMATION_STATE::WALKING:
+	case AnimationState::WALKING:
 	{
 		if (m_FramesSpentTurningAround > -1)
 		{
@@ -213,19 +213,19 @@ INT2 KoopaTroopa::DetermineAnimationFrame()
 			col = 1 + m_AnimInfo.frameNumber;
 		}
 	} break;
-	case ANIMATION_STATE::WALKING_SHELLESS:
+	case AnimationState::WALKING_SHELLESS:
 	{
 		col = 3 + m_AnimInfo.frameNumber;
 	} break;
-	case ANIMATION_STATE::UPSIDEDOWN_SHELLESS:
+	case AnimationState::UPSIDEDOWN_SHELLESS:
 	{
 		col = 3;
 	} break;
-	case ANIMATION_STATE::SHELLESS:
+	case AnimationState::SHELLESS:
 	{
 		col = 5 + m_AnimInfo.frameNumber;
 	} break;
-	case ANIMATION_STATE::SQUASHED:
+	case AnimationState::SQUASHED:
 	{
 		col = 7;
 	} break;
@@ -241,27 +241,27 @@ INT2 KoopaTroopa::DetermineAnimationFrame()
 
 void KoopaTroopa::HeadBonk()
 {
-	SoundManager::PlaySoundEffect(SoundManager::SOUND::SHELL_KICK);
+	SoundManager::PlaySoundEffect(SoundManager::Sound::SHELL_KICK);
 
 	switch (m_AnimationState)
 	{
-	case ANIMATION_STATE::WALKING:
+	case AnimationState::WALKING:
 	{
-		ChangeAnimationState(ANIMATION_STATE::SHELLESS);
+		ChangeAnimationState(AnimationState::SHELLESS);
 		m_FramesSpentBeingShelless = 0;
 
 		m_ShouldAddKoopaShell = true;
 	} break;
-	case ANIMATION_STATE::SHELLESS:
+	case AnimationState::SHELLESS:
 	{
-		ChangeAnimationState(ANIMATION_STATE::UPSIDEDOWN_SHELLESS);
+		ChangeAnimationState(AnimationState::UPSIDEDOWN_SHELLESS);
 
 		m_ActPtr->SetSensor(true);
 		m_ActPtr->SetLinearVelocity(DOUBLE2(0, -250));
 	} break;
-	case ANIMATION_STATE::WALKING_SHELLESS:
+	case AnimationState::WALKING_SHELLESS:
 	{
-		ChangeAnimationState(ANIMATION_STATE::SQUASHED);
+		ChangeAnimationState(AnimationState::SQUASHED);
 		m_FramesSpentBeingSquashed = 0;
 	} break;
 	}
@@ -269,12 +269,12 @@ void KoopaTroopa::HeadBonk()
 
 void KoopaTroopa::ShellHit(bool shellWasBeingHeld)
 {
-	if (m_AnimationState == ANIMATION_STATE::WALKING)
+	if (m_AnimationState == AnimationState::WALKING)
 	{
 		m_ShouldAddMovingUpwardKoopaShell = true;
 	}
 
-	SoundManager::PlaySoundEffect(SoundManager::SOUND::SHELL_KICK);
+	SoundManager::PlaySoundEffect(SoundManager::Sound::SHELL_KICK);
 
 	SplatParticle* splatParticlePtr = new SplatParticle(m_ActPtr->GetPosition());
 	m_LevelPtr->AddParticle(splatParticlePtr);
@@ -293,29 +293,29 @@ void KoopaTroopa::StompKill()
 
 	m_LevelPtr->GetPlayer()->AddScore(200, m_ActPtr->GetPosition());
 
-	SoundManager::PlaySoundEffect(SoundManager::SOUND::ENEMY_HEAD_STOMP_START);
+	SoundManager::PlaySoundEffect(SoundManager::Sound::ENEMY_HEAD_STOMP_START);
 	m_LevelPtr->GetPlayer()->ResetNumberOfFramesUntilEndStompSound();
 
 	m_ShouldBeRemoved = true;
 }
 
-COLOUR KoopaTroopa::GetColour()
+Colour KoopaTroopa::GetColour()
 {
 	return m_Colour;
 }
 
-void KoopaTroopa::ChangeAnimationState(ANIMATION_STATE newAnimationState)
+void KoopaTroopa::ChangeAnimationState(AnimationState newAnimationState)
 {
 	m_AnimationState = newAnimationState;
 }
 
 bool KoopaTroopa::IsShelless()
 {
-	return  m_AnimationState == ANIMATION_STATE::SHELLESS ||
-			m_AnimationState == ANIMATION_STATE::WALKING_SHELLESS;
+	return  m_AnimationState == AnimationState::SHELLESS ||
+			m_AnimationState == AnimationState::WALKING_SHELLESS;
 }
 
-KoopaTroopa::ANIMATION_STATE KoopaTroopa::GetAnimationState()
+KoopaTroopa::AnimationState KoopaTroopa::GetAnimationState()
 {
 	return m_AnimationState;
 }

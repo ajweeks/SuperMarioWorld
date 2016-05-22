@@ -5,7 +5,7 @@
 class ExclamationMarkBlock : public Block
 {
 public:
-	ExclamationMarkBlock(DOUBLE2 topLeft, COLOUR colour, bool isSolid, Level* levelPtr);
+	ExclamationMarkBlock(DOUBLE2 topLeft, Colour colour, bool isSolid, Level* levelPtr);
 
 	ExclamationMarkBlock(const ExclamationMarkBlock&) = delete;
 	ExclamationMarkBlock& operator=(const ExclamationMarkBlock&) = delete;
@@ -16,7 +16,7 @@ public:
 	void Hit();
 
 private:
-	COLOUR m_Colour;
+	Colour m_Colour;
 	int m_CurrentFrameOfBumpAnimation = -1;
 	int m_FramesOfBumpAnimation = 14;
 	int m_yo = 0; // NOTE: Used for the bump animation

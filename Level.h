@@ -117,8 +117,8 @@ private:
 	FinalExtraScore m_FinalExtraScore;
 
 	LevelData* m_LevelDataPtr = nullptr;
-	SoundManager::SONG m_BackgroundSong;
-	SoundManager::SONG m_BackgroundSongFast;
+	SoundManager::Song m_BackgroundSong;
+	SoundManager::Song m_BackgroundSongFast;
 
 	Game* m_GamePtr = nullptr;
 

@@ -4,7 +4,7 @@
 
 class StateManager;
 
-enum class STATE_TYPE
+enum class StateType
 {
 	MAIN_MENU, GAME
 };
@@ -12,7 +12,7 @@ enum class STATE_TYPE
 class BaseState
 {
 public:
-	BaseState(StateManager* stateManagerPtr, STATE_TYPE stateType);
+	BaseState(StateManager* stateManagerPtr, StateType stateType);
 	virtual ~BaseState();
 
 	BaseState(const BaseState&) = delete;
@@ -21,11 +21,11 @@ public:
 	virtual void Tick(double deltaTime) = 0;
 	virtual void Paint() = 0;
 
-	STATE_TYPE GetType();
+	StateType GetType();
 	StateManager* GetStateManagerPtr();
 
 protected:
 	StateManager* m_StateManagerPtr = nullptr;
-	STATE_TYPE m_StateType;
+	StateType m_StateType;
 
 };

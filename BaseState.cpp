@@ -2,7 +2,7 @@
 
 #include "BaseState.h"
 
-BaseState::BaseState(StateManager* stateManagerPtr, STATE_TYPE stateType) :
+BaseState::BaseState(StateManager* stateManagerPtr, StateType stateType) :
 	m_StateManagerPtr(stateManagerPtr), m_StateType(stateType)
 {
 }
@@ -11,7 +11,7 @@ BaseState::~BaseState()
 {
 }
 
-STATE_TYPE BaseState::GetType()
+StateType BaseState::GetType()
 {
 	return m_StateType;
 }

@@ -3,7 +3,7 @@
 class SoundManager
 {
 public:
-	enum class SOUND
+	enum class Sound
 	{
 		GAME_PAUSE, PSWITCH_ACTIVATE, PSWITCH_TIME_WARNING, TIME_WARNING, 
 		PLAYER_JUMP, PLAYER_SPIN_JUMP, PLAYER_SUPER_MUSHROOM_COLLECT, PLAYER_DEATH, PLAYER_DAMAGE,
@@ -15,7 +15,7 @@ public:
 		// NOTE: All entries must be above this line
 		_LAST_ELEMENT
 	};
-	enum class SONG 
+	enum class Song 
 	{
 		OVERWORLD_BGM, OVERWORLD_BGM_FAST, 
 		UNDERGROUND_BGM, UNDERGROUND_BGM_FAST, 
@@ -32,10 +32,10 @@ public:
 	static void InitialzeSoundsAndSongs();
 	static void UnloadSoundsAndSongs();
 
-	static void PlaySoundEffect(SOUND sound);
-	static void SetSoundPaused(SOUND sound, bool paused);
-	static void PlaySong(SONG song);
-	static void SetSongPaused(SONG song, bool paused);
+	static void PlaySoundEffect(Sound sound);
+	static void SetSoundPaused(Sound sound, bool paused);
+	static void PlaySong(Song song);
+	static void SetSongPaused(Song song, bool paused);
 
 	static void RestartSongs();
 
@@ -50,8 +50,8 @@ public:
 private:
 	SoundManager();
 
-	static void LoadSong(SONG song, String filePath);
-	static void LoadSound(SOUND sound, String filePath);
+	static void LoadSong(Song song, String filePath);
+	static void LoadSound(Sound sound, String filePath);
 
 	static void SetVolume(double volume);
 
@@ -59,8 +59,8 @@ private:
 
 	static const String m_ResourcePath;
 
-	static FmodSound* m_SoundsPtrArr[int(SOUND::_LAST_ELEMENT)];
-	static FmodSound* m_SongsPtrArr[int(SONG::_LAST_ELEMENT)];
+	static FmodSound* m_SoundsPtrArr[int(Sound::_LAST_ELEMENT)];
+	static FmodSound* m_SongsPtrArr[int(Song::_LAST_ELEMENT)];
 
 	static double m_GlobalVolumeLevel;
 	static bool m_Muted;

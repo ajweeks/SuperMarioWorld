@@ -5,7 +5,7 @@
 class Coin : public Item
 {
 public:
-	Coin(DOUBLE2 topLeft, Level* levelPtr, int life = -1, Item::TYPE type = Item::TYPE::COIN, DOUBLE2 size = DOUBLE2(WIDTH, HEIGHT));
+	Coin(DOUBLE2 topLeft, Level* levelPtr, int life = -1, Item::Type type = Item::Type::COIN, DOUBLE2 size = DOUBLE2(WIDTH, HEIGHT));
 
 	Coin(const Coin&) = delete;
 	Coin& operator=(const Coin&) = delete;

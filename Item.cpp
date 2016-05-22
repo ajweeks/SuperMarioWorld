@@ -5,7 +5,7 @@
 #include "Block.h"
 #include "Level.h"
 
-Item::Item(DOUBLE2 topLeft, TYPE type, Level* levelPtr, int filterCategoryBits, BodyType bodyType, int width, int height) :
+Item::Item(DOUBLE2 topLeft, Type type, Level* levelPtr, int filterCategoryBits, BodyType bodyType, int width, int height) :
 	Entity(topLeft + DOUBLE2(width / 2, height / 2), bodyType, levelPtr, ActorId::ITEM, this),
 	m_Type(type), WIDTH(width), HEIGHT(height)
 {
@@ -19,7 +19,7 @@ Item::Item(DOUBLE2 topLeft, TYPE type, Level* levelPtr, int filterCategoryBits, 
 
 Item::~Item() {}
 
-Item::TYPE Item::GetType()
+Item::Type Item::GetType()
 {
 	return m_Type;
 }
@@ -34,34 +34,34 @@ void Item::SetLinearVelocity(DOUBLE2 newVel)
 	m_ActPtr->SetLinearVelocity(newVel);
 }
 
-std::string Item::TYPEToString(TYPE type)
+std::string Item::TYPEToString(Type type)
 {
 	switch (type)
 	{
-	case TYPE::NONE: return "None";
-	case TYPE::COIN: return "Coin";
-	case TYPE::DRAGON_COIN: return "DragonCoin";
-	case TYPE::BERRY: return "Berry";
-	case TYPE::KOOPA_SHELL: return "KoopaShell";
-	case TYPE::KEY: return "Key";
-	case TYPE::KEYHOLE: return "Keyhole";
-	case TYPE::P_SWITCH: return "PSwitch";
-	case TYPE::ONE_UP_MUSHROOM: return "OneUpMushroom";
-	case TYPE::THREE_UP_MOON: return "ThreeUpMoon";
-	case TYPE::SUPER_MUSHROOM: return "SuperMushroom";
-	case TYPE::FIRE_FLOWER: return "FireFlower";
-	case TYPE::CAPE_FEATHER: return "CapeFeather";
-	case TYPE::STAR: return "Star";
-	case TYPE::POWER_BALLOON: return "PowerBalloon";
-	case TYPE::PRIZE_BLOCK: return "PrizeBlock";
-	case TYPE::MESSAGE_BLOCK: return "MessageBlock";
-	case TYPE::ROTATING_BLOCK: return "RotatingBlock";
-	case TYPE::EXCLAMATION_MARK_BLOCK: return "ExclamationMarkBlock";
-	case TYPE::CLOUD_BLOCK: return "Cloud";
-	case TYPE::GRAB_BLOCK: return "GrabBlock";
-	case TYPE::BEANSTALK: return "Beanstalk";
-	case TYPE::MIDWAY_GATE: return "MidwayGate";
-	case TYPE::GOAL_GATE: return "GoalGate";
+	case Type::NONE: return "None";
+	case Type::COIN: return "Coin";
+	case Type::DRAGON_COIN: return "DragonCoin";
+	case Type::BERRY: return "Berry";
+	case Type::KOOPA_SHELL: return "KoopaShell";
+	case Type::KEY: return "Key";
+	case Type::KEYHOLE: return "Keyhole";
+	case Type::P_SWITCH: return "PSwitch";
+	case Type::ONE_UP_MUSHROOM: return "OneUpMushroom";
+	case Type::THREE_UP_MOON: return "ThreeUpMoon";
+	case Type::SUPER_MUSHROOM: return "SuperMushroom";
+	case Type::FIRE_FLOWER: return "FireFlower";
+	case Type::CAPE_FEATHER: return "CapeFeather";
+	case Type::STAR: return "Star";
+	case Type::POWER_BALLOON: return "PowerBalloon";
+	case Type::PRIZE_BLOCK: return "PrizeBlock";
+	case Type::MESSAGE_BLOCK: return "MessageBlock";
+	case Type::ROTATING_BLOCK: return "RotatingBlock";
+	case Type::EXCLAMATION_MARK_BLOCK: return "ExclamationMarkBlock";
+	case Type::CLOUD_BLOCK: return "Cloud";
+	case Type::GRAB_BLOCK: return "GrabBlock";
+	case Type::BEANSTALK: return "Beanstalk";
+	case Type::MIDWAY_GATE: return "MidwayGate";
+	case Type::GOAL_GATE: return "GoalGate";
 	default:
 	{
 		OutputDebugString(String("ERROR: Unhandled item type in Item::TYPEToString: ") + String(int(type)) + String("\n"));
@@ -70,45 +70,45 @@ std::string Item::TYPEToString(TYPE type)
 	}
 }
 
-Item::TYPE Item::StringToTYPE(std::string string)
+Item::Type Item::StringToTYPE(std::string string)
 {
-	if (!string.compare("None")) return TYPE::NONE;
-	else if (!string.compare("Coin")) return TYPE::COIN;
-	else if (!string.compare("DragonCoin")) return TYPE::DRAGON_COIN;
-	else if (!string.compare("Berry")) return TYPE::BERRY;
-	else if (!string.compare("KoopaShell")) return TYPE::KOOPA_SHELL;
-	else if (!string.compare("Key")) return TYPE::KEY;
-	else if (!string.compare("Keyhole")) return TYPE::KEYHOLE;
-	else if (!string.compare("PSwitch")) return TYPE::P_SWITCH;
-	else if (!string.compare("OneUpMushroom")) return TYPE::ONE_UP_MUSHROOM;
-	else if (!string.compare("ThreeUpMoon")) return TYPE::THREE_UP_MOON;
-	else if (!string.compare("SuperMushroom")) return TYPE::SUPER_MUSHROOM;
-	else if (!string.compare("FireFlower")) return TYPE::FIRE_FLOWER;
-	else if (!string.compare("CapeFeather")) return TYPE::CAPE_FEATHER;
-	else if (!string.compare("Star")) return TYPE::STAR;
-	else if (!string.compare("PowerBalloon")) return TYPE::POWER_BALLOON;
-	else if (!string.compare("PrizeBlock")) return TYPE::PRIZE_BLOCK;
-	else if (!string.compare("MessageBlock")) return TYPE::MESSAGE_BLOCK;
-	else if (!string.compare("RotatingBlock")) return TYPE::ROTATING_BLOCK;
-	else if (!string.compare("ExclamationMarkBlock")) return TYPE::EXCLAMATION_MARK_BLOCK;
-	else if (!string.compare("Cloud")) return TYPE::CLOUD_BLOCK;
-	else if (!string.compare("GrabBlock")) return TYPE::GRAB_BLOCK;
-	else if (!string.compare("Beanstalk")) return TYPE::BEANSTALK;
-	else if (!string.compare("MidwayGate")) return TYPE::MIDWAY_GATE;
-	else if (!string.compare("GoalGate")) return TYPE::GOAL_GATE;
+	if (!string.compare("None")) return Type::NONE;
+	else if (!string.compare("Coin")) return Type::COIN;
+	else if (!string.compare("DragonCoin")) return Type::DRAGON_COIN;
+	else if (!string.compare("Berry")) return Type::BERRY;
+	else if (!string.compare("KoopaShell")) return Type::KOOPA_SHELL;
+	else if (!string.compare("Key")) return Type::KEY;
+	else if (!string.compare("Keyhole")) return Type::KEYHOLE;
+	else if (!string.compare("PSwitch")) return Type::P_SWITCH;
+	else if (!string.compare("OneUpMushroom")) return Type::ONE_UP_MUSHROOM;
+	else if (!string.compare("ThreeUpMoon")) return Type::THREE_UP_MOON;
+	else if (!string.compare("SuperMushroom")) return Type::SUPER_MUSHROOM;
+	else if (!string.compare("FireFlower")) return Type::FIRE_FLOWER;
+	else if (!string.compare("CapeFeather")) return Type::CAPE_FEATHER;
+	else if (!string.compare("Star")) return Type::STAR;
+	else if (!string.compare("PowerBalloon")) return Type::POWER_BALLOON;
+	else if (!string.compare("PrizeBlock")) return Type::PRIZE_BLOCK;
+	else if (!string.compare("MessageBlock")) return Type::MESSAGE_BLOCK;
+	else if (!string.compare("RotatingBlock")) return Type::ROTATING_BLOCK;
+	else if (!string.compare("ExclamationMarkBlock")) return Type::EXCLAMATION_MARK_BLOCK;
+	else if (!string.compare("Cloud")) return Type::CLOUD_BLOCK;
+	else if (!string.compare("GrabBlock")) return Type::GRAB_BLOCK;
+	else if (!string.compare("Beanstalk")) return Type::BEANSTALK;
+	else if (!string.compare("MidwayGate")) return Type::MIDWAY_GATE;
+	else if (!string.compare("GoalGate")) return Type::GOAL_GATE;
 	else
 	{
 		OutputDebugString(String("ERROR: Unhandled item type in Item::TYPEToString: ") + String(string.c_str()) + String("\n"));
 	}
-	return TYPE::NONE;
+	return Type::NONE;
 }
 
 bool Item::IsBlock()
 {
-	return (m_Type == TYPE::EXCLAMATION_MARK_BLOCK ||
-			m_Type == TYPE::MESSAGE_BLOCK ||
-			m_Type == TYPE::PRIZE_BLOCK ||
-			m_Type == TYPE::ROTATING_BLOCK ||
-			m_Type == TYPE::CLOUD_BLOCK ||
-			m_Type == TYPE::GRAB_BLOCK);
+	return (m_Type == Type::EXCLAMATION_MARK_BLOCK ||
+			m_Type == Type::MESSAGE_BLOCK ||
+			m_Type == Type::PRIZE_BLOCK ||
+			m_Type == Type::ROTATING_BLOCK ||
+			m_Type == Type::CLOUD_BLOCK ||
+			m_Type == Type::GRAB_BLOCK);
 }

@@ -11,7 +11,7 @@ int MessageBlock::m_BitmapWidth;
 int MessageBlock::m_BitmapHeight;
 
 MessageBlock::MessageBlock(DOUBLE2 topLeft, String bmpFilePath, Level* levelPtr) :
-	Block(topLeft, TYPE::MESSAGE_BLOCK, levelPtr)
+	Block(topLeft, Type::MESSAGE_BLOCK, levelPtr)
 {
 	m_BmpPtr = new Bitmap(bmpFilePath);
 	m_BitmapWidth = m_BmpPtr->GetWidth();
@@ -113,8 +113,8 @@ void MessageBlock::Paint()
 
 void MessageBlock::Hit()
 {
-	SoundManager::PlaySoundEffect(SoundManager::SOUND::BLOCK_HIT);
-	SoundManager::PlaySoundEffect(SoundManager::SOUND::MESSAGE_BLOCK_HIT);
+	SoundManager::PlaySoundEffect(SoundManager::Sound::BLOCK_HIT);
+	SoundManager::PlaySoundEffect(SoundManager::Sound::MESSAGE_BLOCK_HIT);
 
 	m_LevelPtr->SetActiveMessageBlock(this);
 	m_DelayBeforeIntroAnimationTimer.Start();

@@ -7,7 +7,7 @@ struct INT2;
 class CharginChuck : public Enemy
 {
 public:
-	enum class ANIMATION_STATE
+	enum class AnimationState
 	{
 		WAITING, CHARGIN, HURT, JUMPING, DEAD
 	};
@@ -27,7 +27,7 @@ public:
 	void HeadBonk();
 
 	bool IsRising();
-	ANIMATION_STATE GetAnimationState();
+	AnimationState GetAnimationState();
 
 private:
 	void UpdateVelocity(double deltaTime);
@@ -47,7 +47,7 @@ private:
 	static const double RUN_VEL;
 	static const double JUMP_VEL;
 
-	ANIMATION_STATE m_AnimationState;
+	AnimationState m_AnimationState;
 	CountdownTimer m_WaitingTimer;
 	CountdownTimer m_HurtTimer;
 

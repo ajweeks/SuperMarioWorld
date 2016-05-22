@@ -29,12 +29,12 @@ public:
 	SHELL				ShellHit->  Spawn UPSIDEDOWN_SHELL
 
 	*/
-	enum ANIMATION_STATE
+	enum AnimationState
 	{
 		WALKING, SHELLESS, WALKING_SHELLESS, SQUASHED, UPSIDEDOWN_SHELLESS
 	};
 
-	KoopaTroopa(DOUBLE2 startingPos, Level* levelPtr, COLOUR colour);
+	KoopaTroopa(DOUBLE2 startingPos, Level* levelPtr, Colour colour);
 	virtual ~KoopaTroopa();
 
 	KoopaTroopa(const KoopaTroopa&) = delete;
@@ -46,7 +46,7 @@ public:
 	int GetWidth();
 	int GetHeight();
 
-	ANIMATION_STATE GetAnimationState();
+	AnimationState GetAnimationState();
 
 	// Called when the player regular jumps on this koopa's head. (not spin jump)
 	// This causes the koopa to lose its shell, or if it 
@@ -64,7 +64,7 @@ public:
 
 	bool IsShelless();
 
-	COLOUR GetColour();
+	Colour GetColour();
 
 private:
 	static const int WIDTH = 14;
@@ -72,13 +72,13 @@ private:
 
 	static const int WALK_VEL = 35;
 
-	void ChangeAnimationState(ANIMATION_STATE newAnimationState);
+	void ChangeAnimationState(AnimationState newAnimationState);
 	INT2 DetermineAnimationFrame();
 	
 	void ChangeDirections();
 
-	COLOUR m_Colour;
-	ANIMATION_STATE m_AnimationState;
+	Colour m_Colour;
+	AnimationState m_AnimationState;
 
 	static const int FRAMES_OF_BEING_SHELLESS = 85;
 	int m_FramesSpentBeingShelless = -1;

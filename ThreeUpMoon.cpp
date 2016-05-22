@@ -5,7 +5,7 @@
 #include "SpriteSheet.h"
 
 ThreeUpMoon::ThreeUpMoon(DOUBLE2 topLeft, Level* levelPtr) :
-	Item(topLeft, TYPE::THREE_UP_MOON, levelPtr)
+	Item(topLeft, Type::THREE_UP_MOON, levelPtr)
 {
 }
 

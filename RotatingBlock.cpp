@@ -8,7 +8,7 @@
 #include "Beanstalk.h"
 
 RotatingBlock::RotatingBlock(DOUBLE2 topLeft, Level* levelPtr, bool spawnsBeanstalk) :
-	Block(topLeft, TYPE::ROTATING_BLOCK, levelPtr),
+	Block(topLeft, Type::ROTATING_BLOCK, levelPtr),
 	m_SpawnsBeanstalk(spawnsBeanstalk)
 {
 	m_AnimInfo.secondsPerFrame = 0.135;
@@ -26,7 +26,7 @@ void RotatingBlock::Tick(double deltaTime)
 		Beanstalk* beanstalkPtr = new Beanstalk(m_ActPtr->GetPosition() - DOUBLE2(WIDTH / 2, HEIGHT), m_LevelPtr, 14);
 		m_LevelPtr->AddItem(beanstalkPtr, true);
 		
-		SoundManager::PlaySoundEffect(SoundManager::SOUND::BEANSTALK_SPAWN);
+		SoundManager::PlaySoundEffect(SoundManager::Sound::BEANSTALK_SPAWN);
 
 		return;
 	}
@@ -96,7 +96,7 @@ void RotatingBlock::Hit()
 	}
 	else
 	{
-		SoundManager::PlaySoundEffect(SoundManager::SOUND::BLOCK_HIT);
+		SoundManager::PlaySoundEffect(SoundManager::Sound::BLOCK_HIT);
 		m_BumpAnimationTimer.Start();
 	}
 }

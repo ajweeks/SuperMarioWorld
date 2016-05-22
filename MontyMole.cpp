@@ -20,11 +20,11 @@ const double MontyMole::TARGET_OVERSHOOT_DISTANCE = 30.0;
 const double MontyMole::LAUNCH_OUT_OF_GROUND_VEL = -22000.0;
 const double MontyMole::JUMP_VEL = -10000.0;
 
-MontyMole::MontyMole(DOUBLE2& startingPos, Level* levelPtr, SPAWN_LOCATION_TYPE spawnLocationType, AI_TYPE aiType) :
-	Enemy(TYPE::MONTY_MOLE, startingPos + DOUBLE2(GetWidth()/2, GetHeight()/2), GetWidth(), GetHeight(), BodyType::DYNAMIC, levelPtr, this),
+MontyMole::MontyMole(DOUBLE2& startingPos, Level* levelPtr, SpawnLocationType spawnLocationType, AIType aiType) :
+	Enemy(Type::MONTY_MOLE, startingPos + DOUBLE2(GetWidth()/2, GetHeight()/2), GetWidth(), GetHeight(), BodyType::DYNAMIC, levelPtr, this),
 	m_SpawnLocationType(spawnLocationType), m_SpawingPosition(startingPos + DOUBLE2(GetWidth() / 2, GetHeight() / 2)), m_AiType(aiType)
 {
-	m_AnimationState = ANIMATION_STATE::INVISIBLE;
+	m_AnimationState = AnimationState::INVISIBLE;
 	m_ActPtr->SetSensor(true);
 	m_ActPtr->SetActive(false);
 
@@ -32,7 +32,7 @@ MontyMole::MontyMole(DOUBLE2& startingPos, Level* levelPtr, SPAWN_LOCATION_TYPE 
 	m_SpawnDustCloudTimer = CountdownTimer(4);
 	m_FramesSinceLastHop = CountdownTimer(60);
 
-	if (m_AiType == AI_TYPE::DUMB) m_FramesSinceLastHop.Start();
+	if (m_AiType == AIType::DUMB) m_FramesSinceLastHop.Start();
 }
 
 MontyMole::~MontyMole()
@@ -56,32 +56,32 @@ void MontyMole::Tick(double deltaTime)
 
 	switch (m_AnimationState)
 	{
-	case ANIMATION_STATE::INVISIBLE:
+	case AnimationState::INVISIBLE:
 	{
 		if (abs(m_LevelPtr->GetPlayer()->GetPosition().x - m_SpawingPosition.x) < PLAYER_PROXIMITY)
 		{
-			m_AnimationState = ANIMATION_STATE::IN_GROUND;
+			m_AnimationState = AnimationState::IN_GROUND;
 			
 			m_FramesSpentWrigglingInDirtTimer.Start();
 		}
 
 	} break;
-	case ANIMATION_STATE::IN_GROUND:
+	case AnimationState::IN_GROUND:
 	{
 		if (m_FramesSpentWrigglingInDirtTimer.Tick() && m_FramesSpentWrigglingInDirtTimer.IsComplete())
 		{
-			m_AnimationState = ANIMATION_STATE::JUMPING_OUT_OF_GROUND;
+			m_AnimationState = AnimationState::JUMPING_OUT_OF_GROUND;
 			m_ActPtr->SetActive(true);
 			m_ActPtr->SetLinearVelocity(DOUBLE2(0, LAUNCH_OUT_OF_GROUND_VEL * deltaTime));
 			m_HaveSpawnedMole = true;
 
-			SoundManager::PlaySoundEffect(SoundManager::SOUND::BLOCK_BREAK);
+			SoundManager::PlaySoundEffect(SoundManager::Sound::BLOCK_BREAK);
 			
 			BlockBreakParticle* blockBreakParticlePtr = new BlockBreakParticle(DOUBLE2(m_SpawingPosition));
 			m_LevelPtr->AddParticle(blockBreakParticlePtr);
 		}
 	} break;
-	case ANIMATION_STATE::JUMPING_OUT_OF_GROUND:
+	case AnimationState::JUMPING_OUT_OF_GROUND:
 	{
 		if (m_ActPtr->IsSensor() &&
 			m_ActPtr->GetLinearVelocity().y > -0.5)
@@ -91,7 +91,7 @@ void MontyMole::Tick(double deltaTime)
 
 		if (m_ActPtr->GetLinearVelocity().y == 0.0)
 		{
-			m_AnimationState = ANIMATION_STATE::WALKING;
+			m_AnimationState = AnimationState::WALKING;
 
 			DOUBLE2 playerPos = m_LevelPtr->GetPlayer()->GetPosition();
 			if (playerPos.x > m_ActPtr->GetPosition().x) m_DirFacing = Direction::RIGHT;
@@ -102,11 +102,11 @@ void MontyMole::Tick(double deltaTime)
 			m_IsOnGround = true;
 		}
 	} break;
-	case ANIMATION_STATE::WALKING:
+	case AnimationState::WALKING:
 	{
 		UpdatePosition(deltaTime);
 	} break;
-	case ANIMATION_STATE::DEAD:
+	case AnimationState::DEAD:
 	{
 		if (m_ActPtr != nullptr)
 		{
@@ -122,7 +122,7 @@ void MontyMole::Tick(double deltaTime)
 			{
 				if (abs(m_LevelPtr->GetPlayer()->GetPosition().x - m_SpawingPosition.x) < PLAYER_PROXIMITY)
 				{
-					m_AnimationState = ANIMATION_STATE::IN_GROUND;
+					m_AnimationState = AnimationState::IN_GROUND;
 
 					m_FramesSpentWrigglingInDirtTimer.Start();
 				}
@@ -148,7 +148,7 @@ void MontyMole::UpdatePosition(double deltaTime)
 
 	switch (m_AiType)
 	{
-	case AI_TYPE::SMART:
+	case AIType::SMART:
 	{
 		DOUBLE2 playerPos = m_LevelPtr->GetPlayer()->GetPosition();
 
@@ -174,7 +174,7 @@ void MontyMole::UpdatePosition(double deltaTime)
 			CalculateNewTarget();
 		}
 	} break;
-	case AI_TYPE::DUMB:
+	case AIType::DUMB:
 	{
 		// Just walk forward, jumping periodically, until you hit a wall, at which point turn around
 
@@ -235,14 +235,14 @@ void MontyMole::CalculateNewTarget()
 
 void MontyMole::HeadBonk()
 {
-	SoundManager::PlaySoundEffect(SoundManager::SOUND::SHELL_KICK);
+	SoundManager::PlaySoundEffect(SoundManager::Sound::SHELL_KICK);
 
 	switch (m_AnimationState)
 	{
-	case ANIMATION_STATE::WALKING:
-	case ANIMATION_STATE::JUMPING_OUT_OF_GROUND:
+	case AnimationState::WALKING:
+	case AnimationState::JUMPING_OUT_OF_GROUND:
 	{
-		m_AnimationState = ANIMATION_STATE::DEAD;
+		m_AnimationState = AnimationState::DEAD;
 
 		m_ActPtr->SetLinearVelocity(DOUBLE2(0.0, 0.0));
 
@@ -258,27 +258,27 @@ void MontyMole::HeadBonk()
 
 void MontyMole::StompKill()
 {
-	SoundManager::PlaySoundEffect(SoundManager::SOUND::ENEMY_HEAD_STOMP_START);
-	SoundManager::PlaySoundEffect(SoundManager::SOUND::ENEMY_HEAD_STOMP_END);
+	SoundManager::PlaySoundEffect(SoundManager::Sound::ENEMY_HEAD_STOMP_START);
+	SoundManager::PlaySoundEffect(SoundManager::Sound::ENEMY_HEAD_STOMP_END);
 
 	EnemyPoofParticle* poofParticlePtr = new EnemyPoofParticle(m_ActPtr->GetPosition());
 	m_LevelPtr->AddParticle(poofParticlePtr);
 
 	m_LevelPtr->GetPlayer()->AddScore(200, m_ActPtr->GetPosition());
 
-	m_AnimationState = ANIMATION_STATE::DEAD;
+	m_AnimationState = AnimationState::DEAD;
 	m_ShouldRemoveActor = true;
 }
 
 void MontyMole::Paint()
 {
-	if (m_AnimationState == ANIMATION_STATE::INVISIBLE)
+	if (m_AnimationState == AnimationState::INVISIBLE)
 	{
 		return;
 	}
 	else
 	{
-		if (m_SpawnLocationType == SPAWN_LOCATION_TYPE::WALL && m_HaveSpawnedMole)
+		if (m_SpawnLocationType == SpawnLocationType::WALL && m_HaveSpawnedMole)
 		{
 			SpriteSheetManager::montyMolePtr->Paint(m_SpawingPosition.x, m_SpawingPosition.y, 5, 0);
 		}
@@ -291,11 +291,9 @@ void MontyMole::Paint()
 	double centerY = m_ActPtr->GetPosition().y;
 
 	int xScale = 1, yScale = 1;
-	if (m_DirFacing == Direction::LEFT)
-		xScale = -1;
+	if (m_DirFacing == Direction::LEFT) xScale = -1;
 
-	if (m_AnimationState == ANIMATION_STATE::DEAD)
-		yScale = -1;
+	if (m_AnimationState == AnimationState::DEAD) yScale = -1;
 
 	if (xScale != 1 || yScale != 1)
 	{
@@ -320,26 +318,26 @@ INT2 MontyMole::GetAnimationFrame()
 {
 	switch (m_AnimationState)
 	{
-	case ANIMATION_STATE::INVISIBLE:
+	case AnimationState::INVISIBLE:
 	{
 		return INT2(-1, -1);
 	}
-	case ANIMATION_STATE::IN_GROUND:
+	case AnimationState::IN_GROUND:
 	{
-		if (m_SpawnLocationType == SPAWN_LOCATION_TYPE::GROUND)
+		if (m_SpawnLocationType == SpawnLocationType::GROUND)
 			return INT2(7 + m_AnimInfo.frameNumber, 0);
 		else
 			return INT2(3 + m_AnimInfo.frameNumber, 0);
 	}
-	case ANIMATION_STATE::JUMPING_OUT_OF_GROUND:
+	case AnimationState::JUMPING_OUT_OF_GROUND:
 	{
 		return INT2(2, 0);
 	}
-	case ANIMATION_STATE::WALKING:
+	case AnimationState::WALKING:
 	{
 		return INT2(0 + m_AnimInfo.frameNumber, 0);
 	}
-	case ANIMATION_STATE::DEAD:
+	case AnimationState::DEAD:
 	{
 		return INT2(1, 0);
 	}
@@ -351,25 +349,25 @@ INT2 MontyMole::GetAnimationFrame()
 	}
 }
 
-MontyMole::AI_TYPE MontyMole::StringToAIType(std::string aiTypeString)
+MontyMole::AIType MontyMole::StringToAIType(std::string aiTypeString)
 {
-	if (!aiTypeString.compare("Smart")) return AI_TYPE::SMART;
-	else if(!aiTypeString.compare("Dumb")) return AI_TYPE::DUMB;
+	if (!aiTypeString.compare("Smart")) return AIType::SMART;
+	else if(!aiTypeString.compare("Dumb")) return AIType::DUMB;
 	else
 	{
 		OutputDebugString(String("ERROR: Unhandled ai type passed to MontyMole::StringToAIType!\n"));
-		return AI_TYPE::NONE;
+		return AIType::NONE;
 	}
 }
 
-MontyMole::SPAWN_LOCATION_TYPE MontyMole::StringToSpawnLocationType(std::string spawnLocationTypeString)
+MontyMole::SpawnLocationType MontyMole::StringToSpawnLocationType(std::string spawnLocationTypeString)
 {
-	if (!spawnLocationTypeString.compare("Ground")) return SPAWN_LOCATION_TYPE::GROUND;
-	else if (!spawnLocationTypeString.compare("Wall")) return SPAWN_LOCATION_TYPE::WALL;
+	if (!spawnLocationTypeString.compare("Ground")) return SpawnLocationType::GROUND;
+	else if (!spawnLocationTypeString.compare("Wall")) return SpawnLocationType::WALL;
 	else
 	{
 		OutputDebugString(String("ERROR: Unhandled ai type passed to MontyMole::StringToSpawnLocationType!\n"));
-		return SPAWN_LOCATION_TYPE::NONE;
+		return SpawnLocationType::NONE;
 	}
 }
 
@@ -377,8 +375,8 @@ void MontyMole::SetPaused(bool paused)
 {
 	if (m_ActPtr == nullptr) return;
 
-	if (m_AnimationState != ANIMATION_STATE::IN_GROUND &&
-		m_AnimationState != ANIMATION_STATE::INVISIBLE)
+	if (m_AnimationState != AnimationState::IN_GROUND &&
+		m_AnimationState != AnimationState::INVISIBLE)
 	{
 		m_ActPtr->SetActive(!paused);
 	}
@@ -403,5 +401,5 @@ int MontyMole::GetHeight()
 
 bool MontyMole::IsAlive()
 {
-	return (m_AnimationState != ANIMATION_STATE::DEAD);
+	return (m_AnimationState != AnimationState::DEAD);
 }

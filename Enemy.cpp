@@ -3,7 +3,7 @@
 #include "Enemy.h"
 #include "Level.h"
 
-Enemy::Enemy(TYPE type, DOUBLE2& posRef, double width, double height, BodyType bodyType, Level* levelPtr, void* userPointer) :
+Enemy::Enemy(Type type, DOUBLE2& posRef, double width, double height, BodyType bodyType, Level* levelPtr, void* userPointer) :
 	Entity(posRef, bodyType, levelPtr, ActorId::ENEMY, userPointer),
 	m_Type(type)
 {
@@ -18,20 +18,20 @@ Enemy::~Enemy()
 {
 }
 
-Enemy::TYPE Enemy::GetType()
+Enemy::Type Enemy::GetType()
 {
 	return m_Type;
 }
 
-std::string Enemy::TYPEToString(TYPE type)
+std::string Enemy::TYPEToString(Type type)
 {
 	switch (type)
 	{
-	case TYPE::NONE: return "None";
-	case TYPE::KOOPA_TROOPA: return "KoopaTroopa";
-	case TYPE::CHARGIN_CHUCK: return "CharginChuck";
-	case TYPE::PIRHANA_PLANT: return "PirhanaPlant";
-	case TYPE::MONTY_MOLE: return "MontyMole";
+	case Type::NONE: return "None";
+	case Type::KOOPA_TROOPA: return "KoopaTroopa";
+	case Type::CHARGIN_CHUCK: return "CharginChuck";
+	case Type::PIRHANA_PLANT: return "PirhanaPlant";
+	case Type::MONTY_MOLE: return "MontyMole";
 	default:
 	{
 		OutputDebugString(String("ERROR: Unhandled type passed to Enemy::TYPEToString\n"));
@@ -40,16 +40,16 @@ std::string Enemy::TYPEToString(TYPE type)
 	}
 }
 
-Enemy::TYPE Enemy::StringToTYPE(std::string string)
+Enemy::Type Enemy::StringToTYPE(std::string string)
 {
-	if (!string.compare("None")) return TYPE::NONE;
-	else if (!string.compare("KoopaTroopa")) return TYPE::KOOPA_TROOPA;
-	else if (!string.compare("CharginChuck")) return TYPE::CHARGIN_CHUCK;
-	else if (!string.compare("PirhanaPlant")) return TYPE::PIRHANA_PLANT;
-	else if (!string.compare("MontyMole")) return TYPE::MONTY_MOLE;
+	if (!string.compare("None")) return Type::NONE;
+	else if (!string.compare("KoopaTroopa")) return Type::KOOPA_TROOPA;
+	else if (!string.compare("CharginChuck")) return Type::CHARGIN_CHUCK;
+	else if (!string.compare("PirhanaPlant")) return Type::PIRHANA_PLANT;
+	else if (!string.compare("MontyMole")) return Type::MONTY_MOLE;
 	else
 	{
 		OutputDebugString(String("ERROR: Unhandled type passed to Enemy::TYPEToString\n"));
-		return TYPE::NONE;
+		return Type::NONE;
 	}
 }

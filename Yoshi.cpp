@@ -53,7 +53,7 @@ Yoshi::Yoshi(DOUBLE2 position, Level* levelPtr) :
 
 
 	m_AnimInfo.secondsPerFrame = HATCHING_SECONDS_PER_FRAME;
-	m_AnimationState = ANIMATION_STATE::EGG;
+	m_AnimationState = AnimationState::EGG;
 
 	m_SpriteSheetPtr = SpriteSheetManager::smallYoshiPtr;
 
@@ -65,8 +65,8 @@ Yoshi::Yoshi(DOUBLE2 position, Level* levelPtr) :
 
 	m_ItemsEaten = 0;
 
-	SoundManager::PlaySoundEffect(SoundManager::SOUND::YOSHI_SPAWN);
-	SoundManager::PlaySoundEffect(SoundManager::SOUND::YOSHI_EGG_BREAK); // LATER: add delay here?
+	SoundManager::PlaySoundEffect(SoundManager::Sound::YOSHI_SPAWN);
+	SoundManager::PlaySoundEffect(SoundManager::Sound::YOSHI_EGG_BREAK); // LATER: add delay here?
 }
 
 Yoshi::~Yoshi()
@@ -90,7 +90,7 @@ void Yoshi::Tick(double deltaTime)
 	if (m_ShouldSpawnMushroom)
 	{
 		m_ShouldSpawnMushroom = false;
-		SoundManager::PlaySoundEffect(SoundManager::SOUND::YOSHI_EGG_BREAK);
+		SoundManager::PlaySoundEffect(SoundManager::Sound::YOSHI_EGG_BREAK);
 
 		SuperMushroom* superMushroomPtr = new SuperMushroom(m_ActPtr->GetPosition(), m_LevelPtr, -m_DirFacing);
 		m_LevelPtr->AddItem(superMushroomPtr);
@@ -129,7 +129,7 @@ void Yoshi::Tick(double deltaTime)
 
 	// Tick animations
 	m_AnimInfo.Tick(deltaTime);
-	if (m_AnimationState == ANIMATION_STATE::WAITING)
+	if (m_AnimationState == AnimationState::WAITING)
 	{
 		m_AnimInfo.frameNumber %= 3;
 	}
@@ -147,7 +147,7 @@ void Yoshi::Tick(double deltaTime)
 
 	if (m_HatchingTimer.Tick() && m_HatchingTimer.IsComplete())
 	{
-		m_AnimationState = ANIMATION_STATE::WAITING;
+		m_AnimationState = AnimationState::WAITING;
 		m_SpriteSheetPtr = SpriteSheetManager::yoshiPtr;
 		m_AnimInfo.secondsPerFrame = WAITING_SECONDS_PER_FRAME;
 	}
@@ -156,7 +156,7 @@ void Yoshi::Tick(double deltaTime)
 	{
 		HandleKeyboardInput(deltaTime);
 	}
-	else if (m_AnimationState == ANIMATION_STATE::WILD)
+	else if (m_AnimationState == AnimationState::WILD)
 	{
 		UpdatePosition(deltaTime);
 	}
@@ -259,7 +259,7 @@ void Yoshi::PaintAnimationFrame(double left, double top)
 	int srcX = 0, srcY = 0;
 	bool playerIsSmall = false;
 
-	if (m_PlayerPtr != nullptr) playerIsSmall = (m_PlayerPtr->GetPowerupState() == Player::POWERUP_STATE::NORMAL);
+	if (m_PlayerPtr != nullptr) playerIsSmall = (m_PlayerPtr->GetPowerupState() == Player::PowerupState::NORMAL);
 
 	if (m_IsTongueStuckOut)
 	{
@@ -278,22 +278,22 @@ void Yoshi::PaintAnimationFrame(double left, double top)
 	{
 		switch (m_AnimationState)
 		{
-		case ANIMATION_STATE::EGG:
+		case AnimationState::EGG:
 		{
 			srcX = 0 + m_AnimInfo.frameNumber;
 			srcY = 1;
 		} break;
-		case ANIMATION_STATE::BABY:
+		case AnimationState::BABY:
 		{
 			srcX = 0 + m_AnimInfo.frameNumber;
 			srcY = 0;
 		} break;
-		case ANIMATION_STATE::WILD:
+		case AnimationState::WILD:
 		{
 			srcX = 0 + m_AnimInfo.frameNumber;
 			srcY = 0;
 		} break;
-		case ANIMATION_STATE::WAITING:
+		case AnimationState::WAITING:
 		{
 			if (m_IsCarryingPlayer)
 			{
@@ -313,7 +313,7 @@ void Yoshi::PaintAnimationFrame(double left, double top)
 				srcY = 0;
 			}
 		} break;
-		case ANIMATION_STATE::FALLING:
+		case AnimationState::FALLING:
 		{
 			if (m_IsCarryingPlayer)
 			{
@@ -335,7 +335,7 @@ void Yoshi::PaintAnimationFrame(double left, double top)
 void Yoshi::RunWild()
 {
 	SetCarryingPlayer(false, nullptr);
-	m_AnimationState = ANIMATION_STATE::WILD;
+	m_AnimationState = AnimationState::WILD;
 	m_AnimInfo.secondsPerFrame = RUNNING_SECONDS_PER_FRAME;
 }
 
@@ -353,12 +353,12 @@ void Yoshi::SetCarryingPlayer(bool carryingPlayer, Player* playerPtr)
 		
 		if (m_PlayerPtr->IsAirborne()) 
 		{
-			m_AnimationState = ANIMATION_STATE::FALLING;
+			m_AnimationState = AnimationState::FALLING;
 			m_ActPtr->SetLinearVelocity(DOUBLE2(m_ActPtr->GetLinearVelocity().x, 0));
 		}
 		else
 		{
-			m_AnimationState = ANIMATION_STATE::WAITING;
+			m_AnimationState = AnimationState::WAITING;
 		}
 
 		m_AnimInfo.frameNumber = 0;
@@ -373,15 +373,15 @@ void Yoshi::EatItem(Item* itemPtr)
 {
 	switch (itemPtr->GetType())
 	{
-	case Item::TYPE::BERRY:
+	case Item::Type::BERRY:
 	{
 		SwallowItem();
 	} break;
-	case Item::TYPE::KOOPA_SHELL:
+	case Item::Type::KOOPA_SHELL:
 	{
-		if (m_ItemInMouthType == Item::TYPE::NONE)
+		if (m_ItemInMouthType == Item::Type::NONE)
 		{
-			m_ItemInMouthType = Item::TYPE::KOOPA_SHELL;
+			m_ItemInMouthType = Item::Type::KOOPA_SHELL;
 		}
 	} break;
 	}
@@ -393,7 +393,7 @@ void Yoshi::EatEnemy(Enemy* enemyPtr)
 {
 	switch (enemyPtr->GetType())
 	{
-	case Enemy::TYPE::KOOPA_TROOPA:
+	case Enemy::Type::KOOPA_TROOPA:
 	{
 		KoopaTroopa* koopaPtr = (KoopaTroopa*)enemyPtr;
 		if (koopaPtr->IsShelless())
@@ -405,7 +405,7 @@ void Yoshi::EatEnemy(Enemy* enemyPtr)
 			//m_ItemInMouthPtr = new KoopaShell(m_ActPtr->GetPosition(), m_LevelPtr, koopaPtr->GetColour());
 		}
 	} break;
-	case Enemy::TYPE::CHARGIN_CHUCK:
+	case Enemy::Type::CHARGIN_CHUCK:
 	{
 		return; // The player can't eat these dudes
 	} break;
@@ -425,28 +425,28 @@ void Yoshi::SwallowItem()
 	}
 	else
 	{
-		SoundManager::PlaySoundEffect(SoundManager::SOUND::YOSHI_SWALLOW);
+		SoundManager::PlaySoundEffect(SoundManager::Sound::YOSHI_SWALLOW);
 	}
 }
 
 void Yoshi::SpitOutItem()
 {
-	if (m_ItemInMouthType != Item::TYPE::NONE)
+	if (m_ItemInMouthType != Item::Type::NONE)
 	{
 		switch (m_ItemInMouthType)
 		{
-		case Item::TYPE::KOOPA_SHELL:
+		case Item::Type::KOOPA_SHELL:
 		{
-			KoopaShell* koopaShellPtr = new KoopaShell(m_ActPtr->GetPosition(), m_LevelPtr, COLOUR::GREEN);
+			KoopaShell* koopaShellPtr = new KoopaShell(m_ActPtr->GetPosition(), m_LevelPtr, Colour::GREEN);
 			koopaShellPtr->SetMoving(true);
 			m_LevelPtr->AddItem(koopaShellPtr);
 
-			m_ItemInMouthType = Item::TYPE::NONE;
+			m_ItemInMouthType = Item::Type::NONE;
 
 			// TODO: if red, spit fire ballz
-			//SoundManager::PlaySoundEffect(SoundManager::SOUND::YOSHI_FIRE_SPIT);
+			//SoundManager::PlaySoundEffect(SoundManager::Sound::YOSHI_FIRE_SPIT);
 
-			SoundManager::PlaySoundEffect(SoundManager::SOUND::YOSHI_SPIT);
+			SoundManager::PlaySoundEffect(SoundManager::Sound::YOSHI_SPIT);
 		} break;
 		}
 	}
@@ -482,7 +482,7 @@ int Yoshi::GetHeight()
 
 bool Yoshi::IsHatching()
 {
-	return m_AnimationState == ANIMATION_STATE::EGG || m_AnimationState == ANIMATION_STATE::BABY;
+	return m_AnimationState == AnimationState::EGG || m_AnimationState == AnimationState::BABY;
 }
 
 int Yoshi::GetDirectionFacing()
@@ -490,7 +490,7 @@ int Yoshi::GetDirectionFacing()
 	return m_DirFacing;
 }
 
-Yoshi::ANIMATION_STATE Yoshi::GetAnimationState()
+Yoshi::AnimationState Yoshi::GetAnimationState()
 {
 	return m_AnimationState;
 }
@@ -519,11 +519,11 @@ std::string Yoshi::AnimationStateToString()
 {
 	switch (m_AnimationState)
 	{
-	case ANIMATION_STATE::EGG: return "Egg";
-	case ANIMATION_STATE::BABY: return "Baby";
-	case ANIMATION_STATE::WAITING: return "Waiting";
-	case ANIMATION_STATE::FALLING: return "Falling";
-	case ANIMATION_STATE::WILD: return "Wild";
+	case AnimationState::EGG: return "Egg";
+	case AnimationState::BABY: return "Baby";
+	case AnimationState::WAITING: return "Waiting";
+	case AnimationState::FALLING: return "Falling";
+	case AnimationState::WILD: return "Wild";
 	default: return "UNKNOWN!";
 	}
 }

@@ -14,8 +14,8 @@ struct LevelInfo
 	int m_NumberOfBackgroundAnimationFrames = -1; 
 	bool m_IsUnderground;
 	Bitmap* m_BmpForegroundPtr;
-	SoundManager::SONG m_BackgroundMusic;
-	SoundManager::SONG m_BackgroundMusicFast;
+	SoundManager::Song m_BackgroundMusic;
+	SoundManager::Song m_BackgroundMusicFast;
 	int m_Width;
 	int m_Height;
 

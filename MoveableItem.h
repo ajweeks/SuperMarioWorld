@@ -8,7 +8,7 @@
 class MoveableItem : public Item
 {
 public:
-	MoveableItem(DOUBLE2 topLeft, TYPE itemType, int spriteSheetXIndex, int spriteSheetYIndex, Level* levelPtr, int directionFacing = Direction::RIGHT);
+	MoveableItem(DOUBLE2 topLeft, Type itemType, int spriteSheetXIndex, int spriteSheetYIndex, Level* levelPtr, int directionFacing = Direction::RIGHT);
 
 	MoveableItem(const MoveableItem&) = delete;
 	MoveableItem& operator=(const MoveableItem&) = delete;

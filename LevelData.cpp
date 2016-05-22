@@ -5,7 +5,7 @@
 #include "Level.h"
 #include "Player.h"
 #include "FileIO.h"
-#include "Colour.h"
+#include "SMWColour.h"
 
 #include "Entity.h"
 #include "Enemy.h"
@@ -110,69 +110,69 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 
 		// UNIQUE PROPERTIES
 		// NOTE: Not all items have the following properties, but there is no harm is seeing if a tag is there
-		COLOUR itemColour = Colour::StringToCOLOUR(FileIO::GetTagContent(itemContent, "Colour"));
+		Colour itemColour = SMWColour::StringToCOLOUR(FileIO::GetTagContent(itemContent, "Colour"));
 
 		switch (itemType)
 		{
-		case int(Item::TYPE::PRIZE_BLOCK):
+		case int(Item::Type::PRIZE_BLOCK):
 		{
 			std::string spawnsString = FileIO::GetTagContent(itemContent, "Spawns");
 			m_ItemsPtrArr.push_back(new PrizeBlock(topLeft, levelPtr, spawnsString));
 		} break;
-		case int(Item::TYPE::EXCLAMATION_MARK_BLOCK):
+		case int(Item::Type::EXCLAMATION_MARK_BLOCK):
 		{
 			// LATER: Check if the yellow p-switch has been pressed to determine if ! blocks are solid or not
 			m_ItemsPtrArr.push_back(new ExclamationMarkBlock(topLeft, itemColour, true, levelPtr));
 		} break;
-		case int(Item::TYPE::COIN):
+		case int(Item::Type::COIN):
 		{
 			m_ItemsPtrArr.push_back(new Coin(topLeft, levelPtr));
 		} break;
-		case int(Item::TYPE::DRAGON_COIN):
+		case int(Item::Type::DRAGON_COIN):
 		{
 			m_ItemsPtrArr.push_back(new DragonCoin(topLeft, levelPtr));
 		} break;
-		case int(Item::TYPE::MESSAGE_BLOCK):
+		case int(Item::Type::MESSAGE_BLOCK):
 		{
 			String messageString = String(FileIO::GetTagContent(itemContent, "BitmapFilePath").c_str());
 			m_ItemsPtrArr.push_back(new MessageBlock(topLeft, messageString, levelPtr));
 		} break;
-		case int(Item::TYPE::ROTATING_BLOCK):
+		case int(Item::Type::ROTATING_BLOCK):
 		{
 			std::string spawnItem = FileIO::GetTagContent(itemContent, "Spawns");
 			bool spawnsBeanstalk = !spawnItem.compare("Beanstalk");
 			m_ItemsPtrArr.push_back(new RotatingBlock(topLeft, levelPtr, spawnsBeanstalk));
 		} break;
-		case int(Item::TYPE::CLOUD_BLOCK):
+		case int(Item::Type::CLOUD_BLOCK):
 		{
 			m_ItemsPtrArr.push_back(new CloudBlock(topLeft, levelPtr));
 		} break;
-		case int(Item::TYPE::GRAB_BLOCK):
+		case int(Item::Type::GRAB_BLOCK):
 		{
 			m_ItemsPtrArr.push_back(new GrabBlock(topLeft, levelPtr));
 		} break;
-		case int(Item::TYPE::P_SWITCH):
+		case int(Item::Type::P_SWITCH):
 		{
 			m_ItemsPtrArr.push_back(new PSwitch(topLeft, itemColour, levelPtr));
 		} break;
-		case int(Item::TYPE::BERRY):
+		case int(Item::Type::BERRY):
 		{
 			m_ItemsPtrArr.push_back(new Berry(topLeft, levelPtr, itemColour));
 		} break;
-		case int(Item::TYPE::KOOPA_SHELL):
+		case int(Item::Type::KOOPA_SHELL):
 		{
 			m_ItemsPtrArr.push_back(new KoopaShell(topLeft, levelPtr, itemColour));
 		} break;
-		case int(Item::TYPE::THREE_UP_MOON):
+		case int(Item::Type::THREE_UP_MOON):
 		{
 			m_ItemsPtrArr.push_back(new ThreeUpMoon(topLeft, levelPtr));
 		} break;
-		case int(Item::TYPE::MIDWAY_GATE):
+		case int(Item::Type::MIDWAY_GATE):
 		{
 			int barHeight = stoi(FileIO::GetTagContent(itemContent, "BarHeight"));
 			m_ItemsPtrArr.push_back(new MidwayGate(topLeft, levelPtr, barHeight));
 		} break;
-		case int(Item::TYPE::GOAL_GATE):
+		case int(Item::Type::GOAL_GATE):
 		{
 			m_ItemsPtrArr.push_back(new GoalGate(topLeft, levelPtr));
 		} break;
@@ -194,21 +194,21 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 		std::string enemyTypeString = FileIO::GetTagContent(enemyContent, "Type");
 		int enemyType = int(Enemy::StringToTYPE(enemyTypeString));
 
-		COLOUR enemyColour = Colour::StringToCOLOUR(FileIO::GetTagContent(enemyContent, "Colour"));
+		Colour enemyColour = SMWColour::StringToCOLOUR(FileIO::GetTagContent(enemyContent, "Colour"));
 
 		switch (enemyType)
 		{
-		case int(Enemy::TYPE::KOOPA_TROOPA):
+		case int(Enemy::Type::KOOPA_TROOPA):
 		{
 			m_EnemiesPtrArr.push_back(new KoopaTroopa(topLeft, levelPtr, enemyColour));
 		} break;
-		case int(Enemy::TYPE::MONTY_MOLE):
+		case int(Enemy::Type::MONTY_MOLE):
 		{
-			MontyMole::AI_TYPE aiType = MontyMole::StringToAIType(FileIO::GetTagContent(enemyContent, "AIType"));
-			MontyMole::SPAWN_LOCATION_TYPE spawnLocationType = MontyMole::StringToSpawnLocationType(FileIO::GetTagContent(enemyContent, "SpawnLocationType"));
+			MontyMole::AIType aiType = MontyMole::StringToAIType(FileIO::GetTagContent(enemyContent, "AIType"));
+			MontyMole::SpawnLocationType spawnLocationType = MontyMole::StringToSpawnLocationType(FileIO::GetTagContent(enemyContent, "SpawnLocationType"));
 			m_EnemiesPtrArr.push_back(new MontyMole(topLeft, levelPtr, spawnLocationType, aiType));
 		} break;
-		case int(Enemy::TYPE::CHARGIN_CHUCK):
+		case int(Enemy::Type::CHARGIN_CHUCK):
 		{
 			m_EnemiesPtrArr.push_back(new CharginChuck(topLeft, levelPtr));
 		} break;
@@ -394,7 +394,7 @@ void LevelData::PaintItemsAndEnemies()
 	for (size_t i = 0; i < m_EnemiesPtrArr.size(); ++i)
 	{
 		// NOTE: Piranha plants are drawn behind everything else, they are not drawn here!
-		if (m_EnemiesPtrArr[i] != nullptr && m_EnemiesPtrArr[i]->GetType() != Enemy::TYPE::PIRHANA_PLANT)
+		if (m_EnemiesPtrArr[i] != nullptr && m_EnemiesPtrArr[i]->GetType() != Enemy::Type::PIRHANA_PLANT)
 		{
 			m_EnemiesPtrArr[i]->Paint();
 		}
@@ -407,8 +407,8 @@ void LevelData::PaintItemsInForeground()
 	{
 		if (m_ItemsPtrArr[i] != nullptr)
 		{
-			if (m_ItemsPtrArr[i]->GetType() == Item::TYPE::GOAL_GATE ||
-				m_ItemsPtrArr[i]->GetType() == Item::TYPE::MIDWAY_GATE)
+			if (m_ItemsPtrArr[i]->GetType() == Item::Type::GOAL_GATE ||
+				m_ItemsPtrArr[i]->GetType() == Item::Type::MIDWAY_GATE)
 			{
 				((Gate*)m_ItemsPtrArr[i])->PaintFrontPole();
 			}
@@ -422,7 +422,7 @@ void LevelData::PaintEnemiesInBackground()
 	{
 		if (m_EnemiesPtrArr[i] != nullptr)
 		{
-			if (m_EnemiesPtrArr[i]->GetType() == Enemy::TYPE::PIRHANA_PLANT)
+			if (m_EnemiesPtrArr[i]->GetType() == Enemy::Type::PIRHANA_PLANT)
 			{
 				m_EnemiesPtrArr[i]->Paint();
 			}

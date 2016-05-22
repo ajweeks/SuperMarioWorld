@@ -17,11 +17,11 @@ class Pipe;
 class Player : public Entity
 {
 public:
-	enum class POWERUP_STATE
+	enum class PowerupState
 	{
 		NORMAL, SUPER, FIRE, CAPE, BALLOON, STAR, NONE
 	};
-	enum class ANIMATION_STATE
+	enum class AnimationState
 	{
 		WAITING, WALKING, JUMPING, SPIN_JUMPING, FALLING, CLIMBING, IN_PIPE, NONE
 	};
@@ -37,15 +37,15 @@ public:
 	void Paint();
 	void Reset();
 	
-	static POWERUP_STATE StringToPowerupState(std::string powerupStateStr);
-	static std::string PowerupStateToString(POWERUP_STATE powerupState);
+	static PowerupState StringToPowerupState(std::string powerupStateStr);
+	static std::string PowerupStateToString(PowerupState powerupState);
 
 	int GetLives();
 	int GetCoinsCollected();
 	int GetDragonCoinsCollected();
 	int GetStarsCollected();
 	int GetScore();
-	Item::TYPE GetExtraItemType();
+	Item::Type GetExtraItemType();
 
 	void AddItemToBeHeld(Item* itemPtr);
 	bool IsHoldingItem();
@@ -57,7 +57,7 @@ public:
 	DOUBLE2 GetPosition();
 	int GetDirectionFacing();
 
-	POWERUP_STATE GetPowerupState();
+	PowerupState GetPowerupState();
 
 	bool IsOnGround();
 
@@ -86,7 +86,7 @@ public:
 	void MidwayGatePasshrough();
 	void SetClimbingBeanstalk(bool climbing);
 	void SetOverlappingWithBeanstalk(bool overlapping);
-	ANIMATION_STATE GetAnimationState();
+	AnimationState GetAnimationState();
 	int GetWidth();
 	int GetHeight();
 	bool IsDead();
@@ -110,13 +110,13 @@ private:
 	void AddDragonCoin(Level* levelPtr);
 	void AddLife();
 	void KickHeldItem(double deltaTime, bool gently = false);
-	void ChangePowerupState(POWERUP_STATE newPowerupState, bool isUpgrade = true);
+	void ChangePowerupState(PowerupState newPowerupState, bool isUpgrade = true);
 	void EnterPipe();
 
 	INT2 CalculateAnimationFrame();
 	bool CalculateOnGround();
-	SpriteSheet* GetSpriteSheetForPowerupState(POWERUP_STATE powerupState);
-	String AnimationStateToString(ANIMATION_STATE state);
+	SpriteSheet* GetSpriteSheetForPowerupState(PowerupState powerupState);
+	String AnimationStateToString(AnimationState state);
 
 	// Returns whether or not we were successful in entering a pipe
 	bool AttemptToEnterPipes(); 
@@ -157,11 +157,9 @@ private:
 	CountdownTimer m_EnteringPipeTimer;
 	CountdownTimer m_ExitingPipeTimer;
 
-	POWERUP_STATE m_PrevPowerupState; // This is used to transition between states upon state change
-
 	GameState* m_GameStatePtr;
 
-	Item::TYPE m_ExtraItemToBeSpawnedType;
+	Item::Type m_ExtraItemToBeSpawnedType;
 	Item* m_ExtraItemPtr; // This is the extra item slot mario has at the top of the screen
 
 	Item* m_ItemHoldingPtr;
@@ -169,9 +167,10 @@ private:
 	int m_DirFacingLastFrame;
 	int m_DirFacing;
 
-	POWERUP_STATE m_PowerupState;
-	
-	ANIMATION_STATE m_AnimationState;
+	PowerupState m_PowerupState;
+	PowerupState m_PrevPowerupState; // This is used to transition between states upon state change
+
+	AnimationState m_AnimationState;
 	bool m_IsDucking;
 	bool m_IsLookingUp;
 	bool m_IsRunning;

@@ -6,7 +6,7 @@
 class Berry : public Item
 {
 public:
-	Berry(DOUBLE2& positionRef, Level* levelPtr, COLOUR colour);
+	Berry(DOUBLE2& positionRef, Level* levelPtr, Colour colour);
 	virtual ~Berry();
 
 	Berry(const Berry&) = delete;
@@ -16,6 +16,6 @@ public:
 	void Paint();
 
 private:
-	COLOUR m_Colour;
+	Colour m_Colour;
 
 };

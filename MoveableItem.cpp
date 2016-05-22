@@ -6,7 +6,7 @@
 #include "SpriteSheet.h"
 #include "Block.h"
 
-MoveableItem::MoveableItem(DOUBLE2 topLeft, TYPE itemType, int spriteSheetXIndex, int spriteSheetYIndex, Level* levelPtr, int directionFacing) :
+MoveableItem::MoveableItem(DOUBLE2 topLeft, Type itemType, int spriteSheetXIndex, int spriteSheetYIndex, Level* levelPtr, int directionFacing) :
 	Item(topLeft, itemType, levelPtr, Level::ITEM, BodyType::DYNAMIC, WIDTH, HEIGHT), 
 	m_SpawnLocation(topLeft),
 	m_DirFacing(directionFacing),

@@ -9,11 +9,11 @@
 #include "SMWFont.h"
 
 MainMenuState::MainMenuState(StateManager* stateManagerPtr) :
-	BaseState(stateManagerPtr, STATE_TYPE::MAIN_MENU)
+	BaseState(stateManagerPtr, StateType::MAIN_MENU)
 {
-	EnterScreen(SCREEN::START);
+	EnterScreen(Screen::START);
 
-	SoundManager::PlaySong(SoundManager::SONG::MENU_SCREEN_BGM);
+	SoundManager::PlaySong(SoundManager::Song::MENU_SCREEN_BGM);
 
 	m_IntroTitleTimer = CountdownTimer(190);
 	m_IntroFadeInTimer = CountdownTimer(75);
@@ -21,7 +21,7 @@ MainMenuState::MainMenuState(StateManager* stateManagerPtr) :
 
 	m_IntroTitleTimer.Start();
 
-	SoundManager::PlaySoundEffect(SoundManager::SOUND::COIN_COLLECT);
+	SoundManager::PlaySoundEffect(SoundManager::Sound::COIN_COLLECT);
 }
 
 MainMenuState::~MainMenuState()
@@ -61,14 +61,14 @@ void MainMenuState::Tick(double deltaTime)
 	m_CursorAnimationTimer %= MAX_CURSOR_TIMER_VALUE;
 
 	// All states but start state handle up/down presses identically
-	if (m_ScreenShowing != SCREEN::START)
+	if (m_ScreenShowing != Screen::START)
 	{
 		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_DOWN))
 		{
 			++m_CursorIndex;
 			if (m_CursorIndex > m_MaxCursorIndex) m_CursorIndex = 0;
 
-			SoundManager::PlaySoundEffect(SoundManager::SOUND::FIRE_BALL_THROW);
+			SoundManager::PlaySoundEffect(SoundManager::Sound::FIRE_BALL_THROW);
 			m_CursorAnimationTimer = 0;
 		}
 		else if (GAME_ENGINE->IsKeyboardKeyPressed(VK_UP))
@@ -76,14 +76,14 @@ void MainMenuState::Tick(double deltaTime)
 			--m_CursorIndex;
 			if (m_CursorIndex < 0) m_CursorIndex = m_MaxCursorIndex;
 
-			SoundManager::PlaySoundEffect(SoundManager::SOUND::FIRE_BALL_THROW);
+			SoundManager::PlaySoundEffect(SoundManager::Sound::FIRE_BALL_THROW);
 			m_CursorAnimationTimer = 0;
 		}
 	}
 	
 	switch (m_ScreenShowing)
 	{
-	case SCREEN::START:
+	case Screen::START:
 	{
 		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE) ||
 			GAME_ENGINE->IsKeyboardKeyPressed('A') ||
@@ -91,10 +91,10 @@ void MainMenuState::Tick(double deltaTime)
 			GAME_ENGINE->IsKeyboardKeyPressed('Z') ||
 			GAME_ENGINE->IsKeyboardKeyPressed('X'))
 		{
-			EnterScreen(SCREEN::SAVE_SELECTION);
+			EnterScreen(Screen::SAVE_SELECTION);
 		}
 	} break;
-	case SCREEN::SAVE_SELECTION:
+	case Screen::SAVE_SELECTION:
 	{
 		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE) ||
 			GAME_ENGINE->IsKeyboardKeyPressed('Z') ||
@@ -102,19 +102,19 @@ void MainMenuState::Tick(double deltaTime)
 		{
 			if (m_CursorIndex == 3)
 			{
-				EnterScreen(SCREEN::ERASE_DATA);	
+				EnterScreen(Screen::ERASE_DATA);	
 			}
 			else
 			{
 				// TODO: Actually use the selected save state here
 
-				EnterScreen(SCREEN::PARTY_SIZE);
+				EnterScreen(Screen::PARTY_SIZE);
 			}
 
-			SoundManager::PlaySoundEffect(SoundManager::SOUND::COIN_COLLECT);
+			SoundManager::PlaySoundEffect(SoundManager::Sound::COIN_COLLECT);
 		}
 	} break;
-	case SCREEN::ERASE_DATA:
+	case Screen::ERASE_DATA:
 	{
 		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE) ||
 			GAME_ENGINE->IsKeyboardKeyPressed('Z') ||
@@ -122,7 +122,7 @@ void MainMenuState::Tick(double deltaTime)
 		{
 			if (m_CursorIndex == 3)
 			{
-				EnterScreen(SCREEN::START);
+				EnterScreen(Screen::START);
 				m_IntroFadeInTimer.Start();
 			}
 			else
@@ -130,27 +130,27 @@ void MainMenuState::Tick(double deltaTime)
 				// LATER: Actually erase the data here
 			}
 
-			SoundManager::PlaySoundEffect(SoundManager::SOUND::COIN_COLLECT);
+			SoundManager::PlaySoundEffect(SoundManager::Sound::COIN_COLLECT);
 		}
 		else if (GAME_ENGINE->IsKeyboardKeyPressed('A') ||
 			GAME_ENGINE->IsKeyboardKeyPressed('S'))
 		{
-			EnterScreen(SCREEN::SAVE_SELECTION);
+			EnterScreen(Screen::SAVE_SELECTION);
 		}
 	} break;
-	case SCREEN::PARTY_SIZE:
+	case Screen::PARTY_SIZE:
 	{
 		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE) ||
 			GAME_ENGINE->IsKeyboardKeyPressed('Z') ||
 			GAME_ENGINE->IsKeyboardKeyPressed('X'))
 		{
 			m_OutroFadeOutTimer.Start();
-			SoundManager::PlaySoundEffect(SoundManager::SOUND::COIN_COLLECT);
+			SoundManager::PlaySoundEffect(SoundManager::Sound::COIN_COLLECT);
 		}
 		else if (GAME_ENGINE->IsKeyboardKeyPressed('A') ||
 				 GAME_ENGINE->IsKeyboardKeyPressed('S'))
 		{	
-			EnterScreen(SCREEN::SAVE_SELECTION);
+			EnterScreen(Screen::SAVE_SELECTION);
 		}
 	} break;
 	default:
@@ -158,27 +158,27 @@ void MainMenuState::Tick(double deltaTime)
 	}
 }
 
-void MainMenuState::EnterScreen(SCREEN newScreen)
+void MainMenuState::EnterScreen(Screen newScreen)
 {
 	m_ScreenShowing = newScreen;
 	switch (newScreen)
 	{
-	case SCREEN::START:
+	case Screen::START:
 	{
 	} break;
-	case SCREEN::SAVE_SELECTION:
+	case Screen::SAVE_SELECTION:
 	{
 		m_CursorIndex = 0;
 		m_MaxCursorIndex = 3;
 		m_CursorAnimationTimer = 0;
 	} break;
-	case SCREEN::PARTY_SIZE:
+	case Screen::PARTY_SIZE:
 	{
 		m_CursorIndex = 0;
 		m_MaxCursorIndex = 1;
 		m_CursorAnimationTimer = 0;
 	} break;
-	case SCREEN::ERASE_DATA:
+	case Screen::ERASE_DATA:
 	{
 		m_CursorIndex = 0;
 		m_CursorAnimationTimer = 0;
@@ -227,10 +227,10 @@ void MainMenuState::Paint()
 
 	switch (m_ScreenShowing)
 	{
-	case SCREEN::START:
+	case Screen::START:
 	{
 	} break;
-	case SCREEN::SAVE_SELECTION:
+	case Screen::SAVE_SELECTION:
 	{
 		left = 80;
 		top = textStartY;
@@ -246,7 +246,7 @@ void MainMenuState::Paint()
 		top = textStartY + m_CursorIndex * lineHeight;
 		PaintCursor(left, top);
 	} break;
-	case SCREEN::ERASE_DATA:
+	case Screen::ERASE_DATA:
 	{
 		GAME_ENGINE->SetColor(COLOR(0, 0, 0, 120));
 		GAME_ENGINE->FillRect(0, 0, Game::WIDTH, Game::HEIGHT);
@@ -265,7 +265,7 @@ void MainMenuState::Paint()
 		top = textStartY + m_CursorIndex * lineHeight;
 		PaintCursor(left, top);
 	} break;
-	case SCREEN::PARTY_SIZE:
+	case Screen::PARTY_SIZE:
 	{
 		left = 85;
 		top = 128;

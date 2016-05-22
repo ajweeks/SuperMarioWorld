@@ -19,7 +19,7 @@ struct Direction
 	static const int DOWN = 1;
 };
 
-enum class COLOUR
+enum class Colour
 {
 	RED, GREEN, YELLOW, BLUE, ORANGE, PINK, GREY, NONE
 };

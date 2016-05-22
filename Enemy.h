@@ -7,12 +7,12 @@
 class Enemy : public Entity
 {
 public:
-	enum class TYPE
+	enum class Type
 	{
 		NONE, KOOPA_TROOPA, CHARGIN_CHUCK, PIRHANA_PLANT, MONTY_MOLE, // POKEY, BULLET_BILL, DRY_BONES, BOO
 	};
 
-	Enemy(TYPE type, DOUBLE2& posRef, double width, double height, BodyType bodyType,
+	Enemy(Type type, DOUBLE2& posRef, double width, double height, BodyType bodyType,
 		Level* levelPtr, void* userPointer = nullptr);
 	virtual ~Enemy();
 
@@ -25,13 +25,13 @@ public:
 	virtual int GetWidth() = 0;
 	virtual int GetHeight() = 0;
 
-	TYPE GetType();
+	Type GetType();
 
-	static std::string TYPEToString(TYPE type);
-	static TYPE StringToTYPE(std::string string);
+	static std::string TYPEToString(Type type);
+	static Type StringToTYPE(std::string string);
 
 protected:
-	TYPE m_Type;
+	Type m_Type;
 
 	int m_DirFacing;
 	int m_DirFacingLastFrame;

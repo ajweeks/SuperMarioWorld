@@ -7,8 +7,8 @@
 #include "SpriteSheet.h"
 #include "SoundManager.h"
 
-ExclamationMarkBlock::ExclamationMarkBlock(DOUBLE2 topLeft, COLOUR colour, bool isSolid, Level* levelPtr):
-	Block(topLeft, TYPE::EXCLAMATION_MARK_BLOCK, levelPtr), m_Colour(colour)
+ExclamationMarkBlock::ExclamationMarkBlock(DOUBLE2 topLeft, Colour colour, bool isSolid, Level* levelPtr):
+	Block(topLeft, Type::EXCLAMATION_MARK_BLOCK, levelPtr), m_Colour(colour)
 {
 	m_AnimInfo.frameNumber = 0;
 	SetSolid(isSolid);
@@ -77,7 +77,7 @@ void ExclamationMarkBlock::Hit()
 {
 	if (m_IsUsed == false)
 	{
-		SoundManager::PlaySoundEffect(SoundManager::SOUND::SUPER_MUSHROOM_SPAWN);
+		SoundManager::PlaySoundEffect(SoundManager::Sound::SUPER_MUSHROOM_SPAWN);
 
 		m_IsUsed = true;
 		m_CurrentFrameOfBumpAnimation = 2;
@@ -87,6 +87,6 @@ void ExclamationMarkBlock::Hit()
 	}
 	else
 	{
-		SoundManager::PlaySoundEffect(SoundManager::SOUND::BLOCK_HIT);
+		SoundManager::PlaySoundEffect(SoundManager::Sound::BLOCK_HIT);
 	}
 }

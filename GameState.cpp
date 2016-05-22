@@ -11,7 +11,7 @@
 #include "Pipe.h"
 
 GameState::GameState(StateManager* stateManagerPtr) :
-	BaseState(stateManagerPtr, STATE_TYPE::GAME)
+	BaseState(stateManagerPtr, StateType::GAME)
 {
 	GameSession::ReadSessionInfoFromFile();
 

@@ -5,7 +5,7 @@
 #include "SpriteSheet.h"
 
 CloudBlock::CloudBlock(DOUBLE2 topLeft, Level* levelPtr) :
-	Block(topLeft, Item::TYPE::CLOUD_BLOCK, levelPtr)
+	Block(topLeft, Item::Type::CLOUD_BLOCK, levelPtr)
 {
 }
 

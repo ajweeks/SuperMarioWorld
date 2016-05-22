@@ -11,7 +11,7 @@
 #include "SuperMushroom.h"
 
 PrizeBlock::PrizeBlock(DOUBLE2 topLeft, Level* levelPtr, std::string spawnTypeStr) :
-	Block(topLeft, TYPE::PRIZE_BLOCK, levelPtr),
+	Block(topLeft, Type::PRIZE_BLOCK, levelPtr),
 	m_SpawnTypeStr(spawnTypeStr)
 {
 	m_AnimInfo.secondsPerFrame = 0.09;
@@ -88,7 +88,7 @@ void PrizeBlock::Paint()
 
 void PrizeBlock::Hit()
 {
-	SoundManager::PlaySoundEffect(SoundManager::SOUND::BLOCK_HIT);
+	SoundManager::PlaySoundEffect(SoundManager::Sound::BLOCK_HIT);
 
 	if (m_IsUsed == false)
 	{

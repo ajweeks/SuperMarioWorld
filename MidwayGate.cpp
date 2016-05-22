@@ -7,7 +7,7 @@
 #include "SoundManager.h"
 
 MidwayGate::MidwayGate(DOUBLE2 topLeft, Level* levelPtr, int barHeight) :
-	Gate(topLeft + DOUBLE2(5, TILES_HIGH * TILE_SIZE - barHeight), levelPtr, TYPE::MIDWAY_GATE, BAR_LENGTH, BAR_DIAMETER)
+	Gate(topLeft + DOUBLE2(5, TILES_HIGH * TILE_SIZE - barHeight), levelPtr, Type::MIDWAY_GATE, BAR_LENGTH, BAR_DIAMETER)
 {
 	m_AnimInfo.secondsPerFrame = 0.14;
 
@@ -69,7 +69,7 @@ void MidwayGate::Hit()
 {
 	m_IsHit = true;
 
-	SoundManager::PlaySoundEffect(SoundManager::SOUND::MIDWAY_GATE_PASSTHROUGH);
+	SoundManager::PlaySoundEffect(SoundManager::Sound::MIDWAY_GATE_PASSTHROUGH);
 }
 
 bool MidwayGate::IsHit()

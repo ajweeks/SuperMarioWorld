@@ -8,7 +8,7 @@
 #include "EnemyDeathCloudParticle.h"
 
 GrabBlock::GrabBlock(DOUBLE2 topLeft, Level* levelPtr) :
-	Block(topLeft, TYPE::GRAB_BLOCK, levelPtr, BodyType::KINEMATIC)
+	Block(topLeft, Type::GRAB_BLOCK, levelPtr, BodyType::KINEMATIC)
 {
 	m_AnimInfo.secondsPerFrame = 0.03;
 	m_LifeRemainingTimer = CountdownTimer(180);

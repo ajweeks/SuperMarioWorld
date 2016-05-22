@@ -6,7 +6,7 @@
 class KoopaShell : public Item
 {
 public:	
-	KoopaShell(DOUBLE2 topLeft, Level* levelPtr, COLOUR colour, bool upsideDown = false);
+	KoopaShell(DOUBLE2 topLeft, Level* levelPtr, Colour colour, bool upsideDown = false);
 	virtual ~KoopaShell();
 
 	KoopaShell(const KoopaShell&) = delete;
@@ -28,7 +28,7 @@ public:
 	void SetMoving(bool moving);
 	bool IsBouncing();
 
-	COLOUR GetColour();
+	Colour GetColour();
 
 	static const int WIDTH = 14;
 	static const int HEIGHT = 14;
@@ -41,7 +41,7 @@ private:
 	static const double SHELL_HIT_VEL;
 	static const double HORIZONTAL_SHELL_SHELL_HIT_VEL;
 
-	COLOUR m_Colour;
+	Colour m_Colour;
 	// NOTE: Moving is true when this shell is sliding on the ground, and animating
 	bool m_IsMoving = false;
 	int m_DirMoving;

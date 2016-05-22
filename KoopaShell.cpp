@@ -15,8 +15,8 @@ const double KoopaShell::VERTICAL_KICK_VEL = -30520.0;
 const double KoopaShell::SHELL_HIT_VEL = -180.0;
 const double KoopaShell::HORIZONTAL_SHELL_SHELL_HIT_VEL = 40.0;
 
-KoopaShell::KoopaShell(DOUBLE2 topLeft, Level* levelPtr, COLOUR colour, bool upsideDown)  :
-	Item(topLeft, TYPE::KOOPA_SHELL, levelPtr, Level::SHELL, BodyType::DYNAMIC, WIDTH, HEIGHT),
+KoopaShell::KoopaShell(DOUBLE2 topLeft, Level* levelPtr, Colour colour, bool upsideDown)  :
+	Item(topLeft, Type::KOOPA_SHELL, levelPtr, Level::SHELL, BodyType::DYNAMIC, WIDTH, HEIGHT),
 	m_Colour(colour)
 {
 	b2Filter collisionFilter = m_ActPtr->GetCollisionFilter();
@@ -88,7 +88,7 @@ void KoopaShell::Tick(double deltaTime)
 void KoopaShell::Paint()
 {
 	int srcCol = 0;
-	if (m_Colour == COLOUR::RED) srcCol = 1;
+	if (m_Colour == Colour::RED) srcCol = 1;
 
 	int srcRow = 0 + m_AnimInfo.frameNumber;
 
@@ -113,7 +113,7 @@ void KoopaShell::Paint()
 
 void KoopaShell::KickHorizontally(int facingDir, bool wasThrown)
 {
-	SoundManager::PlaySoundEffect(SoundManager::SOUND::SHELL_KICK);
+	SoundManager::PlaySoundEffect(SoundManager::Sound::SHELL_KICK);
 
 	m_IsMoving = true;
 	m_DirMoving = facingDir;
@@ -127,7 +127,7 @@ void KoopaShell::KickHorizontally(int facingDir, bool wasThrown)
 
 void KoopaShell::KickVertically(double deltaTime, double horizontalVel)
 {
-	SoundManager::PlaySoundEffect(SoundManager::SOUND::SHELL_KICK);
+	SoundManager::PlaySoundEffect(SoundManager::Sound::SHELL_KICK);
 
 	SplatParticle* splatParticlePtr = new SplatParticle(m_ActPtr->GetPosition() + DOUBLE2(m_DirMoving * -3, 0));
 	m_LevelPtr->AddParticle(splatParticlePtr);
@@ -157,7 +157,7 @@ void KoopaShell::Stomp()
 
 	m_LevelPtr->GetPlayer()->AddScore(200, m_ActPtr->GetPosition());
 
-	SoundManager::PlaySoundEffect(SoundManager::SOUND::ENEMY_HEAD_STOMP_START);
+	SoundManager::PlaySoundEffect(SoundManager::Sound::ENEMY_HEAD_STOMP_START);
 	m_LevelPtr->GetPlayer()->ResetNumberOfFramesUntilEndStompSound();
 
 	m_ShouldBeRemoved = true;
@@ -184,7 +184,7 @@ void KoopaShell::SetMoving(bool moving)
 }
 
 
-COLOUR KoopaShell::GetColour()
+Colour KoopaShell::GetColour()
 {
 	return m_Colour;
 }

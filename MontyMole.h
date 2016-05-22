@@ -18,11 +18,11 @@ struct INT2;
 class MontyMole : public Enemy
 {
 public:
-	enum class ANIMATION_STATE
+	enum class AnimationState
 	{
 		INVISIBLE, IN_GROUND, JUMPING_OUT_OF_GROUND, WALKING, DEAD
 	};
-	enum class SPAWN_LOCATION_TYPE
+	enum class SpawnLocationType
 	{
 		GROUND, WALL, NONE
 	};
@@ -37,12 +37,12 @@ public:
 	    - When these moles spawn they also first go in the direction that the player is, but once 
 		  they walk past the player, they turn around and walk back, just to turn around soon after.
 	*/
-	enum class AI_TYPE
+	enum class AIType
 	{
 		DUMB, SMART, NONE
 	};
 
-	MontyMole(DOUBLE2& startingPos, Level* levelPtr, SPAWN_LOCATION_TYPE spawnLocationType, AI_TYPE aiType);
+	MontyMole(DOUBLE2& startingPos, Level* levelPtr, SpawnLocationType spawnLocationType, AIType aiType);
 	virtual ~MontyMole();
 
 	MontyMole(const MontyMole&) = delete;
@@ -63,8 +63,8 @@ public:
 	void SetPaused(bool paused);
 	bool Raycast(DOUBLE2 point1, DOUBLE2 point2, DOUBLE2 &intersectionRef, DOUBLE2 &normalRef, double &fractionRef);
 
-	static AI_TYPE StringToAIType(std::string aiTypeString);
-	static SPAWN_LOCATION_TYPE StringToSpawnLocationType(std::string spawnLocationTypeString);
+	static AIType StringToAIType(std::string aiTypeString);
+	static SpawnLocationType StringToSpawnLocationType(std::string spawnLocationTypeString);
 
 private:
 	void UpdatePosition(double deltaTime);
@@ -84,7 +84,7 @@ private:
 
 	DOUBLE2 m_SpawingPosition;
 
-	ANIMATION_STATE m_AnimationState;
+	AnimationState m_AnimationState;
 
 	CountdownTimer m_SpawnDustCloudTimer;
 	CountdownTimer m_FramesSpentWrigglingInDirtTimer;
@@ -99,6 +99,6 @@ private:
 	bool m_HaveSpawnedMole = false; // This is set to true once we've spawned a mole
 	bool m_ShouldRemoveActor;
 
-	SPAWN_LOCATION_TYPE m_SpawnLocationType;
-	AI_TYPE m_AiType;
+	SpawnLocationType m_SpawnLocationType;
+	AIType m_AiType;
 };

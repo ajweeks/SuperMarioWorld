@@ -12,7 +12,7 @@ const double PiranhaPlant::VERTICAL_VEL_FAST = 105;
 const double PiranhaPlant::VERTICAL_VEL_SLOW = 30;
 
 PiranhaPlant::PiranhaPlant(DOUBLE2 topLeft, Level* levelPtr) :
-	Enemy(TYPE::PIRHANA_PLANT, topLeft, WIDTH, HEIGHT, BodyType::DYNAMIC, levelPtr, this),
+	Enemy(Type::PIRHANA_PLANT, topLeft, WIDTH, HEIGHT, BodyType::DYNAMIC, levelPtr, this),
 	m_StartingPostion(topLeft)
 {
 	m_VerticalVel = VERTICAL_VEL_FAST;

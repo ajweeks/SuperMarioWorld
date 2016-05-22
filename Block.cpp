@@ -3,7 +3,7 @@
 #include "Block.h"
 #include "Level.h"
 
-Block::Block(DOUBLE2 topLeft, TYPE type, Level* levelPtr, BodyType bodyType) :
+Block::Block(DOUBLE2 topLeft, Type type, Level* levelPtr, BodyType bodyType) :
 	Item(topLeft, type, levelPtr, Level::BLOCK, bodyType, WIDTH, HEIGHT)
 {
 	b2Filter collisionFilter = m_ActPtr->GetCollisionFilter();

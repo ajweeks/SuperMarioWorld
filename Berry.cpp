@@ -5,8 +5,8 @@
 #include "SpriteSheet.h"
 #include "Level.h"
 
-Berry::Berry(DOUBLE2& positionRef, Level* levelPtr, COLOUR colour) :
-	Item(positionRef, TYPE::BERRY, levelPtr, Level::BERRY),
+Berry::Berry(DOUBLE2& positionRef, Level* levelPtr, Colour colour) :
+	Item(positionRef, Type::BERRY, levelPtr, Level::BERRY),
 	m_Colour(colour)
 {
 	b2Filter collisionFilter = m_ActPtr->GetCollisionFilter();
@@ -28,7 +28,7 @@ void Berry::Tick(double deltaTime)
 
 void Berry::Paint()
 {
-	assert (m_Colour != COLOUR::NONE);
+	assert (m_Colour != Colour::NONE);
 
 	double left = m_ActPtr->GetPosition().x;
 	if (m_AnimInfo.frameNumber == 0) left -= 1;
@@ -42,7 +42,7 @@ void Berry::Paint()
 	}
 
 	int srcRow = 22;
-	if (m_Colour == COLOUR::PINK) srcRow += 1;
-	else if (m_Colour == COLOUR::GREEN) srcRow += 2;
+	if (m_Colour == Colour::PINK) srcRow += 1;
+	else if (m_Colour == Colour::GREEN) srcRow += 2;
 	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);
 }

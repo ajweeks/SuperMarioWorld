@@ -8,7 +8,7 @@
 
 // NOTE: Dragon coins always haev infinite life, therefore -1 as life param
 DragonCoin::DragonCoin(DOUBLE2 centerPos, Level* levelPtr) :
-	Coin(centerPos, levelPtr, -1, TYPE::DRAGON_COIN, DOUBLE2(WIDTH, HEIGHT))
+	Coin(centerPos, levelPtr, -1, Type::DRAGON_COIN, DOUBLE2(WIDTH, HEIGHT))
 {
 }
 

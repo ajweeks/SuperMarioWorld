@@ -8,7 +8,7 @@
 
 Beanstalk::Beanstalk(DOUBLE2 bottomLeft, Level* levelPtr, int height) : 
 	Item(bottomLeft + DOUBLE2(TILE_SIZE/2 - VINE_WIDTH/2, -height * TILE_SIZE), 
-		Item::TYPE::BEANSTALK, levelPtr, Level::BEANSTALK, BodyType::STATIC, VINE_WIDTH, height * TILE_SIZE),
+		Item::Type::BEANSTALK, levelPtr, Level::BEANSTALK, BodyType::STATIC, VINE_WIDTH, height * TILE_SIZE),
 	FINAL_HEIGHT(height * TILE_SIZE)
 {
 	m_CurrentHeight = 0;

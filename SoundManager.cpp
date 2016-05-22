@@ -23,71 +23,71 @@ void SoundManager::InitialzeSoundsAndSongs()
 {
 	// TODO: Only repeat middle section of song, not intro
 	// SONGS
-	LoadSong(SONG::OVERWORLD_BGM, m_ResourcePath + String("music/overworld-bgm.wav"));
-	LoadSong(SONG::OVERWORLD_BGM_FAST, m_ResourcePath + String("music/overworld-bgm-fast.wav"));
-	LoadSong(SONG::UNDERGROUND_BGM, m_ResourcePath + String("music/underground-bgm.wav"));
-	LoadSong(SONG::UNDERGROUND_BGM_FAST, m_ResourcePath + String("music/underground-bgm-fast.wav"));
-	LoadSong(SONG::MENU_SCREEN_BGM, m_ResourcePath + String("music/menu-screen-bgm.wav"));
-	LoadSong(SONG::MAP1_YOSHIS_ISLAND, m_ResourcePath + String("music/map-1-yoshis-island.wav"));
+	LoadSong(Song::OVERWORLD_BGM, m_ResourcePath + String("music/overworld-bgm.wav"));
+	LoadSong(Song::OVERWORLD_BGM_FAST, m_ResourcePath + String("music/overworld-bgm-fast.wav"));
+	LoadSong(Song::UNDERGROUND_BGM, m_ResourcePath + String("music/underground-bgm.wav"));
+	LoadSong(Song::UNDERGROUND_BGM_FAST, m_ResourcePath + String("music/underground-bgm-fast.wav"));
+	LoadSong(Song::MENU_SCREEN_BGM, m_ResourcePath + String("music/menu-screen-bgm.wav"));
+	LoadSong(Song::MAP1_YOSHIS_ISLAND, m_ResourcePath + String("music/map-1-yoshis-island.wav"));
 
 	// SOUNDS
-	LoadSound(SOUND::GAME_PAUSE, m_ResourcePath + String("game-pause.wav"));
-	LoadSound(SOUND::TIME_WARNING, m_ResourcePath + String("time-warning.wav"));
-	LoadSound(SOUND::PSWITCH_ACTIVATE, m_ResourcePath + String("pswitch-activate.wav"));
-	LoadSound(SOUND::PSWITCH_TIME_WARNING, m_ResourcePath + String("pswitch-time-warning.wav"));
+	LoadSound(Sound::GAME_PAUSE, m_ResourcePath + String("game-pause.wav"));
+	LoadSound(Sound::TIME_WARNING, m_ResourcePath + String("time-warning.wav"));
+	LoadSound(Sound::PSWITCH_ACTIVATE, m_ResourcePath + String("pswitch-activate.wav"));
+	LoadSound(Sound::PSWITCH_TIME_WARNING, m_ResourcePath + String("pswitch-time-warning.wav"));
 
-	LoadSound(SOUND::PLAYER_JUMP, m_ResourcePath + String("player-jump.wav"));
-	LoadSound(SOUND::PLAYER_SPIN_JUMP, m_ResourcePath + String("player-spin-jump.wav"));
-	LoadSound(SOUND::PLAYER_SUPER_MUSHROOM_COLLECT, m_ResourcePath + String("player-super-mushroom-collect.wav"));
-	LoadSound(SOUND::PLAYER_DEATH, m_ResourcePath + String("player-death.wav"));
-	LoadSound(SOUND::PLAYER_DAMAGE, m_ResourcePath + String("player-damage+pipe-enter.wav"));
+	LoadSound(Sound::PLAYER_JUMP, m_ResourcePath + String("player-jump.wav"));
+	LoadSound(Sound::PLAYER_SPIN_JUMP, m_ResourcePath + String("player-spin-jump.wav"));
+	LoadSound(Sound::PLAYER_SUPER_MUSHROOM_COLLECT, m_ResourcePath + String("player-super-mushroom-collect.wav"));
+	LoadSound(Sound::PLAYER_DEATH, m_ResourcePath + String("player-death.wav"));
+	LoadSound(Sound::PLAYER_DAMAGE, m_ResourcePath + String("player-damage+pipe-enter.wav"));
 
-	LoadSound(SOUND::COIN_COLLECT, m_ResourcePath + String("coin-collect.wav"));
-	LoadSound(SOUND::DRAGON_COIN_COLLECT, m_ResourcePath + String("dragon-coin-collect.wav"));
-	LoadSound(SOUND::BLOCK_HIT, m_ResourcePath + String("block-hit.wav"));
-	LoadSound(SOUND::BLOCK_BREAK, m_ResourcePath + String("block-break.wav"));
+	LoadSound(Sound::COIN_COLLECT, m_ResourcePath + String("coin-collect.wav"));
+	LoadSound(Sound::DRAGON_COIN_COLLECT, m_ResourcePath + String("dragon-coin-collect.wav"));
+	LoadSound(Sound::BLOCK_HIT, m_ResourcePath + String("block-hit.wav"));
+	LoadSound(Sound::BLOCK_BREAK, m_ResourcePath + String("block-break.wav"));
 
-	LoadSound(SOUND::FIRE_BALL_THROW, m_ResourcePath + String("fire-ball-throw.wav"));
-	LoadSound(SOUND::CHARGIN_CHUCK_HEAD_BONK, m_ResourcePath + String("chargin-chuck-head-bonk.wav"));
-	LoadSound(SOUND::BEANSTALK_SPAWN, m_ResourcePath + String("beanstalk-spawn.wav"));
-	LoadSound(SOUND::SUPER_MUSHROOM_SPAWN, m_ResourcePath + String("super-mushroom-spawn.wav"));
-	LoadSound(SOUND::MESSAGE_BLOCK_HIT, m_ResourcePath + String("message-block-hit.wav"));
-	LoadSound(SOUND::SHELL_KICK, m_ResourcePath + String("shell-kick.wav"));
+	LoadSound(Sound::FIRE_BALL_THROW, m_ResourcePath + String("fire-ball-throw.wav"));
+	LoadSound(Sound::CHARGIN_CHUCK_HEAD_BONK, m_ResourcePath + String("chargin-chuck-head-bonk.wav"));
+	LoadSound(Sound::BEANSTALK_SPAWN, m_ResourcePath + String("beanstalk-spawn.wav"));
+	LoadSound(Sound::SUPER_MUSHROOM_SPAWN, m_ResourcePath + String("super-mushroom-spawn.wav"));
+	LoadSound(Sound::MESSAGE_BLOCK_HIT, m_ResourcePath + String("message-block-hit.wav"));
+	LoadSound(Sound::SHELL_KICK, m_ResourcePath + String("shell-kick.wav"));
 
 	// TODO: Add pitch variation to this sound based on how many enemies a shell has hit in a row
-	LoadSound(SOUND::ENEMY_HEAD_STOMP_START, m_ResourcePath + String("enemy-head-stomp-start.wav"));
-	LoadSound(SOUND::ENEMY_HEAD_STOMP_END, m_ResourcePath + String("enemy-head-stomp-end.wav"));
+	LoadSound(Sound::ENEMY_HEAD_STOMP_START, m_ResourcePath + String("enemy-head-stomp-start.wav"));
+	LoadSound(Sound::ENEMY_HEAD_STOMP_END, m_ResourcePath + String("enemy-head-stomp-end.wav"));
 
-	LoadSound(SOUND::MIDWAY_GATE_PASSTHROUGH, m_ResourcePath + String("midway-gate-passthrough.wav"));
-	LoadSound(SOUND::COURSE_CLEAR_FANFARE, m_ResourcePath + String("course-clear-fanfare.wav"));
-	LoadSound(SOUND::DRUMROLL, m_ResourcePath + String("outro-drumroll.wav"));
-	LoadSound(SOUND::OUTRO_CIRCLE_TRANSITION, m_ResourcePath + String("outro-circle-transition.wav"));
-	LoadSound(SOUND::MAP_NEW_LOCATION_STOMP, m_ResourcePath + String("map-new-location-stomp.wav"));
+	LoadSound(Sound::MIDWAY_GATE_PASSTHROUGH, m_ResourcePath + String("midway-gate-passthrough.wav"));
+	LoadSound(Sound::COURSE_CLEAR_FANFARE, m_ResourcePath + String("course-clear-fanfare.wav"));
+	LoadSound(Sound::DRUMROLL, m_ResourcePath + String("outro-drumroll.wav"));
+	LoadSound(Sound::OUTRO_CIRCLE_TRANSITION, m_ResourcePath + String("outro-circle-transition.wav"));
+	LoadSound(Sound::MAP_NEW_LOCATION_STOMP, m_ResourcePath + String("map-new-location-stomp.wav"));
 
-	LoadSound(SOUND::YOSHI_SPAWN, m_ResourcePath + String("yoshi-spawn.wav"));
-	LoadSound(SOUND::YOSHI_EGG_BREAK, m_ResourcePath + String("yoshi-egg-break.wav"));
-	LoadSound(SOUND::YOSHI_FIRE_SPIT, m_ResourcePath + String("yoshi-fire-spit.wav"));
-	LoadSound(SOUND::YOSHI_SPIT, m_ResourcePath + String("yoshi-spit.wav"));
-	LoadSound(SOUND::YOSHI_PLAYER_MOUNT, m_ResourcePath + String("yoshi-player-mount.wav"));
-	LoadSound(SOUND::YOSHI_RUN_AWAY, m_ResourcePath + String("yoshi-run-away.wav"));
-	LoadSound(SOUND::YOSHI_SWALLOW, m_ResourcePath + String("yoshi-swallow.wav"));
-	LoadSound(SOUND::YOSHI_TOUNGE_OUT, m_ResourcePath + String("yoshi-tounge-out.wav"));
+	LoadSound(Sound::YOSHI_SPAWN, m_ResourcePath + String("yoshi-spawn.wav"));
+	LoadSound(Sound::YOSHI_EGG_BREAK, m_ResourcePath + String("yoshi-egg-break.wav"));
+	LoadSound(Sound::YOSHI_FIRE_SPIT, m_ResourcePath + String("yoshi-fire-spit.wav"));
+	LoadSound(Sound::YOSHI_SPIT, m_ResourcePath + String("yoshi-spit.wav"));
+	LoadSound(Sound::YOSHI_PLAYER_MOUNT, m_ResourcePath + String("yoshi-player-mount.wav"));
+	LoadSound(Sound::YOSHI_RUN_AWAY, m_ResourcePath + String("yoshi-run-away.wav"));
+	LoadSound(Sound::YOSHI_SWALLOW, m_ResourcePath + String("yoshi-swallow.wav"));
+	LoadSound(Sound::YOSHI_TOUNGE_OUT, m_ResourcePath + String("yoshi-tounge-out.wav"));
 
 	m_IsInitialized = true;
 }
 
-void SoundManager::LoadSong(SONG song, String filePath)
+void SoundManager::LoadSong(Song song, String filePath)
 {
-	assert(int(song) >= 0 && int(song) < int(SONG::_LAST_ELEMENT));
+	assert(int(song) >= 0 && int(song) < int(Song::_LAST_ELEMENT));
 	assert(m_SongsPtrArr[int(song)] == nullptr);
 
 	m_SongsPtrArr[int(song)] = new FmodSound();
 	m_SongsPtrArr[int(song)]->CreateStream(filePath, true);
 }
 
-void SoundManager::LoadSound(SOUND sound, String filePath)
+void SoundManager::LoadSound(Sound sound, String filePath)
 {
-	assert(int(sound) >= 0 && int(sound) < int(SOUND::_LAST_ELEMENT));
+	assert(int(sound) >= 0 && int(sound) < int(Sound::_LAST_ELEMENT));
 	assert(m_SoundsPtrArr[int(sound)] == nullptr);
 
 	m_SoundsPtrArr[int(sound)] = new FmodSound();
@@ -96,7 +96,7 @@ void SoundManager::LoadSound(SOUND sound, String filePath)
 
 void SoundManager::RestartSongs()
 {
-	for (int i = 0; i < int(SONG::_LAST_ELEMENT); ++i)
+	for (int i = 0; i < int(Song::_LAST_ELEMENT); ++i)
 	{
 		if (m_SongsPtrArr[i]->IsPlaying())
 		{
@@ -109,17 +109,17 @@ void SoundManager::RestartSongs()
 void SoundManager::UnloadSoundsAndSongs()
 {
 	// TODO: Find out if we should be stopping the sounds before we delete them
-	for (int i = 0; i < int(SONG::_LAST_ELEMENT); ++i)
+	for (int i = 0; i < int(Song::_LAST_ELEMENT); ++i)
 	{
 		delete m_SongsPtrArr[i];
 	}
-	for (int i = 0; i < int(SOUND::_LAST_ELEMENT); ++i)
+	for (int i = 0; i < int(Sound::_LAST_ELEMENT); ++i)
 	{
 		delete m_SoundsPtrArr[i];
 	}
 }
 
-void SoundManager::PlaySoundEffect(SOUND sound)
+void SoundManager::PlaySoundEffect(Sound sound)
 {
 	if (m_Muted) return;
 
@@ -128,24 +128,24 @@ void SoundManager::PlaySoundEffect(SOUND sound)
 
 void SoundManager::SetAllSongsPaused(bool paused)
 {
-	for (size_t i = 0; i < int(SONG::_LAST_ELEMENT); ++i)
+	for (size_t i = 0; i < int(Song::_LAST_ELEMENT); ++i)
 	{
-		SetSongPaused(SONG(i), paused);
+		SetSongPaused(Song(i), paused);
 	}
 }
 
-void SoundManager::SetSoundPaused(SOUND sound, bool paused)
+void SoundManager::SetSoundPaused(Sound sound, bool paused)
 {
 	m_SoundsPtrArr[int(sound)]->SetPaused(paused);
 }
 
-void SoundManager::PlaySong(SONG song)
+void SoundManager::PlaySong(Song song)
 {
 	m_SongsPtrArr[int(song)]->Play();
 	m_SongsPtrArr[int(song)]->SetVolume(m_GlobalVolumeLevel);
 }
 
-void SoundManager::SetSongPaused(SONG song, bool paused)
+void SoundManager::SetSongPaused(Song song, bool paused)
 {
 	m_SongsPtrArr[int(song)]->SetPaused(paused);
 }
@@ -158,11 +158,11 @@ void SoundManager::SetVolume(double volume)
 		m_Muted = false;
 	}
 
-	for (int i = 0; i < int(SONG::_LAST_ELEMENT) - 1; ++i)
+	for (int i = 0; i < int(Song::_LAST_ELEMENT) - 1; ++i)
 	{
 		m_SongsPtrArr[i]->SetVolume(m_GlobalVolumeLevel);
 	}
-	for (int i = 0; i < int(SOUND::_LAST_ELEMENT) - 1; ++i)
+	for (int i = 0; i < int(Sound::_LAST_ELEMENT) - 1; ++i)
 	{
 		m_SoundsPtrArr[i]->SetVolume(m_GlobalVolumeLevel);
 	}

@@ -20,8 +20,8 @@ void LevelInfo::Initialize()
 	levelInfoArr[index].m_NumberOfBackgroundAnimationFrames = -1;
 	levelInfoArr[index].m_IsUnderground = false;
 	levelInfoArr[index].m_BmpForegroundPtr = SpriteSheetManager::levelForegroundPtrArr[index];
-	levelInfoArr[index].m_BackgroundMusic = SoundManager::SONG::OVERWORLD_BGM;
-	levelInfoArr[index].m_BackgroundMusicFast = SoundManager::SONG::OVERWORLD_BGM_FAST;
+	levelInfoArr[index].m_BackgroundMusic = SoundManager::Song::OVERWORLD_BGM;
+	levelInfoArr[index].m_BackgroundMusicFast = SoundManager::Song::OVERWORLD_BGM_FAST;
 	levelInfoArr[index].m_Width = SpriteSheetManager::levelForegroundPtrArr[index]->GetWidth();
 	levelInfoArr[index].m_Height = SpriteSheetManager::levelForegroundPtrArr[index]->GetHeight();
 
@@ -35,8 +35,8 @@ void LevelInfo::Initialize()
 	levelInfoArr[index].m_NumberOfBackgroundAnimationFrames = 3;
 	levelInfoArr[index].m_IsUnderground = true;
 	levelInfoArr[index].m_BmpForegroundPtr = SpriteSheetManager::levelForegroundPtrArr[index];
-	levelInfoArr[index].m_BackgroundMusic = SoundManager::SONG::UNDERGROUND_BGM;
-	levelInfoArr[index].m_BackgroundMusicFast = SoundManager::SONG::UNDERGROUND_BGM_FAST;
+	levelInfoArr[index].m_BackgroundMusic = SoundManager::Song::UNDERGROUND_BGM;
+	levelInfoArr[index].m_BackgroundMusicFast = SoundManager::Song::UNDERGROUND_BGM_FAST;
 	levelInfoArr[index].m_Width = SpriteSheetManager::levelForegroundPtrArr[index]->GetWidth();
 	levelInfoArr[index].m_Height = SpriteSheetManager::levelForegroundPtrArr[index]->GetHeight();
 }

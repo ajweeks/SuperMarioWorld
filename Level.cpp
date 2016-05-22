@@ -175,12 +175,12 @@ void Level::Tick(double deltaTime)
 			GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE))
 	{
 		TogglePaused(true);
-		SoundManager::PlaySoundEffect(SoundManager::SOUND::GAME_PAUSE);
+		SoundManager::PlaySoundEffect(SoundManager::Sound::GAME_PAUSE);
 	}
 	if (m_Paused && 
 		(m_PlayerPtr->IsDead() || 
 		 m_PlayerPtr->IsTransitioningPowerups() || 
-		 m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::IN_PIPE))
+		 m_PlayerPtr->GetAnimationState() == Player::AnimationState::IN_PIPE))
 	{
 		// NOTE: The player needs to still be ticked so they can animate
 		m_CameraPtr->CalculateViewMatrix(m_PlayerPtr->GetPosition(), m_PlayerPtr->GetDirectionFacing(), this, deltaTime);
@@ -209,7 +209,7 @@ void Level::Tick(double deltaTime)
 		}
 	}
 
-	if (m_PlayerPtr->GetExtraItemType() != Item::TYPE::NONE &&
+	if (m_PlayerPtr->GetExtraItemType() != Item::Type::NONE &&
 		m_Paused && GAME_ENGINE->IsKeyboardKeyPressed(VK_RETURN))
 	{
 		DOUBLE2 cameraOffset = GetCameraOffset(deltaTime);
@@ -231,7 +231,7 @@ void Level::Tick(double deltaTime)
 			m_CoinsToBlocksTimer.OriginalNumberOfFrames() - m_CoinsToBlocksTimer.FramesElapsed() <= MESSAGE_BLOCK_WARNING_TIME)
 		{
 			m_PSwitchTimeWarningPlayed = true;
-			SoundManager::PlaySoundEffect(SoundManager::SOUND::PSWITCH_TIME_WARNING);
+			SoundManager::PlaySoundEffect(SoundManager::Sound::PSWITCH_TIME_WARNING);
 		}
 
 		if (m_CoinsToBlocksTimer.IsComplete())
@@ -288,7 +288,7 @@ void Level::Paint()
 		GAME_ENGINE->DrawBitmap(m_BmpBackgroundPtr, DOUBLE2(xo + bgWidth, -32), bgSrcRect);
 	}
 	m_LevelDataPtr->PaintEnemiesInBackground();
-	if (m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::IN_PIPE)
+	if (m_PlayerPtr->GetAnimationState() == Player::AnimationState::IN_PIPE)
 	{
 		m_PlayerPtr->Paint();
 	}
@@ -300,7 +300,7 @@ void Level::Paint()
 	{
 		m_YoshiPtr->Paint();
 	}
-	if (m_PlayerPtr->GetAnimationState() != Player::ANIMATION_STATE::IN_PIPE)
+	if (m_PlayerPtr->GetAnimationState() != Player::AnimationState::IN_PIPE)
 	{
 		m_PlayerPtr->Paint();
 	}
@@ -330,7 +330,7 @@ void Level::Paint()
 		{
 			if (m_FramesShowingEndScreen == drumrollStart)
 			{
-				SoundManager::PlaySoundEffect(SoundManager::SOUND::DRUMROLL);
+				SoundManager::PlaySoundEffect(SoundManager::Sound::DRUMROLL);
 			}
 
 			GAME_ENGINE->SetColor(COLOR(0, 0, 0));
@@ -410,7 +410,7 @@ void Level::Paint()
 		{
 			if (m_FramesShowingEndScreen == backToClearTransition)
 			{
-				SoundManager::PlaySoundEffect(SoundManager::SOUND::OUTRO_CIRCLE_TRANSITION);
+				SoundManager::PlaySoundEffect(SoundManager::Sound::OUTRO_CIRCLE_TRANSITION);
 			}
 			else if (m_FramesShowingEndScreen < resetGameTransition)
 			{
@@ -501,7 +501,7 @@ void Level::PaintHUD()
 	int playerStars = m_PlayerPtr->GetStarsCollected();
 	int playerCoins = m_PlayerPtr->GetCoinsCollected();
 	int playerScore = m_PlayerPtr->GetScore();
-	Item::TYPE playerExtraItemType = m_PlayerPtr->GetExtraItemType();
+	Item::Type playerExtraItemType = m_PlayerPtr->GetExtraItemType();
 
 	// NOTE: 1 second in game is 2/3 of a real life second!
 	m_TimeRemaining = m_TotalTime - (int(m_SecondsElapsed * 1.5)); 
@@ -673,14 +673,14 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool& 
 			Item* itemPtr = (Item*)actThisPtr->GetUserPointer();
 			switch (itemPtr->GetType())
 			{
-			case Item::TYPE::PRIZE_BLOCK:
-			case Item::TYPE::MESSAGE_BLOCK:
-			case Item::TYPE::EXCLAMATION_MARK_BLOCK:
-			case Item::TYPE::CLOUD_BLOCK:
+			case Item::Type::PRIZE_BLOCK:
+			case Item::Type::MESSAGE_BLOCK:
+			case Item::Type::EXCLAMATION_MARK_BLOCK:
+			case Item::Type::CLOUD_BLOCK:
 			{
 				CollidePlayerWithBlock(itemPtr->GetPosition(), playerFeet, enableContactRef);
 			} break;
-			case Item::TYPE::ROTATING_BLOCK:
+			case Item::Type::ROTATING_BLOCK:
 			{
 				if (((RotatingBlock*)itemPtr)->IsRotating())
 				{
@@ -692,11 +692,11 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool& 
 					CollidePlayerWithBlock(itemPtr->GetPosition(), playerFeet, enableContactRef);
 				}
 			} break;
-			case Item::TYPE::KOOPA_SHELL:
+			case Item::Type::KOOPA_SHELL:
 			{
 				enableContactRef = false;
 			} break;
-			case Item::TYPE::COIN:
+			case Item::Type::COIN:
 			{
 				if (((Coin*)itemPtr)->IsBlock())
 				{
@@ -725,10 +725,10 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool& 
 		Enemy* enemyPtr = (Enemy*)actOtherPtr->GetUserPointer();
 
 		// Fixes chargin chuck's jumping:
-		if (enemyPtr->GetType() == Enemy::TYPE::CHARGIN_CHUCK)
+		if (enemyPtr->GetType() == Enemy::Type::CHARGIN_CHUCK)
 		{
 			CharginChuck* charginChuckPtr = (CharginChuck*)enemyPtr;
-			if (charginChuckPtr->GetAnimationState() == CharginChuck::ANIMATION_STATE::JUMPING)
+			if (charginChuckPtr->GetAnimationState() == CharginChuck::AnimationState::JUMPING)
 			{
 				enableContactRef = false;
 			}
@@ -748,8 +748,8 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool& 
 		case int(ActorId::ENEMY):
 		{
 			Enemy* thisEnemyPtr = (Enemy*)actThisPtr->GetUserPointer();
-			if (enemyPtr->GetType() == Enemy::TYPE::MONTY_MOLE &&
-				thisEnemyPtr->GetType() == Enemy::TYPE::MONTY_MOLE)
+			if (enemyPtr->GetType() == Enemy::Type::MONTY_MOLE &&
+				thisEnemyPtr->GetType() == Enemy::Type::MONTY_MOLE)
 			{
 				enableContactRef = false;
 			}
@@ -761,12 +761,12 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool& 
 		Item* otherItemPtr = (Item*)actOtherPtr->GetUserPointer();
 		switch (otherItemPtr->GetType())
 		{
-		case Item::TYPE::P_SWITCH:
+		case Item::Type::P_SWITCH:
 		{
 			if (actThisPtr->GetUserData() == int(ActorId::ITEM))
 			{
 				Item* thisItem = (Item*)actThisPtr->GetUserPointer();
-				if (thisItem->GetType() == Item::TYPE::ROTATING_BLOCK)
+				if (thisItem->GetType() == Item::Type::ROTATING_BLOCK)
 				{
 					// NOTE: Only let p-switches fall through if the rotating block is spinning
 					if (((RotatingBlock*)thisItem)->IsRotating())
@@ -776,7 +776,7 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool& 
 				}
 			}
 		} break;
-		case Item::TYPE::KOOPA_SHELL:
+		case Item::Type::KOOPA_SHELL:
 		{
 			KoopaShell* koopaShellPtr = (KoopaShell*)otherItemPtr;
 			// When the player is holding a shell, it doesn't collide with anything except enemies
@@ -796,7 +796,7 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool& 
 		if (actThisPtr->GetUserData() == int(ActorId::ITEM))
 		{
 			Item* itemPtr = (Item*)actThisPtr->GetUserPointer();
-			if (itemPtr->GetType() == Item::TYPE::KOOPA_SHELL)
+			if (itemPtr->GetType() == Item::Type::KOOPA_SHELL)
 			{
 				if (ActorCanPassThroughPlatform(actOtherPtr, actThisPtr->GetPosition(), Item::TILE_SIZE, Item::TILE_SIZE))
 				{
@@ -829,29 +829,29 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			Item* itemPtr = (Item*)actThisPtr->GetUserPointer();
 			switch (itemPtr->GetType())
 			{
-			case Item::TYPE::COIN:
+			case Item::Type::COIN:
 			{
 				if (((Coin*)itemPtr)->IsBlock())
 				{
 					break;
 				}
 			} // NOTE: No break here! We want this case to fall through
-			case Item::TYPE::DRAGON_COIN:
-			case Item::TYPE::SUPER_MUSHROOM:
-			case Item::TYPE::STAR:
-			case Item::TYPE::FIRE_FLOWER:
-			case Item::TYPE::CAPE_FEATHER:
-			case Item::TYPE::POWER_BALLOON:
-			case Item::TYPE::ONE_UP_MUSHROOM:
-			case Item::TYPE::THREE_UP_MOON:
+			case Item::Type::DRAGON_COIN:
+			case Item::Type::SUPER_MUSHROOM:
+			case Item::Type::STAR:
+			case Item::Type::FIRE_FLOWER:
+			case Item::Type::CAPE_FEATHER:
+			case Item::Type::POWER_BALLOON:
+			case Item::Type::ONE_UP_MUSHROOM:
+			case Item::Type::THREE_UP_MOON:
 			{
 				m_PlayerPtr->OnItemPickup(itemPtr, this);
 				m_ItemsToBeRemovedPtrArr.push_back(itemPtr);
 			} break;
-			case Item::TYPE::PRIZE_BLOCK:
-			case Item::TYPE::EXCLAMATION_MARK_BLOCK:
-			case Item::TYPE::MESSAGE_BLOCK:
-			case Item::TYPE::CLOUD_BLOCK:
+			case Item::Type::PRIZE_BLOCK:
+			case Item::Type::EXCLAMATION_MARK_BLOCK:
+			case Item::Type::MESSAGE_BLOCK:
+			case Item::Type::CLOUD_BLOCK:
 			{
 				bool playerCenterIsBelowBlock = m_PlayerPtr->GetPosition().y > (actThisPtr->GetPosition().y + Block::HEIGHT / 2);
 				bool playerCenterIsAboveBlock = m_PlayerPtr->GetPosition().y < (actThisPtr->GetPosition().y - Block::HEIGHT / 2);
@@ -864,7 +864,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 					m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetLinearVelocity().x, 0.0));
 				}
 			} break;
-			case Item::TYPE::ROTATING_BLOCK:
+			case Item::Type::ROTATING_BLOCK:
 			{
 				RotatingBlock* rotatingBlockPtr = (RotatingBlock*)itemPtr;
 				if (rotatingBlockPtr->IsRotating()) break;
@@ -880,20 +880,20 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 					m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetLinearVelocity().x, 0.0));
 				}
 			} break;
-			case Item::TYPE::GRAB_BLOCK:
+			case Item::Type::GRAB_BLOCK:
 			{
 				m_PlayerPtr->SetTouchingGrabBlock(true, (GrabBlock*)itemPtr);
 			} break;
-			case Item::TYPE::KOOPA_SHELL:
+			case Item::Type::KOOPA_SHELL:
 			{
 				KoopaShell* koopaShellPtr = (KoopaShell*)itemPtr;
-				if (m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::SPIN_JUMPING)
+				if (m_PlayerPtr->GetAnimationState() == Player::AnimationState::SPIN_JUMPING)
 				{
 					koopaShellPtr->Stomp();
 				}
 				else if (koopaShellPtr->IsMoving())
 				{
-					if (m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::FALLING)
+					if (m_PlayerPtr->GetAnimationState() == Player::AnimationState::FALLING)
 					{
 						koopaShellPtr->SetMoving(false);
 						m_PlayerPtr->Bounce();
@@ -917,11 +917,11 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 					m_PlayerPtr->KickShell(koopaShellPtr, wasThrown);
 				}
 			} break;
-			case Item::TYPE::BEANSTALK:
+			case Item::Type::BEANSTALK:
 			{
 				m_PlayerPtr->SetOverlappingWithBeanstalk(true);
 			} break;
-			case Item::TYPE::MIDWAY_GATE:
+			case Item::Type::MIDWAY_GATE:
 			{
 				MidwayGate* midwayGatePtr = (MidwayGate*)itemPtr;
 				if (midwayGatePtr->IsHit() == false)
@@ -931,7 +931,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 					m_IsCheckpointCleared = true;
 				}
 			} break;
-			case Item::TYPE::GOAL_GATE:
+			case Item::Type::GOAL_GATE:
 			{
 				GoalGate* goalGatePtr = (GoalGate*)itemPtr;
 				if (goalGatePtr->IsHit() == false)
@@ -939,7 +939,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 					goalGatePtr->Hit();
 				}
 			} break;
-			case Item::TYPE::P_SWITCH:
+			case Item::Type::P_SWITCH:
 			{
 				PSwitch* pSwitchPtr = (PSwitch*)itemPtr;
 
@@ -972,13 +972,13 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			DOUBLE2 enemyFeet = enemyPtr->GetPosition() + DOUBLE2(0, enemyPtr->GetHeight() / 2);
 			switch (enemyPtr->GetType())
 			{
-			case Enemy::TYPE::KOOPA_TROOPA:
+			case Enemy::Type::KOOPA_TROOPA:
 			{
 				KoopaTroopa* koopaTroopaPtr = (KoopaTroopa*)enemyPtr;
 				if (playerFeet.y < koopaTroopaPtr->GetPosition().y)
 				{
 					if (m_PlayerPtr->IsHoldingItem() == false &&
-						m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::SPIN_JUMPING)
+						m_PlayerPtr->GetAnimationState() == Player::AnimationState::SPIN_JUMPING)
 					{
 						koopaTroopaPtr->StompKill();
 						m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetLinearVelocity().x, -58));
@@ -995,7 +995,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 					// all the player needs to do is touch them and they die
 					// Once the shelless koopa starts walking (ANIMATION_STATE::WALKING_SHELLESS) then the player
 					// needs to jump on their head, the player will die if they touch the side of a walking shelless koopa
-					if (koopaTroopaPtr->GetAnimationState() == KoopaTroopa::ANIMATION_STATE::SHELLESS)
+					if (koopaTroopaPtr->GetAnimationState() == KoopaTroopa::AnimationState::SHELLESS)
 					{
 						// TODO: Rename this method because not only shell hits cause this behaviour
 						koopaTroopaPtr->ShellHit();
@@ -1006,14 +1006,14 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 					}
 				}
 			} break;
-			case Enemy::TYPE::MONTY_MOLE:
+			case Enemy::Type::MONTY_MOLE:
 			{
 				MontyMole* montyMolePtr = (MontyMole*)enemyPtr;
 				if (montyMolePtr->IsAlive())
 				{
 					if (playerFeet.y < montyMolePtr->GetPosition().y)
 					{
-						if (m_PlayerPtr->GetAnimationState() == Player::ANIMATION_STATE::SPIN_JUMPING)
+						if (m_PlayerPtr->GetAnimationState() == Player::AnimationState::SPIN_JUMPING)
 						{
 							montyMolePtr->StompKill();
 							m_PlayerPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetLinearVelocity().x, 0));
@@ -1030,14 +1030,14 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 					}
 				}
 			} break;
-			case Enemy::TYPE::PIRHANA_PLANT:
+			case Enemy::Type::PIRHANA_PLANT:
 			{
 				m_PlayerPtr->TakeDamage();
 			} break;
-			case Enemy::TYPE::CHARGIN_CHUCK:
+			case Enemy::Type::CHARGIN_CHUCK:
 			{
 				CharginChuck* charginChuckPtr = (CharginChuck*)enemyPtr;
-				if (charginChuckPtr->GetAnimationState() != CharginChuck::ANIMATION_STATE::DEAD &&
+				if (charginChuckPtr->GetAnimationState() != CharginChuck::AnimationState::DEAD &&
 					m_PlayerPtr->IsAirborne())
 				{
 					charginChuckPtr->HeadBonk();
@@ -1070,7 +1070,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 		Item* otherItemPtr = (Item*)actOtherPtr->GetUserPointer();
 		switch (otherItemPtr->GetType())
 		{
-		case Item::TYPE::KOOPA_SHELL:
+		case Item::Type::KOOPA_SHELL:
 		{
 			KoopaShell* otherKoopaShellPtr = (KoopaShell*)otherItemPtr;
 			switch (actThisPtr->GetUserData())
@@ -1095,7 +1095,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 						blockPtr->Hit();
 					}
 				}
-				else if (thisItemPtr->GetType() == Item::TYPE::KOOPA_SHELL)
+				else if (thisItemPtr->GetType() == Item::Type::KOOPA_SHELL)
 				{
 					KoopaShell* thisKoopaShellPtr = (KoopaShell*)thisItemPtr;
 					if (m_PlayerPtr->GetHeldItemPtr() == otherKoopaShellPtr)
@@ -1115,7 +1115,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 				Enemy* enemyPtr = (Enemy*)actThisPtr->GetUserPointer();
 				switch (enemyPtr->GetType())
 				{
-				case Enemy::TYPE::KOOPA_TROOPA:
+				case Enemy::Type::KOOPA_TROOPA:
 				{
 					if (m_PlayerPtr->GetHeldItemPtr() == otherKoopaShellPtr)
 					{
@@ -1163,11 +1163,11 @@ void Level::EndContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			Item* otherItemPtr = (Item*)actThisPtr->GetUserPointer();
 			switch (otherItemPtr->GetType())
 			{
-			case Item::TYPE::BEANSTALK:
+			case Item::Type::BEANSTALK:
 			{
 				m_PlayerPtr->SetOverlappingWithBeanstalk(false);
 			} break;
-			case Item::TYPE::GRAB_BLOCK:
+			case Item::Type::GRAB_BLOCK:
 			{
 				m_PlayerPtr->SetTouchingGrabBlock(false, (GrabBlock*)otherItemPtr);
 			} break;
@@ -1240,7 +1240,7 @@ bool Level::Raycast(DOUBLE2 point1, DOUBLE2 point2, int collisionBits, DOUBLE2 &
 			if (itemsPtrArr[i] != nullptr)
 			{
 				bool blockCollision = collisionBits & BLOCK && itemsPtrArr[i]->IsBlock();
-				if (blockCollision && itemsPtrArr[i]->GetType() == Item::TYPE::ROTATING_BLOCK)
+				if (blockCollision && itemsPtrArr[i]->GetType() == Item::Type::ROTATING_BLOCK)
 				{
 					if (((RotatingBlock*)itemsPtrArr[i])->IsRotating())
 					{
@@ -1248,7 +1248,7 @@ bool Level::Raycast(DOUBLE2 point1, DOUBLE2 point2, int collisionBits, DOUBLE2 &
 					}
 				}
 
-				bool shellCollision = collisionBits & SHELL && itemsPtrArr[i]->GetType() == Item::TYPE::KOOPA_SHELL;
+				bool shellCollision = collisionBits & SHELL && itemsPtrArr[i]->GetType() == Item::Type::KOOPA_SHELL;
 				if (blockCollision || shellCollision)
 				{
 					if (itemsPtrArr[i]->Raycast(point1, point2, intersectionRef, normalRef, fractionRef))
@@ -1271,7 +1271,7 @@ void Level::TriggerEndScreen(int barHitHeight)
 	m_FinalExtraScore.m_ScoreShowing = 50 * m_TimeRemaining;
 	m_FinalExtraScore.m_BonusScoreShowing = barHitHeight;
 
-	SoundManager::PlaySoundEffect(SoundManager::SOUND::COURSE_CLEAR_FANFARE);
+	SoundManager::PlaySoundEffect(SoundManager::Sound::COURSE_CLEAR_FANFARE);
 	SoundManager::SetAllSongsPaused(true);
 }
 
@@ -1376,7 +1376,7 @@ void Level::SpeedUpMusic()
 	SoundManager::SetSongPaused(m_BackgroundSong, true);
 	SoundManager::PlaySong(m_BackgroundSongFast);
 
-	SoundManager::PlaySoundEffect(SoundManager::SOUND::TIME_WARNING);
+	SoundManager::PlaySoundEffect(SoundManager::Sound::TIME_WARNING);
 }
 
 void Level::SetActiveMessageBlock(MessageBlock* activeMessageBlockPtr)
@@ -1389,7 +1389,7 @@ void Level::TurnCoinsToBlocks(bool toBlocks)
 	std::vector<Item*> itemsPtrArr = m_LevelDataPtr->GetItems();
 	for (size_t i = 0; i < itemsPtrArr.size(); ++i)
 	{
-		if (itemsPtrArr[i] != nullptr && itemsPtrArr[i]->GetType() == Item::TYPE::COIN)
+		if (itemsPtrArr[i] != nullptr && itemsPtrArr[i]->GetType() == Item::Type::COIN)
 		{
 			((Coin*)itemsPtrArr[i])->TurnToBlock(toBlocks);
 		}

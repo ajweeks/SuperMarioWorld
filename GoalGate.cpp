@@ -12,7 +12,7 @@
 const double GoalGate::BAR_SPEED = 1.05;
 
 GoalGate::GoalGate(DOUBLE2 topLeft, Level* levelPtr) :
-	Gate(topLeft + DOUBLE2(9, 16), levelPtr, TYPE::GOAL_GATE, BAR_LENGTH, BAR_DIAMETER)
+	Gate(topLeft + DOUBLE2(9, 16), levelPtr, Type::GOAL_GATE, BAR_LENGTH, BAR_DIAMETER)
 {
 	m_AnimInfo.secondsPerFrame = 0.1;
 

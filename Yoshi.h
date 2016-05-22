@@ -10,7 +10,7 @@ class Enemy;
 class Yoshi : public Entity
 {
 public:
-	enum class ANIMATION_STATE
+	enum class AnimationState
 	{
 		EGG, BABY, WAITING, WILD, FALLING
 	};
@@ -37,7 +37,7 @@ public:
 	double GetTongueLength();
 	int GetDirectionFacing();
 
-	ANIMATION_STATE GetAnimationState();
+	AnimationState GetAnimationState();
 	bool IsAirborne();
 	void SpitOutItem();
 	bool IsTongueStuckOut();
@@ -73,7 +73,7 @@ private:
 	static const int WIDTH = 12;
 	static const int HEIGHT = 16;
 
-	ANIMATION_STATE m_AnimationState;
+	AnimationState m_AnimationState;
 
 	bool m_IsCarryingPlayer = false;
 	bool m_IsTongueStuckOut = false;
@@ -94,7 +94,7 @@ private:
 	Player* m_PlayerPtr = nullptr;
 
 	// NOTE: This is used only for items which are not immediately eaten by yoshi
-	Item::TYPE m_ItemInMouthType;
+	Item::Type m_ItemInMouthType;
 	Item* m_ItemToBeRemovedPtr = nullptr;
 	Enemy* m_EnemyToBeRemovedPtr = nullptr;
 

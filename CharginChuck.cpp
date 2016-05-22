@@ -15,9 +15,9 @@ const double CharginChuck::RUN_VEL = 7000.0;
 const double CharginChuck::JUMP_VEL = -21000.0;
 
 CharginChuck::CharginChuck(DOUBLE2 startingPos, Level* levelPtr) :
-	Enemy(TYPE::CHARGIN_CHUCK, startingPos, GetWidth(), GetHeight(), BodyType::DYNAMIC, levelPtr, this)
+	Enemy(Type::CHARGIN_CHUCK, startingPos, GetWidth(), GetHeight(), BodyType::DYNAMIC, levelPtr, this)
 {
-	m_AnimationState = ANIMATION_STATE::WAITING;
+	m_AnimationState = AnimationState::WAITING;
 	m_DirFacing = Direction::LEFT;
 
 	m_HurtTimer = CountdownTimer(340);
@@ -39,13 +39,13 @@ void CharginChuck::Tick(double deltaTime)
 
 	if (m_WaitingTimer.Tick() && m_WaitingTimer.IsComplete())
 	{
-		m_AnimationState = ANIMATION_STATE::CHARGIN;
+		m_AnimationState = AnimationState::CHARGIN;
 		CalculateNewTarget();
 	}
 
 	if (m_HurtTimer.Tick() && m_HurtTimer.IsComplete())
 	{
-		m_AnimationState = ANIMATION_STATE::CHARGIN;
+		m_AnimationState = AnimationState::CHARGIN;
 		CalculateNewTarget();
 	}
 
@@ -60,25 +60,25 @@ void CharginChuck::Tick(double deltaTime)
 	m_IsOnGround = CalculateOnGround();
 	switch (m_AnimationState)
 	{
-	case ANIMATION_STATE::WAITING:
+	case AnimationState::WAITING:
 	{
 	} break;
-	case ANIMATION_STATE::CHARGIN:
+	case AnimationState::CHARGIN:
 	{
 		UpdateVelocity(deltaTime);
 	} break;
-	case ANIMATION_STATE::JUMPING:
+	case AnimationState::JUMPING:
 	{
 		if (m_IsOnGround) 
 		{
-			m_AnimationState = ANIMATION_STATE::CHARGIN;
+			m_AnimationState = AnimationState::CHARGIN;
 			CalculateNewTarget();
 		}
 	} break;
-	case ANIMATION_STATE::HURT:
+	case AnimationState::HURT:
 	{
 	} break;
-	case ANIMATION_STATE::DEAD:
+	case AnimationState::DEAD:
 	{
 		// Delete the actor once they fall below the bottom of the screen
 		if (m_ActPtr->GetPosition().y > m_LevelPtr->GetHeight() + GetHeight())
@@ -203,7 +203,7 @@ void CharginChuck::TurnAround()
 {
 	m_DirFacing = -m_DirFacing;
 	m_WaitingTimer.Start();
-	m_AnimationState = ANIMATION_STATE::WAITING;
+	m_AnimationState = AnimationState::WAITING;
 	m_ActPtr->SetLinearVelocity(DOUBLE2(0.0, m_ActPtr->GetLinearVelocity().y));
 }
 
@@ -217,7 +217,7 @@ void CharginChuck::Jump(double deltaTime)
 	else if (xVel == 0.0) xVel = m_DirFacing * minXVel;
 
 	m_ActPtr->SetLinearVelocity(DOUBLE2(xVel, JUMP_VEL * deltaTime));
-	m_AnimationState = ANIMATION_STATE::JUMPING;
+	m_AnimationState = AnimationState::JUMPING;
 }
 
 void CharginChuck::CalculateNewTarget()
@@ -241,14 +241,14 @@ void CharginChuck::HeadBonk()
 
 	switch (m_AnimationState)
 	{
-	case ANIMATION_STATE::WAITING:
-	case ANIMATION_STATE::CHARGIN:
+	case AnimationState::WAITING:
+	case AnimationState::CHARGIN:
 	{
 		if (TakeDamage())
 		{
-			SoundManager::PlaySoundEffect(SoundManager::SOUND::CHARGIN_CHUCK_HEAD_BONK);
+			SoundManager::PlaySoundEffect(SoundManager::Sound::CHARGIN_CHUCK_HEAD_BONK);
 
-			m_AnimationState = ANIMATION_STATE::HURT;
+			m_AnimationState = AnimationState::HURT;
 			m_HurtTimer.Start();
 		
 			m_LevelPtr->GetPlayer()->AddScore(800, m_ActPtr->GetPosition());
@@ -265,7 +265,7 @@ bool CharginChuck::TakeDamage()
 {
 	if (--m_HitsRemaining <= 0)
 	{
-		m_AnimationState = ANIMATION_STATE::DEAD;
+		m_AnimationState = AnimationState::DEAD;
 		m_ActPtr->SetSensor(true);
 
 		return false;
@@ -278,15 +278,15 @@ INT2 CharginChuck::GetAnimationFrame()
 {
 	switch (m_AnimationState)
 	{
-	case ANIMATION_STATE::WAITING:
+	case AnimationState::WAITING:
 		return INT2(0, 0);
-	case ANIMATION_STATE::JUMPING:
+	case AnimationState::JUMPING:
 		return INT2(0, 1);
-	case ANIMATION_STATE::CHARGIN:
+	case AnimationState::CHARGIN:
 		return INT2(1 + m_AnimInfo.frameNumber, 1);
-	case ANIMATION_STATE::HURT:
+	case AnimationState::HURT:
 		return INT2(m_AnimInfo.frameNumber, 2);
-	case ANIMATION_STATE::DEAD:
+	case AnimationState::DEAD:
 		return INT2(0, 2);
 	default:
 	{
@@ -302,20 +302,20 @@ void CharginChuck::TickAnimations(double deltaTime)
 
 	switch (m_AnimationState)
 	{
-	case ANIMATION_STATE::CHARGIN:
+	case AnimationState::CHARGIN:
 	{
 		m_AnimInfo.frameNumber %= 2;
 	} break;
-	case ANIMATION_STATE::WAITING:
+	case AnimationState::WAITING:
 	{
 		m_AnimInfo.frameNumber %= 3;
 	} break;
-	case ANIMATION_STATE::HURT:
+	case AnimationState::HURT:
 	{
 		m_AnimInfo.frameNumber %= 4;
 	} break;
-	case ANIMATION_STATE::DEAD:
-	case ANIMATION_STATE::JUMPING:
+	case AnimationState::DEAD:
+	case AnimationState::JUMPING:
 	{
 		m_AnimInfo.frameNumber = 0;
 	} break;
@@ -331,7 +331,7 @@ bool CharginChuck::IsRising()
 	return m_ActPtr->GetLinearVelocity().y < 0;
 }
 
-CharginChuck::ANIMATION_STATE CharginChuck::GetAnimationState()
+CharginChuck::AnimationState CharginChuck::GetAnimationState()
 {
 	return m_AnimationState;
 }

@@ -5,7 +5,7 @@
 #include "SpriteSheet.h"
 
 FireFlower::FireFlower(DOUBLE2 topLeft, Level* levelPtr) :
-	Item(topLeft, TYPE::FIRE_FLOWER, levelPtr)
+	Item(topLeft, Type::FIRE_FLOWER, levelPtr)
 {
 }
 

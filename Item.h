@@ -6,7 +6,7 @@
 class Item : public Entity
 {
 public:
-	enum class TYPE
+	enum class Type
 	{
 		NONE,
 		COIN, DRAGON_COIN, BERRY, KEY, KEYHOLE, P_SWITCH,
@@ -18,7 +18,7 @@ public:
 		MIDWAY_GATE, GOAL_GATE
 	};
 
-	Item(DOUBLE2 topLeft, TYPE type, Level* levelPtr,
+	Item(DOUBLE2 topLeft, Type type, Level* levelPtr,
 		int filterCategoryBits = Level::ITEM,
 		BodyType bodyType = BodyType::STATIC, int width = TILE_SIZE, int height = TILE_SIZE);
 	virtual ~Item();
@@ -32,10 +32,10 @@ public:
 	void SetLinearVelocity(DOUBLE2 newVel);
 	void SetPosition(DOUBLE2 newPos);
 
-	static TYPE StringToTYPE(std::string string);
-	static std::string TYPEToString(TYPE type);
+	static Type StringToTYPE(std::string string);
+	static std::string TYPEToString(Type type);
 
-	TYPE GetType();
+	Type GetType();
 	bool IsBlock();
 
 	static const int TILE_SIZE = 16;
@@ -46,5 +46,5 @@ protected:
 	RECT2 m_Bounds;
 
 private:
-	TYPE m_Type;
+	Type m_Type;
 };
