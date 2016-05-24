@@ -25,7 +25,7 @@
 #include "GoalGate.h"
 #include "Coin.h"
 #include "PSwitch.h"
-#include "MessageBlock.h"
+#include "Message.h"
 
 #include "KoopaTroopa.h"
 #include "MontyMole.h"
@@ -101,6 +101,7 @@ void Level::ResetMembers()
 
 	delete m_YoshiPtr;
 	m_YoshiPtr = nullptr;
+	m_ActiveMessagePtr = nullptr;
 
 	m_IsShowingEndScreen = false;
 	m_FramesShowingEndScreen = 0;
@@ -147,16 +148,16 @@ void Level::Tick(double deltaTime)
 		SetPaused(false, false);
 	}
 
-	if (m_ActiveMessageBlockPtr != nullptr)
+	if (m_ActiveMessagePtr != nullptr)
 	{
-		if (m_ActiveMessageBlockPtr->PauseInput())
+		if (m_ActiveMessagePtr->IsInputPaused())
 		{
 			// This message block won't be ticked unless we do it here
-			m_ActiveMessageBlockPtr->Tick(deltaTime);
-			if (m_ActiveMessageBlockPtr == nullptr) return; // If this is the last frame of outro anim, they are no longer our active message block
+			m_ActiveMessagePtr->Tick(deltaTime);
+			if (m_ActiveMessagePtr == nullptr) return; // If this is the last frame of outro anim, they are no longer our active message block
 		}
 
-		if (m_ActiveMessageBlockPtr->ShowingMessage())
+		if (m_ActiveMessagePtr->IsShowingMessage())
 		{
 			if (m_PlayerPtr->IsDead() == false &&
 				GAME_ENGINE->IsKeyboardKeyPressed('A') ||
@@ -165,7 +166,7 @@ void Level::Tick(double deltaTime)
 				GAME_ENGINE->IsKeyboardKeyPressed('X') ||
 				GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE))
 			{
-				m_ActiveMessageBlockPtr->ClearShowingMessage();
+				m_ActiveMessagePtr->StartOutroAnimation();
 				return;
 			}
 		}
@@ -188,7 +189,7 @@ void Level::Tick(double deltaTime)
 		return;
 	}
 	else if (m_Paused || 
-			(m_ActiveMessageBlockPtr != nullptr && m_ActiveMessageBlockPtr->PauseInput())) 
+			(m_ActiveMessagePtr != nullptr && m_ActiveMessagePtr->IsInputPaused()))
 	{
 		return;
 	}
@@ -1379,9 +1380,9 @@ void Level::SpeedUpMusic()
 	SoundManager::PlaySoundEffect(SoundManager::Sound::TIME_WARNING);
 }
 
-void Level::SetActiveMessageBlock(MessageBlock* activeMessageBlockPtr)
+void Level::SetActiveMessage(Message* activeMessagePtr)
 {
-	m_ActiveMessageBlockPtr = activeMessageBlockPtr;
+	m_ActiveMessagePtr = activeMessagePtr;
 }
 
 void Level::TurnCoinsToBlocks(bool toBlocks)

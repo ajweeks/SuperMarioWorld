@@ -63,3 +63,40 @@ private:
 	std::vector<Item*> m_ItemsPtrArr;
 	std::vector<Enemy*> m_EnemiesPtrArr;
 };
+
+// Remove whitespace from level data read from file, but preserves spacing in quotes
+class IsWhitespace
+{
+public:
+	IsWhitespace() {}
+
+	bool operator()(int c)
+	{
+		if (m_InQuote)
+		{
+			if (c == '\"')
+			{
+				m_InQuote = false;
+				return true;
+			}
+			else if (c == '\t')
+			{
+				return true;
+			}
+			return false;
+		}
+		else if (c == '\"')
+		{
+			m_InQuote = true;
+			return true;
+		}
+		else
+		{
+			return !!isspace(c);
+		}
+	}
+	
+private:
+	bool m_InQuote = false;
+
+};

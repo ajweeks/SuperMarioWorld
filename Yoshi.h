@@ -6,6 +6,7 @@
 
 class Player;
 class Enemy;
+class Message;
 
 class Yoshi : public Entity
 {
@@ -92,6 +93,7 @@ private:
 	SpriteSheet* m_SpriteSheetPtr = nullptr;
 	PhysicsActor* m_ActToungePtr = nullptr;
 	Player* m_PlayerPtr = nullptr;
+	Message* m_MessagePtr = nullptr;
 
 	// NOTE: This is used only for items which are not immediately eaten by yoshi
 	Item::Type m_ItemInMouthType;

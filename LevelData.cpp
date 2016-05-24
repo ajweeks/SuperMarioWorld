@@ -43,7 +43,7 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 	std::string line;
 
 	// PLATFORMS
-	platforms.erase(std::remove_if(platforms.begin(), platforms.end(), isspace), platforms.end());
+	platforms.erase(std::remove_if(platforms.begin(), platforms.end(), IsWhitespace()), platforms.end());
 	int platformTagBeginIndex = -1;
 	while ((platformTagBeginIndex = platforms.find("<Platform>", platformTagBeginIndex + 1)) != std::string::npos)
 	{
@@ -60,7 +60,7 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 
 
 	// PIPES
-	pipes.erase(std::remove_if(pipes.begin(), pipes.end(), isspace), pipes.end());
+	pipes.erase(std::remove_if(pipes.begin(), pipes.end(), IsWhitespace()), pipes.end());
 	int pipeTagBeginIndex = -1;
 	int pipeIndex = 0; // Keep track of how many pipes we've added so far
 	while ((pipeTagBeginIndex = pipes.find("<Pipe>", pipeTagBeginIndex + 1)) != std::string::npos)
@@ -97,7 +97,7 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 
 
 	// ITEMS
-	items.erase(std::remove_if(items.begin(), items.end(), isspace), items.end());
+	items.erase(std::remove_if(items.begin(), items.end(), IsWhitespace()), items.end());
 	int itemTagBeginIndex = -1;
 	while ((itemTagBeginIndex = items.find("<Item>", itemTagBeginIndex + 1)) != std::string::npos)
 	{
@@ -134,8 +134,8 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 		} break;
 		case int(Item::Type::MESSAGE_BLOCK):
 		{
-			String messageString = String(FileIO::GetTagContent(itemContent, "BitmapFilePath").c_str());
-			m_ItemsPtrArr.push_back(new MessageBlock(topLeft, messageString, levelPtr));
+			std::string messageText = FileIO::GetTagContent(itemContent, "MessageText");
+			m_ItemsPtrArr.push_back(new MessageBlock(topLeft, messageText, levelPtr));
 		} break;
 		case int(Item::Type::ROTATING_BLOCK):
 		{
@@ -184,7 +184,7 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 	}
 
 	// ENEMIES
-	enemies.erase(std::remove_if(enemies.begin(), enemies.end(), isspace), enemies.end());
+	enemies.erase(std::remove_if(enemies.begin(), enemies.end(), IsWhitespace()), enemies.end());
 	int enemyTagBeginIndex = -1;
 	while ((enemyTagBeginIndex = enemies.find("<Enemy>", enemyTagBeginIndex + 1)) != std::string::npos)
 	{

@@ -8,6 +8,7 @@
 #include "Item.h"
 #include "KoopaTroopa.h"
 #include "KoopaShell.h"
+#include "Message.h"
 
 #include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
@@ -65,6 +66,14 @@ Yoshi::Yoshi(DOUBLE2 position, Level* levelPtr) :
 
 	m_ItemsEaten = 0;
 
+	m_MessagePtr = new Message("Hooray!  Thank you\n"
+							   "for rescuing   me.\n"
+							   "My name  is Yoshi.\n"
+							   "On   my   way   to\n"
+							   "rescue my friends,\n"
+							   "Bowser trapped me\n"
+							   "in that egg.", levelPtr);
+
 	SoundManager::PlaySoundEffect(SoundManager::Sound::YOSHI_SPAWN);
 	SoundManager::PlaySoundEffect(SoundManager::Sound::YOSHI_EGG_BREAK); // LATER: add delay here?
 }
@@ -72,6 +81,7 @@ Yoshi::Yoshi(DOUBLE2 position, Level* levelPtr) :
 Yoshi::~Yoshi()
 {
 	delete m_ActToungePtr;
+	delete m_MessagePtr;
 }
 
 void Yoshi::Tick(double deltaTime)
@@ -147,6 +157,12 @@ void Yoshi::Tick(double deltaTime)
 
 	if (m_HatchingTimer.Tick() && m_HatchingTimer.IsComplete())
 	{
+		m_AnimationState = AnimationState::BABY;
+		m_MessagePtr->StartIntroAnimation();
+
+		m_LevelPtr->SetPaused(true, false);
+	}
+
 		m_AnimationState = AnimationState::WAITING;
 		m_SpriteSheetPtr = SpriteSheetManager::yoshiPtr;
 		m_AnimInfo.secondsPerFrame = WAITING_SECONDS_PER_FRAME;
@@ -247,9 +263,14 @@ void Yoshi::Paint()
 		GAME_ENGINE->SetWorldMatrix(matTranslateInverse * matReflect * matTranslate * matPrevWorld);
 	}
 
-	PaintAnimationFrame(centerX - WIDTH/2 + 10, centerY - HEIGHT/2 + 7);
+	int yo = 7;
+	if (m_AnimationState == AnimationState::EGG) yo = 15;
+
+	PaintAnimationFrame(centerX - WIDTH/2 + 10, centerY - HEIGHT/2 + yo);
 
 	// LATER: Figure out a way to paint yoshi's tounge when the player isn't riding him
+
+	m_MessagePtr->Paint();
 
 	GAME_ENGINE->SetWorldMatrix(matPrevWorld);
 }

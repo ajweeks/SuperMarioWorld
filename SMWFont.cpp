@@ -8,13 +8,15 @@
 void SMWFont::PaintPhrase(std::string phrase, int left, int top, bool outlined)
 {
 	int xo = left;
-	
+	int yo = top;
+
 	RECT2 srcRect;
 	for (size_t i = 0; i < phrase.length(); ++i)
 	{
 		char currentChar = phrase.at(i);
 		int spriteIndex = 0;
-		if (currentChar >= '0' && currentChar <= '9')
+		if (currentChar == '_') spriteIndex = 66;
+		else if (currentChar >= '0' && currentChar <= '9')
 		{
 			std::string numberStr; // Paint several numbers at once
 			while (i < phrase.length() && currentChar >= '0' && currentChar <= '9')
@@ -32,36 +34,30 @@ void SMWFont::PaintPhrase(std::string phrase, int left, int top, bool outlined)
 		}
 		else if (currentChar >= 'A' && currentChar <= 'z')
 		{
-			if (currentChar <= 'Z')
-				spriteIndex = (currentChar - 'A');
-			else
-				spriteIndex = (currentChar - 'a' + ('Z' - 'A') + 1);
+			if (currentChar <= 'Z') spriteIndex = (currentChar - 'A'); // Uppercase
+			else spriteIndex = (currentChar - 'a' + ('Z' - 'A') + 1);  // Lowercase
 		}
-		else if (currentChar == '.')
+		else if (currentChar == '\n')
 		{
-			spriteIndex = 61;
-		}
-		else if (currentChar == '@') // NOTE: @ refers to the clock symbol
-		{
-			spriteIndex = 62;
-		}
-		else if (currentChar == '*') // NOTE: * refers to multiplication X
-		{
-			spriteIndex = 63;
-		}
-		else if (currentChar == '=')
-		{
-			spriteIndex = 64;
-		}
-		else if (currentChar == '!')
-		{
-			spriteIndex = 65;
+			xo = left;
+			yo += CHARACTER_HEIGHT - 1;
+			continue;
 		}
 		else if (currentChar == ' ')
 		{
 			xo += CHARACTER_WIDTH;
 			continue;
 		}
+		else if (currentChar == '?') spriteIndex = 54;
+		else if (currentChar == '.') spriteIndex = 56;
+		else if (currentChar == ',') spriteIndex = 57;
+		else if (currentChar == '(') spriteIndex = 58;
+		else if (currentChar == ')') spriteIndex = 59;
+		else if (currentChar == '#') spriteIndex = 60;
+		else if (currentChar == '@') spriteIndex = 62; // NOTE: @ refers to the clock symbol
+		else if (currentChar == '*') spriteIndex = 63; // NOTE: * refers to multiplication X
+		else if (currentChar == '=') spriteIndex = 64;
+		else if (currentChar == '!') spriteIndex = 65;
 
 		srcRect.left = (spriteIndex % CHARS_WIDE) * CHARACTER_WIDTH;
 		srcRect.top = int(spriteIndex / CHARS_WIDE) * CHARACTER_HEIGHT;
@@ -74,7 +70,7 @@ void SMWFont::PaintPhrase(std::string phrase, int left, int top, bool outlined)
 			srcRect.bottom += 36;
 		}
 		
-		GAME_ENGINE->DrawBitmap(SpriteSheetManager::fontPtr, xo, top, srcRect);
+		GAME_ENGINE->DrawBitmap(SpriteSheetManager::fontPtr, xo, yo, srcRect);
 
 		xo += CHARACTER_WIDTH;
 	}

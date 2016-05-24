@@ -16,7 +16,7 @@ class Item;
 class Enemy;
 class Player;
 class Yoshi;
-class MessageBlock;
+class Message;
 
 class Camera;
 class Particle;
@@ -83,7 +83,7 @@ public:
 	bool IsUnderground();
 	void SpeedUpMusic();
 
-	void SetActiveMessageBlock(MessageBlock* activeMessageBlockPtr);
+	void SetActiveMessage(Message* activeMessagePtr);
 	void WarpPlayerToPipe(int pipeIndex);
 
 	void GiveItemToPlayer(Item* itemPtr);
@@ -139,7 +139,8 @@ private:
 	bool m_TimeWarningPlayed;
 	bool m_PSwitchTimeWarningPlayed;
 	bool m_Paused;
-	MessageBlock* m_ActiveMessageBlockPtr = nullptr; // This is set toa message block address when the player hits it
+
+	Message* m_ActiveMessagePtr = nullptr;
 
 	double m_SecondsElapsed; // How many real-time seconds have elapsed
 	int m_TotalTime; // How many in-game seconds the player has to complete this level

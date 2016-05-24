@@ -95,7 +95,16 @@
 		<Item>
 			<Type>MessageBlock</Type>
 			<TopLeft>64,19</TopLeft>
-			<BitmapFilePath>Resources/levels/00/message-box-01.png</BitmapFilePath>
+			<MessageText>
+			   "To do a spin jump,
+				press    the     A
+				Button.    A Super
+				Mario   spin  jump
+				can break some  of
+				the   blocks   and
+				defeat some of the
+				tougher enemies."
+			</MessageText>
 		</Item>
 	
 		<Item>
@@ -166,7 +175,16 @@
 		<Item>
 			<Type>MessageBlock</Type>
 			<TopLeft>157,19</TopLeft>
-			<BitmapFilePath>Resources/levels/00/message-box-02.png</BitmapFilePath>
+			<MessageText>
+			   "_POINT OF ADVICE_ 
+				This   gate  marks
+				the middle of this
+				area.   By cutting
+				the tape here, you
+				can continue  from
+				close   to    this
+				point."
+			</MessageText>
 		</Item>
 		
 		
