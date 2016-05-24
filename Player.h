@@ -13,6 +13,8 @@ class KoopaShell;
 class Yoshi;
 class GrabBlock;
 class Pipe;
+class Coin;
+class DragonCoin;
 
 class Player : public Entity
 {
@@ -40,11 +42,16 @@ public:
 	static PowerupState StringToPowerupState(std::string powerupStateStr);
 	static std::string PowerupStateToString(PowerupState powerupState);
 
+	// If no particle is neccessary, leave particlePosition as DOUBLE2()
+	void AddScore(int score, bool combo, DOUBLE2 particlePosition = DOUBLE2());
+	void AddRedStars(int numberOfRedStars);
+	void AddCoin(Coin* coinPtr, bool playSound = true, bool showParticle = true);
+	int GetScore();
+
 	int GetLives();
 	int GetCoinsCollected();
 	int GetDragonCoinsCollected();
 	int GetStarsCollected();
-	int GetScore();
 	Item::Type GetExtraItemType();
 
 	void AddItemToBeHeld(Item* itemPtr);
@@ -72,11 +79,7 @@ public:
 	void KickShell(KoopaShell* koopaShellPtr, bool wasThrown);
 	
 	void ReleaseExtraItem(DOUBLE2 position);
-	void OnItemPickup(Item* itemPtr, Level* levelPtr);
-
-	// If no particle is neccessary, leave particlePosition as DOUBLE2()
-	void AddScore(int score, DOUBLE2 particlePosition = DOUBLE2());
-	void AddRedStars(int numberOfRedStars);
+	void OnItemPickup(Item* itemPtr);
 
 	void SetTouchingGrabBlock(bool touching, GrabBlock* grabBlockPtr);
 	void SetTouchingPipe(bool touching, Pipe* pipePtr = nullptr);
@@ -106,9 +109,8 @@ private:
 	void HandleClimbingStateKeyboardInput(double deltaTime);
 	void HandleYoshiKeyboardInput(double deltaTime);
 
-	void AddCoin(Level* levelPtr, bool playSound = true);
-	void AddDragonCoin(Level* levelPtr);
-	void AddLife();
+	void AddDragonCoin(DragonCoin* dragonCoinPtr);
+	void AddLife(DOUBLE2 particlePos);
 	void KickHeldItem(double deltaTime, bool gently = false);
 	void ChangePowerupState(PowerupState newPowerupState, bool isUpgrade = true);
 	void EnterPipe();
@@ -123,27 +125,26 @@ private:
 	
 	SpriteSheet* m_SpriteSheetPtr;
 
-	static const double DEFAULT_GRAVITY;
-
-	static const int JUMP_VEL;
 	static const int WALK_BASE_VEL;
 	static const int RUN_BASE_VEL;
-	static const int YOSHI_DISMOUNT_XVEL;
+	static const int JUMP_VEL;
 	static const int BOUNCE_VEL;
-
-	static const int YOSHI_TURN_AROUND_FRAMES = 15;
+	static const double DEFAULT_GRAVITY;
+	static const int STARTING_LIVES;
+	static const int YOSHI_DISMOUNT_XVEL;
+	static const int YOSHI_TURN_AROUND_FRAMES;
 	static const double MARIO_SECONDS_PER_FRAME;
 
 	bool m_IsOnGround;
 	bool m_WasOnGround;
 	int m_FramesSpentInAir;
 
-	static const int STARTING_LIVES;
 	int m_Lives;
 	int m_Coins;
 	int m_DragonCoins;
 	int m_Stars;
 	int m_Score;
+	int m_LastScoreAdded; // Used for calculating combo scores
 	bool m_NeedsNewFixture;
 	bool m_IsInvincible;
 
@@ -156,6 +157,7 @@ private:
 	CountdownTimer m_SpawnDustCloudTimer;
 	CountdownTimer m_EnteringPipeTimer;
 	CountdownTimer m_ExitingPipeTimer;
+	CountdownTimer m_ScoreAddedTimer;
 
 	GameState* m_GameStatePtr;
 

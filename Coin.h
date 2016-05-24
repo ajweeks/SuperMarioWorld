@@ -12,7 +12,7 @@ public:
 
 	void Tick(double deltaTime);
 	void Paint();
-	int GetLifeRemaining();
+	bool HasInfiniteLifetime();
 	void GenerateParticles(); // Called when this coin is collected
 
 	static const int LIFETIME = 25;
@@ -26,7 +26,9 @@ protected:
 	static const int HEIGHT = 16;
 
 private:
-	int m_Life;
+	static const int INITIAL_Y_VEL = -250;
+	
+	CountdownTimer m_LifeRemaining;
 	bool m_IsBlock = false; // This is true for a short period of time after mario hits a p-switch
 
 };

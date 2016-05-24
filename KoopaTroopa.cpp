@@ -265,6 +265,8 @@ void KoopaTroopa::HeadBonk()
 		m_FramesSpentBeingSquashed = 0;
 	} break;
 	}
+
+	m_LevelPtr->GetPlayer()->AddScore(200, true, m_ActPtr->GetPosition());
 }
 
 void KoopaTroopa::ShellHit(bool shellWasBeingHeld)
@@ -281,7 +283,7 @@ void KoopaTroopa::ShellHit(bool shellWasBeingHeld)
 
 	int score = 200;
 	if (shellWasBeingHeld) score = 1000;
-	m_LevelPtr->GetPlayer()->AddScore(score, m_ActPtr->GetPosition());
+	m_LevelPtr->GetPlayer()->AddScore(score, true, m_ActPtr->GetPosition());
 
 	m_ShouldBeRemoved = true;
 }
@@ -291,7 +293,7 @@ void KoopaTroopa::StompKill()
 	EnemyPoofParticle* poofParticlePtr = new EnemyPoofParticle(m_ActPtr->GetPosition());
 	m_LevelPtr->AddParticle(poofParticlePtr);
 
-	m_LevelPtr->GetPlayer()->AddScore(200, m_ActPtr->GetPosition());
+	m_LevelPtr->GetPlayer()->AddScore(200, true, m_ActPtr->GetPosition());
 
 	SoundManager::PlaySoundEffect(SoundManager::Sound::ENEMY_HEAD_STOMP_START);
 	m_LevelPtr->GetPlayer()->ResetNumberOfFramesUntilEndStompSound();

@@ -9,8 +9,7 @@
 // NOTE: If 'life == -1', this coin has an infinite lifetime (until the player picks it up), 
 // otherwise it lives for 'life' ticks before it is removed
 Coin::Coin(DOUBLE2 topLeft, Level* levelPtr, int life, Type type, DOUBLE2 size) :
-	Item(topLeft, type, levelPtr, Level::ITEM, BodyType::STATIC, int(size.x), int(size.y)),
-	m_Life(life)
+	Item(topLeft, type, levelPtr, Level::ITEM, BodyType::STATIC, int(size.x), int(size.y))
 {
 	m_ActPtr->SetSensor(true);
 
@@ -18,9 +17,12 @@ Coin::Coin(DOUBLE2 topLeft, Level* levelPtr, int life, Type type, DOUBLE2 size) 
 
 	if (life > -1)
 	{
+		m_LifeRemaining = CountdownTimer(LIFETIME);
+		m_LifeRemaining.Start();
+
 		// This coin shoots up, then falls down, then disapears
 		m_ActPtr->SetBodyType(BodyType::DYNAMIC);
-		m_ActPtr->SetLinearVelocity(DOUBLE2(0, -250));
+		m_ActPtr->SetLinearVelocity(DOUBLE2(0, INITIAL_Y_VEL));
 	}
 }
 
@@ -29,14 +31,14 @@ void Coin::Tick(double deltaTime)
 	m_AnimInfo.Tick(deltaTime);
 	m_AnimInfo.frameNumber %= 4;
 
-	if (m_Life > -1)
+	if (m_LifeRemaining.Tick())
 	{
-		if (m_Life == LIFETIME)
+		if (m_LifeRemaining.FramesElapsed() == 1)
 		{
 			// NOTE: Give the player the coin right away so that the sound effect play now
 			m_LevelPtr->GiveItemToPlayer(this);
 		}
-		if (--m_Life <= 0)
+		if (m_LifeRemaining.IsComplete())
 		{
 			GenerateParticles();
 			m_LevelPtr->RemoveItem(this);
@@ -44,9 +46,9 @@ void Coin::Tick(double deltaTime)
 	}
 }
 
-int Coin::GetLifeRemaining()
+bool Coin::HasInfiniteLifetime()
 {
-	return m_Life;
+	return m_LifeRemaining.IsActive() == false;
 }
 
 void Coin::GenerateParticles()

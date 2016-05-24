@@ -155,7 +155,7 @@ void KoopaShell::Stomp()
 	EnemyPoofParticle* poofParticlePtr = new EnemyPoofParticle(m_ActPtr->GetPosition());
 	m_LevelPtr->AddParticle(poofParticlePtr);
 
-	m_LevelPtr->GetPlayer()->AddScore(200, m_ActPtr->GetPosition());
+	m_LevelPtr->GetPlayer()->AddScore(200, true, m_ActPtr->GetPosition());
 
 	SoundManager::PlaySoundEffect(SoundManager::Sound::ENEMY_HEAD_STOMP_START);
 	m_LevelPtr->GetPlayer()->ResetNumberOfFramesUntilEndStompSound();

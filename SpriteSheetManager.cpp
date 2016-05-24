@@ -10,9 +10,6 @@ std::vector<Bitmap*> SpriteSheetManager::levelForegroundPtrArr = std::vector<Bit
 
 Bitmap* SpriteSheetManager::hudPtr = nullptr;
 
-Bitmap* SpriteSheetManager::messageBox_01Ptr = nullptr;
-Bitmap* SpriteSheetManager::messageBox_02Ptr = nullptr;
-
 Bitmap* SpriteSheetManager::mainMenuScreenPtr = nullptr;
 Bitmap* SpriteSheetManager::mainMenuScreenBGPtr = nullptr;
 Bitmap* SpriteSheetManager::fontPtr = nullptr;
@@ -24,6 +21,7 @@ SpriteSheet* SpriteSheetManager::beanstalkPtr = nullptr;
 
 Bitmap* SpriteSheetManager::starParticlePtr = nullptr;
 Bitmap* SpriteSheetManager::splatParticlePtr = nullptr;
+Bitmap* SpriteSheetManager::oneUpParticlePtr = nullptr;
 SpriteSheet* SpriteSheetManager::coinCollectParticlePtr = nullptr;
 SpriteSheet* SpriteSheetManager::runningDustCloudParticlePtr = nullptr;
 SpriteSheet* SpriteSheetManager::numberParticlePtr = nullptr;
@@ -59,9 +57,6 @@ void SpriteSheetManager::Load()
 
 	hudPtr = new Bitmap(String("Resources/hud.png"));
 
-	messageBox_01Ptr = new Bitmap(String("Resources/levels/00/message-box-01.png"));
-	messageBox_02Ptr = new Bitmap(String("Resources/levels/00/message-box-02.png"));
-
 	mainMenuScreenPtr = new Bitmap(String("Resources/main-menu-screen.png"));
 	mainMenuScreenBGPtr = new Bitmap(String("Resources/main-menu-bg.png"));
 	fontPtr = new Bitmap(String("Resources/font.png"));
@@ -78,6 +73,7 @@ void SpriteSheetManager::Load()
 	// Particles
 	starParticlePtr = new Bitmap(String("Resources/particles/star-particle.png"));
 	splatParticlePtr = new Bitmap(String("Resources/particles/splat-particle.png"));
+	oneUpParticlePtr = new Bitmap(String("Resources/particles/one-up-particle.png"));
 	coinCollectParticlePtr = new SpriteSheet(String("Resources/particles/coin-collect-particle.png"), 10, 1, 16, 28);
 	runningDustCloudParticlePtr = new SpriteSheet(String("Resources/particles/dust-cloud-particle.png"), 4, 1, 6, 6);
 	numberParticlePtr = new SpriteSheet(String("Resources/particles/number-particle.png"), 10, 1, 4, 7);
@@ -107,9 +103,6 @@ void SpriteSheetManager::Unload()
 
 	delete hudPtr;
 
-	delete messageBox_01Ptr;
-	delete messageBox_02Ptr;
-
 	delete mainMenuScreenPtr;
 	delete mainMenuScreenBGPtr;
 	delete fontPtr;
@@ -126,6 +119,7 @@ void SpriteSheetManager::Unload()
 
 	delete starParticlePtr;
 	delete splatParticlePtr;
+	delete oneUpParticlePtr;
 	delete coinCollectParticlePtr;
 	delete runningDustCloudParticlePtr;
 	delete numberParticlePtr;

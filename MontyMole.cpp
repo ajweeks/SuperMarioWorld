@@ -249,7 +249,7 @@ void MontyMole::HeadBonk()
 		SplatParticle* splatParticlePtr = new SplatParticle(m_ActPtr->GetPosition());
 		m_LevelPtr->AddParticle(splatParticlePtr);
 
-		m_LevelPtr->GetPlayer()->AddScore(200, m_ActPtr->GetPosition());
+		m_LevelPtr->GetPlayer()->AddScore(200, true, m_ActPtr->GetPosition());
 
 		m_ActPtr->SetSensor(true);
 	} break;
@@ -264,7 +264,7 @@ void MontyMole::StompKill()
 	EnemyPoofParticle* poofParticlePtr = new EnemyPoofParticle(m_ActPtr->GetPosition());
 	m_LevelPtr->AddParticle(poofParticlePtr);
 
-	m_LevelPtr->GetPlayer()->AddScore(200, m_ActPtr->GetPosition());
+	m_LevelPtr->GetPlayer()->AddScore(200, true, m_ActPtr->GetPosition());
 
 	m_AnimationState = AnimationState::DEAD;
 	m_ShouldRemoveActor = true;

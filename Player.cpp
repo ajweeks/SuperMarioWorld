@@ -13,6 +13,7 @@
 #include "DustParticle.h"
 #include "NumberParticle.h"
 #include "SplatParticle.h"
+#include "OneUpParticle.h"
 #include "GrabBlock.h"
 
 #include "SuperMushroom.h"
@@ -25,13 +26,14 @@
 #define ENTITY_MANAGER (EntityManager::GetInstance())
 
 // STATIC INITIALIZATIONS
-const double Player::DEFAULT_GRAVITY = 0.98;
-const int Player::JUMP_VEL = -16000;
 const int Player::WALK_BASE_VEL = 5000;
 const int Player::RUN_BASE_VEL = 9500;
+const int Player::JUMP_VEL = -16000;
 const int Player::BOUNCE_VEL = -195;
+const double Player::DEFAULT_GRAVITY = 0.98;
 const int Player::STARTING_LIVES = 5;
 const int Player::YOSHI_DISMOUNT_XVEL = 2500;
+const int Player::YOSHI_TURN_AROUND_FRAMES = 15;
 const double Player::MARIO_SECONDS_PER_FRAME = 0.065;
 
 Player::Player(Level* levelPtr, GameState* gameStatePtr) :
@@ -77,6 +79,7 @@ void Player::Reset()
 	m_ItemHoldingPtr = nullptr;
 
 	m_FramesSpentInAir = -1;
+	m_LastScoreAdded = -1;
 
 	m_DeathAnimationTimer = CountdownTimer(240);
 	m_ShellKickAnimationTimer = CountdownTimer(10);
@@ -87,6 +90,7 @@ void Player::Reset()
 	m_ChangingDirectionsTimer = CountdownTimer(3);
 	m_EnteringPipeTimer = CountdownTimer(60);
 	m_ExitingPipeTimer = CountdownTimer(35);
+	m_ScoreAddedTimer = CountdownTimer(15);
 
 	m_AnimationState = AnimationState::WAITING;
 	m_IsDucking = false;
@@ -207,6 +211,11 @@ void Player::Tick(double deltaTime)
 	m_ChangingDirectionsTimer.Tick();
 	m_ShellKickAnimationTimer.Tick();
 	m_SpawnDustCloudTimer.Tick();
+	
+	if (m_ScoreAddedTimer.Tick() && m_ScoreAddedTimer.IsComplete())
+	{
+		m_LastScoreAdded = -1;
+	}
 
 	if (m_InvincibilityTimer.Tick() && m_InvincibilityTimer.IsComplete())
 	{
@@ -1164,31 +1173,33 @@ void Player::DismountYoshi(bool runWild)
 	m_IsRidingYoshi = false;
 }
 
-void Player::OnItemPickup(Item* itemPtr, Level* levelPtr)
+void Player::OnItemPickup(Item* itemPtr)
 {
 	switch (itemPtr->GetType())
 	{
 	case Item::Type::COIN:
 	{
-		AddCoin(levelPtr);
+		AddCoin((Coin*)itemPtr);
 		Coin* coinPtr = (Coin*)itemPtr;
-		if (coinPtr->GetLifeRemaining() == -1)
+		if (coinPtr->HasInfiniteLifetime())
 		{
 			coinPtr->GenerateParticles();
 		}
-
-		AddScore(10, coinPtr->GetPosition() + DOUBLE2(5, -12));
+		else
+		{
+			AddScore(10, false, coinPtr->GetPosition() + DOUBLE2(5, -12));
+		}
 	} break;
 	case Item::Type::DRAGON_COIN:
 	{
-		AddDragonCoin(levelPtr);
 		DragonCoin* dragonCoinPtr = (DragonCoin*)itemPtr;
+		AddDragonCoin(dragonCoinPtr);
 		dragonCoinPtr->GenerateParticles();
-		AddScore(2000, dragonCoinPtr->GetPosition() + DOUBLE2(5, -12)); // NOTE: Not quite perfectly accurate, but enough for now
+		AddScore(2000, false, dragonCoinPtr->GetPosition() + DOUBLE2(5, -12)); // NOTE: Not quite perfectly accurate, but enough for now
 	} break;
 	case Item::Type::SUPER_MUSHROOM:
 	{
-		AddScore(1000, m_ActPtr->GetPosition());
+		AddScore(1000, false, m_ActPtr->GetPosition());
 
 		switch (m_PowerupState)
 		{
@@ -1306,7 +1317,7 @@ void Player::KickShell(KoopaShell* koopaShellPtr, bool wasThrown)
 	{
 		direction = (m_ActPtr->GetPosition().x > koopaShellPtr->GetPosition().x) ? Direction::LEFT : Direction::RIGHT;
 
-		m_LevelPtr->GetPlayer()->AddScore(200, koopaShellPtr->GetPosition() + DOUBLE2(0, -12));
+		m_LevelPtr->GetPlayer()->AddScore(200, true, koopaShellPtr->GetPosition() + DOUBLE2(0, -12));
 	}
 	koopaShellPtr->KickHorizontally(direction, wasThrown);
 }
@@ -1360,7 +1371,7 @@ void Player::KickHeldItem(double deltaTime, bool gently)
 	m_ShellKickAnimationTimer.Start();
 }
 
-void Player::AddCoin(Level* levelPtr, bool playSound)
+void Player::AddCoin(Coin* coinPtr, bool playSound, bool showParticle)
 {
 	m_Coins++;
 
@@ -1372,14 +1383,14 @@ void Player::AddCoin(Level* levelPtr, bool playSound)
 	if (m_Coins > 99)
 	{
 		m_Coins = 0;
-		AddLife();
+		AddLife(coinPtr->GetPosition());
 		// LATER: Play sound here
 	}
 }
 
-void Player::AddDragonCoin(Level* levelPtr)
+void Player::AddDragonCoin(DragonCoin* dragonCoinPtr)
 {
-	AddCoin(levelPtr, false);
+	AddCoin(false, false);
 	m_DragonCoins++;
 
 	SoundManager::PlaySoundEffect(SoundManager::Sound::DRAGON_COIN_COLLECT);
@@ -1387,15 +1398,18 @@ void Player::AddDragonCoin(Level* levelPtr)
 	if (m_DragonCoins >= 5)
 	{
 		m_DragonCoins = 0;
-		AddLife();
-		levelPtr->SetAllDragonCoinsCollected(true);
+		AddLife(dragonCoinPtr->GetPosition());
+		m_LevelPtr->SetAllDragonCoinsCollected(true);
 	}
 }
 
-void Player::AddLife()
+void Player::AddLife(DOUBLE2 particlePos)
 {
 	m_Lives++;
-	// LATER: Play sound here
+	OneUpParticle* oneUpParticlePtr = new OneUpParticle(particlePos);
+	m_LevelPtr->AddParticle(oneUpParticlePtr);
+
+	SoundManager::PlaySoundEffect(SoundManager::Sound::PLAYER_ONE_UP);
 }
 
 void Player::Bounce()
@@ -1405,12 +1419,12 @@ void Player::Bounce()
 
 void Player::Die()
 {
-	// TODO: Lives don't decrement right as the player dies, but after the screen
-	// goes dark and right before the map is shown
+	// TODO: In the original, lives don't decrement immediately as the player dies, 
+	// but rather after the screen goes dark and right before the map is shown
 	m_Lives--;
 	if (m_Lives < 0)
 	{
-		// LATER: Trigger game over screen
+		// LATER: Trigger game over screen (in level select state)
 		m_Lives = STARTING_LIVES;
 	}
 
@@ -1463,7 +1477,7 @@ void Player::TakeDamage()
 	}
 }
 
-void Player::AddScore(int score, DOUBLE2 particlePosition)
+void Player::AddScore(int score, bool combo, DOUBLE2 particlePosition)
 {
 	if (score < 0)
 	{
@@ -1471,11 +1485,36 @@ void Player::AddScore(int score, DOUBLE2 particlePosition)
 		return;
 	}
 
-	m_Score += score;
+	int scoreToAdd = score;
+	if (combo)
+	{
+		if (m_LastScoreAdded != -1)
+		{
+			switch (m_LastScoreAdded)
+			{
+			case 200:  scoreToAdd =  400; break;
+			case 400:  scoreToAdd =  800; break;
+			case 800:  scoreToAdd = 1000; break;
+			case 1000: scoreToAdd = 2000; break;
+			case 2000: scoreToAdd = 4000; break;
+			case 4000: scoreToAdd = 8000; break;
+			case 8000: 
+			{
+				m_LastScoreAdded = score;
+				AddLife(particlePosition);
+			} break;
+			}
+		}
+
+		m_LastScoreAdded = scoreToAdd;
+		m_ScoreAddedTimer.Start();
+	}
+
+	m_Score += scoreToAdd;
 
 	if (particlePosition != DOUBLE2())
 	{
-		NumberParticle* numberParticlePtr = new NumberParticle(score, particlePosition);
+		NumberParticle* numberParticlePtr = new NumberParticle(scoreToAdd, particlePosition);
 		m_LevelPtr->AddParticle(numberParticlePtr);
 	}
 }

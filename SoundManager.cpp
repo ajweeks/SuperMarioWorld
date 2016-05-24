@@ -41,6 +41,7 @@ void SoundManager::InitialzeSoundsAndSongs()
 	LoadSound(Sound::PLAYER_SUPER_MUSHROOM_COLLECT, m_ResourcePath + String("player-super-mushroom-collect.wav"));
 	LoadSound(Sound::PLAYER_DEATH, m_ResourcePath + String("player-death.wav"));
 	LoadSound(Sound::PLAYER_DAMAGE, m_ResourcePath + String("player-damage+pipe-enter.wav"));
+	LoadSound(Sound::PLAYER_ONE_UP, m_ResourcePath + String("one-up.wav"));
 
 	LoadSound(Sound::COIN_COLLECT, m_ResourcePath + String("coin-collect.wav"));
 	LoadSound(Sound::DRAGON_COIN_COLLECT, m_ResourcePath + String("dragon-coin-collect.wav"));

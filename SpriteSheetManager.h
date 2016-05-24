@@ -19,9 +19,6 @@ public:
 
 	static Bitmap* hudPtr;
 
-	static Bitmap* messageBox_01Ptr;
-	static Bitmap* messageBox_02Ptr;
-	
 	static Bitmap* mainMenuScreenPtr;
 	static Bitmap* mainMenuScreenBGPtr;
 	static Bitmap* fontPtr;
@@ -33,6 +30,7 @@ public:
 
 	static Bitmap* starParticlePtr;
 	static Bitmap* splatParticlePtr;
+	static Bitmap* oneUpParticlePtr;
 	static SpriteSheet* coinCollectParticlePtr;
 	static SpriteSheet* runningDustCloudParticlePtr;
 	static SpriteSheet* numberParticlePtr;

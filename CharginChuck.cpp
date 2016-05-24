@@ -251,7 +251,7 @@ void CharginChuck::HeadBonk()
 			m_AnimationState = AnimationState::HURT;
 			m_HurtTimer.Start();
 		
-			m_LevelPtr->GetPlayer()->AddScore(800, m_ActPtr->GetPosition());
+			m_LevelPtr->GetPlayer()->AddScore(800, false, m_ActPtr->GetPosition());
 		}
 		else
 		{

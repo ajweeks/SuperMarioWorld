@@ -346,7 +346,7 @@ void Level::Paint()
 					if (m_FinalExtraScore.m_ScoreShowing - delta < 0) delta = m_FinalExtraScore.m_ScoreShowing;
 
 					m_FinalExtraScore.m_ScoreShowing -= delta;
-					m_PlayerPtr->AddScore(delta);
+					m_PlayerPtr->AddScore(delta, false);
 				}
 
 				if (m_FinalExtraScore.m_BonusScoreShowing > 0)
@@ -836,7 +836,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 				{
 					break;
 				}
-			} // NOTE: No break here! We want this case to fall through
+			} // NOTE: No break here! Let it fallthrough
 			case Item::Type::DRAGON_COIN:
 			case Item::Type::SUPER_MUSHROOM:
 			case Item::Type::STAR:
@@ -846,7 +846,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			case Item::Type::ONE_UP_MUSHROOM:
 			case Item::Type::THREE_UP_MOON:
 			{
-				m_PlayerPtr->OnItemPickup(itemPtr, this);
+				m_PlayerPtr->OnItemPickup(itemPtr);
 				m_ItemsToBeRemovedPtrArr.push_back(itemPtr);
 			} break;
 			case Item::Type::PRIZE_BLOCK:
@@ -1103,7 +1103,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 					{
 						m_PlayerPtr->DropHeldItem();
 						thisKoopaShellPtr->ShellHit(m_PlayerPtr->GetDirectionFacing());
-						m_PlayerPtr->AddScore(1000, thisKoopaShellPtr->GetPosition());
+						m_PlayerPtr->AddScore(1000, false, thisKoopaShellPtr->GetPosition());
 					}
 					else if (!otherKoopaShellPtr->IsMoving())
 					{
@@ -1307,7 +1307,7 @@ Player* Level::GetPlayer()
 
 void Level::GiveItemToPlayer(Item* itemPtr)
 {
-	m_PlayerPtr->OnItemPickup(itemPtr, this);
+	m_PlayerPtr->OnItemPickup(itemPtr);
 }
 
 void Level::AddYoshi(Yoshi* yoshiPtr)
