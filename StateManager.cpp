@@ -5,12 +5,11 @@
 #include "MainMenuState.h"
 #include "GameState.h"
 
-
 StateManager::StateManager(Game* gamePtr) : 
 	m_GamePtr(gamePtr)
 {
 #if SMW_SKIP_MAIN_MENU
-	m_StatesPtrArr.push_back(new GameState(this));
+	m_StatesPtrStack.push(new GameState(this));
 #else
 	m_StatesPtrArr.push_back(new MainMenuState(this));
 #endif
@@ -18,11 +17,11 @@ StateManager::StateManager(Game* gamePtr) :
 
 StateManager::~StateManager()
 {
-	for (size_t i = 0; i < m_StatesPtrArr.size(); ++i)
+	for (size_t i = 0; i < m_StatesPtrStack.size(); ++i)
 	{
-		delete m_StatesPtrArr[i];
+		delete m_StatesPtrStack.top();
+		m_StatesPtrStack.pop();
 	}
-	m_StatesPtrArr.clear();
 }
 
 void StateManager::Tick(double deltaTime)
@@ -37,21 +36,20 @@ void StateManager::Paint()
 
 BaseState* StateManager::CurrentState()
 {
-	return m_StatesPtrArr[m_StatesPtrArr.size() - 1];
+	return m_StatesPtrStack.top();
 }
 
 void StateManager::PushState(BaseState* newStatePtr)
 {
-	m_StatesPtrArr.push_back(newStatePtr);
+	m_StatesPtrStack.push(newStatePtr);
 }
 
-BaseState* StateManager::PopState()
+void StateManager::PopState()
 {
-	if (m_StatesPtrArr.size() == 1) return nullptr;
+	if (m_StatesPtrStack.size() == 1) return;
 
-	BaseState* statePtr = CurrentState();
-	m_StatesPtrArr.pop_back();
-	return statePtr;
+	delete CurrentState();
+	m_StatesPtrStack.pop();
 }
 
 Game* StateManager::GetGamePtr()

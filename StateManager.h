@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stack>
 #include "Game.h"
 
 class BaseState;
@@ -19,7 +20,7 @@ public:
 	inline BaseState* CurrentState();
 
 	void PushState(BaseState* newStatePtr);
-	BaseState* PopState();
+	void PopState();
 
 	Game* GetGamePtr();
 
@@ -27,5 +28,5 @@ private:
 
 	Game* m_GamePtr = nullptr;
 
-	std::vector<BaseState*> m_StatesPtrArr;
+	std::stack<BaseState*> m_StatesPtrStack;
 };
