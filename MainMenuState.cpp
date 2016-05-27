@@ -7,6 +7,7 @@
 #include "SoundManager.h"
 #include "SpriteSheetManager.h"
 #include "SMWFont.h"
+#include "Keybindings.h"
 
 MainMenuState::MainMenuState(StateManager* stateManagerPtr) :
 	BaseState(stateManagerPtr, StateType::MAIN_MENU)
@@ -37,11 +38,11 @@ void MainMenuState::Tick(double deltaTime)
 	
 	if (m_IntroFadeInTimer.Tick())
 	{
-		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE) ||
-			GAME_ENGINE->IsKeyboardKeyPressed('A') ||
-			GAME_ENGINE->IsKeyboardKeyPressed('S') ||
-			GAME_ENGINE->IsKeyboardKeyPressed('Z') ||
-			GAME_ENGINE->IsKeyboardKeyPressed('X'))
+		if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::START_BUTTON) ||
+			GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::Y_BUTTON) ||
+			GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::X_BUTTON) ||
+			GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::A_BUTTON) ||
+			GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::B_BUTTON))
 		{
 			m_IntroFadeInTimer.SetComplete();
 		}
@@ -63,7 +64,7 @@ void MainMenuState::Tick(double deltaTime)
 	// All states but start state handle up/down presses identically
 	if (m_ScreenShowing != Screen::START)
 	{
-		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_DOWN))
+		if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::D_PAD_DOWN))
 		{
 			++m_CursorIndex;
 			if (m_CursorIndex > m_MaxCursorIndex) m_CursorIndex = 0;
@@ -71,7 +72,7 @@ void MainMenuState::Tick(double deltaTime)
 			SoundManager::PlaySoundEffect(SoundManager::Sound::FIRE_BALL_THROW);
 			m_CursorAnimationTimer = 0;
 		}
-		else if (GAME_ENGINE->IsKeyboardKeyPressed(VK_UP))
+		else if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::D_PAD_UP))
 		{
 			--m_CursorIndex;
 			if (m_CursorIndex < 0) m_CursorIndex = m_MaxCursorIndex;
@@ -85,20 +86,20 @@ void MainMenuState::Tick(double deltaTime)
 	{
 	case Screen::START:
 	{
-		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE) ||
-			GAME_ENGINE->IsKeyboardKeyPressed('A') ||
-			GAME_ENGINE->IsKeyboardKeyPressed('S') ||
-			GAME_ENGINE->IsKeyboardKeyPressed('Z') ||
-			GAME_ENGINE->IsKeyboardKeyPressed('X'))
+		if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::START_BUTTON) ||
+			GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::Y_BUTTON) ||
+			GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::X_BUTTON) ||
+			GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::A_BUTTON) ||
+			GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::B_BUTTON))
 		{
 			EnterScreen(Screen::SAVE_SELECTION);
 		}
 	} break;
 	case Screen::SAVE_SELECTION:
 	{
-		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE) ||
-			GAME_ENGINE->IsKeyboardKeyPressed('Z') ||
-			GAME_ENGINE->IsKeyboardKeyPressed('X'))
+		if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::START_BUTTON) ||
+			GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::A_BUTTON) ||
+			GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::B_BUTTON))
 		{
 			if (m_CursorIndex == 3)
 			{
@@ -116,9 +117,9 @@ void MainMenuState::Tick(double deltaTime)
 	} break;
 	case Screen::ERASE_DATA:
 	{
-		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE) ||
-			GAME_ENGINE->IsKeyboardKeyPressed('Z') ||
-			GAME_ENGINE->IsKeyboardKeyPressed('X'))
+		if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::START_BUTTON) ||
+			GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::A_BUTTON) ||
+			GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::B_BUTTON))
 		{
 			if (m_CursorIndex == 3)
 			{
@@ -132,23 +133,23 @@ void MainMenuState::Tick(double deltaTime)
 
 			SoundManager::PlaySoundEffect(SoundManager::Sound::COIN_COLLECT);
 		}
-		else if (GAME_ENGINE->IsKeyboardKeyPressed('A') ||
-			GAME_ENGINE->IsKeyboardKeyPressed('S'))
+		else if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::Y_BUTTON) ||
+			GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::X_BUTTON))
 		{
 			EnterScreen(Screen::SAVE_SELECTION);
 		}
 	} break;
 	case Screen::PARTY_SIZE:
 	{
-		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE) ||
-			GAME_ENGINE->IsKeyboardKeyPressed('Z') ||
-			GAME_ENGINE->IsKeyboardKeyPressed('X'))
+		if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::START_BUTTON) ||
+			GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::A_BUTTON) ||
+			GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::B_BUTTON))
 		{
 			m_OutroFadeOutTimer.Start();
 			SoundManager::PlaySoundEffect(SoundManager::Sound::COIN_COLLECT);
 		}
-		else if (GAME_ENGINE->IsKeyboardKeyPressed('A') ||
-				 GAME_ENGINE->IsKeyboardKeyPressed('S'))
+		else if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::Y_BUTTON) ||
+				 GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::X_BUTTON))
 		{	
 			EnterScreen(Screen::SAVE_SELECTION);
 		}

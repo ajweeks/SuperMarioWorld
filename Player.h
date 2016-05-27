@@ -107,7 +107,6 @@ public:
 private:
 	void HandleKeyboardInput(double deltaTime);
 	void HandleClimbingStateKeyboardInput(double deltaTime);
-	void HandleYoshiKeyboardInput(double deltaTime);
 
 	void AddDragonCoin(DragonCoin* dragonCoinPtr);
 	void AddLife(DOUBLE2 particlePos);

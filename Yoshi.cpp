@@ -476,6 +476,8 @@ void Yoshi::SpitOutItem()
 
 void Yoshi::StickTongueOut(double deltaTime)
 {
+	if (m_IsTongueStuckOut) return;
+
 	m_IsTongueStuckOut = true;
 	m_TongueTimer.Start();
 	

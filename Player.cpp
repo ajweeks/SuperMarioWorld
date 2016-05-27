@@ -8,6 +8,7 @@
 #include "SpriteSheetManager.h"
 #include "INT2.h"
 #include "GameSession.h"
+#include "Keybindings.h"
 
 #include "SoundManager.h"
 #include "DustParticle.h"
@@ -125,7 +126,7 @@ void Player::Reset()
 void Player::Tick(double deltaTime)
 {
 #ifdef SMW_ENABLE_JUMP_TO
-	if (GAME_ENGINE->IsKeyboardKeyPressed('O'))
+	if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::DEBUG_TELEPORT_PLAYER))
 	{
 		m_ActPtr->SetPosition(DOUBLE2(SMW_JUMP_TO_POS_X, 250));
 	}
@@ -251,8 +252,8 @@ void Player::Tick(double deltaTime)
 
 	if (m_AnimationState != AnimationState::CLIMBING &&
 		m_IsOverlappingWithBeanstalk &&
-		(GAME_ENGINE->IsKeyboardKeyDown(VK_UP) || 
-		(!m_IsOnGround && GAME_ENGINE->IsKeyboardKeyDown(VK_DOWN))))
+		(GAME_ENGINE->IsKeyboardKeyDown(Keybindings::D_PAD_UP) ||
+		(!m_IsOnGround && GAME_ENGINE->IsKeyboardKeyDown(Keybindings::D_PAD_DOWN))))
 	{
 		SetClimbingBeanstalk(true);
 	}
@@ -278,7 +279,7 @@ void Player::Tick(double deltaTime)
 
 void Player::HandleClimbingStateKeyboardInput(double deltaTime)
 {
-	if (GAME_ENGINE->IsKeyboardKeyPressed('Z')) // NOTE: Regular jump
+	if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::B_BUTTON)) // NOTE: Regular jump
 	{
 		SetClimbingBeanstalk(false);
 		m_AnimationState = AnimationState::JUMPING;
@@ -291,11 +292,11 @@ void Player::HandleClimbingStateKeyboardInput(double deltaTime)
 
 	DOUBLE2 prevPlayerPos = m_ActPtr->GetPosition();
 	bool moved = true;
-	if (GAME_ENGINE->IsKeyboardKeyDown(VK_UP))
+	if (GAME_ENGINE->IsKeyboardKeyDown(Keybindings::D_PAD_UP))
 	{
 		m_ActPtr->SetPosition(prevPlayerPos.x, prevPlayerPos.y - 1);
 	}
-	else if (GAME_ENGINE->IsKeyboardKeyDown(VK_DOWN))
+	else if (GAME_ENGINE->IsKeyboardKeyDown(Keybindings::D_PAD_DOWN))
 	{
 		m_ActPtr->SetPosition(prevPlayerPos.x, prevPlayerPos.y + 1);
 
@@ -306,11 +307,11 @@ void Player::HandleClimbingStateKeyboardInput(double deltaTime)
 			return;
 		}
 	} 
-	else if (GAME_ENGINE->IsKeyboardKeyDown(VK_LEFT))
+	else if (GAME_ENGINE->IsKeyboardKeyDown(Keybindings::D_PAD_LEFT))
 	{
 		m_ActPtr->SetPosition(prevPlayerPos.x - 1, prevPlayerPos.y);
 	}
-	else if (GAME_ENGINE->IsKeyboardKeyDown(VK_RIGHT))
+	else if (GAME_ENGINE->IsKeyboardKeyDown(Keybindings::D_PAD_RIGHT))
 	{
 		m_ActPtr->SetPosition(prevPlayerPos.x + 1, prevPlayerPos.y);
 	}
@@ -328,157 +329,13 @@ void Player::HandleClimbingStateKeyboardInput(double deltaTime)
 	}
 }
 
-void Player::HandleYoshiKeyboardInput(double deltaTime)
-{
-	assert(m_RidingYoshiPtr != nullptr);
-	assert(m_IsRidingYoshi);
-
-	if (AttemptToEnterPipes()) return;
-
-	int maxXVel = (m_IsRunning ? MAX_RUN_VEL : MAX_WALK_VEL);
-	// How fast we would be going if we had instant acceleration
-	double targetXVel = 0.0, 
-		   targetYVel = 0.0;
-
-	// Spin jump (dismount yoshi)
-	if (GAME_ENGINE->IsKeyboardKeyPressed('X')) 
-	{
-		targetYVel = JUMP_VEL * deltaTime;
-		if (m_RidingYoshiPtr->IsAirborne())
-		{
-			m_AnimationState = AnimationState::JUMPING;
-		}
-		else
-		{
-			m_AnimationState = AnimationState::SPIN_JUMPING;
-			m_DirFacing = -m_RidingYoshiPtr->GetDirectionFacing();
-			targetXVel = m_DirFacing * YOSHI_DISMOUNT_XVEL;
-			SoundManager::PlaySoundEffect(SoundManager::Sound::PLAYER_SPIN_JUMP);
-		}
-		m_FramesSpentInAir = 0;
-		DismountYoshi();
-	}
-	else
-	{
-		m_IsOnGround = CalculateOnGround();
-		if (m_IsOnGround && GAME_ENGINE->IsKeyboardKeyDown(VK_DOWN))
-		{
-			m_IsDucking = true;
-			m_AnimationState = AnimationState::WAITING;
-		}
-		else
-		{
-			m_IsDucking = false;
-		}
-
-		if (!m_WasOnGround && m_IsOnGround)
-		{
-			m_AnimationState = AnimationState::WAITING;
-		}
-
-		if (m_IsDucking == false) 
-		{
-			if (GAME_ENGINE->IsKeyboardKeyDown(VK_LEFT))
-			{
-				m_AnimationState = AnimationState::WALKING;
-				m_DirFacing = Direction::LEFT;
-				targetXVel = maxXVel * m_DirFacing;
-			}
-			else if (GAME_ENGINE->IsKeyboardKeyDown(VK_RIGHT))
-			{
-				m_AnimationState = AnimationState::WALKING;
-				m_DirFacing = Direction::RIGHT;
-				targetXVel = maxXVel * m_DirFacing;
-			}
-			else if (m_AnimationState == AnimationState::WALKING)
-			{
-				m_AnimationState = AnimationState::WAITING;
-			}
-
-			// Spit out item
-			if (GAME_ENGINE->IsKeyboardKeyPressed('A') ||
-				GAME_ENGINE->IsKeyboardKeyPressed('S'))
-			{
-				m_RidingYoshiPtr->SpitOutItem();
-			
-				if (m_RidingYoshiPtr->IsTongueStuckOut() == false)
-				{
-					m_RidingYoshiPtr->StickTongueOut(deltaTime);
-				}
-			}
-
-			// Run
-			if (GAME_ENGINE->IsKeyboardKeyDown('A') ||
-				GAME_ENGINE->IsKeyboardKeyDown('S'))
-			{
-				if (m_AnimationState == AnimationState::WALKING)
-				{
-					m_IsRunning = true;
-					targetXVel = maxXVel * m_DirFacing;
-				}
-			}
-			else
-			{
-				m_IsRunning = false;
-			}
-		}
-
-		// Regular jump
-		if (m_IsOnGround && GAME_ENGINE->IsKeyboardKeyPressed('Z'))
-		{
-			m_AnimationState = AnimationState::JUMPING;
-			targetYVel = m_RidingYoshiPtr->JUMP_VEL;
-		}
-
-		if (m_DirFacingLastFrame != m_DirFacing)
-		{
-			m_ChangingDirectionsTimer.Start();
-
-			if (m_IsOnGround && m_SpawnDustCloudTimer.IsActive() == false)
-			{
-				DustParticle* dustParticlePtr = new DustParticle(m_ActPtr->GetPosition() + DOUBLE2(0, GetHeight() / 2 + 1));
-				m_LevelPtr->AddParticle(dustParticlePtr);
-				m_SpawnDustCloudTimer.Start();
-
-			}
-		}
-	}
-
-	DOUBLE2 prevVel = m_ActPtr->GetLinearVelocity();
-	int horizontalAcceleration = int((m_IsRunning ? RUNNING_ACCELERATION : WALKING_ACCELERATION) * deltaTime);
-	double horizontalVel = 0.0;
-	if (prevVel.x > targetXVel)
-	{
-		horizontalVel = -horizontalAcceleration * deltaTime;
-	}
-	else if (prevVel.x < targetXVel)
-	{
-		horizontalVel = horizontalAcceleration * deltaTime;
-	}
-	horizontalVel = min(maxXVel, horizontalVel);
-
-	DOUBLE2 newVel = prevVel + DOUBLE2(horizontalVel, targetYVel);
-	m_ActPtr->SetLinearVelocity(newVel);
-
-	m_DirFacingLastFrame = m_DirFacing;
-	m_WasOnGround = m_IsOnGround;
-}
-
 void Player::HandleKeyboardInput(double deltaTime)
 {
-	if (m_IsDead)
-	{
-		return; // NOTE: The player can't do much now...
-	}
-
+	if (m_IsDead) return; // NOTE: The player can't do much now...
+	
 	if (m_AnimationState == AnimationState::CLIMBING)
 	{
 		HandleClimbingStateKeyboardInput(deltaTime);
-		return;
-	}
-	else if (m_IsRidingYoshi)
-	{
-		HandleYoshiKeyboardInput(deltaTime);
 		return;
 	}
 
@@ -490,13 +347,13 @@ void Player::HandleKeyboardInput(double deltaTime)
 		   targetYVel = 0.0;
 
 	if (m_IsDucking &&
-		GAME_ENGINE->IsKeyboardKeyDown(VK_DOWN) == false)
+		GAME_ENGINE->IsKeyboardKeyDown(Keybindings::D_PAD_DOWN) == false)
 	{
 		m_AnimationState = AnimationState::WAITING;
 		m_IsDucking = false;
 	}
 	if (m_IsLookingUp &&
-		GAME_ENGINE->IsKeyboardKeyDown(VK_UP) == false)
+		GAME_ENGINE->IsKeyboardKeyDown(Keybindings::D_PAD_UP) == false)
 	{
 		m_AnimationState = AnimationState::WAITING;
 		m_IsLookingUp = false;
@@ -510,8 +367,8 @@ void Player::HandleKeyboardInput(double deltaTime)
 			m_AnimationState = AnimationState::WAITING;
 		}
 
-		bool regularJumpKeyPressed = GAME_ENGINE->IsKeyboardKeyPressed('Z');
-		bool spinJumpKeyPressed = GAME_ENGINE->IsKeyboardKeyPressed('X');
+		bool regularJumpKeyPressed = GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::B_BUTTON);
+		bool spinJumpKeyPressed = GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::A_BUTTON);
 
 		if (m_AnimationState != AnimationState::SPIN_JUMPING &&
 			regularJumpKeyPressed ||
@@ -528,13 +385,37 @@ void Player::HandleKeyboardInput(double deltaTime)
 		}
 		else if (spinJumpKeyPressed) 
 		{
-			// Spin jump
-			m_AnimationState = AnimationState::SPIN_JUMPING;
-			m_IsOnGround = false;
-			SoundManager::PlaySoundEffect(SoundManager::Sound::PLAYER_SPIN_JUMP);
-			m_FramesSpentInAir = 0;
-			targetYVel = JUMP_VEL * deltaTime;
-			m_IsLookingUp = false;
+			if (m_IsRidingYoshi)
+			{
+				// Dismount Yoshi
+				if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::A_BUTTON))
+				{
+					targetYVel = JUMP_VEL * deltaTime;
+					if (m_RidingYoshiPtr->IsAirborne())
+					{
+						m_AnimationState = AnimationState::JUMPING;
+					}
+					else
+					{
+						m_AnimationState = AnimationState::SPIN_JUMPING;
+						m_DirFacing = -m_RidingYoshiPtr->GetDirectionFacing();
+						targetXVel = m_DirFacing * YOSHI_DISMOUNT_XVEL;
+						SoundManager::PlaySoundEffect(SoundManager::Sound::PLAYER_SPIN_JUMP);
+					}
+					m_FramesSpentInAir = 0;
+					DismountYoshi();
+				}
+			}
+			else
+			{
+				// Normal Spin jump
+				m_AnimationState = AnimationState::SPIN_JUMPING;
+				m_IsOnGround = false;
+				SoundManager::PlaySoundEffect(SoundManager::Sound::PLAYER_SPIN_JUMP);
+				m_FramesSpentInAir = 0;
+				targetYVel = JUMP_VEL * deltaTime;
+				m_IsLookingUp = false;
+			}
 		}
 		else
 		{
@@ -548,8 +429,8 @@ void Player::HandleKeyboardInput(double deltaTime)
 		if (m_ActPtr->GetLinearVelocity().y < -100.0)
 		{
 			// The player is still rising and can hold down the jump key to jump higher
-			if (GAME_ENGINE->IsKeyboardKeyDown('Z') ||
-				GAME_ENGINE->IsKeyboardKeyDown('X'))
+			if (GAME_ENGINE->IsKeyboardKeyDown(Keybindings::B_BUTTON) ||
+				GAME_ENGINE->IsKeyboardKeyDown(Keybindings::A_BUTTON))
 			{
 				// NOTE: gravityScale is close to 1 at the start of the jump
 				// and goes towards 0 near the apex
@@ -575,7 +456,7 @@ void Player::HandleKeyboardInput(double deltaTime)
 		}
 	}
 
-	if (GAME_ENGINE->IsKeyboardKeyDown(VK_LEFT))
+	if (GAME_ENGINE->IsKeyboardKeyDown(Keybindings::D_PAD_LEFT))
 	{
 		m_DirFacing = Direction::LEFT;
 		if (m_AnimationState != AnimationState::JUMPING &&
@@ -588,7 +469,7 @@ void Player::HandleKeyboardInput(double deltaTime)
 		}
 		targetXVel = maxXVel * m_DirFacing;
 	}
-	else if (GAME_ENGINE->IsKeyboardKeyDown(VK_RIGHT))
+	else if (GAME_ENGINE->IsKeyboardKeyDown(Keybindings::D_PAD_RIGHT))
 	{
 		m_DirFacing = Direction::RIGHT;
 		if (m_AnimationState != AnimationState::JUMPING &&
@@ -602,27 +483,41 @@ void Player::HandleKeyboardInput(double deltaTime)
 		targetXVel = maxXVel * m_DirFacing;
 	}
 
-	// Grab blocks
-	if (m_IsHoldingItem == false &&
-		GAME_ENGINE->IsKeyboardKeyPressed('A') || GAME_ENGINE->IsKeyboardKeyPressed('S'))
+	if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::Y_BUTTON) || GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::X_BUTTON))
 	{
-		if (m_RecentlyTouchedGrabBlocksPtrArr[0] != nullptr)
+		if (m_IsRidingYoshi)
 		{
-			AddItemToBeHeld((Item*)m_RecentlyTouchedGrabBlocksPtrArr[0]);
-			m_RecentlyTouchedGrabBlocksPtrArr[0] = nullptr;
-
-			if (m_RecentlyTouchedGrabBlocksPtrArr[1] != nullptr)
+			if (m_IsDucking == false)
 			{
-				m_RecentlyTouchedGrabBlocksPtrArr[0] = m_RecentlyTouchedGrabBlocksPtrArr[1];
-				m_RecentlyTouchedGrabBlocksPtrArr[1] = nullptr;
+				// Spit out item
+				m_RidingYoshiPtr->SpitOutItem();
+
+				if (m_RidingYoshiPtr->IsTongueStuckOut() == false)
+				{
+					m_RidingYoshiPtr->StickTongueOut(deltaTime);
+				}
+			}
+		}
+		else if (m_IsHoldingItem == false)
+		{
+			// Grab blocks
+			if (m_RecentlyTouchedGrabBlocksPtrArr[0] != nullptr)
+			{
+				AddItemToBeHeld((Item*)m_RecentlyTouchedGrabBlocksPtrArr[0]);
+				m_RecentlyTouchedGrabBlocksPtrArr[0] = nullptr;
+
+				if (m_RecentlyTouchedGrabBlocksPtrArr[1] != nullptr)
+				{
+					m_RecentlyTouchedGrabBlocksPtrArr[0] = m_RecentlyTouchedGrabBlocksPtrArr[1];
+					m_RecentlyTouchedGrabBlocksPtrArr[1] = nullptr;
+				}
 			}
 		}
 	}
 
 	if (targetXVel != 0.0)
 	{
-		// TODO: Move all keybindings out to external file
-		if (GAME_ENGINE->IsKeyboardKeyDown('A') || GAME_ENGINE->IsKeyboardKeyDown('S')) // Running
+		if (GAME_ENGINE->IsKeyboardKeyDown(Keybindings::Y_BUTTON) || GAME_ENGINE->IsKeyboardKeyDown(Keybindings::X_BUTTON)) // Running
 		{
 			if (!m_IsDucking)
 			{
@@ -645,14 +540,14 @@ void Player::HandleKeyboardInput(double deltaTime)
 	}
 	else
 	{
-		if (!GAME_ENGINE->IsKeyboardKeyDown('A') && !GAME_ENGINE->IsKeyboardKeyDown('S')) // Running
+		if (!GAME_ENGINE->IsKeyboardKeyDown(Keybindings::Y_BUTTON) && !GAME_ENGINE->IsKeyboardKeyDown(Keybindings::X_BUTTON)) // Running
 		{
 			m_IsRunning = false;
 		}
 	}
 
 	// Only look up if we aren't moving horizontally or vertically
-	if (GAME_ENGINE->IsKeyboardKeyDown(VK_UP))
+	if (GAME_ENGINE->IsKeyboardKeyDown(Keybindings::D_PAD_UP))
 	{
 		if (m_IsOverlappingWithBeanstalk)
 		{
@@ -666,7 +561,7 @@ void Player::HandleKeyboardInput(double deltaTime)
 			m_IsLookingUp = true;
 		}
 	}
-	else if (GAME_ENGINE->IsKeyboardKeyDown(VK_DOWN))
+	else if (GAME_ENGINE->IsKeyboardKeyDown(Keybindings::D_PAD_DOWN))
 	{
 		if (m_IsOverlappingWithBeanstalk && !m_IsOnGround)
 		{
@@ -1361,7 +1256,7 @@ void Player::KickHeldItem(double deltaTime, bool gently)
 	}
 	else
 	{
-		if (GAME_ENGINE->IsKeyboardKeyDown(VK_UP))
+		if (GAME_ENGINE->IsKeyboardKeyDown(Keybindings::D_PAD_UP))
 		{
 			double scale = 0.5;
 			double horizontalVel = (m_ActPtr->GetLinearVelocity().x) * scale;
@@ -1686,28 +1581,28 @@ bool Player::AttemptToEnterPipes()
 {
 	if (m_TouchingPipe)
 	{
-		if (GAME_ENGINE->IsKeyboardKeyDown(VK_DOWN) &&
+		if (GAME_ENGINE->IsKeyboardKeyDown(Keybindings::D_PAD_DOWN) &&
 			m_PipeTouchingPtr->GetOrientation() == Pipe::Orientation::UP &&
 			m_PipeTouchingPtr->IsPlayerInPositionToEnter(this))
 		{
 			EnterPipe();
 			return true;
 		}
-		else if (GAME_ENGINE->IsKeyboardKeyDown(VK_UP) &&
+		else if (GAME_ENGINE->IsKeyboardKeyDown(Keybindings::D_PAD_UP) &&
 			m_PipeTouchingPtr->GetOrientation() == Pipe::Orientation::DOWN &&
 			m_PipeTouchingPtr->IsPlayerInPositionToEnter(this))
 		{
 			EnterPipe();
 			return true;
 		}
-		else if (GAME_ENGINE->IsKeyboardKeyDown(VK_RIGHT) &&
+		else if (GAME_ENGINE->IsKeyboardKeyDown(Keybindings::D_PAD_RIGHT) &&
 			m_PipeTouchingPtr->GetOrientation() == Pipe::Orientation::LEFT &&
 			m_PipeTouchingPtr->IsPlayerInPositionToEnter(this))
 		{
 			EnterPipe();
 			return true;
 		}
-		else if (GAME_ENGINE->IsKeyboardKeyDown(VK_LEFT) &&
+		else if (GAME_ENGINE->IsKeyboardKeyDown(Keybindings::D_PAD_LEFT) &&
 			m_PipeTouchingPtr->GetOrientation() == Pipe::Orientation::RIGHT &&
 			m_PipeTouchingPtr->IsPlayerInPositionToEnter(this))
 		{

@@ -9,6 +9,7 @@
 #include "HUD.h"
 #include "LevelInfo.h"
 #include "SMWFont.h"
+#include "Keybindings.h"
 
 #include "Platform.h"
 #include "Pipe.h"
@@ -160,11 +161,11 @@ void Level::Tick(double deltaTime)
 		if (m_ActiveMessagePtr->IsShowingMessage())
 		{
 			if (m_PlayerPtr->IsDead() == false &&
-				GAME_ENGINE->IsKeyboardKeyPressed('A') ||
-				GAME_ENGINE->IsKeyboardKeyPressed('S') ||
-				GAME_ENGINE->IsKeyboardKeyPressed('Z') ||
-				GAME_ENGINE->IsKeyboardKeyPressed('X') ||
-				GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE))
+				GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::X_BUTTON) ||
+				GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::Y_BUTTON) ||
+				GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::A_BUTTON) ||
+				GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::B_BUTTON) ||
+				GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::START_BUTTON))
 			{
 				m_ActiveMessagePtr->StartOutroAnimation();
 				return;
@@ -173,7 +174,7 @@ void Level::Tick(double deltaTime)
 	}
 	else if (m_PlayerPtr->IsDead() == false &&
 			m_GamePtr->ShowingSessionInfo() == false &&
-			GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE))
+			GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::START_BUTTON))
 	{
 		TogglePaused(true);
 		SoundManager::PlaySoundEffect(SoundManager::Sound::GAME_PAUSE);
@@ -211,7 +212,7 @@ void Level::Tick(double deltaTime)
 	}
 
 	if (m_PlayerPtr->GetExtraItemType() != Item::Type::NONE &&
-		m_Paused && GAME_ENGINE->IsKeyboardKeyPressed(VK_RETURN))
+		m_Paused && GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::SELECT_BUTTON))
 	{
 		DOUBLE2 cameraOffset = GetCameraOffset(deltaTime);
 		double xPos = cameraOffset.x + Game::WIDTH / 2.0;

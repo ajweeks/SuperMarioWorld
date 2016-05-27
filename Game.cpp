@@ -19,6 +19,7 @@
 #include "StateManager.h"
 #include "GameState.h"
 #include "LevelInfo.h"
+#include "Keybindings.h"
 
 // Static initializations
 Font* Game::Font12Ptr = nullptr;
@@ -63,6 +64,8 @@ void Game::GameInitialize(GameSettings &gameSettingsRef)
 
 void Game::GameStart()
 {
+	Keybindings::ReadBindingsFromFile();
+
 	SpriteSheetManager::Load();
 
 	SoundManager::InitialzeSoundsAndSongs();
@@ -125,7 +128,7 @@ void Game::GameEnd()
 
 void Game::GameTick(double deltaTime)
 {	
-	if (GAME_ENGINE->IsKeyboardKeyPressed('I'))
+	if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::TOGGLE_INFO_OVERLAY))
 	{
 		m_ShowingSessionInfo = !m_ShowingSessionInfo;
 
@@ -137,19 +140,21 @@ void Game::GameTick(double deltaTime)
 
 	if (m_ShowingSessionInfo)
 	{
-		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_NEXT) ||
-			(GAME_ENGINE->IsKeyboardKeyDown(VK_NEXT) && GAME_ENGINE->IsKeyboardKeyDown(VK_CONTROL))) // Page Down
+		if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::SHOW_NEXT_INFO_SESSION) ||
+			(GAME_ENGINE->IsKeyboardKeyDown(Keybindings::SHOW_NEXT_INFO_SESSION) && 
+				GAME_ENGINE->IsKeyboardKeyDown(Keybindings::SCROLL_THROUGH_SESSIONS)))
 		{
 			GameSession::ShowNextSession();
 		}
-		if (GAME_ENGINE->IsKeyboardKeyPressed(VK_PRIOR) ||
-			(GAME_ENGINE->IsKeyboardKeyDown(VK_PRIOR) && GAME_ENGINE->IsKeyboardKeyDown(VK_CONTROL))) // Page Up
+		if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::SHOW_PREVIOUS_INFO_SESSION) ||
+			(GAME_ENGINE->IsKeyboardKeyDown(Keybindings::SHOW_PREVIOUS_INFO_SESSION) && 
+				GAME_ENGINE->IsKeyboardKeyDown(Keybindings::SCROLL_THROUGH_SESSIONS)))
 		{
 			GameSession::ShowPreviousSession();
 		}
 	}
 
-	if (GAME_ENGINE->IsKeyboardKeyPressed('M'))
+	if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::TOGGLE_MUTED))
 	{
 		SoundManager::ToggleMuted();
 	}

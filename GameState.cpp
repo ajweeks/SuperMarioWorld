@@ -9,6 +9,7 @@
 #include "SoundManager.h"
 #include "SessionInfo.h"
 #include "Pipe.h"
+#include "Keybindings.h"
 
 GameState::GameState(StateManager* stateManagerPtr) :
 	BaseState(stateManagerPtr, StateType::GAME)
@@ -58,7 +59,7 @@ void GameState::Tick(double deltaTime)
 		m_CurrentLevelPtr->SetPaused(true, true);
 	}
 		
-	if (GAME_ENGINE->IsKeyboardKeyPressed(VK_OEM_PERIOD))
+	if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::DEBUG_FRAME_BY_FRAME_ADVANCE))
 	{
 		if (m_InFrameByFrameMode)
 		{
@@ -71,18 +72,18 @@ void GameState::Tick(double deltaTime)
 			m_CurrentLevelPtr->SetPaused(true, true);
 		}
 	}
-	else if (GAME_ENGINE->IsKeyboardKeyPressed(VK_SPACE) && m_InFrameByFrameMode)
+	else if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::START_BUTTON) && m_InFrameByFrameMode)
 	{
 		m_InFrameByFrameMode = false;
 		m_CurrentLevelPtr->SetPaused(false, true);
 	}
 
-	if (GAME_ENGINE->IsKeyboardKeyPressed('R'))
+	if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::DEBUG_QUICK_RESET))
 	{
 		Reset();
 	}
 
-	if (GAME_ENGINE->IsKeyboardKeyPressed('P'))
+	if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::DEBUG_TOGGLE_PHYSICS_RENDERING))
 	{
 		m_RenderDebugOverlay = !m_RenderDebugOverlay;
 		GAME_ENGINE->EnablePhysicsDebugRendering(m_RenderDebugOverlay);

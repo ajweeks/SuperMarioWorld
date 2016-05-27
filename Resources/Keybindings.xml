@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Keybindings>
+
+	<Y_Button>90</Y_Button>
+	<B_Button>88</B_Button>
+	<X_Button>65</X_Button>
+	<A_Button>83</A_Button>
+	
+	<DPadRight>39</DPadRight>
+	<DPadLeft>37</DPadLeft>
+	<DPadUp>38</DPadUp>
+	<DPadDown>40</DPadDown>
+	
+	<StartButton>32</StartButton>
+	<SelectButton>16</SelectButton>
+	
+	<ToggleInfoOverlay>73</ToggleInfoOverlay>
+	<ShowNextInfoSession>34</ShowNextInfoSession>
+	<ShowPreviousInfoSession>33</ShowPreviousInfoSession>
+	<ScrollThroughSessions>17</ScrollThroughSessions>
+	<ToggleMuted>77</ToggleMuted>
+	
+	<DEBUGTeleportPlayer>79</DEBUGTeleportPlayer>
+	<DEBUGQuickReset>82</DEBUGQuickReset>
+	<DEBUGTogglePhysicsRendering>80</DEBUGTogglePhysicsRendering>
+	<DEBUGFrameByFrameAdvance>190</DEBUGFrameByFrameAdvance>
+	
+	<!-- NOTE: These have no use in the game currently -->
+	<LeftShoulder>69</LeftShoulder>
+	<RightShoulder>81</RightShoulder>
+	
+</Keybindings>
