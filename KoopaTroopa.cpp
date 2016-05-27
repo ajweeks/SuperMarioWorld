@@ -264,6 +264,11 @@ void KoopaTroopa::HeadBonk()
 		ChangeAnimationState(AnimationState::SQUASHED);
 		m_FramesSpentBeingSquashed = 0;
 	} break;
+	case AnimationState::SQUASHED:
+	case AnimationState::UPSIDEDOWN_SHELLESS:
+	{
+		OutputDebugString(String("ERROR: KoopaTroopa::HeadBonk called when koopa was in invalid state!\n"));
+	} break;
 	}
 
 	m_LevelPtr->GetPlayer()->AddScore(200, true, m_ActPtr->GetPosition());

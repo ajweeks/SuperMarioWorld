@@ -21,8 +21,8 @@ void SplatParticle::Paint()
 {
 	MATRIX3X2 matPrevWorld = GAME_ENGINE->GetWorldMatrix();
 
-	double centerX = m_Position.x + WIDTH / 2;
-	double centerY = m_Position.y + HEIGHT / 2;
+	double centerX = m_Position.x + WIDTH / 2.0;
+	double centerY = m_Position.y + HEIGHT / 2.0;
 
 	// These particles flip horizontally every two frames
 	if (m_LifeRemaining % 4 >= 2)

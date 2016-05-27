@@ -88,6 +88,7 @@ private:
 	double m_TongueLength = 0.0;
 
 	CountdownTimer m_HatchingTimer;
+	CountdownTimer m_GrowingTimer; // Times yoshi growing from a baby to an adult
 	CountdownTimer m_TongueTimer; // Records how long yoshi's tongue has been stuck out for
 	
 	SpriteSheet* m_SpriteSheetPtr = nullptr;

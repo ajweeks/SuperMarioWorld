@@ -46,8 +46,8 @@ void MidwayGate::Paint()
 	if (m_IsHit) srcRect = RECT2(64, 397, 67, 400);
 	else srcRect = RECT2(64, 397, 83, 400);
 
-	x = m_ActPtr->GetPosition().x - BAR_LENGTH / 2;
-	y = m_ActPtr->GetPosition().y - BAR_DIAMETER / 2 - 1;
+	x = m_ActPtr->GetPosition().x - BAR_LENGTH / 2.0;
+	y = m_ActPtr->GetPosition().y - BAR_DIAMETER / 2.0 - 1;
 	GAME_ENGINE->DrawBitmap(SpriteSheetManager::generalTilesPtr->GetBitmap(), DOUBLE2(x, y), srcRect);
 }
 

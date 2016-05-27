@@ -123,10 +123,10 @@ DOUBLE2 Pipe::GetWarpToPosition()
 
 	switch (m_Orientation)
 	{
-	case Orientation::LEFT:		offset = DOUBLE2(-width / 2 + xInsetAmount, 0);
-	case Orientation::RIGHT:	offset = DOUBLE2(width / 2 - xInsetAmount, 0);
-	case Orientation::UP:		offset = DOUBLE2(0, -height / 2 + yInsetAmount);
-	case Orientation::DOWN:		offset = DOUBLE2(0, height / 2 - yInsetAmount);
+	case Orientation::LEFT:		offset = DOUBLE2(-width / 2.0 + xInsetAmount, 0);  break;
+	case Orientation::RIGHT:	offset = DOUBLE2(width / 2.0 - xInsetAmount, 0);   break;
+	case Orientation::UP:		offset = DOUBLE2(0, -height / 2.0 + yInsetAmount); break;
+	case Orientation::DOWN:		offset = DOUBLE2(0, height / 2.0 - yInsetAmount);  break;
 	}
 
 	return m_ActPtr->GetPosition() + offset;

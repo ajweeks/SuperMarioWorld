@@ -214,7 +214,7 @@ void Level::Tick(double deltaTime)
 		m_Paused && GAME_ENGINE->IsKeyboardKeyPressed(VK_RETURN))
 	{
 		DOUBLE2 cameraOffset = GetCameraOffset(deltaTime);
-		double xPos = cameraOffset.x + Game::WIDTH / 2;
+		double xPos = cameraOffset.x + Game::WIDTH / 2.0;
 		double yPos = cameraOffset.y + 25;
 
 		m_PlayerPtr->ReleaseExtraItem(DOUBLE2(xPos, yPos));
@@ -613,8 +613,8 @@ bool Level::ActorCanPassThroughPlatform(PhysicsActor *actPlatformPtr, DOUBLE2& a
 
 void Level::CollidePlayerWithBlock(DOUBLE2 blockCenterPos, DOUBLE2 playerFeet, bool& enableContactRef)
 {
-	bool playerIsBesideBlock = (playerFeet.x + m_PlayerPtr->GetWidth() / 2 < blockCenterPos.x - Block::WIDTH / 2) ||
-		(playerFeet.x - m_PlayerPtr->GetWidth() / 2 > blockCenterPos.x + Block::WIDTH / 2);
+	bool playerIsBesideBlock = (playerFeet.x + m_PlayerPtr->GetWidth() / 2.0 < blockCenterPos.x - Block::WIDTH / 2.0) ||
+		(playerFeet.x - m_PlayerPtr->GetWidth() / 2.0 > blockCenterPos.x + Block::WIDTH / 2.0);
 
 	if (playerIsBesideBlock)
 	{

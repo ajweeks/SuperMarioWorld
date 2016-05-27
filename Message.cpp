@@ -44,31 +44,31 @@ void Message::Paint()
 	if (m_IntroAnimationTimer.IsActive())
 	{
 		// NOTE: Paints a growing black rectangle
-		double framesElapsed = m_IntroAnimationTimer.FramesElapsed();
-		double totalFrames = m_IntroAnimationTimer.OriginalNumberOfFrames();
-		double width = double(framesElapsed) * (double(WIDTH) / double(totalFrames));
-		double height = double(framesElapsed) * (double(HEIGHT) / double(totalFrames));
+		int framesElapsed = m_IntroAnimationTimer.FramesElapsed();
+		int totalFrames = m_IntroAnimationTimer.OriginalNumberOfFrames();
+		int width = int(framesElapsed * (double(WIDTH) / double(totalFrames)));
+		int height = int(framesElapsed * (double(HEIGHT) / double(totalFrames)));
 
-		double x = Game::WIDTH / 2 - width / 2;
-		double y = Game::HEIGHT / 2 - height / 2 - yo;
+		int x = int(Game::WIDTH / 2 - width / 2);
+		int y = int(Game::HEIGHT / 2 - height / 2 - yo);
 		GAME_ENGINE->FillRect(RECT2(x, y, x + width, y + height));
 	}
 	else if (m_OutroAnimationTimer.IsActive())
 	{
 		// NOTE: Paints a shrinking black rectangle
-		double framesElapsed = m_OutroAnimationTimer.FramesElapsed();
-		double totalFrames = m_OutroAnimationTimer.OriginalNumberOfFrames();
-		double width = WIDTH - double(framesElapsed) * (double(HEIGHT) / double(totalFrames));
-		double height = HEIGHT - double(framesElapsed) * (double(HEIGHT) / double(totalFrames));
+		int framesElapsed = m_OutroAnimationTimer.FramesElapsed();
+		int totalFrames = m_OutroAnimationTimer.OriginalNumberOfFrames();
+		int width = WIDTH - int(framesElapsed * (double(HEIGHT) / double(totalFrames)));
+		int height = HEIGHT - int(framesElapsed * (double(HEIGHT) / double(totalFrames)));
 
-		double x = Game::WIDTH / 2 - width / 2;
-		double y = Game::HEIGHT / 2 - height / 2 - yo;
+		int x = int(Game::WIDTH / 2 - width / 2);
+		int y = int(Game::HEIGHT / 2 - height / 2 - yo);
 		GAME_ENGINE->FillRect(RECT2(x, y, x + width, y + height));
 	}
 	else if (m_ShowingMessage)
 	{
-		double x = Game::WIDTH / 2 - WIDTH / 2;
-		double y = Game::HEIGHT / 2 - HEIGHT / 2 - yo;
+		int x = int(Game::WIDTH / 2 - WIDTH / 2);
+		int y = int(Game::HEIGHT / 2 - HEIGHT / 2 - yo);
 		GAME_ENGINE->FillRect(RECT2(x, y, x + WIDTH, y + HEIGHT));
 
 		int xPad = 7;

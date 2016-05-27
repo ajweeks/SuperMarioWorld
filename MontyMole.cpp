@@ -44,15 +44,16 @@ void MontyMole::Tick(double deltaTime)
 	m_AnimInfo.Tick(deltaTime);
 	m_AnimInfo.frameNumber %= 2;
 
+	m_SpawnDustCloudTimer.Tick();
+
 	if (m_ShouldRemoveActor)
 	{
 		delete m_ActPtr;
 		m_ActPtr = nullptr;
 
 		m_ShouldRemoveActor = false;
+		return;
 	}
-
-	m_SpawnDustCloudTimer.Tick();
 
 	switch (m_AnimationState)
 	{

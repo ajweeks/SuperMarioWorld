@@ -43,6 +43,7 @@ private:
 	static const int WIDTH = 20;
 	static const int HEIGHT = 20;
 	
+	static const int MINIMUM_PLAYER_DISTANCE; // How close the player needs to get for us to see them
 	static const double TARGET_OVERSHOOT_DISTANCE;
 	static const double RUN_VEL;
 	static const double JUMP_VEL;

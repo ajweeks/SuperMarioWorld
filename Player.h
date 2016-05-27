@@ -125,11 +125,14 @@ private:
 	
 	SpriteSheet* m_SpriteSheetPtr;
 
-	static const int WALK_BASE_VEL;
-	static const int RUN_BASE_VEL;
+	static const double FRICTION;
+	static const int WALKING_ACCELERATION;
+	static const int RUNNING_ACCELERATION;
+	static const int MAX_WALK_VEL;
+	static const int MAX_RUN_VEL;
 	static const int JUMP_VEL;
+	static const int MAX_FALL_VEL;
 	static const int BOUNCE_VEL;
-	static const double DEFAULT_GRAVITY;
 	static const int STARTING_LIVES;
 	static const int YOSHI_DISMOUNT_XVEL;
 	static const int YOSHI_TURN_AROUND_FRAMES;

@@ -52,7 +52,6 @@ Yoshi::Yoshi(DOUBLE2 position, Level* levelPtr) :
 	toungeCollisionFilter.maskBits = Level::BERRY | Level::ENEMY | Level::ITEM; // I collide with berries and enemies
 	m_ActToungePtr->SetCollisionFilter(toungeCollisionFilter);
 
-
 	m_AnimInfo.secondsPerFrame = HATCHING_SECONDS_PER_FRAME;
 	m_AnimationState = AnimationState::EGG;
 
@@ -61,6 +60,7 @@ Yoshi::Yoshi(DOUBLE2 position, Level* levelPtr) :
 	m_TongueTimer = CountdownTimer(35);
 	m_HatchingTimer = CountdownTimer(80);
 	m_HatchingTimer.Start();
+	m_GrowingTimer = CountdownTimer(30);
 
 	m_DirFacing = Direction::RIGHT;
 
@@ -108,7 +108,7 @@ void Yoshi::Tick(double deltaTime)
 
 	if (m_NeedsNewFixture)
 	{
-		double oldHalfHeight = GetHeight() / 2;
+		double oldHalfHeight = GetHeight() / 2.0;
 
 		b2Fixture* fixturePtr = m_ActPtr->GetBody()->GetFixtureList();
 		while (fixturePtr != nullptr)
@@ -129,7 +129,7 @@ void Yoshi::Tick(double deltaTime)
 
 		m_ActPtr->AddBoxFixture(GetWidth(), GetHeight(), 0.0, 0.02);
 
-		double newHalfHeight = GetHeight() / 2;
+		double newHalfHeight = GetHeight() / 2.0;
 
 		double newCenterY = m_ActPtr->GetPosition().y + (newHalfHeight - oldHalfHeight);
 		m_ActPtr->SetPosition(DOUBLE2(m_ActPtr->GetPosition().x, newCenterY));
@@ -137,7 +137,6 @@ void Yoshi::Tick(double deltaTime)
 		m_NeedsNewFixture = false;
 	}
 
-	// Tick animations
 	m_AnimInfo.Tick(deltaTime);
 	if (m_AnimationState == AnimationState::WAITING)
 	{
@@ -163,6 +162,8 @@ void Yoshi::Tick(double deltaTime)
 		m_LevelPtr->SetPaused(true, false);
 	}
 
+	if (m_GrowingTimer.Tick() && m_GrowingTimer.IsComplete())
+	{
 		m_AnimationState = AnimationState::WAITING;
 		m_SpriteSheetPtr = SpriteSheetManager::yoshiPtr;
 		m_AnimInfo.secondsPerFrame = WAITING_SECONDS_PER_FRAME;

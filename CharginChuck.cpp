@@ -10,6 +10,7 @@
 
 #include "SplatParticle.h"
 
+const int CharginChuck::MINIMUM_PLAYER_DISTANCE = 2 * Game::WIDTH / 3;
 const double CharginChuck::TARGET_OVERSHOOT_DISTANCE = 60.0;
 const double CharginChuck::RUN_VEL = 7000.0;
 const double CharginChuck::JUMP_VEL = -21000.0;
@@ -20,7 +21,7 @@ CharginChuck::CharginChuck(DOUBLE2 startingPos, Level* levelPtr) :
 	m_AnimationState = AnimationState::WAITING;
 	m_DirFacing = Direction::LEFT;
 
-	m_HurtTimer = CountdownTimer(340);
+	m_HurtTimer = CountdownTimer(150);
 	m_WaitingTimer = CountdownTimer(60);
 	m_WaitingTimer.Start();
 
@@ -35,7 +36,7 @@ CharginChuck::~CharginChuck()
 
 void CharginChuck::Tick(double deltaTime)
 {
-	if (abs(m_LevelPtr->GetPlayer()->GetPosition().x - m_ActPtr->GetPosition().x) > Game::WIDTH) return;
+	if (abs(m_LevelPtr->GetPlayer()->GetPosition().x - m_ActPtr->GetPosition().x) > MINIMUM_PLAYER_DISTANCE) return;
 
 	if (m_WaitingTimer.Tick() && m_WaitingTimer.IsComplete())
 	{
@@ -255,7 +256,7 @@ void CharginChuck::HeadBonk()
 		}
 		else
 		{
-			// LATER: Play sound effect here
+			SoundManager::PlaySoundEffect(SoundManager::Sound::SHELL_KICK);
 		}
 	} break;
 	}

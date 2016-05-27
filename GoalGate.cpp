@@ -92,8 +92,8 @@ void GoalGate::Paint()
 	// BAR
 	if (m_IsHit == false)
 	{
-		x = m_ActPtr->GetPosition().x - BAR_LENGTH / 2;
-		y = m_ActPtr->GetPosition().y - BAR_DIAMETER / 2;
+		x = m_ActPtr->GetPosition().x - BAR_LENGTH / 2.0;
+		y = m_ActPtr->GetPosition().y - BAR_DIAMETER / 2.0;
 		RECT2 srcRect(64, 389, 87, 397);
 		GAME_ENGINE->DrawBitmap(SpriteSheetManager::generalTilesPtr->GetBitmap(), DOUBLE2(x, y), srcRect);
 	}
@@ -121,7 +121,7 @@ void GoalGate::PaintFrontPole()
 void GoalGate::Hit()
 {
 	m_IsHit = true;
-	m_LevelPtr->TriggerEndScreen(m_BarHeight);
+	m_LevelPtr->TriggerEndScreen(int(m_BarHeight));
 }
 
 bool GoalGate::IsHit()

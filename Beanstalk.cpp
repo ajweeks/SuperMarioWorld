@@ -45,7 +45,7 @@ void Beanstalk::Tick(double deltaTime)
 void Beanstalk::Paint()
 {
 	double centerX = m_ActPtr->GetPosition().x;
-	double centerY = m_ActPtr->GetPosition().y + HEIGHT / 2;
+	double centerY = m_ActPtr->GetPosition().y + HEIGHT / 2.0;
 
 	for (int i = 0; i < m_CurrentHeight / TILE_SIZE; ++i)
 	{

@@ -25,12 +25,15 @@
 
 #define ENTITY_MANAGER (EntityManager::GetInstance())
 
-// STATIC INITIALIZATIONS
-const int Player::WALK_BASE_VEL = 5000;
-const int Player::RUN_BASE_VEL = 9500;
+// Static Initializations
+const double Player::FRICTION = 0.2;
+const int Player::WALKING_ACCELERATION = 45000;
+const int Player::RUNNING_ACCELERATION = 65000;
+const int Player::MAX_WALK_VEL = 150;
+const int Player::MAX_RUN_VEL = 200;
 const int Player::JUMP_VEL = -16000;
+const int Player::MAX_FALL_VEL = 8000;
 const int Player::BOUNCE_VEL = -195;
-const double Player::DEFAULT_GRAVITY = 0.98;
 const int Player::STARTING_LIVES = 5;
 const int Player::YOSHI_DISMOUNT_XVEL = 2500;
 const int Player::YOSHI_TURN_AROUND_FRAMES = 15;
@@ -196,7 +199,7 @@ void Player::Tick(double deltaTime)
 		if (m_ExitingPipeTimer.IsComplete())
 		{
 			m_ActPtr->SetSensor(false);
-			m_ActPtr->SetGravityScale(DEFAULT_GRAVITY);
+			m_ActPtr->SetGravityScale(1.0);
 			m_LevelPtr->SetPaused(false, true);
 			m_AnimationState = AnimationState::WAITING;
 		}
@@ -224,7 +227,7 @@ void Player::Tick(double deltaTime)
 
 	if (m_NeedsNewFixture)
 	{
-		double oldHalfHeight = GetHeight() / 2;
+		double oldHalfHeight = double(GetHeight()) / 2.0;
 
 		b2Fixture* fixturePtr = m_ActPtr->GetBody()->GetFixtureList();
 		while (fixturePtr != nullptr)
@@ -235,9 +238,9 @@ void Player::Tick(double deltaTime)
 		}
 
 		m_ActPtr->SetActive(true);
-		m_ActPtr->AddBoxFixture(GetWidth(), GetHeight(), 0.0, 0.02);
+		m_ActPtr->AddBoxFixture(GetWidth(), GetHeight(), 0.0, FRICTION);
 
-		double newHalfHeight = GetHeight() / 2;
+		double newHalfHeight = double(GetHeight()) / 2.0;
 		double newCenterY = m_ActPtr->GetPosition().y + (newHalfHeight - oldHalfHeight);
 		m_ActPtr->SetPosition(DOUBLE2(m_ActPtr->GetPosition().x, newCenterY));
 
@@ -330,15 +333,17 @@ void Player::HandleYoshiKeyboardInput(double deltaTime)
 	assert(m_RidingYoshiPtr != nullptr);
 	assert(m_IsRidingYoshi);
 
-
 	if (AttemptToEnterPipes()) return;
 
-	double horizontalVel = 0.0;
-	double verticalVel = 0.0;
+	int maxXVel = (m_IsRunning ? MAX_RUN_VEL : MAX_WALK_VEL);
+	// How fast we would be going if we had instant acceleration
+	double targetXVel = 0.0, 
+		   targetYVel = 0.0;
 
-	if (GAME_ENGINE->IsKeyboardKeyPressed('X')) // Spin jump
+	// Spin jump (dismount yoshi)
+	if (GAME_ENGINE->IsKeyboardKeyPressed('X')) 
 	{
-		verticalVel = JUMP_VEL * deltaTime;
+		targetYVel = JUMP_VEL * deltaTime;
 		if (m_RidingYoshiPtr->IsAirborne())
 		{
 			m_AnimationState = AnimationState::JUMPING;
@@ -347,108 +352,112 @@ void Player::HandleYoshiKeyboardInput(double deltaTime)
 		{
 			m_AnimationState = AnimationState::SPIN_JUMPING;
 			m_DirFacing = -m_RidingYoshiPtr->GetDirectionFacing();
-			horizontalVel = m_DirFacing * YOSHI_DISMOUNT_XVEL * deltaTime;
+			targetXVel = m_DirFacing * YOSHI_DISMOUNT_XVEL;
 			SoundManager::PlaySoundEffect(SoundManager::Sound::PLAYER_SPIN_JUMP);
 		}
 		m_FramesSpentInAir = 0;
-		m_ActPtr->SetLinearVelocity(DOUBLE2(horizontalVel, verticalVel));
-
 		DismountYoshi();
-		return;
-	}
-
-	m_IsOnGround = CalculateOnGround();
-	if (m_IsOnGround && GAME_ENGINE->IsKeyboardKeyDown(VK_DOWN))
-	{
-		m_IsDucking = true;
-		m_AnimationState = AnimationState::WAITING;
 	}
 	else
 	{
-		m_IsDucking = false;
-	}
-
-	if (!m_WasOnGround && m_IsOnGround)
-	{
-		m_AnimationState = AnimationState::WAITING;
-	}
-
-	if (m_IsDucking == false)
-	{
-		if (GAME_ENGINE->IsKeyboardKeyDown(VK_LEFT))
+		m_IsOnGround = CalculateOnGround();
+		if (m_IsOnGround && GAME_ENGINE->IsKeyboardKeyDown(VK_DOWN))
 		{
-			m_AnimationState = AnimationState::WALKING;
-			m_DirFacing = Direction::LEFT;
-			horizontalVel = WALK_BASE_VEL * deltaTime;
+			m_IsDucking = true;
+			m_AnimationState = AnimationState::WAITING;
 		}
-		else if (GAME_ENGINE->IsKeyboardKeyDown(VK_RIGHT))
+		else
 		{
-			m_AnimationState = AnimationState::WALKING;
-			m_DirFacing = Direction::RIGHT;
-			horizontalVel = WALK_BASE_VEL * deltaTime;
+			m_IsDucking = false;
 		}
-		else if (m_AnimationState == AnimationState::WALKING)
+
+		if (!m_WasOnGround && m_IsOnGround)
 		{
 			m_AnimationState = AnimationState::WAITING;
 		}
 
-		if (GAME_ENGINE->IsKeyboardKeyPressed('A') ||
-			GAME_ENGINE->IsKeyboardKeyPressed('S'))
+		if (m_IsDucking == false) 
 		{
-			m_RidingYoshiPtr->SpitOutItem();
+			if (GAME_ENGINE->IsKeyboardKeyDown(VK_LEFT))
+			{
+				m_AnimationState = AnimationState::WALKING;
+				m_DirFacing = Direction::LEFT;
+				targetXVel = maxXVel * m_DirFacing;
+			}
+			else if (GAME_ENGINE->IsKeyboardKeyDown(VK_RIGHT))
+			{
+				m_AnimationState = AnimationState::WALKING;
+				m_DirFacing = Direction::RIGHT;
+				targetXVel = maxXVel * m_DirFacing;
+			}
+			else if (m_AnimationState == AnimationState::WALKING)
+			{
+				m_AnimationState = AnimationState::WAITING;
+			}
+
+			// Spit out item
+			if (GAME_ENGINE->IsKeyboardKeyPressed('A') ||
+				GAME_ENGINE->IsKeyboardKeyPressed('S'))
+			{
+				m_RidingYoshiPtr->SpitOutItem();
 			
-			if (m_RidingYoshiPtr->IsTongueStuckOut() == false)
+				if (m_RidingYoshiPtr->IsTongueStuckOut() == false)
+				{
+					m_RidingYoshiPtr->StickTongueOut(deltaTime);
+				}
+			}
+
+			// Run
+			if (GAME_ENGINE->IsKeyboardKeyDown('A') ||
+				GAME_ENGINE->IsKeyboardKeyDown('S'))
 			{
-				m_RidingYoshiPtr->StickTongueOut(deltaTime);
+				if (m_AnimationState == AnimationState::WALKING)
+				{
+					m_IsRunning = true;
+					targetXVel = maxXVel * m_DirFacing;
+				}
+			}
+			else
+			{
+				m_IsRunning = false;
 			}
 		}
 
-		if (GAME_ENGINE->IsKeyboardKeyDown('A') ||
-			GAME_ENGINE->IsKeyboardKeyDown('S'))
+		// Regular jump
+		if (m_IsOnGround && GAME_ENGINE->IsKeyboardKeyPressed('Z'))
 		{
-			if (m_AnimationState == AnimationState::WALKING)
+			m_AnimationState = AnimationState::JUMPING;
+			targetYVel = m_RidingYoshiPtr->JUMP_VEL;
+		}
+
+		if (m_DirFacingLastFrame != m_DirFacing)
+		{
+			m_ChangingDirectionsTimer.Start();
+
+			if (m_IsOnGround && m_SpawnDustCloudTimer.IsActive() == false)
 			{
-				m_IsRunning = true;
-				horizontalVel = RUN_BASE_VEL * deltaTime;
+				DustParticle* dustParticlePtr = new DustParticle(m_ActPtr->GetPosition() + DOUBLE2(0, GetHeight() / 2 + 1));
+				m_LevelPtr->AddParticle(dustParticlePtr);
+				m_SpawnDustCloudTimer.Start();
+
 			}
 		}
-		else
-		{
-			m_IsRunning = false;
-		}
 	}
 
-	if (m_IsOnGround && GAME_ENGINE->IsKeyboardKeyPressed('Z'))
+	DOUBLE2 prevVel = m_ActPtr->GetLinearVelocity();
+	int horizontalAcceleration = int((m_IsRunning ? RUNNING_ACCELERATION : WALKING_ACCELERATION) * deltaTime);
+	double horizontalVel = 0.0;
+	if (prevVel.x > targetXVel)
 	{
-		m_AnimationState = AnimationState::JUMPING;
-		verticalVel = m_RidingYoshiPtr->JUMP_VEL * deltaTime;
+		horizontalVel = -horizontalAcceleration * deltaTime;
 	}
-
-	DOUBLE2 oldVel = m_ActPtr->GetLinearVelocity();
-	DOUBLE2 newVel = oldVel;
-
-	if (horizontalVel != 0.0)
+	else if (prevVel.x < targetXVel)
 	{
-		if (m_DirFacing == Direction::RIGHT) newVel.x = horizontalVel;
-		else newVel.x = -horizontalVel;
+		horizontalVel = horizontalAcceleration * deltaTime;
 	}
-	if (verticalVel != 0.0)
-	{
-		newVel.y = verticalVel;
-	}
+	horizontalVel = min(maxXVel, horizontalVel);
 
-	if (m_DirFacingLastFrame != m_DirFacing)
-	{
-		m_ChangingDirectionsTimer.Start();
-
-		if (m_SpawnDustCloudTimer.IsActive() == false && m_IsOnGround)
-		{
-			DustParticle* dustParticlePtr = new DustParticle(m_ActPtr->GetPosition() + DOUBLE2(0, GetHeight() / 2 + 1));
-			m_LevelPtr->AddParticle(dustParticlePtr);
-			m_SpawnDustCloudTimer.Start();
-		}
-	}
-
+	DOUBLE2 newVel = prevVel + DOUBLE2(horizontalVel, targetYVel);
 	m_ActPtr->SetLinearVelocity(newVel);
 
 	m_DirFacingLastFrame = m_DirFacing;
@@ -473,11 +482,13 @@ void Player::HandleKeyboardInput(double deltaTime)
 		return;
 	}
 
-	
 	if (AttemptToEnterPipes()) return;
 
-	double verticalVel = 0.0;
-	double horizontalVel = 0.0;
+	int maxXVel = (m_IsRunning ? MAX_RUN_VEL : MAX_WALK_VEL);
+	// How fast we would be going if we had instant acceleration
+	double targetXVel = 0.0,
+		   targetYVel = 0.0;
+
 	if (m_IsDucking &&
 		GAME_ENGINE->IsKeyboardKeyDown(VK_DOWN) == false)
 	{
@@ -501,24 +512,29 @@ void Player::HandleKeyboardInput(double deltaTime)
 
 		bool regularJumpKeyPressed = GAME_ENGINE->IsKeyboardKeyPressed('Z');
 		bool spinJumpKeyPressed = GAME_ENGINE->IsKeyboardKeyPressed('X');
+
 		if (m_AnimationState != AnimationState::SPIN_JUMPING &&
 			regularJumpKeyPressed ||
 			(spinJumpKeyPressed && m_IsHoldingItem) ||
-			(spinJumpKeyPressed && m_IsRidingYoshi)) // NOTE: Regular jump
+			(spinJumpKeyPressed && m_IsRidingYoshi)) 
 		{
+			// Regular jump
 			m_AnimationState = AnimationState::JUMPING;
 			m_IsOnGround = false;
 			SoundManager::PlaySoundEffect(SoundManager::Sound::PLAYER_JUMP);
 			m_FramesSpentInAir = 0;
-			verticalVel = JUMP_VEL * deltaTime;
+			targetYVel = JUMP_VEL * deltaTime;
+			m_IsLookingUp = false;
 		}
-		else if (spinJumpKeyPressed) // NOTE: Spin jump
+		else if (spinJumpKeyPressed) 
 		{
+			// Spin jump
 			m_AnimationState = AnimationState::SPIN_JUMPING;
 			m_IsOnGround = false;
 			SoundManager::PlaySoundEffect(SoundManager::Sound::PLAYER_SPIN_JUMP);
 			m_FramesSpentInAir = 0;
-			verticalVel = JUMP_VEL * deltaTime;
+			targetYVel = JUMP_VEL * deltaTime;
+			m_IsLookingUp = false;
 		}
 		else
 		{
@@ -529,9 +545,9 @@ void Player::HandleKeyboardInput(double deltaTime)
 	{
 		m_FramesSpentInAir++;
 
-		// NOTE: The player is still rising and can hold down the jump key to jump higher
 		if (m_ActPtr->GetLinearVelocity().y < -100.0)
 		{
+			// The player is still rising and can hold down the jump key to jump higher
 			if (GAME_ENGINE->IsKeyboardKeyDown('Z') ||
 				GAME_ENGINE->IsKeyboardKeyDown('X'))
 			{
@@ -539,19 +555,19 @@ void Player::HandleKeyboardInput(double deltaTime)
 				// and goes towards 0 near the apex
 				double gravityScale = (m_FramesSpentInAir / 12.0) * 0.5;
 
-				// NOTE: This ensures gravityScale is in the range [0, 0.98]
-				gravityScale = max(0.0, min(DEFAULT_GRAVITY, gravityScale));
+				// Saturate [0.0, 1.0]
+				gravityScale = max(0.0, min(1.0, gravityScale));
 
 				m_ActPtr->SetGravityScale(gravityScale);
 			}
 			else
 			{
-				m_ActPtr->SetGravityScale(DEFAULT_GRAVITY);
+				m_ActPtr->SetGravityScale(1.0);
 			}
 		}
 		else
 		{
-			m_ActPtr->SetGravityScale(DEFAULT_GRAVITY);
+			m_ActPtr->SetGravityScale(1.0);
 			if (m_AnimationState != AnimationState::SPIN_JUMPING)
 			{
 				m_AnimationState = AnimationState::FALLING;
@@ -570,7 +586,7 @@ void Player::HandleKeyboardInput(double deltaTime)
 		{
 			m_AnimationState = AnimationState::WALKING;
 		}
-		horizontalVel = WALK_BASE_VEL * deltaTime;
+		targetXVel = maxXVel * m_DirFacing;
 	}
 	else if (GAME_ENGINE->IsKeyboardKeyDown(VK_RIGHT))
 	{
@@ -583,7 +599,7 @@ void Player::HandleKeyboardInput(double deltaTime)
 		{
 			m_AnimationState = AnimationState::WALKING;
 		}
-		horizontalVel = WALK_BASE_VEL * deltaTime;
+		targetXVel = maxXVel * m_DirFacing;
 	}
 
 	// Grab blocks
@@ -603,7 +619,7 @@ void Player::HandleKeyboardInput(double deltaTime)
 		}
 	}
 
-	if (horizontalVel != 0.0)
+	if (targetXVel != 0.0)
 	{
 		// TODO: Move all keybindings out to external file
 		if (GAME_ENGINE->IsKeyboardKeyDown('A') || GAME_ENGINE->IsKeyboardKeyDown('S')) // Running
@@ -617,7 +633,9 @@ void Player::HandleKeyboardInput(double deltaTime)
 					m_AnimationState = AnimationState::WALKING;
 					m_IsRunning = true;
 				}
-				horizontalVel = RUN_BASE_VEL * deltaTime;
+				
+				maxXVel = MAX_RUN_VEL;
+				targetXVel = maxXVel * m_DirFacing;
 			}
 		}
 		else
@@ -658,15 +676,14 @@ void Player::HandleKeyboardInput(double deltaTime)
 		else if (m_IsOnGround)
 		{
 			m_AnimationState = AnimationState::WAITING;
-			horizontalVel = 0.0;
+			targetXVel = 0.0;
 		}
 
 		m_IsDucking = true;
-
 	}
 
-	if (horizontalVel == 0.0 &&
-		verticalVel == 0.0 && 
+	if (targetXVel == 0.0 &&
+		targetYVel == 0.0 && 
 		abs(m_ActPtr->GetLinearVelocity().x) < 0.001 &&
 		abs(m_ActPtr->GetLinearVelocity().y) < 0.001)
 	{
@@ -679,45 +696,30 @@ void Player::HandleKeyboardInput(double deltaTime)
 		}
 	}
 
-	DOUBLE2 oldVel = m_ActPtr->GetLinearVelocity();
-	DOUBLE2 newVel = oldVel;
-	if (horizontalVel != 0.0) 
+	DOUBLE2 prevVel = m_ActPtr->GetLinearVelocity();
+	double deltaXVel = 0.0;
+	if (targetXVel != 0.0)
 	{
-		if (m_DirFacing == Direction::LEFT) horizontalVel = -horizontalVel;
-		newVel.x = horizontalVel;
-	}
-	if (verticalVel != 0.0) 
-	{
-		newVel.y = verticalVel;
-	}
-
-	if (m_DirFacingLastFrame != m_DirFacing)
-	{
-		m_ChangingDirectionsTimer.Start();
-
-		if (m_SpawnDustCloudTimer.IsActive() == false && m_IsOnGround)
+		double horizontalAcceleration = int((m_IsRunning ? RUNNING_ACCELERATION : WALKING_ACCELERATION) * deltaTime);
+		deltaXVel = horizontalAcceleration * deltaTime;
+		if (prevVel.x > targetXVel)
 		{
-			DustParticle* dustParticlePtr = new DustParticle(m_ActPtr->GetPosition() + DOUBLE2(0, GetHeight() / 2 + 1));
-			m_LevelPtr->AddParticle(dustParticlePtr);
-			m_SpawnDustCloudTimer.Start();
+			deltaXVel = -deltaXVel;
+			if (deltaXVel < targetXVel) deltaXVel = targetXVel; // Don't overshoot the target vel
+			if (prevVel.x + deltaXVel < -maxXVel) deltaXVel = -maxXVel - prevVel.x; // don't overshoot the max
+		}
+		else if (prevVel.x < targetXVel)
+		{
+			if (deltaXVel > targetXVel) deltaXVel = targetXVel;
+			if (prevVel.x + deltaXVel > maxXVel) deltaXVel = maxXVel - prevVel.x;
 		}
 	}
 
-	double maxHorizontalAcceleration = 14;
-	if (abs(oldVel.x - newVel.x) > maxHorizontalAcceleration)
-	{
-		if (newVel.x > oldVel.x)
-		{
-			newVel.x = oldVel.x + maxHorizontalAcceleration;
-		}
-		else
-		{
-			newVel.x = oldVel.x - maxHorizontalAcceleration;
-		}
-	}
+	if (targetYVel == 0.0) targetYVel = prevVel.y;
 
+	DOUBLE2 newVel = DOUBLE2(prevVel.x + deltaXVel, targetYVel);
 	m_ActPtr->SetLinearVelocity(newVel);
-
+	
 	// NOTE: Prevents the player from walking off the side of the level
 	if (m_ActPtr->GetPosition().x < GetWidth())
 	{
@@ -730,7 +732,20 @@ void Player::HandleKeyboardInput(double deltaTime)
 		double offset = 12;
 		if (m_ChangingDirectionsTimer.IsActive()) offset = 0;
 		m_ItemHoldingPtr->SetPosition(m_ActPtr->GetPosition() + DOUBLE2(offset * m_DirFacing, 0));
-		m_ItemHoldingPtr->SetLinearVelocity(DOUBLE2(0, 0));
+		m_ItemHoldingPtr->SetLinearVelocity(DOUBLE2(0.0, 0.0));
+	}
+
+	// Dust particles / changing directions
+	if (m_DirFacingLastFrame != m_DirFacing)
+	{
+		m_ChangingDirectionsTimer.Start();
+
+		if (m_SpawnDustCloudTimer.IsActive() == false && m_IsOnGround)
+		{
+			DustParticle* dustParticlePtr = new DustParticle(m_ActPtr->GetPosition() + DOUBLE2(0, GetHeight() / 2 + 1));
+			m_LevelPtr->AddParticle(dustParticlePtr);
+			m_SpawnDustCloudTimer.Start();
+		}
 	}
 
 	m_WasOnGround = m_IsOnGround;
@@ -856,7 +871,7 @@ void Player::Paint()
  			m_LevelPtr->SetPausedTimer(m_PowerupTransitionTimer.OriginalNumberOfFrames()-1, false);
 		}
 
-		yo = GetHeight() / 2 - (m_PrevPowerupState == PowerupState::NORMAL ? 6 : 4);
+		yo = double(GetHeight()) / 2.0 - (m_PrevPowerupState == PowerupState::NORMAL ? 6 : 4);
 		
 		if (m_PowerupTransitionTimer.FramesElapsed() % 20 > 10)
 		{
@@ -877,15 +892,15 @@ void Player::Paint()
 		powerupStateToPaint = m_PowerupState;
 		if (m_IsRidingYoshi)
 		{
-			yo = GetHeight() / 2 - 9.5;
+			yo = GetHeight() / 2.0 - 9.5;
 		}
 		else if (m_PowerupState == PowerupState::NORMAL)
 		{
-			yo = GetHeight() / 2 - 6;
+			yo = GetHeight() / 2.0 - 6;
 		}
 		else
 		{ 
-			yo = GetHeight() / 2 - 2;
+			yo = GetHeight() / 2.0 - 2;
 		}
 	}
 
@@ -954,11 +969,6 @@ INT2 Player::CalculateAnimationFrame()
 		else if (m_IsLookingUp)
 		{
 			srcX = 0;
-			srcY = 1;
-		}
-		else if (m_IsDucking)
-		{
-			srcX = 1;
 			srcY = 1;
 		}
 		else
@@ -1390,7 +1400,7 @@ void Player::AddCoin(Coin* coinPtr, bool playSound, bool showParticle)
 
 void Player::AddDragonCoin(DragonCoin* dragonCoinPtr)
 {
-	AddCoin(false, false);
+	AddCoin(dragonCoinPtr, false, false);
 	m_DragonCoins++;
 
 	SoundManager::PlaySoundEffect(SoundManager::Sound::DRAGON_COIN_COLLECT);
