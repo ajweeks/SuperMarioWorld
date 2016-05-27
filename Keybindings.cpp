@@ -84,7 +84,11 @@ void Keybindings::StoreStringData(std::string fileContents)
 int Keybindings::RegisterKeycode(std::string fileContents, std::string tagName, int defaultValue)
 {
 	int result = std::stoi(FileIO::GetTagContent(fileContents, tagName));
-	if (result != -1) result = defaultValue;
-		
+	if (result == -1) 
+	{
+		OutputDebugString(String("ERROR: Invalid keybinding: ") + String(result) + 
+			String(", used default value instead ") + String(defaultValue) + String("\n"));
+		result = defaultValue;
+	}
 	return result;
 }

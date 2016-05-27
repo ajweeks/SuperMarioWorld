@@ -11,7 +11,7 @@ StateManager::StateManager(Game* gamePtr) :
 #if SMW_SKIP_MAIN_MENU
 	m_StatesPtrStack.push(new GameState(this));
 #else
-	m_StatesPtrArr.push_back(new MainMenuState(this));
+	m_StatesPtrStack.push(new MainMenuState(this));
 #endif
 }
 
