@@ -19,6 +19,9 @@ RotatingBlock::RotatingBlock(DOUBLE2 topLeft, Level* levelPtr, bool spawnsBeanst
 
 void RotatingBlock::Tick(double deltaTime)
 {
+	Item::Tick(deltaTime);
+	if (m_IsActive == false) return;
+
 	if (m_ShouldSpawnBeanstalk)
 	{
 		m_ShouldSpawnBeanstalk = false;

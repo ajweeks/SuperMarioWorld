@@ -13,7 +13,7 @@ Beanstalk::Beanstalk(DOUBLE2 bottomLeft, Level* levelPtr, int height) :
 {
 	m_CurrentHeight = 0;
 	m_ActPtr->SetSensor(true);
-	
+	m_IsActive = true;
 }
 
 Beanstalk::~Beanstalk()

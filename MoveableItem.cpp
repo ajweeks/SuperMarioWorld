@@ -28,6 +28,13 @@ MoveableItem::MoveableItem(DOUBLE2 topLeft, Type itemType, int spriteSheetXIndex
 
 void MoveableItem::Tick(double deltaTime)
 {
+	Item::Tick(deltaTime);
+	if (m_IsActive == false)
+	{
+		m_LevelPtr->RemoveItem(this); // Once we are no longer active, we just despawn
+		return;
+	}
+
 	if (m_IntroAnimationTimer.Tick())
 	{
 		if (m_IntroAnimationTimer.IsComplete())

@@ -15,6 +15,8 @@ PSwitch::PSwitch(DOUBLE2 topLeft, Colour colour, Level* levelPtr) :
 
 void PSwitch::Tick(double deltaTime)
 {
+	Item::Tick(deltaTime);
+
 	if (m_PressedTimer.Tick() && m_PressedTimer.IsComplete())
 	{
 		EnemyDeathCloudParticle* cloudParticlePtr = new EnemyDeathCloudParticle(m_ActPtr->GetPosition());

@@ -24,6 +24,8 @@ Coin::Coin(DOUBLE2 topLeft, Level* levelPtr, int life, Type type, DOUBLE2 size) 
 		m_ActPtr->SetBodyType(BodyType::DYNAMIC);
 		m_ActPtr->SetLinearVelocity(DOUBLE2(0, INITIAL_Y_VEL));
 	}
+
+	m_IsActive = true;
 }
 
 void Coin::Tick(double deltaTime)

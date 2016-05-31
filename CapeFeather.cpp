@@ -11,6 +11,13 @@ CapeFeather::CapeFeather(DOUBLE2 topLeft, Level* levelPtr) :
 
 void CapeFeather::Tick(double deltaTime)
 {
+	Item::Tick(deltaTime);
+	if (m_IsActive == false)
+	{
+		m_LevelPtr->RemoveItem(this);
+		return;
+	}
+
 	m_AnimInfo.Tick(deltaTime);
 	m_AnimInfo.frameNumber %= 2;
 }

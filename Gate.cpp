@@ -14,6 +14,7 @@ Gate::Gate(DOUBLE2 topLeft, Level* levelPtr, Type itemType, int barLength, int b
 	m_AnimInfo.secondsPerFrame = 0.1;
 
 	m_ActPtr->SetSensor(true);
+	m_IsActive = true;
 }
 
 Gate::~Gate()

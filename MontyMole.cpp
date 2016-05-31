@@ -22,7 +22,7 @@ const double MontyMole::JUMP_VEL = -10000.0;
 
 MontyMole::MontyMole(DOUBLE2& startingPos, Level* levelPtr, SpawnLocationType spawnLocationType, AIType aiType) :
 	Enemy(Type::MONTY_MOLE, startingPos + DOUBLE2(GetWidth()/2, GetHeight()/2), GetWidth(), GetHeight(), BodyType::DYNAMIC, levelPtr, this),
-	m_SpawnLocationType(spawnLocationType), m_SpawingPosition(startingPos + DOUBLE2(GetWidth() / 2, GetHeight() / 2)), m_AiType(aiType)
+	m_SpawnLocationType(spawnLocationType), m_AiType(aiType)
 {
 	m_AnimationState = AnimationState::INVISIBLE;
 	m_ActPtr->SetSensor(true);
@@ -41,6 +41,26 @@ MontyMole::~MontyMole()
 
 void MontyMole::Tick(double deltaTime)
 {
+	if (m_ActPtr != nullptr)
+	{
+		bool wasActive = m_IsActive;
+		Enemy::Tick(deltaTime);
+		if (wasActive && m_IsActive == false)
+		{
+			m_ActPtr->SetPosition(m_SpawingPosition);
+			m_ActPtr->SetActive(false);
+			m_ActPtr->SetSensor(true);
+			m_AnimationState = AnimationState::IN_GROUND;
+			return;
+		}
+		else if (wasActive == false && m_IsActive)
+		{
+			m_FramesSpentWrigglingInDirtTimer.Start();
+		}
+	}
+
+	if (m_IsActive == false) return;
+
 	m_AnimInfo.Tick(deltaTime);
 	m_AnimInfo.frameNumber %= 2;
 
@@ -55,6 +75,8 @@ void MontyMole::Tick(double deltaTime)
 		return;
 	}
 
+	if (m_ActPtr == nullptr) return;
+		
 	switch (m_AnimationState)
 	{
 	case AnimationState::INVISIBLE:
@@ -62,10 +84,8 @@ void MontyMole::Tick(double deltaTime)
 		if (abs(m_LevelPtr->GetPlayer()->GetPosition().x - m_SpawingPosition.x) < PLAYER_PROXIMITY)
 		{
 			m_AnimationState = AnimationState::IN_GROUND;
-			
 			m_FramesSpentWrigglingInDirtTimer.Start();
 		}
-
 	} break;
 	case AnimationState::IN_GROUND:
 	{
@@ -290,7 +310,6 @@ void MontyMole::Paint()
 
 	int xScale = 1, yScale = 1;
 	if (m_DirFacing == Direction::LEFT) xScale = -1;
-
 	if (m_AnimationState == AnimationState::DEAD) yScale = -1;
 
 	if (xScale != 1 || yScale != 1)

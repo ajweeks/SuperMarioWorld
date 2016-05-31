@@ -10,7 +10,6 @@
 
 #include "SplatParticle.h"
 
-const int CharginChuck::MINIMUM_PLAYER_DISTANCE = 2 * Game::WIDTH / 3;
 const double CharginChuck::TARGET_OVERSHOOT_DISTANCE = 60.0;
 const double CharginChuck::RUN_VEL = 7000.0;
 const double CharginChuck::JUMP_VEL = -21000.0;
@@ -36,7 +35,18 @@ CharginChuck::~CharginChuck()
 
 void CharginChuck::Tick(double deltaTime)
 {
-	if (abs(m_LevelPtr->GetPlayer()->GetPosition().x - m_ActPtr->GetPosition().x) > MINIMUM_PLAYER_DISTANCE) return;
+	bool wasActive = m_IsActive;
+	Enemy::Tick(deltaTime);
+	if (m_IsActive == false && wasActive)
+	{
+		if (abs(m_LevelPtr->GetPlayer()->GetPosition().x - m_SpawingPosition.x) >= MINIMUM_PLAYER_DISTANCE)
+		{
+			m_ActPtr->SetPosition(m_SpawingPosition);
+			return;
+		}
+	}
+
+	if (m_IsActive == false) return;
 
 	if (m_WaitingTimer.Tick() && m_WaitingTimer.IsComplete())
 	{
@@ -119,6 +129,8 @@ bool CharginChuck::CalculateOnGround()
 
 void CharginChuck::Paint()
 {
+	if (m_IsActive == false) return;
+
 	MATRIX3X2 matPrevWorld = GAME_ENGINE->GetWorldMatrix();
 
 	DOUBLE2 playerPos = m_ActPtr->GetPosition();

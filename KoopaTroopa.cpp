@@ -26,6 +26,9 @@ KoopaTroopa::~KoopaTroopa()
 
 void KoopaTroopa::Tick(double deltaTime)
 {
+	Enemy::Tick(deltaTime);
+	if (m_IsActive == false) return;
+
 	if (m_ShouldAddKoopaShell)
 	{
 		m_ShouldAddKoopaShell = false;

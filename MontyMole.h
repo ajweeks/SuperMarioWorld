@@ -12,7 +12,7 @@ struct INT2;
 
 	All moles are spawned at the start of the game and are invisible until
 	the player comes within a certain distance of them. When a mole is killed by 
-	the player, this instance is tol to not spawn a mole again. 
+	the player, this instance is told to not spawn a mole again. 
 */
 
 class MontyMole : public Enemy
@@ -82,22 +82,17 @@ private:
 
 	static const int PLAYER_PROXIMITY = 100; // How close the player has to get before we spawn
 
-	DOUBLE2 m_SpawingPosition;
-
 	AnimationState m_AnimationState;
 
 	CountdownTimer m_SpawnDustCloudTimer;
 	CountdownTimer m_FramesSpentWrigglingInDirtTimer;
-	CountdownTimer m_FramesSinceLastHop; // NOTE: Only used by "dumb" moles
+	CountdownTimer m_FramesSinceLastHop; // Only used by "dumb" moles
 
 	double m_TargetX;
 
-	// If true, we now can never spawn again, but we need 
-	// to continue painting our spawning hole (if we live in the wall, that is)
-	// so we can't be removed from the level
-	bool m_HasBeenKilledByPlayer = true; 
-	bool m_HaveSpawnedMole = false; // This is set to true once we've spawned a mole
-	bool m_ShouldRemoveActor;
+	bool m_HasBeenKilledByPlayer = false;
+	bool m_HaveSpawnedMole = false;
+	bool m_ShouldRemoveActor = false; // Only ever set to true when the player kills us (or we fall off the level)
 
 	SpawnLocationType m_SpawnLocationType;
 	AIType m_AiType;

@@ -11,6 +11,7 @@ ThreeUpMoon::ThreeUpMoon(DOUBLE2 topLeft, Level* levelPtr) :
 
 void ThreeUpMoon::Tick(double deltaTime)
 {
+	Item::Tick(deltaTime);
 }
 
 void ThreeUpMoon::Paint()

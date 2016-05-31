@@ -1,13 +1,20 @@
 #include "stdafx.h"
 
 #include "Enemy.h"
+#include "Game.h"
 #include "Level.h"
+#include "Player.h"
+
+const int Enemy::MINIMUM_PLAYER_DISTANCE = int(Game::WIDTH * (4.0 / 5.0));
 
 Enemy::Enemy(Type type, DOUBLE2& posRef, double width, double height, BodyType bodyType, Level* levelPtr, void* userPointer) :
 	Entity(posRef, bodyType, levelPtr, ActorId::ENEMY, userPointer),
-	m_Type(type)
+	m_Type(type), m_SpawingPosition(posRef)
 {
 	m_ActPtr->AddBoxFixture(width, height, 0.0);
+
+	m_IsActive = false;
+	
 	b2Filter collisionFilter;
 	collisionFilter.categoryBits = Level::ENEMY;
 	collisionFilter.maskBits = Level::LEVEL | Level::ENEMY | Level::BLOCK | Level::PLAYER | Level::SHELL | Level::YOSHI_TOUNGE;
@@ -16,6 +23,24 @@ Enemy::Enemy(Type type, DOUBLE2& posRef, double width, double height, BodyType b
 
 Enemy::~Enemy()
 {
+}
+
+void Enemy::Tick(double deltaTime)
+{
+	if (m_IsActive == false)
+	{
+		if (abs(m_LevelPtr->GetPlayer()->GetPosition().x - m_SpawingPosition.x) < MINIMUM_PLAYER_DISTANCE)
+		{
+			m_IsActive = true;
+		}
+	}
+	else
+	{
+		if (abs(m_LevelPtr->GetPlayer()->GetPosition().x - m_ActPtr->GetPosition().x) >= MINIMUM_PLAYER_DISTANCE)
+		{
+			m_IsActive = false;
+		}
+	}
 }
 
 Enemy::Type Enemy::GetType()
@@ -40,7 +65,7 @@ std::string Enemy::TYPEToString(Type type)
 	}
 }
 
-Enemy::Type Enemy::StringToTYPE(std::string string)
+Enemy::Type Enemy::StringToTYPE(const std::string& string)
 {
 	if (!string.compare("None")) return Type::NONE;
 	else if (!string.compare("KoopaTroopa")) return Type::KOOPA_TROOPA;

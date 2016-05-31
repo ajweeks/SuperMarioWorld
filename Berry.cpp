@@ -14,6 +14,7 @@ Berry::Berry(DOUBLE2& positionRef, Level* levelPtr, Colour colour) :
 	m_ActPtr->SetCollisionFilter(collisionFilter);
 
 	m_AnimInfo.secondsPerFrame = 0.125;
+	m_IsActive = true;
 }
 
 Berry::~Berry()

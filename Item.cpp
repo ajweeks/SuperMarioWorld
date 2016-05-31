@@ -4,12 +4,18 @@
 #include "SpriteSheetManager.h"
 #include "Block.h"
 #include "Level.h"
+#include "Game.h"
+#include "Player.h"
+
+const int Item::MINIMUM_PLAYER_DISTANCE = int(Game::WIDTH * (4.0 / 5.0));
 
 Item::Item(DOUBLE2 topLeft, Type type, Level* levelPtr, int filterCategoryBits, BodyType bodyType, int width, int height) :
 	Entity(topLeft + DOUBLE2(width / 2, height / 2), bodyType, levelPtr, ActorId::ITEM, this),
 	m_Type(type), WIDTH(width), HEIGHT(height)
 {
 	m_ActPtr->AddBoxFixture(width, height, 0.0);
+
+	m_IsActive = false;
 
 	b2Filter collisionFilter;
 	collisionFilter.categoryBits = filterCategoryBits;
@@ -18,6 +24,24 @@ Item::Item(DOUBLE2 topLeft, Type type, Level* levelPtr, int filterCategoryBits, 
 }
 
 Item::~Item() {}
+
+void Item::Tick(double deltaTime)
+{
+	if (m_IsActive == false)
+	{
+		if (abs(m_LevelPtr->GetPlayer()->GetPosition().x - m_ActPtr->GetPosition().x) < MINIMUM_PLAYER_DISTANCE)
+		{
+			m_IsActive = true;
+		}
+	}
+	else
+	{
+		if (abs(m_LevelPtr->GetPlayer()->GetPosition().x - m_ActPtr->GetPosition().x) >= MINIMUM_PLAYER_DISTANCE)
+		{
+			m_IsActive = false;
+		}
+	}
+}
 
 Item::Type Item::GetType()
 {

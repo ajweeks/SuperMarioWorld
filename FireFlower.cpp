@@ -11,6 +11,12 @@ FireFlower::FireFlower(DOUBLE2 topLeft, Level* levelPtr) :
 
 void FireFlower::Tick(double deltaTime)
 {
+	Item::Tick(deltaTime);
+	if (m_IsActive == false)
+	{
+		m_LevelPtr->RemoveItem(this);
+		return;
+	}
 }
 
 void FireFlower::Paint()

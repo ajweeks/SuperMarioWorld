@@ -9,7 +9,7 @@ class Enemy : public Entity
 public:
 	enum class Type
 	{
-		NONE, KOOPA_TROOPA, CHARGIN_CHUCK, PIRHANA_PLANT, MONTY_MOLE, // POKEY, BULLET_BILL, DRY_BONES, BOO
+		NONE, KOOPA_TROOPA, CHARGIN_CHUCK, PIRHANA_PLANT, MONTY_MOLE
 	};
 
 	Enemy(Type type, DOUBLE2& posRef, double width, double height, BodyType bodyType,
@@ -19,7 +19,7 @@ public:
 	Enemy(const Enemy&) = delete;
 	Enemy& operator=(const Enemy&) = delete;
 
-	virtual void Tick(double deltaTime) = 0;
+	void Tick(double deltaTime);
 	virtual void Paint() = 0;
 
 	virtual int GetWidth() = 0;
@@ -28,10 +28,15 @@ public:
 	Type GetType();
 
 	static std::string TYPEToString(Type type);
-	static Type StringToTYPE(std::string string);
+	static Type StringToTYPE(const std::string& string);
 
 protected:
+	static const int MINIMUM_PLAYER_DISTANCE; // how close the player needs to get for us to activate
+
 	Type m_Type;
+	DOUBLE2 m_SpawingPosition;
+
+	bool m_IsActive; // This only gets set to true when the player is nearby
 
 	int m_DirFacing;
 	int m_DirFacingLastFrame;

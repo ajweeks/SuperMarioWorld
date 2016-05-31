@@ -35,6 +35,9 @@ KoopaShell::~KoopaShell()
 
 void KoopaShell::Tick(double deltaTime)
 {
+	Item::Tick(deltaTime);
+	if (m_IsActive == false) m_ShouldBeRemoved = true;
+
 	if (m_ShouldBeRemoved)
 	{
 		m_LevelPtr->RemoveItem(this);

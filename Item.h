@@ -26,7 +26,7 @@ public:
 	Item(const Item&) = delete;
 	Item& operator=(const Item&) = delete;
 
-	virtual void Tick(double deltaTime) = 0;
+	void Tick(double deltaTime);
 	virtual void Paint() = 0;
 
 	void SetLinearVelocity(DOUBLE2 newVel);
@@ -40,10 +40,13 @@ public:
 
 	static const int TILE_SIZE = 16;
 protected:
+	static const int MINIMUM_PLAYER_DISTANCE; // how close the player needs to get for us to activate
 
 	const int WIDTH;
 	const int HEIGHT;
 	RECT2 m_Bounds;
+	bool m_IsActive;
+	DOUBLE2 m_SpawningPosition;
 
 private:
 	Type m_Type;
