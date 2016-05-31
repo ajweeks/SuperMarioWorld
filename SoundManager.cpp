@@ -109,7 +109,6 @@ void SoundManager::RestartSongs()
 
 void SoundManager::UnloadSoundsAndSongs()
 {
-	// TODO: Find out if we should be stopping the sounds before we delete them
 	for (int i = 0; i < int(Song::_LAST_ELEMENT); ++i)
 	{
 		delete m_SongsPtrArr[i];

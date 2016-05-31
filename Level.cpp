@@ -634,7 +634,7 @@ void Level::CollidePlayerWithBlock(DOUBLE2 blockCenterPos, DOUBLE2 playerFeet, b
 
 void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool& enableContactRef)
 {
-	DOUBLE2 playerFeet(m_PlayerPtr->GetPosition().x, m_PlayerPtr->GetPosition().y + m_PlayerPtr->GetHeight() / 2);
+	const DOUBLE2 playerFeet(m_PlayerPtr->GetPosition().x, m_PlayerPtr->GetPosition().y + m_PlayerPtr->GetHeight() / 2);
 
 	switch (actOtherPtr->GetUserData())
 	{
@@ -645,7 +645,7 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool& 
 			break;
 		}
 
-		bool playerIsRising = m_PlayerPtr->GetLinearVelocity().y < -0.001;
+		const bool playerIsRising = m_PlayerPtr->GetLinearVelocity().y < -0.001;
 
 		switch (actThisPtr->GetUserData())
 		{
@@ -824,8 +824,8 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			break;
 		}
 
-		bool playerIsRising = actOtherPtr->GetLinearVelocity().y < -0.001;
-		DOUBLE2 playerFeet = DOUBLE2(actOtherPtr->GetPosition().x, actOtherPtr->GetPosition().y + ((Player*)actOtherPtr)->GetHeight() / 2);
+		const bool playerIsRising = actOtherPtr->GetLinearVelocity().y < -0.001;
+		const DOUBLE2 playerFeet = DOUBLE2(actOtherPtr->GetPosition().x, actOtherPtr->GetPosition().y + ((Player*)actOtherPtr)->GetHeight() / 2);
 
 		switch (actThisPtr->GetUserData())
 		{
@@ -858,8 +858,8 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			case Item::Type::MESSAGE_BLOCK:
 			case Item::Type::CLOUD_BLOCK:
 			{
-				bool playerCenterIsBelowBlock = m_PlayerPtr->GetPosition().y > (actThisPtr->GetPosition().y + Block::HEIGHT / 2);
-				bool playerCenterIsAboveBlock = m_PlayerPtr->GetPosition().y < (actThisPtr->GetPosition().y - Block::HEIGHT / 2);
+				const bool playerCenterIsBelowBlock = m_PlayerPtr->GetPosition().y > (actThisPtr->GetPosition().y + Block::HEIGHT / 2);
+				const bool playerCenterIsAboveBlock = m_PlayerPtr->GetPosition().y < (actThisPtr->GetPosition().y - Block::HEIGHT / 2);
 
 				if (playerIsRising && playerCenterIsBelowBlock)
 				{
@@ -874,8 +874,8 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 				RotatingBlock* rotatingBlockPtr = (RotatingBlock*)itemPtr;
 				if (rotatingBlockPtr->IsRotating()) break;
 
-				bool playerCenterIsBelowBlock = m_PlayerPtr->GetPosition().y > (rotatingBlockPtr->GetPosition().y + Block::HEIGHT / 2);
-				bool playerCenterIsAboveBlock = m_PlayerPtr->GetPosition().y < (rotatingBlockPtr->GetPosition().y - Block::HEIGHT / 2);
+				const bool playerCenterIsBelowBlock = m_PlayerPtr->GetPosition().y > (rotatingBlockPtr->GetPosition().y + Block::HEIGHT / 2);
+				const bool playerCenterIsAboveBlock = m_PlayerPtr->GetPosition().y < (rotatingBlockPtr->GetPosition().y - Block::HEIGHT / 2);
 
 				if (playerIsRising && playerCenterIsBelowBlock)
 				{
@@ -974,7 +974,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 		case int(ActorId::ENEMY):
 		{
 			Enemy* enemyPtr = (Enemy*)actThisPtr->GetUserPointer();
-			DOUBLE2 enemyFeet = enemyPtr->GetPosition() + DOUBLE2(0, enemyPtr->GetHeight() / 2);
+			const DOUBLE2 enemyFeet = enemyPtr->GetPosition() + DOUBLE2(0, enemyPtr->GetHeight() / 2);
 			switch (enemyPtr->GetType())
 			{
 			case Enemy::Type::KOOPA_TROOPA:

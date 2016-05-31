@@ -58,7 +58,7 @@ void Message::Paint()
 		// NOTE: Paints a shrinking black rectangle
 		int framesElapsed = m_OutroAnimationTimer.FramesElapsed();
 		int totalFrames = m_OutroAnimationTimer.OriginalNumberOfFrames();
-		int width = WIDTH - int(framesElapsed * (double(HEIGHT) / double(totalFrames)));
+		int width = WIDTH - int(framesElapsed * (double(WIDTH) / double(totalFrames)));
 		int height = HEIGHT - int(framesElapsed * (double(HEIGHT) / double(totalFrames)));
 
 		int x = int(Game::WIDTH / 2 - width / 2);
@@ -71,8 +71,8 @@ void Message::Paint()
 		int y = int(Game::HEIGHT / 2 - HEIGHT / 2 - yo);
 		GAME_ENGINE->FillRect(RECT2(x, y, x + WIDTH, y + HEIGHT));
 
-		int xPad = 7;
-		int yPad = 6;
+		int xPad = 8;
+		int yPad = 7;
 		SMWFont::PaintPhrase(m_MessageText, x + xPad, y + yPad, false);
 	}
 
