@@ -12,8 +12,9 @@
 
 #include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
-#include "DustParticle.h"
 #include "SuperMushroom.h"
+#include "YoshiEggBreakParticle.h"
+#include "StarCloudParticle.h"
 
 // STATIC INITIALIZATIONS
 const int Yoshi::JUMP_VEL = -25000;
@@ -102,7 +103,11 @@ void Yoshi::Tick(double deltaTime)
 		m_ShouldSpawnMushroom = false;
 		SoundManager::PlaySoundEffect(SoundManager::Sound::YOSHI_EGG_BREAK);
 
-		SuperMushroom* superMushroomPtr = new SuperMushroom(m_ActPtr->GetPosition(), m_LevelPtr, -m_DirFacing);
+		DOUBLE2 mushroomPos = m_ActPtr->GetPosition();
+		YoshiEggBreakParticle* eggBreakParticlePtr = new YoshiEggBreakParticle(mushroomPos);
+		m_LevelPtr->AddParticle(eggBreakParticlePtr);
+
+		SuperMushroom* superMushroomPtr = new SuperMushroom(mushroomPos, m_LevelPtr, -m_DirFacing);
 		m_LevelPtr->AddItem(superMushroomPtr);
 	}
 
@@ -157,6 +162,12 @@ void Yoshi::Tick(double deltaTime)
 	if (m_HatchingTimer.Tick() && m_HatchingTimer.IsComplete())
 	{
 		m_AnimationState = AnimationState::BABY;
+
+		StarCloudParticle* starCloudParticlePtr = new StarCloudParticle(m_ActPtr->GetPosition());
+		m_LevelPtr->AddParticle(starCloudParticlePtr);
+
+		YoshiEggBreakParticle* yoshiEggBreakParticle = new YoshiEggBreakParticle(m_ActPtr->GetPosition());
+		m_LevelPtr->AddParticle(yoshiEggBreakParticle);
 
 		m_LevelPtr->SetPaused(true, false);
 	}
