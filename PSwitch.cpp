@@ -34,7 +34,7 @@ void PSwitch::Paint()
 	{
 		srcCol += 1;
 	}
-	SpriteSheetManager::generalTilesPtr->Paint(left, top + 2, srcCol, srcRow);
+	SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES)->Paint(left, top + 2, srcCol, srcRow);
 }
 
 void PSwitch::Hit()

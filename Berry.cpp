@@ -44,5 +44,5 @@ void Berry::Paint()
 	int srcRow = 22;
 	if (m_Colour == Colour::PINK) srcRow += 1;
 	else if (m_Colour == Colour::GREEN) srcRow += 2;
-	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);
+	SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES)->Paint(left, top, srcCol, srcRow);
 }

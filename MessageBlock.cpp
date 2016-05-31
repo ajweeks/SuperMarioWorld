@@ -51,7 +51,7 @@ void MessageBlock::Paint()
 	int srcRow = 9;
 	double left = m_ActPtr->GetPosition().x;
 	double top = m_ActPtr->GetPosition().y + m_yo;
-	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);
+	SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES)->Paint(left, top, srcCol, srcRow);
 
 	m_MessagePtr->Paint();
 }

@@ -273,16 +273,13 @@ void MontyMole::StompKill()
 
 void MontyMole::Paint()
 {
+	if (m_SpawnLocationType == SpawnLocationType::WALL && m_HaveSpawnedMole)
+	{
+		SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::MONTY_MOLE)->Paint(m_SpawingPosition.x, m_SpawingPosition.y, 5, 0);
+	}
 	if (m_AnimationState == AnimationState::INVISIBLE)
 	{
 		return;
-	}
-	else
-	{
-		if (m_SpawnLocationType == SpawnLocationType::WALL && m_HaveSpawnedMole)
-		{
-			SpriteSheetManager::montyMolePtr->Paint(m_SpawingPosition.x, m_SpawingPosition.y, 5, 0);
-		}
 	}
 	if (m_ActPtr == nullptr) return;
 
@@ -305,7 +302,7 @@ void MontyMole::Paint()
 	}
 
 	INT2 animationFrame = GetAnimationFrame();
-	SpriteSheetManager::montyMolePtr->Paint(centerX, centerY + 1.5, animationFrame.x, animationFrame.y);
+	SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::MONTY_MOLE)->Paint(centerX, centerY + 1.5, animationFrame.x, animationFrame.y);
 	
 	GAME_ENGINE->SetWorldMatrix(matPrevWorld);
 

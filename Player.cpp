@@ -74,7 +74,7 @@ void Player::Reset()
 	m_Stars = 0;
 	m_DragonCoins = 0;
 
-	m_SpriteSheetPtr = SpriteSheetManager::smallMarioPtr;
+	m_SpriteSheetPtr = SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::SMALL_MARIO);
 	m_NeedsNewFixture = true;
 
 	m_ExtraItemPtr = nullptr;
@@ -812,8 +812,9 @@ void Player::Paint()
 		if (toungeTimerFramesElapsed > 12 &&
 			toungeTimerFramesElapsed < toungeTimerTotalFrames - 7)
 		{
-			int tileWidth = SpriteSheetManager::yoshiWithMarioPtr->GetTileWidth();
-			int tileHeight = SpriteSheetManager::yoshiWithMarioPtr->GetTileHeight();
+			SpriteSheet* yoshiWithMarioBmpPtr = SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::YOSHI_WITH_MARIO);
+			int tileWidth = yoshiWithMarioBmpPtr->GetTileWidth();
+			int tileHeight = yoshiWithMarioBmpPtr->GetTileHeight();
 			int srcX = 12 * tileWidth;
 			int srcY = 0 * tileHeight;
 			int width = int(m_RidingYoshiPtr->GetTongueLength() - 7);
@@ -823,7 +824,7 @@ void Player::Paint()
 			RECT2 srcRect(srcX, srcY, srcX + width, srcY + height);
 			// NOTE: We can't use the normal sprite sheet paint here since
 			// we need to draw only part of yoshi's tounge at times
-			GAME_ENGINE->DrawBitmap(SpriteSheetManager::yoshiWithMarioPtr->GetBitmap(), left, top, srcRect);
+			GAME_ENGINE->DrawBitmap(yoshiWithMarioBmpPtr->GetBitmap(), left, top, srcRect);
 
 			// Tongue tip
 			left += width - 3;
@@ -833,7 +834,7 @@ void Player::Paint()
 			width = 7;
 			height = 6;
 			srcRect = RECT2(srcX, srcY, srcX + width, srcY + height);
-			GAME_ENGINE->DrawBitmap(SpriteSheetManager::yoshiWithMarioPtr->GetBitmap(), left, top, srcRect);
+			GAME_ENGINE->DrawBitmap(yoshiWithMarioBmpPtr->GetBitmap(), left, top, srcRect);
 		}
 	}
 
@@ -1111,7 +1112,7 @@ void Player::OnItemPickup(Item* itemPtr)
 		case PowerupState::NORMAL:
 		{
 			SoundManager::PlaySoundEffect(SoundManager::Sound::PLAYER_SUPER_MUSHROOM_COLLECT);
-			m_SpriteSheetPtr = SpriteSheetManager::superMarioPtr;
+			m_SpriteSheetPtr = SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::SUPER_MARIO);
 			ChangePowerupState(PowerupState::SUPER);
 		} break;
 		case PowerupState::SUPER:
@@ -1186,16 +1187,16 @@ SpriteSheet* Player::GetSpriteSheetForPowerupState(PowerupState powerupState)
 {
 	if (m_IsRidingYoshi)
 	{
-		return SpriteSheetManager::yoshiWithMarioPtr;
+		return SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::YOSHI_WITH_MARIO);
 	}
 	else
 	{
 		switch (powerupState)
 		{
 		case PowerupState::NORMAL:
-			return SpriteSheetManager::smallMarioPtr;
+			return SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::SMALL_MARIO);
 		case PowerupState::SUPER:
-			return SpriteSheetManager::superMarioPtr;
+			return SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::SUPER_MARIO);
 		default:
 			OutputDebugString(String("Unhandled powerup state passed to Player::GetSpriteSheetForPowerupState!\n"));
 			return nullptr;

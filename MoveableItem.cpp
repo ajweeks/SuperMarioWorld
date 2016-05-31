@@ -72,7 +72,7 @@ void MoveableItem::Paint()
 		double left = m_ActPtr->GetPosition().x;
 		double top = m_ActPtr->GetPosition().y + 2;
 
-		SpriteSheetManager::generalTilesPtr->Paint(left, top, m_SpriteSheetIndex.x, m_SpriteSheetIndex.y);
+		SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES)->Paint(left, top, m_SpriteSheetIndex.x, m_SpriteSheetIndex.y);
 	}
 
 	// We want to appear as though we are behind the prize block
@@ -83,7 +83,7 @@ void MoveableItem::Paint()
 	{
 		double left = m_SpawnLocation.x + WIDTH / 2;
 		double top = m_SpawnLocation.y + Block::HEIGHT / 2 + 2;
-		SpriteSheetManager::generalTilesPtr->Paint(left, top, 4, 4);
+		SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES)->Paint(left, top, 4, 4);
 	}
 }
 

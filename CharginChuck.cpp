@@ -141,7 +141,7 @@ void CharginChuck::Paint()
 
 	INT2 animationFrame = GetAnimationFrame();
 	double yo = -2.0;
-	SpriteSheetManager::charginChuckPtr->Paint(centerX, centerY + yo, animationFrame.x, animationFrame.y);
+	SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::CHARGIN_CHUCK)->Paint(centerX, centerY + yo, animationFrame.x, animationFrame.y);
 
 	GAME_ENGINE->SetWorldMatrix(matPrevWorld);
 

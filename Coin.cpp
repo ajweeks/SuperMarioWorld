@@ -70,7 +70,7 @@ void Coin::Paint()
 		srcCol = 4;
 	}
 
-	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);
+	SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES)->Paint(left, top, srcCol, srcRow);
 }
 
 // If toBlock is false, then we are being turned back to a coin

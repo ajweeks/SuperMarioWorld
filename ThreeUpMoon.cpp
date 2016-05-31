@@ -20,5 +20,5 @@ void ThreeUpMoon::Paint()
 	int srcCol = 3;
 	int srcRow = 7;
 
-	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);
+	SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES)->Paint(left, top, srcCol, srcRow);
 }

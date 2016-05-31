@@ -360,9 +360,11 @@ void Level::Paint()
 			int left = 75;
 			int top = 60;
 
+			Bitmap* hudBmpPtr = SpriteSheetManager::GetBitmapPtr(SpriteSheetManager::HUD);
+
 			// MARIO
 			RECT2 srcRect = RECT2(1, 1, 41, 9);
-			GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, left + 32, top, srcRect);
+			GAME_ENGINE->DrawBitmap(hudBmpPtr, left + 32, top, srcRect);
 			top += 16;
 			
 			GAME_ENGINE->SetColor(COLOR(255, 255, 255));
@@ -386,13 +388,13 @@ void Level::Paint()
 				// RED STAR
 				top += 8;
 				srcRect = RECT2(19, 60, 19 + 8, 60 + 8);
-				GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, left, top, srcRect);
+				GAME_ENGINE->DrawBitmap(hudBmpPtr, left, top, srcRect);
 
 				// X
 				left += 10;
 				top += 2;
 				srcRect = RECT2(10, 61, 10 + 7, 61 + 7);
-				GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, left, top, srcRect);
+				GAME_ENGINE->DrawBitmap(hudBmpPtr, left, top, srcRect);
 
 				// NUMBER OF STARS
 				left += 24;
@@ -515,21 +517,22 @@ void Level::PaintHUD()
 	int x = 15;
 	int y = 15;
 	RECT2 srcRect;
+	Bitmap* hudBmpPtr = SpriteSheetManager::GetBitmapPtr(SpriteSheetManager::HUD);
 
 	// MARIO
 	srcRect = RECT2(1, 1, 41, 9);
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, x, y, srcRect);
+	GAME_ENGINE->DrawBitmap(hudBmpPtr, x, y, srcRect);
 	
 	// X
 	x += 9;
 	y += 8;
 	srcRect = RECT2(10, 61, 10 + 7, 61 + 7);
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, x, y, srcRect);
+	GAME_ENGINE->DrawBitmap(hudBmpPtr, x, y, srcRect);
 
 	// LIVES
 	x += 15;
 	srcRect = HUD::GetSmallSingleNumberSrcRect(playerLives, false);
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, x, y, srcRect);
+	GAME_ENGINE->DrawBitmap(hudBmpPtr, x, y, srcRect);
 
 	// DRAGON COINS
 	x += 24;
@@ -537,7 +540,7 @@ void Level::PaintHUD()
 	for (int i = 0; i < playerDragonCoins; ++i)
 	{
 		srcRect = RECT2(1, 60, 1 + 8, 60 + 8);
-		GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, x, y, srcRect);
+		GAME_ENGINE->DrawBitmap(hudBmpPtr, x, y, srcRect);
 		x += 8;
 	}
 
@@ -545,13 +548,13 @@ void Level::PaintHUD()
 	y += 8;
 	x = 70;
 	srcRect = RECT2(19, 60, 19 + 8, 60 + 8);
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, x, y, srcRect);
+	GAME_ENGINE->DrawBitmap(hudBmpPtr, x, y, srcRect);
 
 	// X
 	x += 10;
 	y += 2;
 	srcRect = RECT2(10, 61, 10 + 7, 61 + 7);
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, x, y, srcRect);
+	GAME_ENGINE->DrawBitmap(hudBmpPtr, x, y, srcRect);
 
 	// NUMBER OF STARS
 	x += 24;
@@ -562,13 +565,13 @@ void Level::PaintHUD()
 	x += 10;
 	y -= 7;
 	srcRect = RECT2(36, 52, 36 + 28, 52 + 28);
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, x, y, srcRect);
+	GAME_ENGINE->DrawBitmap(hudBmpPtr, x, y, srcRect);
 
 	// TIME LABEL
 	x += 37;
 	y = 15;
 	srcRect = RECT2(1, 52, 1 + 24, 52 + 7);
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, x, y, srcRect);
+	GAME_ENGINE->DrawBitmap(hudBmpPtr, x, y, srcRect);
 
 	// TIME VALUE
 	y += 9;
@@ -579,7 +582,7 @@ void Level::PaintHUD()
 	x += 33;
 	y = 15;
 	srcRect = RECT2(1, 60, 1 + 16, 60 + 8);
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, x, y, srcRect);
+	GAME_ENGINE->DrawBitmap(hudBmpPtr, x, y, srcRect);
 
 	// COINS
 	x += 30;

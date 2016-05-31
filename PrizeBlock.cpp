@@ -83,7 +83,7 @@ void PrizeBlock::Paint()
 
 	double left = m_ActPtr->GetPosition().x;
 	double top = m_ActPtr->GetPosition().y + m_yo * 3;
-	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);
+	SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES)->Paint(left, top, srcCol, srcRow);
 }
 
 void PrizeBlock::Hit()

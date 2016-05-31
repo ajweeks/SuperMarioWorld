@@ -5,6 +5,27 @@ class SpriteSheet;
 class SpriteSheetManager
 {
 public:
+	enum SpriteSheets
+	{
+		SMALL_MARIO, SUPER_MARIO, GENERAL_TILES, BEANSTALK, FONT,
+		COIN_COLLECT_PARTICLE, DUST_CLOUD_PARTICLE, NUMBER_PARTICLE, ENEMY_DEATH_CLOUD_PARTICLE, 
+		YOSHI_EGG_BREAK_PARTICLE,
+		MONTY_MOLE, KOOPA_TROOPA, KOOPA_SHELL, PIRANHA_PLANT, CHARGIN_CHUCK,
+		YOSHI, SMALL_YOSHI, YOSHI_WITH_MARIO,
+
+		// NOTE: All entries must be above this line
+		__LAST_ELEMENT
+	};
+	enum Bitmaps
+	{
+		LEVEL_ONE_BACKGROUND, LEVEL_ONE_UNDERGROUND_BACKGROUND,
+		HUD, MAIN_MENU_SCREEN, MAIN_MENU_SCREEN_BACKGROUND, 
+		STAR_PARTICLE, SPLAT_PARTICLE, ONE_UP_PARTICLE, STAR_CLOUD_PARTICLE,
+
+		// NOTE: All entries must be above this line
+		_LAST_ELEMENT
+	};
+
 	virtual ~SpriteSheetManager();
 
 	SpriteSheetManager(const SpriteSheetManager&) = delete;
@@ -13,41 +34,14 @@ public:
 	static void Load();
 	static void Unload();
 
-	static Bitmap* levelOneBackgroundPtr;
-	static Bitmap* levelOneUndergroundBackgroundPtr;
-	static std::vector<Bitmap*> levelForegroundPtrArr;
-
-	static Bitmap* hudPtr;
-
-	static Bitmap* mainMenuScreenPtr;
-	static Bitmap* mainMenuScreenBGPtr;
-	static Bitmap* fontPtr;
-
-	static SpriteSheet* smallMarioPtr;
-	static SpriteSheet* superMarioPtr;
-	static SpriteSheet* generalTilesPtr;
-	static SpriteSheet* beanstalkPtr;
-
-	static Bitmap* starParticlePtr;
-	static Bitmap* splatParticlePtr;
-	static Bitmap* oneUpParticlePtr;
-	static SpriteSheet* coinCollectParticlePtr;
-	static SpriteSheet* runningDustCloudParticlePtr;
-	static SpriteSheet* numberParticlePtr;
-	static SpriteSheet* enemyDeathCloudParticlePtr;
-
-	static SpriteSheet* montyMolePtr;
-	static SpriteSheet* koopaTroopaPtr;
-	static SpriteSheet* koopaShellPtr;
-	static SpriteSheet* piranhaPlantPtr;
-	static SpriteSheet* charginChuckPtr;
-
-	static SpriteSheet* yoshiPtr;
-	static SpriteSheet* smallYoshiPtr;
-	static SpriteSheet* yoshiWithMarioPtr;
+	static Bitmap* GetLevelForegroundBmpPtr(int levelIndex);
+	static Bitmap* GetBitmapPtr(Bitmaps bitmap);
+	static SpriteSheet* GetSpriteSheetPtr(SpriteSheets spriteSheet);
 
 private:
 	SpriteSheetManager();
 
+	static std::vector<Bitmap*> m_LevelForegroundsPtrArr;
+	static SpriteSheet* m_SpriteSheetPtrArr[int(SpriteSheets::__LAST_ELEMENT)];
+	static Bitmap* m_BitmapPtrArr[int(Bitmaps::_LAST_ELEMENT)];
 };
-

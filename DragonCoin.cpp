@@ -32,6 +32,6 @@ void DragonCoin::Paint()
 	double top = m_ActPtr->GetPosition().y;
 	// NOTE: Dragon coins are two tiles tall, we could draw both at once of course 
 	// but drawing each half seperately is perhaps a bit simpler
-	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);
-	SpriteSheetManager::generalTilesPtr->Paint(left, top + Coin::HEIGHT, srcCol, srcRow + 1);
+	SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES)->Paint(left, top, srcCol, srcRow);
+	SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES)->Paint(left, top + Coin::HEIGHT, srcCol, srcRow + 1);
 }

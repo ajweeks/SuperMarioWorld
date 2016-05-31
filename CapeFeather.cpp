@@ -22,5 +22,5 @@ void CapeFeather::Paint()
 	int srcCol = 3;
 	int srcRow = 8;
 
-	SpriteSheetManager::generalTilesPtr->Paint(left, top, srcCol, srcRow);
+	SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES)->Paint(left, top, srcCol, srcRow);
 }

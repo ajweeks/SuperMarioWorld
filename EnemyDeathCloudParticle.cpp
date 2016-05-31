@@ -21,5 +21,5 @@ bool EnemyDeathCloudParticle::Tick(double deltaTime)
 
 void EnemyDeathCloudParticle::Paint()
 {
-	SpriteSheetManager::enemyDeathCloudParticlePtr->Paint(m_Position.x, m_Position.y, m_AnimInfo.frameNumber, 0);
+	SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::ENEMY_DEATH_CLOUD_PARTICLE)->Paint(m_Position.x, m_Position.y, m_AnimInfo.frameNumber, 0);
 }

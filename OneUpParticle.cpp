@@ -32,5 +32,5 @@ bool OneUpParticle::Tick(double deltaTime)
 
 void OneUpParticle::Paint()
 {
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::oneUpParticlePtr, m_Position);
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::GetBitmapPtr(SpriteSheetManager::ONE_UP_PARTICLE), m_Position);
 }

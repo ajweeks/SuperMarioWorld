@@ -33,7 +33,7 @@ void SplatParticle::Paint()
 		GAME_ENGINE->SetWorldMatrix(matTranslateInverse * matReflect * matTranslate);
 	}
 
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::splatParticlePtr, m_Position.x, m_Position.y);
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::GetBitmapPtr(SpriteSheetManager::SPLAT_PARTICLE), m_Position.x, m_Position.y);
 
 	GAME_ENGINE->SetWorldMatrix(matPrevWorld);
 }

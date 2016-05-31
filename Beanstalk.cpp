@@ -49,15 +49,15 @@ void Beanstalk::Paint()
 
 	for (int i = 0; i < m_CurrentHeight / TILE_SIZE; ++i)
 	{
-		SpriteSheetManager::beanstalkPtr->Paint(centerX, centerY, 0, 2);
+		SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::BEANSTALK)->Paint(centerX, centerY, 0, 2);
 		centerY -= 16;
 	}
 	if (m_CurrentHeight < FINAL_HEIGHT)
 	{
-		SpriteSheetManager::beanstalkPtr->Paint(centerX, centerY, 0, 0 + m_AnimInfo.frameNumber);
+		SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::BEANSTALK)->Paint(centerX, centerY, 0, 0 + m_AnimInfo.frameNumber);
 	}
 	else
 	{
-		SpriteSheetManager::generalTilesPtr->Paint(centerX, centerY, 4, 4);
+		SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES)->Paint(centerX, centerY, 4, 4);
 	}
 }

@@ -176,7 +176,7 @@ void KoopaTroopa::Paint()
 
 	INT2 animationFrame = DetermineAnimationFrame();
 	double yo = -4.5;
-	SpriteSheetManager::koopaTroopaPtr->Paint(centerX, centerY + yo, animationFrame.x, animationFrame.y);
+	SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::KOOPA_TROOPA)->Paint(centerX, centerY + yo, animationFrame.x, animationFrame.y);
 
 	// TODO: Add crying particle for shelless koopas
 

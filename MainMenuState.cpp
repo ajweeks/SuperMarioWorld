@@ -199,7 +199,7 @@ void MainMenuState::Paint()
 		int left = Game::WIDTH / 2 - 32;
 		int top = Game::HEIGHT / 2 - 8;
 		RECT2 srcRect = RECT2(212, 1, 212 + 64, 1 + 16);
-		GAME_ENGINE->DrawBitmap(SpriteSheetManager::mainMenuScreenPtr, left, top, srcRect);
+		GAME_ENGINE->DrawBitmap(SpriteSheetManager::GetBitmapPtr(SpriteSheetManager::MAIN_MENU_SCREEN), left, top, srcRect);
 		
 		int fadeStartTime = 85;
 		int fadeEndTime = 125;
@@ -220,7 +220,7 @@ void MainMenuState::Paint()
 		return;
 	}
 
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::mainMenuScreenBGPtr);
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::GetBitmapPtr(SpriteSheetManager::MAIN_MENU_SCREEN_BACKGROUND));
 
 	int lineHeight = 16;
 	int left = 0, top = 0;
@@ -286,13 +286,13 @@ void MainMenuState::Paint()
 	left = 25;
 	top = 38;
 	RECT2 srcRect = RECT2(0, 0, 208, 66);
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::mainMenuScreenPtr, left, top, srcRect);
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::GetBitmapPtr(SpriteSheetManager::MAIN_MENU_SCREEN), left, top, srcRect);
 
 	// Copyright
 	left = 55;
 	top += 156;
 	srcRect = RECT2(208, 58, 359, 66);
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::mainMenuScreenPtr, left, top, srcRect);
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::GetBitmapPtr(SpriteSheetManager::MAIN_MENU_SCREEN), left, top, srcRect);
 
 	PaintBorder();
 
@@ -318,7 +318,7 @@ void MainMenuState::PaintCursor(int left, int top)
 	}
 
 	RECT2 srcRect = RECT2(285, 5, 285 + 8, 5 + 8);
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::mainMenuScreenPtr, left, top, srcRect);
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::GetBitmapPtr(SpriteSheetManager::MAIN_MENU_SCREEN), left, top, srcRect);
 }
 
 void MainMenuState::PaintBorder()
@@ -405,7 +405,7 @@ void MainMenuState::DrawBorderPlank(int plankIndex, int left, int top, bool flip
 		GAME_ENGINE->SetWorldMatrix(matTotal);
 	}
 	
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::mainMenuScreenPtr, left, top, srcRect);
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::GetBitmapPtr(SpriteSheetManager::MAIN_MENU_SCREEN), left, top, srcRect);
 
 	GAME_ENGINE->SetWorldMatrix(matPrevWorld);
 }

@@ -36,10 +36,12 @@ void MidwayGate::Paint()
 	double y = top;
 	RECT2 srcRect;
 
+	SpriteSheet* generalTilesPtr = SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES);
+
 	// LEFT POLE
 	double srcX = m_AnimInfo.frameNumber * POLE_WIDTH * 2;
 	srcRect = RECT2(srcX, 336, srcX + POLE_WIDTH, 400);
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::generalTilesPtr->GetBitmap(), DOUBLE2(x, y), srcRect);
+	GAME_ENGINE->DrawBitmap(generalTilesPtr->GetBitmap(), DOUBLE2(x, y), srcRect);
 
 
 	// BAR
@@ -48,7 +50,7 @@ void MidwayGate::Paint()
 
 	x = m_ActPtr->GetPosition().x - BAR_LENGTH / 2.0;
 	y = m_ActPtr->GetPosition().y - BAR_DIAMETER / 2.0 - 1;
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::generalTilesPtr->GetBitmap(), DOUBLE2(x, y), srcRect);
+	GAME_ENGINE->DrawBitmap(generalTilesPtr->GetBitmap(), DOUBLE2(x, y), srcRect);
 }
 
 void MidwayGate::PaintFrontPole()
@@ -62,7 +64,7 @@ void MidwayGate::PaintFrontPole()
 	// RIGHT POLE
 	double srcX = m_AnimInfo.frameNumber * POLE_WIDTH * 2 + POLE_WIDTH;
 	RECT2 srcRect = RECT2(srcX, 336, srcX + POLE_WIDTH, 400);
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::generalTilesPtr->GetBitmap(), DOUBLE2(x, y), srcRect);
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES)->GetBitmap(), DOUBLE2(x, y), srcRect);
 }
 
 void MidwayGate::Hit()

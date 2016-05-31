@@ -20,5 +20,5 @@ bool StarParticle::Tick(double deltaTime)
 
 void StarParticle::Paint()
 {
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::starParticlePtr, m_Position.x, m_Position.y);
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::GetBitmapPtr(SpriteSheetManager::STAR_PARTICLE), m_Position.x, m_Position.y);
 }

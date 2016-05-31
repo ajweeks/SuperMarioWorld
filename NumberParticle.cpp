@@ -36,7 +36,7 @@ void PaintSeveralDigitNumber(int x, int y, int number)
 
 	do {
 		int digit = number % 10;
-		SpriteSheetManager::numberParticlePtr->Paint(x, y, digit, 0);
+		SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::NUMBER_PARTICLE)->Paint(x, y, digit, 0);
 
 		x -= 4;
 		number /= 10;

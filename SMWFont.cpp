@@ -3,14 +3,17 @@
 #include "SMWFont.h"
 #include "Game.h"
 #include "SpriteSheetManager.h"
+#include "SpriteSheet.h"
 #include "HUD.h"
 
 void SMWFont::PaintPhrase(std::string phrase, int left, int top, bool outlined)
 {
+	left += CHARACTER_WIDTH / 2;
 	int xo = left;
-	int yo = top;
+	int yo = top + CHARACTER_HEIGHT / 2;
 
-	RECT2 srcRect;
+	int srcX;
+	int srcY;
 	for (size_t i = 0; i < phrase.length(); ++i)
 	{
 		char currentChar = phrase.at(i);
@@ -59,18 +62,12 @@ void SMWFont::PaintPhrase(std::string phrase, int left, int top, bool outlined)
 		else if (currentChar == '=') spriteIndex = 64;
 		else if (currentChar == '!') spriteIndex = 65;
 
-		srcRect.left = (spriteIndex % CHARS_WIDE) * CHARACTER_WIDTH;
-		srcRect.top = int(spriteIndex / CHARS_WIDE) * CHARACTER_HEIGHT;
-		srcRect.right = srcRect.left + CHARACTER_WIDTH;
-		srcRect.bottom = srcRect.top + CHARACTER_HEIGHT;
+		srcX = spriteIndex % CHARS_WIDE;
+		srcY = int(spriteIndex / CHARS_WIDE);
 
-		if (outlined)
-		{
-			srcRect.top += 36;
-			srcRect.bottom += 36;
-		}
+		if (outlined) srcY += 4;
 		
-		GAME_ENGINE->DrawBitmap(SpriteSheetManager::fontPtr, xo, yo, srcRect);
+		SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::FONT)->Paint(xo, yo, srcX, srcY);
 
 		xo += CHARACTER_WIDTH;
 	}

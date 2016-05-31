@@ -29,6 +29,9 @@ PiranhaPlant::~PiranhaPlant()
 
 void PiranhaPlant::Tick(double deltaTime)
 {
+	Enemy::Tick(deltaTime);
+	if (m_IsActive == false) return;
+
 	m_AnimInfo.Tick(deltaTime);
 	m_AnimInfo.frameNumber %= 4;
 
@@ -112,7 +115,7 @@ void PiranhaPlant::Paint()
 
 	INT2 animationFrame = INT2(m_AnimInfo.frameNumber, 0);
 	double yo = 0;
-	SpriteSheetManager::piranhaPlantPtr->Paint(centerX, centerY + yo, animationFrame.x, animationFrame.y);
+	SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::PIRANHA_PLANT)->Paint(centerX, centerY + yo, animationFrame.x, animationFrame.y);
 
 	GAME_ENGINE->SetWorldMatrix(matPrevWorld);
 }

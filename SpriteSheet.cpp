@@ -3,10 +3,12 @@
 
 #define GAME_ENGINE (GameEngine::GetSingleton())
 
-SpriteSheet::SpriteSheet(const String filePath, int tilesWide, int tilesHigh, int tileWidth, int tileHeight) :
-	m_TilesWide(tilesWide), m_TilesHigh(tilesHigh), m_TileWidth(tileWidth), m_TileHeight(tileHeight)
+SpriteSheet::SpriteSheet(const String filePath, int tilesWide, int tilesHigh) :
+	m_TilesWide(tilesWide), m_TilesHigh(tilesHigh)
 {
 	m_BmpSpriteSheetPtr = new Bitmap(filePath);
+	m_TileWidth = m_BmpSpriteSheetPtr->GetWidth() / tilesWide;
+	m_TileHeight = m_BmpSpriteSheetPtr->GetHeight() / tilesHigh;
 }
 
 SpriteSheet::~SpriteSheet()

@@ -3,7 +3,7 @@
 class SpriteSheet
 {
 public:
-	SpriteSheet(const String filePath, int tilesWide, int tilesHigh, int tileWidth, int tileHeight);
+	SpriteSheet(const String filePath, int tilesWide, int tilesHigh);
 	virtual ~SpriteSheet();
 
 	SpriteSheet(const SpriteSheet&) = delete;

@@ -106,7 +106,7 @@ void KoopaShell::Paint()
 		GAME_ENGINE->SetWorldMatrix(matTranslateInverse * matReflect * matTranslate * matPrevWorld);
 	}
 
-	SpriteSheetManager::koopaShellPtr->Paint(centerX, centerY + 2, srcCol, srcRow);
+	SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::KOOPA_SHELL)->Paint(centerX, centerY + 2, srcCol, srcRow);
 
 	GAME_ENGINE->SetWorldMatrix(matPrevWorld);
 }

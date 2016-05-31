@@ -11,7 +11,7 @@ void HUD::PaintSeveralDigitNumber(int x, int y, int number, bool yellow)
 	do {
 		int digit = number % 10;
 		RECT2 srcRect = GetSmallSingleNumberSrcRect(digit, yellow);
-		GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, x, y, srcRect);
+		GAME_ENGINE->DrawBitmap(SpriteSheetManager::GetBitmapPtr(SpriteSheetManager::HUD), x, y, srcRect);
 
 		x -= 8;
 		number /= 10;
@@ -43,7 +43,7 @@ void HUD::PaintSeveralDigitLargeNumber(int x, int y, int number)
 	do {
 		int digit = number % 10;
 		RECT2 srcRect = GetLargeSingleNumberSrcRect(digit);
-		GAME_ENGINE->DrawBitmap(SpriteSheetManager::hudPtr, x, y, srcRect);
+		GAME_ENGINE->DrawBitmap(SpriteSheetManager::GetBitmapPtr(SpriteSheetManager::HUD), x, y, srcRect);
 
 		x -= 8;
 		number /= 10;

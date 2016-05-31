@@ -21,7 +21,7 @@ void CloudBlock::Paint()
 {
 	double centerX = m_ActPtr->GetPosition().x;
 	double centerY = m_ActPtr->GetPosition().y;
-	SpriteSheetManager::generalTilesPtr->Paint(centerX, centerY, 3, 11);
+	SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES)->Paint(centerX, centerY, 3, 11);
 }
 
 void CloudBlock::Hit()

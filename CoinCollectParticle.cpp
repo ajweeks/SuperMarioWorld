@@ -24,5 +24,5 @@ bool CoinCollectParticle::Tick(double deltaTime)
 
 void CoinCollectParticle::Paint()
 {
-	SpriteSheetManager::coinCollectParticlePtr->Paint(m_Position.x, m_Position.y, m_AnimInfo.frameNumber, 0);
+	SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::COIN_COLLECT_PARTICLE)->Paint(m_Position.x, m_Position.y, m_AnimInfo.frameNumber, 0);
 }

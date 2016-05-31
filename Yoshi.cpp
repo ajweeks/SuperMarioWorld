@@ -55,7 +55,7 @@ Yoshi::Yoshi(DOUBLE2 position, Level* levelPtr) :
 	m_AnimInfo.secondsPerFrame = HATCHING_SECONDS_PER_FRAME;
 	m_AnimationState = AnimationState::EGG;
 
-	m_SpriteSheetPtr = SpriteSheetManager::smallYoshiPtr;
+	m_SpriteSheetPtr = SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::SMALL_YOSHI);
 
 	m_TongueTimer = CountdownTimer(35);
 	m_HatchingTimer = CountdownTimer(80);
@@ -157,7 +157,6 @@ void Yoshi::Tick(double deltaTime)
 	if (m_HatchingTimer.Tick() && m_HatchingTimer.IsComplete())
 	{
 		m_AnimationState = AnimationState::BABY;
-		m_MessagePtr->StartIntroAnimation();
 
 		m_LevelPtr->SetPaused(true, false);
 	}
@@ -165,7 +164,8 @@ void Yoshi::Tick(double deltaTime)
 	if (m_GrowingTimer.Tick() && m_GrowingTimer.IsComplete())
 	{
 		m_AnimationState = AnimationState::WAITING;
-		m_SpriteSheetPtr = SpriteSheetManager::yoshiPtr;
+		m_MessagePtr->StartIntroAnimation();
+		m_SpriteSheetPtr = SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::YOSHI);
 		m_AnimInfo.secondsPerFrame = WAITING_SECONDS_PER_FRAME;
 	}
 
@@ -371,7 +371,7 @@ void Yoshi::SetCarryingPlayer(bool carryingPlayer, Player* playerPtr)
 	{
 		m_AnimInfo.secondsPerFrame = WAITING_SECONDS_PER_FRAME;
 
-		m_SpriteSheetPtr = SpriteSheetManager::yoshiPtr;
+		m_SpriteSheetPtr = SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::YOSHI);
 		
 		if (m_PlayerPtr->IsAirborne()) 
 		{

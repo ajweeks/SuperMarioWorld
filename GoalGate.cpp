@@ -75,9 +75,11 @@ void GoalGate::Paint()
 	int srcX = 4;
 	int srcY = 7;
 
+	SpriteSheet* generalTilesPtr = SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES);
+
 	// TOPS OF POLES
-	SpriteSheetManager::generalTilesPtr->Paint(x, y, srcX, srcY);
-	SpriteSheetManager::generalTilesPtr->Paint(x + TILE_SIZE * 2, y, srcX + 1, srcY);
+	generalTilesPtr->Paint(x, y, srcX, srcY);
+	generalTilesPtr->Paint(x + TILE_SIZE * 2, y, srcX + 1, srcY);
 
 	srcY++;
 	y += TILE_SIZE;
@@ -85,7 +87,7 @@ void GoalGate::Paint()
 	// LEFT POLE
 	for (int i = 0; i < TILES_HIGH - 1; ++i)
 	{
-		SpriteSheetManager::generalTilesPtr->Paint(x, y, srcX, srcY);
+		generalTilesPtr->Paint(x, y, srcX, srcY);
 		y += TILE_SIZE;
 	}
 
@@ -95,7 +97,7 @@ void GoalGate::Paint()
 		x = m_ActPtr->GetPosition().x - BAR_LENGTH / 2.0;
 		y = m_ActPtr->GetPosition().y - BAR_DIAMETER / 2.0;
 		RECT2 srcRect(64, 389, 87, 397);
-		GAME_ENGINE->DrawBitmap(SpriteSheetManager::generalTilesPtr->GetBitmap(), DOUBLE2(x, y), srcRect);
+		GAME_ENGINE->DrawBitmap(generalTilesPtr->GetBitmap(), DOUBLE2(x, y), srcRect);
 	}
 }
 
@@ -113,7 +115,7 @@ void GoalGate::PaintFrontPole()
 	// RIGHT POLE
 	for (int i = 0; i < TILES_HIGH - 1; ++i)
 	{
-		SpriteSheetManager::generalTilesPtr->Paint(x, y, srcX, srcY);
+		SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES)->Paint(x, y, srcX, srcY);
 		y += TILE_SIZE;
 	}
 }

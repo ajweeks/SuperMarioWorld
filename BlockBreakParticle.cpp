@@ -28,13 +28,13 @@ void BlockChunk::Paint()
 	double top = m_Position.y;
 
 	RECT2 srcRect = GetBlockParticleSrcRect(m_BlockType);
-	GAME_ENGINE->DrawBitmap(SpriteSheetManager::montyMolePtr->GetBitmap(), DOUBLE2(left, top), srcRect);
+	GAME_ENGINE->DrawBitmap(SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::MONTY_MOLE)->GetBitmap(), DOUBLE2(left, top), srcRect);
 }
 RECT2 BlockChunk::GetBlockParticleSrcRect(int index)
 {
 	assert(index >= 0 && index < 4);
 
-	double tileSize = SpriteSheetManager::montyMolePtr->GetTileWidth();
+	double tileSize = SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::MONTY_MOLE)->GetTileWidth();
 	double halfTileSize = tileSize / 2.0;
 	double srcX = (6 * tileSize) + (index % 2) * halfTileSize;
 	double srcY = 0 + int(index / 2) * halfTileSize;
