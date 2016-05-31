@@ -39,7 +39,7 @@ public:
 	void Paint();
 	void Reset();
 	
-	static PowerupState StringToPowerupState(std::string powerupStateStr);
+	static PowerupState StringToPowerupState(const std::string& powerupStateStr);
 	static std::string PowerupStateToString(PowerupState powerupState);
 
 	// If no particle is neccessary, leave particlePosition as DOUBLE2()
@@ -130,6 +130,7 @@ private:
 	static const int MAX_WALK_VEL;
 	static const int MAX_RUN_VEL;
 	static const int JUMP_VEL;
+	static const int BEANSTALK_JUMP_VEL;
 	static const int MAX_FALL_VEL;
 	static const int BOUNCE_VEL;
 	static const int STARTING_LIVES;

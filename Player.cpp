@@ -33,6 +33,7 @@ const int Player::RUNNING_ACCELERATION = 65000;
 const int Player::MAX_WALK_VEL = 150;
 const int Player::MAX_RUN_VEL = 200;
 const int Player::JUMP_VEL = -16000;
+const int Player::BEANSTALK_JUMP_VEL = -21500;
 const int Player::MAX_FALL_VEL = 8000;
 const int Player::BOUNCE_VEL = -195;
 const int Player::STARTING_LIVES = 5;
@@ -285,8 +286,7 @@ void Player::HandleClimbingStateKeyboardInput(double deltaTime)
 		m_AnimationState = AnimationState::JUMPING;
 		SoundManager::PlaySoundEffect(SoundManager::Sound::PLAYER_JUMP);
 		m_FramesSpentInAir = 0;
-		// TODO: Move vine jump value out to a const int
-		m_ActPtr->SetLinearVelocity(DOUBLE2(0, -21500 * deltaTime));
+		m_ActPtr->SetLinearVelocity(DOUBLE2(0, BEANSTALK_JUMP_VEL * deltaTime));
 		return;
 	}
 
@@ -367,8 +367,8 @@ void Player::HandleKeyboardInput(double deltaTime)
 			m_AnimationState = AnimationState::WAITING;
 		}
 
-		bool regularJumpKeyPressed = GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::B_BUTTON);
-		bool spinJumpKeyPressed = GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::A_BUTTON);
+		const bool regularJumpKeyPressed = GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::B_BUTTON);
+		const bool spinJumpKeyPressed = GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::A_BUTTON);
 
 		if (m_AnimationState != AnimationState::SPIN_JUMPING &&
 			regularJumpKeyPressed ||
@@ -388,7 +388,7 @@ void Player::HandleKeyboardInput(double deltaTime)
 			if (m_IsRidingYoshi)
 			{
 				// Dismount Yoshi
-				if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::A_BUTTON))
+				if (spinJumpKeyPressed)
 				{
 					targetYVel = JUMP_VEL * deltaTime;
 					if (m_RidingYoshiPtr->IsAirborne())
@@ -540,7 +540,7 @@ void Player::HandleKeyboardInput(double deltaTime)
 	}
 	else
 	{
-		if (!GAME_ENGINE->IsKeyboardKeyDown(Keybindings::Y_BUTTON) && !GAME_ENGINE->IsKeyboardKeyDown(Keybindings::X_BUTTON)) // Running
+		if (!GAME_ENGINE->IsKeyboardKeyDown(Keybindings::Y_BUTTON) && !GAME_ENGINE->IsKeyboardKeyDown(Keybindings::X_BUTTON))
 		{
 			m_IsRunning = false;
 		}
@@ -555,7 +555,7 @@ void Player::HandleKeyboardInput(double deltaTime)
 			return;
 		}
 		else if (abs(m_ActPtr->GetLinearVelocity().x) < 0.01 &&
-			abs(m_ActPtr->GetLinearVelocity().y) < 0.01)
+				 abs(m_ActPtr->GetLinearVelocity().y) < 0.01)
 		{
 			m_AnimationState = AnimationState::WAITING;
 			m_IsLookingUp = true;
@@ -579,8 +579,8 @@ void Player::HandleKeyboardInput(double deltaTime)
 
 	if (targetXVel == 0.0 &&
 		targetYVel == 0.0 && 
-		abs(m_ActPtr->GetLinearVelocity().x) < 0.001 &&
-		abs(m_ActPtr->GetLinearVelocity().y) < 0.001)
+		abs(m_ActPtr->GetLinearVelocity().x) < 0.01 &&
+		abs(m_ActPtr->GetLinearVelocity().y) < 0.01)
 	{
 		if (!m_IsDucking &&
 			!m_IsLookingUp &&
@@ -592,27 +592,33 @@ void Player::HandleKeyboardInput(double deltaTime)
 	}
 
 	DOUBLE2 prevVel = m_ActPtr->GetLinearVelocity();
-	double deltaXVel = 0.0;
+	double newXVel = 0.0;
 	if (targetXVel != 0.0)
 	{
 		double horizontalAcceleration = int((m_IsRunning ? RUNNING_ACCELERATION : WALKING_ACCELERATION) * deltaTime);
-		deltaXVel = horizontalAcceleration * deltaTime;
+		double deltaXVel = horizontalAcceleration * deltaTime;
 		if (prevVel.x > targetXVel)
 		{
 			deltaXVel = -deltaXVel;
-			if (deltaXVel < targetXVel) deltaXVel = targetXVel; // Don't overshoot the target vel
-			if (prevVel.x + deltaXVel < -maxXVel) deltaXVel = -maxXVel - prevVel.x; // don't overshoot the max
+			if (deltaXVel < targetXVel) newXVel = targetXVel; // Don't overshoot the target vel
+			if (prevVel.x + deltaXVel < -maxXVel) newXVel = -maxXVel; // don't overshoot the max
+			else newXVel = prevVel.x + deltaXVel;
 		}
 		else if (prevVel.x < targetXVel)
 		{
-			if (deltaXVel > targetXVel) deltaXVel = targetXVel;
-			if (prevVel.x + deltaXVel > maxXVel) deltaXVel = maxXVel - prevVel.x;
+			if (deltaXVel > targetXVel) newXVel = targetXVel;
+			if (prevVel.x + deltaXVel > maxXVel) newXVel = maxXVel;
+			else newXVel = prevVel.x + deltaXVel;
 		}
 	}
 
 	if (targetYVel == 0.0) targetYVel = prevVel.y;
 
-	DOUBLE2 newVel = DOUBLE2(prevVel.x + deltaXVel, targetYVel);
+	if (newXVel == 0.0)
+	{
+		newXVel = prevVel.x;
+	}
+	DOUBLE2 newVel = DOUBLE2(newXVel, targetYVel);
 	m_ActPtr->SetLinearVelocity(newVel);
 	
 	// NOTE: Prevents the player from walking off the side of the level
@@ -791,11 +797,11 @@ void Player::Paint()
 		}
 		else if (m_PowerupState == PowerupState::NORMAL)
 		{
-			yo = GetHeight() / 2.0 - 6;
+			yo = GetHeight() / 2.0 - 6.5;
 		}
 		else
 		{ 
-			yo = GetHeight() / 2.0 - 2;
+			yo = GetHeight() / 2.0 - 2.5;
 		}
 	}
 
@@ -1733,7 +1739,7 @@ Player::PowerupState Player::GetPowerupState()
 	return m_PowerupState;
 }
 
-Player::PowerupState Player::StringToPowerupState(std::string powerupStateStr)
+Player::PowerupState Player::StringToPowerupState(const std::string& powerupStateStr)
 {
 	if (!powerupStateStr.compare("Normal")) return PowerupState::NORMAL;
 	else if (!powerupStateStr.compare("Super")) return PowerupState::SUPER;
