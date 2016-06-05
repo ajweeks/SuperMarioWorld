@@ -31,10 +31,12 @@ struct Keybindings
 	static int DEBUG_QUICK_RESET;
 	static int DEBUG_TOGGLE_PHYSICS_RENDERING;
 	static int DEBUG_FRAME_BY_FRAME_ADVANCE;
+	static int DEBUG_TOGGLE_CAMERA_DEBUG_OVERLAY;
+	static int DEBUG_TOGGLE_PLAYER_INFO;
 
 private:
 	Keybindings() = delete;
 
-	static void StoreStringData(std::string fileContents);
-	static int RegisterKeycode(std::string fileContents, std::string tagName, int defaultValue);
+	static void StoreStringData(const std::string& fileContents);
+	static int RegisterKeycode(const std::string& fileContents, const std::string& tagName, int defaultValue);
 };

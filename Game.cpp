@@ -31,6 +31,9 @@ const int Game::HEIGHT = 224;
 
 MATRIX3X2 Game::matIdentity;
 
+bool Game::DEBUG_SHOWING_CAMERA_INFO = false;
+bool Game::DEBUG_SHOWING_PLAYER_INFO = false;
+
 Game::Game()
 {
 }
@@ -146,6 +149,15 @@ void Game::GameTick(double deltaTime)
 	if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::TOGGLE_MUTED))
 	{
 		SoundManager::ToggleMuted();
+	}
+	
+	if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::DEBUG_TOGGLE_CAMERA_DEBUG_OVERLAY))
+	{
+		DEBUG_SHOWING_CAMERA_INFO = !DEBUG_SHOWING_CAMERA_INFO;
+	}
+	if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::DEBUG_TOGGLE_PLAYER_INFO))
+	{
+		DEBUG_SHOWING_PLAYER_INFO = !DEBUG_SHOWING_PLAYER_INFO;
 	}
 
 	m_StateManagerPtr->Tick(deltaTime);

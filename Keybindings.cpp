@@ -28,6 +28,8 @@ int Keybindings::DEBUG_TELEPORT_PLAYER;
 int Keybindings::DEBUG_QUICK_RESET;
 int Keybindings::DEBUG_TOGGLE_PHYSICS_RENDERING;
 int Keybindings::DEBUG_FRAME_BY_FRAME_ADVANCE;
+int Keybindings::DEBUG_TOGGLE_CAMERA_DEBUG_OVERLAY;
+int Keybindings::DEBUG_TOGGLE_PLAYER_INFO;
 
 int Keybindings::LEFT_SHOULDER;
 int Keybindings::RIGHT_SHOULDER;
@@ -52,7 +54,7 @@ void Keybindings::ReadBindingsFromFile()
 	StoreStringData(stringStream.str());
 }
 
-void Keybindings::StoreStringData(std::string fileContents)
+void Keybindings::StoreStringData(const std::string& fileContents)
 {
 	Y_BUTTON = RegisterKeycode(fileContents, "Y_Button", 'A');
 	X_BUTTON = RegisterKeycode(fileContents, "X_Button", 'S');
@@ -78,12 +80,14 @@ void Keybindings::StoreStringData(std::string fileContents)
 	DEBUG_QUICK_RESET = RegisterKeycode(fileContents, "DEBUGQuickReset", 'R');
 	DEBUG_TOGGLE_PHYSICS_RENDERING = RegisterKeycode(fileContents, "DEBUGTogglePhysicsRendering", 'P');
 	DEBUG_FRAME_BY_FRAME_ADVANCE = RegisterKeycode(fileContents, "DEBUGFrameByFrameAdvance", VK_OEM_5); // (Backslash)
+	DEBUG_TOGGLE_CAMERA_DEBUG_OVERLAY = RegisterKeycode(fileContents, "DEBUGToggleCameraDebugOverlay", VK_F9);
+	DEBUG_TOGGLE_PLAYER_INFO = RegisterKeycode(fileContents, "DEBUGTogglePlayerInfo", VK_F10);
 
 	LEFT_SHOULDER = RegisterKeycode(fileContents, "LeftShoulder", 'Q');
 	RIGHT_SHOULDER = RegisterKeycode(fileContents, "RightShoulder", 'E');
 }
 
-int Keybindings::RegisterKeycode(std::string fileContents, std::string tagName, int defaultValue)
+int Keybindings::RegisterKeycode(const std::string& fileContents, const std::string& tagName, int defaultValue)
 {
 	int result = std::stoi(FileIO::GetTagContent(fileContents, tagName));
 	if (result == -1) 

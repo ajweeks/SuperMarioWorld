@@ -22,8 +22,6 @@
 #define GAME_ENGINE (GameEngine::GetSingleton())
 
 #define SMW_SKIP_MAIN_MENU true
-#define SMW_DISPLAY_GENERAL_DEBUG_INFO true
-#define SMW_DISPLAY_CAMERA_DEBUG_INFO false
 #define SMW_DEBUG_ZOOM_OUT false
 #define SMW_DISPLAY_AI_DEBUG_INFO false
 #define SMW_DEFAULT_MUTE false
@@ -78,6 +76,9 @@ public:
 	// the hud should be drawn with just this as the view matrix
 	// This matrix will be updated any time the screen size changes
 	static MATRIX3X2 matIdentity;
+
+	static bool DEBUG_SHOWING_CAMERA_INFO;
+	static bool DEBUG_SHOWING_PLAYER_INFO;
 
 private:
 

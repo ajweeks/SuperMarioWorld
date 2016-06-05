@@ -26,6 +26,8 @@
 	<DEBUGQuickReset>82</DEBUGQuickReset>
 	<DEBUGTogglePhysicsRendering>80</DEBUGTogglePhysicsRendering>
 	<DEBUGFrameByFrameAdvance>190</DEBUGFrameByFrameAdvance>
+	<DEBUGToggleCameraDebugOverlay>120</DEBUGToggleCameraDebugOverlay>
+	<DEBUGTogglePlayerInfo>121</DEBUGTogglePlayerInfo>
 	
 	<!-- NOTE: These have no use in the game currently -->
 	<LeftShoulder>69</LeftShoulder>
