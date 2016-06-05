@@ -7,16 +7,21 @@
 #include "Game.h"
 #include "CountdownTimer.h"
 #include "FileIO.h"
+#include "Keybindings.h"
 
-int GameSession::m_CurrentSessionIndexShowing = 0;
-int GameSession::m_TotalSessionsWithInfo = 0;
-SessionInfoPair GameSession::m_CurrentSessionInfoShowing = {};
-SessionInfoPair GameSession::m_CurrentSessionInfoRecording = {};
+int GameSession::m_CurrentSessionShowingIndex = 0;
+int GameSession::m_NumberOfSessions = 0;
 std::string GameSession::m_AllSessionsInfoString = "";
+SessionInfoPair GameSession::m_CurrentSessionInfoRecording = {};
+std::vector<SessionInfoPair> GameSession::m_AllSessionInfoArr;
 
 COLOR GameSession::OFF_WHITE = COLOR(245, 245, 250);
 COLOR GameSession::GREEN = COLOR(16, 181, 16);
 COLOR GameSession::RED = COLOR(193, 36, 36);
+
+std::vector<int> GameSession::m_DaysOfWeekArr;
+bool GameSession::m_DaysOfWeekArrGenerated = false;
+bool GameSession::m_ShouldGenerateDaysOfWeek = false;
 
 GameSession::GameSession()
 {}
@@ -27,6 +32,11 @@ GameSession::~GameSession()
 void GameSession::RecordStartSessionInfo(Level* levelPtr)
 {
 	RecordSessionInfo(m_CurrentSessionInfoRecording.sessionInfoStart, levelPtr);
+
+	m_NumberOfSessions = GetNumberOfSessions(m_AllSessionsInfoString);
+	m_AllSessionInfoArr.reserve(m_NumberOfSessions);
+	m_AllSessionInfoArr.push_back(GetSessionInfo(0));
+
 }
 
 void GameSession::RecordSessionInfo(SessionInfo &sessionInfo, Level* levelPtr)
@@ -112,7 +122,18 @@ void GameSession::ReadSessionInfoFromFile()
 	std::ifstream fileInStream;
 	std::stringstream stringStream;
 
-	fileInStream.open("Resources/GameSessions.txt");
+	static const std::string filePath = "Resources/GameSessions.txt";
+
+	fileInStream.open(filePath);
+
+	if (!fileInStream) // The file hasn't yet been created
+	{
+		std::ofstream fileOutStream;
+		fileOutStream.open(filePath);
+		fileOutStream.close();
+
+		fileInStream.open(filePath);
+	}
 
 	std::string line;
 	while (fileInStream.eof() == false)
@@ -125,26 +146,62 @@ void GameSession::ReadSessionInfoFromFile()
 
 	m_AllSessionsInfoString = stringStream.str();
 	m_AllSessionsInfoString.erase(std::remove_if(m_AllSessionsInfoString.begin(), m_AllSessionsInfoString.end(), isspace), m_AllSessionsInfoString.end());
-	m_TotalSessionsWithInfo = GetNumberOfSessions();
-	m_CurrentSessionInfoShowing = GetSessionInfo();
 }
 
-int GameSession::GetNumberOfSessions()
+int GameSession::GetNumberOfSessions(const std::string& fileString)
 {
-	int numberOfSessions = 0;
+	int sessionsFound = 0;
 	int currentIndex = -1;
 	do
 	{
-		currentIndex = m_AllSessionsInfoString.find("<Session>", currentIndex + 1);
-		numberOfSessions++;
+		currentIndex = fileString.find("<Session>", currentIndex + 1);
+		sessionsFound++;
 	} while (currentIndex != std::string::npos);
-
-	numberOfSessions -= 1; // Avoid off by one error
-
-	return numberOfSessions;
+	return sessionsFound - 1;
 }
 
-SessionInfoPair GameSession::GetSessionInfo()
+void GameSession::ReadAllSessionData(const std::string& fileString)
+{
+	int currentIndexInFileString = 0;
+	for (int i = 0; i < m_NumberOfSessions; ++i)
+	{
+		if (m_AllSessionInfoArr.size() <= i)
+		{
+			int sessionTagStart = currentIndexInFileString;
+			int sessionTagEnd = fileString.find("</Session>", sessionTagStart);
+	
+			if (sessionTagStart != std::string::npos && sessionTagEnd != std::string::npos)
+			{
+				std::string currentSessionRaw = fileString.substr(sessionTagStart, sessionTagEnd - sessionTagStart);
+	
+				SessionInfoPair currentSessionInfoPair;
+
+				int startTag = currentSessionRaw.find("<Start>") + std::string("<Start>").length();
+				int startTagEnd = currentSessionRaw.find("</Start>") + std::string("</Start>").length();
+				if (startTag != std::string::npos && startTagEnd != std::string::npos)
+				{
+					const std::string startInfoString = currentSessionRaw.substr(startTag, startTagEnd - startTag);
+					currentSessionInfoPair.sessionInfoStart = GetSessionInfo(startInfoString);
+				}
+	
+				int endTag = currentSessionRaw.find("<End>") + std::string("<End>").length();
+				int endTagEnd = currentSessionRaw.find("</End>") + std::string("</End>").length();
+				if (endTag != std::string::npos && endTagEnd != std::string::npos)
+				{
+					const std::string endInfoString = currentSessionRaw.substr(endTag, endTagEnd - endTag);
+					currentSessionInfoPair.sessionInfoEnd = GetSessionInfo(endInfoString);
+				}
+			
+				currentSessionInfoPair.m_SessionIndex = i;
+				m_AllSessionInfoArr.push_back(currentSessionInfoPair);
+
+				currentIndexInFileString = sessionTagEnd + std::string("</Session>").length();
+			}
+		}
+	}
+}
+
+SessionInfoPair GameSession::GetSessionInfo(int sessionIndex)
 {
 	int sessionsFound = 0;
 	int currentIndex = -1;
@@ -152,7 +209,7 @@ SessionInfoPair GameSession::GetSessionInfo()
 	{
 		currentIndex = m_AllSessionsInfoString.find("<Session>", currentIndex + 1);
 		sessionsFound++;
-	} while (currentIndex != std::string::npos && m_TotalSessionsWithInfo - sessionsFound > m_CurrentSessionIndexShowing);
+	} while (currentIndex != std::string::npos && m_NumberOfSessions - sessionsFound > sessionIndex);
 
 	int sessionTagStart = currentIndex;
 	int sessionTagEnd = m_AllSessionsInfoString.find("</Session>", sessionTagStart);
@@ -183,13 +240,13 @@ SessionInfoPair GameSession::GetSessionInfo()
 		SessionInfoPair sessionInfoPair;
 		sessionInfoPair.sessionInfoStart = currentSessionInfoStart;
 		sessionInfoPair.sessionInfoEnd = currentSessionInfoEnd;
-		sessionInfoPair.m_SessionIndex = m_CurrentSessionIndexShowing;
+		sessionInfoPair.m_SessionIndex = sessionIndex;
 		return sessionInfoPair;
 	}
 	return {};
 }
 
-SessionInfo GameSession::GetSessionInfo(std::string sessionString)
+SessionInfo GameSession::GetSessionInfo(const std::string& sessionString)
 {
 	SessionInfo sessionInfo = {};
 	
@@ -220,11 +277,44 @@ SessionInfo GameSession::GetSessionInfo(std::string sessionString)
 	std::string allDragonCoinsCollectedStr = FileIO::GetTagContent(sessionString, "AllDragonCoinsCollected");
 	if (allDragonCoinsCollectedStr.length() > 0) sessionInfo.m_AllDragonCoinsCollected = FileIO::StringToBool(allDragonCoinsCollectedStr);
 
+	//sessionInfo.m_Initialized = true;
+
 	return sessionInfo;
 }
 
-void GameSession::PaintCurrentSessionInfo()
+void GameSession::Tick(double deltaTime)
 {
+	if (m_ShouldGenerateDaysOfWeek)
+	{
+		CountDaysOfWeek();
+	}
+
+	if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::GENERATE_BAR_GRAPH) &&
+		m_DaysOfWeekArrGenerated == false)
+	{
+		CountDaysOfWeek();
+		return;
+	}
+
+	if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::SHOW_NEXT_INFO_SESSION) ||
+		(GAME_ENGINE->IsKeyboardKeyDown(Keybindings::SHOW_NEXT_INFO_SESSION) &&
+			GAME_ENGINE->IsKeyboardKeyDown(Keybindings::SCROLL_THROUGH_SESSIONS)))
+	{
+		ShowNextSession();
+	}
+	if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::SHOW_PREVIOUS_INFO_SESSION) ||
+		(GAME_ENGINE->IsKeyboardKeyDown(Keybindings::SHOW_PREVIOUS_INFO_SESSION) &&
+			GAME_ENGINE->IsKeyboardKeyDown(Keybindings::SCROLL_THROUGH_SESSIONS)))
+	{
+		ShowPreviousSession();
+	}
+}
+
+void GameSession::Paint()
+{
+	MATRIX3X2 matPrevView = GAME_ENGINE->GetViewMatrix();
+	GAME_ENGINE->SetViewMatrix(Game::matIdentity);
+
 	// BACKGROUND ROWS
 	int rows = 12;
 	int yOffset = 34;
@@ -252,8 +342,8 @@ void GameSession::PaintCurrentSessionInfo()
 	GAME_ENGINE->DrawString(String("<-PgUp|PgDn->"), Game::WIDTH - 48, y - 6);
 
 	GAME_ENGINE->SetFont(Game::Font9Ptr);
-	GAME_ENGINE->DrawString(String("Current session: ") + String(m_TotalSessionsWithInfo - m_CurrentSessionInfoShowing.m_SessionIndex) +
-		String("/") + String(m_TotalSessionsWithInfo), x, y);
+	GAME_ENGINE->DrawString(String("Current session: ") + String(m_NumberOfSessions - m_CurrentSessionShowingIndex) +
+		String("/") + String(m_NumberOfSessions), x, y);
 	y += 16;
 
 	// HEADINGS
@@ -267,6 +357,14 @@ void GameSession::PaintCurrentSessionInfo()
 	// MAIN INFO
 	GAME_ENGINE->SetFont(Game::Font9Ptr);
 	
+	const SessionInfoPair m_CurrentSessionInfoShowing = m_AllSessionInfoArr[m_CurrentSessionShowingIndex];
+	if (m_CurrentSessionInfoShowing.sessionInfoStart.m_Date == "")
+	{
+		GAME_ENGINE->SetColor(OFF_WHITE);
+		GAME_ENGINE->DrawString(String("No game sessions have been recorded yet!"), x, y);
+		return;
+	}
+
 	PaintInfoString("Date: ",
 		m_CurrentSessionInfoShowing.sessionInfoStart.m_Date,
 		m_CurrentSessionInfoShowing.sessionInfoEnd.m_Date,
@@ -319,9 +417,35 @@ void GameSession::PaintCurrentSessionInfo()
 		m_CurrentSessionInfoShowing.sessionInfoStart.m_AllDragonCoinsCollected,
 		m_CurrentSessionInfoShowing.sessionInfoEnd.m_AllDragonCoinsCollected,
 		x, y);
+
+	x = 12;
+	y = 170;
+	if (m_DaysOfWeekArrGenerated)
+	{
+		GAME_ENGINE->SetColor(OFF_WHITE);
+		GAME_ENGINE->DrawString(String("Number of sessions:"), x, y);
+		y += 12;
+		PaintDaysOfWeekBarGraph(m_DaysOfWeekArr, x, y);
+
+		x += 200;
+		y += 12;
+		PaintDaysOfWeekPieChart(m_DaysOfWeekArr, x, y);
+	}
+	else if (m_ShouldGenerateDaysOfWeek)
+	{
+		GAME_ENGINE->SetColor(OFF_WHITE);
+		GAME_ENGINE->DrawString(String("Generating cool graph ..."), x, y);
+	}
+	else
+	{
+		GAME_ENGINE->SetColor(OFF_WHITE);
+		GAME_ENGINE->DrawString(String("Press F2 to generate cool graph!"), x, y);
+	}
+
+	GAME_ENGINE->SetViewMatrix(matPrevView);
 }
 
-void GameSession::PaintInfoString(std::string preString, std::string value1, std::string value2, int& x, int& y, bool positive)
+void GameSession::PaintInfoString(const std::string& preString, const std::string& value1, const std::string& value2, int& x, int& y, bool positive)
 {
 	if (!value1.compare("") || !value2.compare("")) return;
 
@@ -340,21 +464,21 @@ void GameSession::PaintInfoString(std::string preString, std::string value1, std
 	y += LINE_HEIGHT;
 }
 
-void GameSession::PaintInfoString(std::string preString, int value1, int value2, int& x, int& y)
+void GameSession::PaintInfoString(const std::string& preString, int value1, int value2, int& x, int& y)
 {
 	if (value1 == -1 || value2 == -1) return;
 
 	PaintInfoString(preString, std::to_string(value1), std::to_string(value2), x, y, value1 < value2);
 }
 
-void GameSession::PaintInfoString(std::string preString, std::string value1, std::string value2, int& x, int& y)
+void GameSession::PaintInfoString(const std::string& preString, const std::string& value1, const std::string& value2, int& x, int& y)
 {
 	if (!value1.compare("") || !value2.compare("")) return;
 
 	PaintInfoString(preString, value1, value2, x, y, value1.compare(value2) < 0);
 }
 
-void GameSession::PaintInfoString(std::string preString, bool value1, bool value2, int& x, int& y)
+void GameSession::PaintInfoString(const std::string& preString, bool value1, bool value2, int& x, int& y)
 {
 	if (int(value1) == -1 || int(value2) == -1) return;
 	
@@ -390,26 +514,147 @@ std::string GameSession::GetTimeDuration(std::string startTimeStr, std::string e
 	return result.str();
 }
 
+void GameSession::PaintDaysOfWeekBarGraph(const std::vector<int>& daysOfWeekArr, int x, int y)
+{
+	static const int DAYS_IN_A_WEEK = 7;
+	static const std::string daysNames[DAYS_IN_A_WEEK] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+	int mostDays = 0;
+	for (size_t i = 0; i < daysOfWeekArr.size(); ++i)
+		if (daysOfWeekArr[i] > mostDays) mostDays = daysOfWeekArr[i];
+
+	const int barWidth = 16;
+	const int maxBarHeight = (Game::HEIGHT - y) - 14;
+	const int spacing = 4;
+
+	// Background rectangle and horizontal lines
+	GAME_ENGINE->SetColor(COLOR(150, 150, 150, 80));
+	GAME_ENGINE->FillRect(x - 2, y - 2, x + (barWidth + spacing) * DAYS_IN_A_WEEK - spacing + 2, y + maxBarHeight + 2);
+
+	GAME_ENGINE->SetColor(COLOR(200, 200, 200, 50));
+	const int numOfHorizontalLines = 5;
+	for (int i = 0; i < numOfHorizontalLines; ++i)
+	{
+		int lineY = y + (maxBarHeight / (numOfHorizontalLines)) * (i + 1) - 2;
+		GAME_ENGINE->DrawLine(x - 2, lineY, x + (barWidth + spacing) * DAYS_IN_A_WEEK - spacing + 2, lineY, 0.5);
+	}
+
+	// Bars + values
+	for (size_t i = 0; i < daysOfWeekArr.size(); ++i)
+	{
+		int barHeight = int((double(daysOfWeekArr[i]) / double(mostDays)) * maxBarHeight);
+		RECT2 barRect(x, y + maxBarHeight - barHeight, x + barWidth, y + maxBarHeight);
+		double barPercent = (double(barHeight) / double(maxBarHeight));
+		int green = int(55 + barPercent * 200);
+		int red = int(255 - barPercent * 200);
+		GAME_ENGINE->SetColor(COLOR(red, green, 80));
+		GAME_ENGINE->FillRect(barRect);
+
+		GAME_ENGINE->SetColor(OFF_WHITE);
+		GAME_ENGINE->SetFont(Game::Font6Ptr);
+		GAME_ENGINE->DrawString(String(daysOfWeekArr[i]), x + 3, y + maxBarHeight - 7);
+
+		GAME_ENGINE->SetFont(Game::Font9Ptr);
+		GAME_ENGINE->DrawString(String(daysNames[i].c_str()), x, y + maxBarHeight + 2);
+		x += barWidth + spacing;
+	}
+}
+
+void GameSession::PaintDaysOfWeekPieChart(const std::vector<int>& daysOfWeekArr, int centerX, int centerY)
+{
+	static const std::string daysNames[7] = { "Su", "M", "Tu", "W", "Th", "F", "Sa" };
+
+	const int radius = 26;
+
+	GAME_ENGINE->SetFont(Game::Font6Ptr);
+	double currentAngle = 0.0;
+	for (size_t i = 0; i < daysOfWeekArr.size(); ++i)
+	{
+		if (daysOfWeekArr[i] > 0)
+		{
+			double pieSliceAngle = (double(daysOfWeekArr[i]) / double(m_NumberOfSessions)) * M_PI  * 2;
+			int green = int(50 + (i / 7.0) * 50);
+			int red = int(55 + (i / 7.0) * 200);
+			int blue = int((7.0 - i / 7.0) * 200);
+			GAME_ENGINE->SetColor(COLOR(red, green, blue));
+			const int linesPerRadian = radius * 3;
+			int lines = int(linesPerRadian * pieSliceAngle);
+			for (int i = 0; i < lines; ++i)
+			{
+				GAME_ENGINE->DrawLine(centerX, centerY, 
+					centerX + cos(currentAngle) * radius,
+					centerY + sin(currentAngle) * radius, 0.4);
+				currentAngle += (pieSliceAngle / lines);
+
+			}
+			GAME_ENGINE->SetColor(OFF_WHITE);
+			GAME_ENGINE->DrawString(String(daysNames[i].c_str()), 
+				centerX + cos(currentAngle - pieSliceAngle / 2 - 0.1) * (radius - 7) - 4,
+				centerY + sin(currentAngle - pieSliceAngle / 2 - 0.1) * (radius - 7) - 5);
+		}
+	}
+
+	GAME_ENGINE->SetColor(COLOR(10, 10, 10));
+	GAME_ENGINE->DrawEllipse(centerX, centerY, radius, radius, 0.8);
+}
+
+void GameSession::CountDaysOfWeek()
+{
+	// When first called, we want to paint one more frame, to let the user know
+	// their input went through before the long wait
+	if (m_ShouldGenerateDaysOfWeek == false) 
+	{
+		m_ShouldGenerateDaysOfWeek = true;
+		return;
+	}
+	else
+	{
+		m_ShouldGenerateDaysOfWeek = false;
+	}
+	ReadAllSessionData(m_AllSessionsInfoString);
+
+	std::vector<int> daysOfTheWeekArr(7); // [Sunday, Monday, ..., Saturday]
+
+	static const int t[] = { 0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4 }; // Magic array
+	for (int i = 0; i < m_NumberOfSessions; ++i)
+	{
+		const SessionInfoPair currentSessionInfoPair = m_AllSessionInfoArr[i];
+		const std::string dateString = currentSessionInfoPair.sessionInfoStart.m_Date;
+
+		int year = stoi(dateString.substr(0, 4));
+		int month = stoi(dateString.substr(5, 7));
+		int day = stoi(dateString.substr(8, 10));
+
+		year -= month < 3;
+		int dayOfWeek = (year + year / 4 - year / 100 + year / 400 + t[month - 1] + day) % 7; // Magic formula
+		++daysOfTheWeekArr[dayOfWeek];
+	}
+
+	m_DaysOfWeekArrGenerated = true;
+	m_DaysOfWeekArr = daysOfTheWeekArr;
+}
+
 void GameSession::ShowNextSession()
 {
-	if (m_CurrentSessionIndexShowing + 1 < m_TotalSessionsWithInfo)
+	if (m_CurrentSessionShowingIndex + 1 < m_NumberOfSessions)
 	{
-		m_CurrentSessionIndexShowing++;
-		m_CurrentSessionInfoShowing = GetSessionInfo();
+		m_CurrentSessionShowingIndex++;
+		
+		if (m_AllSessionInfoArr.size() <= m_CurrentSessionShowingIndex)
+		{
+			m_AllSessionInfoArr.push_back(GetSessionInfo(m_CurrentSessionShowingIndex));
+		}
 	}
 }
 
 void GameSession::ShowPreviousSession()
 {
-	if (m_CurrentSessionIndexShowing - 1 >= 0)
+	if (m_CurrentSessionShowingIndex - 1 >= 0)
 	{
-		m_CurrentSessionIndexShowing--;
-		m_CurrentSessionInfoShowing = GetSessionInfo();
+		m_CurrentSessionShowingIndex--;
 	}
 }
 
 void GameSession::Reset()
 {
-	m_CurrentSessionIndexShowing = 0;
-	m_CurrentSessionInfoShowing = GetSessionInfo();
+	m_CurrentSessionShowingIndex = 0;
 }

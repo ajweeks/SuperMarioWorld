@@ -140,18 +140,7 @@ void Game::GameTick(double deltaTime)
 
 	if (m_ShowingSessionInfo)
 	{
-		if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::SHOW_NEXT_INFO_SESSION) ||
-			(GAME_ENGINE->IsKeyboardKeyDown(Keybindings::SHOW_NEXT_INFO_SESSION) && 
-				GAME_ENGINE->IsKeyboardKeyDown(Keybindings::SCROLL_THROUGH_SESSIONS)))
-		{
-			GameSession::ShowNextSession();
-		}
-		if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::SHOW_PREVIOUS_INFO_SESSION) ||
-			(GAME_ENGINE->IsKeyboardKeyDown(Keybindings::SHOW_PREVIOUS_INFO_SESSION) && 
-				GAME_ENGINE->IsKeyboardKeyDown(Keybindings::SCROLL_THROUGH_SESSIONS)))
-		{
-			GameSession::ShowPreviousSession();
-		}
+		GameSession::Tick(deltaTime);
 	}
 
 	if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::TOGGLE_MUTED))
@@ -170,10 +159,7 @@ void Game::GamePaint()
 
 	if (m_ShowingSessionInfo)
 	{
-		MATRIX3X2 matPrevView = GAME_ENGINE->GetViewMatrix();
-		GAME_ENGINE->SetViewMatrix(matIdentity);
-		GameSession::PaintCurrentSessionInfo();
-		GAME_ENGINE->SetViewMatrix(matPrevView);
+		GameSession::Paint();
 	}
 }
 

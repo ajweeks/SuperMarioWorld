@@ -25,6 +25,7 @@ struct Keybindings
 	static int SHOW_PREVIOUS_INFO_SESSION;
 	static int SCROLL_THROUGH_SESSIONS;
 	static int TOGGLE_MUTED;
+	static int GENERATE_BAR_GRAPH;
 
 	static int DEBUG_TELEPORT_PLAYER;
 	static int DEBUG_QUICK_RESET;

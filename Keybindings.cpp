@@ -22,6 +22,7 @@ int Keybindings::SHOW_NEXT_INFO_SESSION;
 int Keybindings::SHOW_PREVIOUS_INFO_SESSION;
 int Keybindings::SCROLL_THROUGH_SESSIONS;
 int Keybindings::TOGGLE_MUTED;
+int Keybindings::GENERATE_BAR_GRAPH;
 
 int Keybindings::DEBUG_TELEPORT_PLAYER;
 int Keybindings::DEBUG_QUICK_RESET;
@@ -71,6 +72,7 @@ void Keybindings::StoreStringData(std::string fileContents)
 	SHOW_PREVIOUS_INFO_SESSION = RegisterKeycode(fileContents, "ShowPreviousInfoSession", VK_PRIOR); // (PgUp)
 	SCROLL_THROUGH_SESSIONS = RegisterKeycode(fileContents, "ScrollThroughSessions", VK_CONTROL);
 	TOGGLE_MUTED = RegisterKeycode(fileContents, "ToggleMuted", 'M');
+	GENERATE_BAR_GRAPH = RegisterKeycode(fileContents, "GenerateBarGraph", VK_F2);
 
 	DEBUG_TELEPORT_PLAYER = RegisterKeycode(fileContents, "DEBUGTeleportPlayer", 'O');
 	DEBUG_QUICK_RESET = RegisterKeycode(fileContents, "DEBUGQuickReset", 'R');

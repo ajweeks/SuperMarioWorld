@@ -20,6 +20,7 @@
 	<ShowPreviousInfoSession>33</ShowPreviousInfoSession>
 	<ScrollThroughSessions>17</ScrollThroughSessions>
 	<ToggleMuted>77</ToggleMuted>
+	<GenerateBarGraph>113</GenerateBarGraph>
 	
 	<DEBUGTeleportPlayer>79</DEBUGTeleportPlayer>
 	<DEBUGQuickReset>82</DEBUGQuickReset>

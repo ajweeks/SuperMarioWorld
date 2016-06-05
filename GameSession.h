@@ -23,11 +23,11 @@ public:
 	static void RecordSessionInfo(SessionInfo &sessionInfo, Level* levelPtr);
 	static void WriteSessionInfoToFile(Level* levelPtr);
 	static void ReadSessionInfoFromFile();
+	
+	static void CountDaysOfWeek();
 
-	static void ShowNextSession();
-	static void ShowPreviousSession();
-
-	static void PaintCurrentSessionInfo();
+	static void Tick(double deltaTime);
+	static void Paint();
 
 	static void Reset();
 
@@ -42,25 +42,37 @@ private:
 	static const int LINE_HEIGHT = 11;
 	static const int COL_WIDTH = 165;
 
-	static int GetNumberOfSessions();
+	static void ShowNextSession();
+	static void ShowPreviousSession();
 
-	static SessionInfoPair GetSessionInfo();
-	static SessionInfo GetSessionInfo(std::string sessionString);
+	static void ReadAllSessionData(const std::string& fileString); // Puts all available data into m_AllSessionInfoArr
+	static SessionInfoPair GetSessionInfo(int sessionIndex); // Runs through the file string until it finds the nth session start tag (SLOW)
+	static SessionInfo GetSessionInfo(const std::string& sessionString);
 	static std::string GetSessionInfoMarkedUp(SessionInfo sessionInfo);
+	static int GetNumberOfSessions(const std::string& fileString);
 
 	static std::string GetTimeDuration(std::string startTimeStr, std::string endTimeStr);
 
-	static void PaintInfoString(std::string preString, std::string value1, std::string value2, int& x, int& y, bool positive);
-	static void PaintInfoString(std::string preString, std::string value1, std::string value2, int& x, int& y);
-	static void PaintInfoString(std::string preString, int value1, int value2, int& x, int& y);
-	static void PaintInfoString(std::string preString, bool value1, bool value2, int& x, int& y);
+	static void PaintInfoString(const std::string& preString, const std::string& value1, const std::string& value2, int& x, int& y, bool positive);
+	static void PaintInfoString(const std::string& preString, const std::string& value1, const std::string& value2, int& x, int& y);
+	static void PaintInfoString(const std::string& preString, int value1, int value2, int& x, int& y);
+	static void PaintInfoString(const std::string& preString, bool value1, bool value2, int& x, int& y);
 
-	static int m_CurrentSessionIndexShowing;
-	static SessionInfoPair m_CurrentSessionInfoShowing;
+	static void PaintDaysOfWeekBarGraph(const std::vector<int>& daysOfWeekArr, int x, int y);
+	static void PaintDaysOfWeekPieChart(const std::vector<int>& daysOfWeekArr, int x, int y);
+
+	static std::vector<int> m_DaysOfWeekArr;
+	static bool m_DaysOfWeekArrGenerated;
+	static bool m_ShouldGenerateDaysOfWeek;
+
+	static int m_CurrentSessionShowingIndex;
+	//static SessionInfoPair m_CurrentSessionInfoShowing;
 
 	// This should only be modified at the start and end of a game!
 	static SessionInfoPair m_CurrentSessionInfoRecording;
 	
-	static int m_TotalSessionsWithInfo;
 	static std::string m_AllSessionsInfoString;
+	static int m_NumberOfSessions;
+	// This gets filled one element at a time, as the user requests them, until they press F2 to request all (for a nice graph)
+	static std::vector<SessionInfoPair> m_AllSessionInfoArr; 
 };
