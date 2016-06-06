@@ -33,9 +33,8 @@ void GameSession::RecordStartSessionInfo(Level* levelPtr)
 {
 	RecordSessionInfo(m_CurrentSessionInfoRecording.sessionInfoStart, levelPtr);
 
-	m_NumberOfSessions = GetNumberOfSessions(m_AllSessionsInfoString);
-	m_AllSessionInfoArr.reserve(m_NumberOfSessions);
-	m_AllSessionInfoArr.push_back(GetSessionInfo(0));
+	m_NumberOfSessions = GetNumberOfSessions();
+	m_AllSessionInfoArr.push_back(FindSessionInfoPair(0));
 
 }
 
@@ -129,7 +128,7 @@ void GameSession::ReadSessionInfoFromFile()
 	if (!fileInStream) // The file hasn't yet been created
 	{
 		std::ofstream fileOutStream;
-		fileOutStream.open(filePath);
+		fileOutStream.open(filePath); // Create the file
 		fileOutStream.close();
 
 		fileInStream.open(filePath);
@@ -145,55 +144,46 @@ void GameSession::ReadSessionInfoFromFile()
 	fileInStream.close();
 
 	m_AllSessionsInfoString = stringStream.str();
+	// Remove whitespace
 	m_AllSessionsInfoString.erase(std::remove_if(m_AllSessionsInfoString.begin(), m_AllSessionsInfoString.end(), isspace), m_AllSessionsInfoString.end());
 }
 
-int GameSession::GetNumberOfSessions(const std::string& fileString)
+int GameSession::GetNumberOfSessions()
 {
 	int sessionsFound = 0;
 	int currentIndex = -1;
-	do
+	while ((currentIndex = m_AllSessionsInfoString.find("<Session>", currentIndex + 1)) != std::string::npos)
 	{
-		currentIndex = fileString.find("<Session>", currentIndex + 1);
-		sessionsFound++;
-	} while (currentIndex != std::string::npos);
-	return sessionsFound - 1;
+		++sessionsFound;
+	}
+	return sessionsFound;
 }
 
-void GameSession::ReadAllSessionData(const std::string& fileString)
+void GameSession::ReadAllSessionData()
 {
+	m_AllSessionInfoArr.resize(m_NumberOfSessions);
+
 	int currentIndexInFileString = 0;
-	for (int i = 0; i < m_NumberOfSessions; ++i)
+	for (int i = 0; i < m_NumberOfSessions-1; ++i)
 	{
-		if (m_AllSessionInfoArr.size() <= i)
+		const int currentArrIndex = m_NumberOfSessions - i - 1;
+		const int sessionTagStart = currentIndexInFileString;
+		const int sessionTagEnd = m_AllSessionsInfoString.find("</Session>", sessionTagStart);
+
+		if (m_AllSessionInfoArr[currentArrIndex].sessionInfoStart.m_Date.empty() == false) // This session has already been filled in
 		{
-			int sessionTagStart = currentIndexInFileString;
-			int sessionTagEnd = fileString.find("</Session>", sessionTagStart);
-	
+			if (sessionTagEnd != -1)
+			{
+				currentIndexInFileString = sessionTagEnd + std::string("</Session>").length();
+			}
+		}
+		else
+		{
 			if (sessionTagStart != std::string::npos && sessionTagEnd != std::string::npos)
 			{
-				std::string currentSessionRaw = fileString.substr(sessionTagStart, sessionTagEnd - sessionTagStart);
-	
-				SessionInfoPair currentSessionInfoPair;
-
-				int startTag = currentSessionRaw.find("<Start>") + std::string("<Start>").length();
-				int startTagEnd = currentSessionRaw.find("</Start>") + std::string("</Start>").length();
-				if (startTag != std::string::npos && startTagEnd != std::string::npos)
-				{
-					const std::string startInfoString = currentSessionRaw.substr(startTag, startTagEnd - startTag);
-					currentSessionInfoPair.sessionInfoStart = GetSessionInfo(startInfoString);
-				}
-	
-				int endTag = currentSessionRaw.find("<End>") + std::string("<End>").length();
-				int endTagEnd = currentSessionRaw.find("</End>") + std::string("</End>").length();
-				if (endTag != std::string::npos && endTagEnd != std::string::npos)
-				{
-					const std::string endInfoString = currentSessionRaw.substr(endTag, endTagEnd - endTag);
-					currentSessionInfoPair.sessionInfoEnd = GetSessionInfo(endInfoString);
-				}
+				const std::string currentSessionString = m_AllSessionsInfoString.substr(sessionTagStart, sessionTagEnd - sessionTagStart);
 			
-				currentSessionInfoPair.m_SessionIndex = i;
-				m_AllSessionInfoArr.push_back(currentSessionInfoPair);
+				m_AllSessionInfoArr[currentArrIndex] = GetSessionInfoPair(currentSessionString, currentArrIndex);
 
 				currentIndexInFileString = sessionTagEnd + std::string("</Session>").length();
 			}
@@ -201,8 +191,10 @@ void GameSession::ReadAllSessionData(const std::string& fileString)
 	}
 }
 
-SessionInfoPair GameSession::GetSessionInfo(int sessionIndex)
+SessionInfoPair GameSession::FindSessionInfoPair(int sessionIndex)
 {
+	if (sessionIndex < m_AllSessionInfoArr.size()) return m_AllSessionInfoArr[sessionIndex];
+
 	int sessionsFound = 0;
 	int currentIndex = -1;
 	do
@@ -216,34 +208,35 @@ SessionInfoPair GameSession::GetSessionInfo(int sessionIndex)
 
 	if (sessionTagStart != std::string::npos && sessionTagEnd != std::string::npos)
 	{
-		std::string currentSessionRaw;
-		currentSessionRaw = m_AllSessionsInfoString.substr(sessionTagStart, sessionTagEnd - sessionTagStart);
-
-		SessionInfo currentSessionInfoStart;
-		int startTag = currentSessionRaw.find("<Start>") + std::string("<Start>").length();
-		int startTagEnd = currentSessionRaw.find("</Start>") + std::string("</Start>").length();
-		if (startTag != std::string::npos && startTagEnd != std::string::npos)
-		{
-			std::string startInfo = currentSessionRaw.substr(startTag, startTagEnd - startTag);
-			currentSessionInfoStart = GetSessionInfo(startInfo);
-		}
-
-		SessionInfo currentSessionInfoEnd;
-		int endTag = currentSessionRaw.find("<End>") + std::string("<End>").length();
-		int endTagEnd = currentSessionRaw.find("</End>") + std::string("</End>").length();
-		if (endTag != std::string::npos && endTagEnd != std::string::npos)
-		{
-			std::string endInfo = currentSessionRaw.substr(endTag, endTagEnd - endTag);
-			currentSessionInfoEnd = GetSessionInfo(endInfo);
-		}
-
-		SessionInfoPair sessionInfoPair;
-		sessionInfoPair.sessionInfoStart = currentSessionInfoStart;
-		sessionInfoPair.sessionInfoEnd = currentSessionInfoEnd;
-		sessionInfoPair.m_SessionIndex = sessionIndex;
-		return sessionInfoPair;
+		const std::string currentSessionString = m_AllSessionsInfoString.substr(sessionTagStart, sessionTagEnd - sessionTagStart);
+		
+		return GetSessionInfoPair(currentSessionString, sessionIndex);
 	}
 	return {};
+}
+
+SessionInfoPair GameSession::GetSessionInfoPair(const std::string& sessionString, int sessionIndex)
+{
+	SessionInfoPair sessionInfoPair;
+
+	const int startTag = sessionString.find("<Start>") + std::string("<Start>").length();
+	const int startTagEnd = sessionString.find("</Start>");
+	if (startTag != std::string::npos && startTagEnd != std::string::npos)
+	{
+		const std::string startInfoString = sessionString.substr(startTag, startTagEnd - startTag);
+		sessionInfoPair.sessionInfoStart = GetSessionInfo(startInfoString);
+	}
+
+	const int endTag = sessionString.find("<End>") + std::string("<End>").length();
+	const int endTagEnd = sessionString.find("</End>");
+	if (endTag != std::string::npos && endTagEnd != std::string::npos)
+	{
+		const std::string endInfoString = sessionString.substr(endTag, endTagEnd - endTag);
+		sessionInfoPair.sessionInfoEnd = GetSessionInfo(endInfoString);
+	}
+	sessionInfoPair.m_SessionIndex = sessionIndex;
+
+	return sessionInfoPair;
 }
 
 SessionInfo GameSession::GetSessionInfo(const std::string& sessionString)
@@ -290,7 +283,8 @@ void GameSession::Tick(double deltaTime)
 	}
 
 	if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::GENERATE_BAR_GRAPH) &&
-		m_DaysOfWeekArrGenerated == false)
+		m_DaysOfWeekArrGenerated == false && 
+		m_NumberOfSessions > 0)
 	{
 		CountDaysOfWeek();
 		return;
@@ -550,8 +544,11 @@ void GameSession::PaintDaysOfWeekBarGraph(const std::vector<int>& daysOfWeekArr,
 		GAME_ENGINE->FillRect(barRect);
 
 		GAME_ENGINE->SetColor(OFF_WHITE);
-		GAME_ENGINE->SetFont(Game::Font6Ptr);
-		GAME_ENGINE->DrawString(String(daysOfWeekArr[i]), x + 3, y + maxBarHeight - 7);
+		if (daysOfWeekArr[i] > 0)
+		{
+			GAME_ENGINE->SetFont(Game::Font6Ptr);
+			GAME_ENGINE->DrawString(String(daysOfWeekArr[i]), x + 3, y + maxBarHeight - 7);
+		}
 
 		GAME_ENGINE->SetFont(Game::Font9Ptr);
 		GAME_ENGINE->DrawString(String(daysNames[i].c_str()), x, y + maxBarHeight + 2);
@@ -586,6 +583,7 @@ void GameSession::PaintDaysOfWeekPieChart(const std::vector<int>& daysOfWeekArr,
 				currentAngle += (pieSliceAngle / lines);
 
 			}
+
 			GAME_ENGINE->SetColor(OFF_WHITE);
 			GAME_ENGINE->DrawString(String(daysNames[i].c_str()), 
 				centerX + cos(currentAngle - pieSliceAngle / 2 - 0.1) * (radius - 7) - 4,
@@ -610,7 +608,7 @@ void GameSession::CountDaysOfWeek()
 	{
 		m_ShouldGenerateDaysOfWeek = false;
 	}
-	ReadAllSessionData(m_AllSessionsInfoString);
+	ReadAllSessionData();
 
 	std::vector<int> daysOfTheWeekArr(7); // [Sunday, Monday, ..., Saturday]
 
@@ -641,7 +639,7 @@ void GameSession::ShowNextSession()
 		
 		if (m_AllSessionInfoArr.size() <= m_CurrentSessionShowingIndex)
 		{
-			m_AllSessionInfoArr.push_back(GetSessionInfo(m_CurrentSessionShowingIndex));
+			m_AllSessionInfoArr.push_back(FindSessionInfoPair(m_CurrentSessionShowingIndex));
 		}
 	}
 }

@@ -45,12 +45,13 @@ private:
 	static void ShowNextSession();
 	static void ShowPreviousSession();
 
-	static void ReadAllSessionData(const std::string& fileString); // Puts all available data into m_AllSessionInfoArr
-	static SessionInfoPair GetSessionInfo(int sessionIndex); // Runs through the file string until it finds the nth session start tag (SLOW)
+	static void ReadAllSessionData(); // Puts all available data into m_AllSessionInfoArr (fast, but takes some time if sessions file is large)
+	static int GetNumberOfSessions();
+	static SessionInfoPair FindSessionInfoPair(int sessionIndex); // Runs through the file string until it finds the nth session start tag (SLOW)
 	static SessionInfo GetSessionInfo(const std::string& sessionString);
-	static std::string GetSessionInfoMarkedUp(SessionInfo sessionInfo);
-	static int GetNumberOfSessions(const std::string& fileString);
+	static SessionInfoPair GetSessionInfoPair(const std::string& sessionString, int sessionIndex);
 
+	static std::string GetSessionInfoMarkedUp(SessionInfo sessionInfo);
 	static std::string GetTimeDuration(std::string startTimeStr, std::string endTimeStr);
 
 	static void PaintInfoString(const std::string& preString, const std::string& value1, const std::string& value2, int& x, int& y, bool positive);
@@ -66,7 +67,6 @@ private:
 	static bool m_ShouldGenerateDaysOfWeek;
 
 	static int m_CurrentSessionShowingIndex;
-	//static SessionInfoPair m_CurrentSessionInfoShowing;
 
 	// This should only be modified at the start and end of a game!
 	static SessionInfoPair m_CurrentSessionInfoRecording;
@@ -74,5 +74,6 @@ private:
 	static std::string m_AllSessionsInfoString;
 	static int m_NumberOfSessions;
 	// This gets filled one element at a time, as the user requests them, until they press F2 to request all (for a nice graph)
+	// The first element is the most recent, the last element is the oldest
 	static std::vector<SessionInfoPair> m_AllSessionInfoArr; 
 };
