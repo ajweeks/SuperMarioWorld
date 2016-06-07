@@ -36,7 +36,9 @@ private:
 	void TickAnimations(double deltaTime);
 	bool CalculateOnGround();
 
-	bool TakeDamage(); // Returns whether or not we are still alive
+	void SetAnimationState(AnimationState newAnimationState);
+
+	void TakeDamage(); // Returns whether or not we are still alive
 	void TurnAround();
 	void Jump(double deltaTime);
 
@@ -46,8 +48,15 @@ private:
 	static const double TARGET_OVERSHOOT_DISTANCE;
 	static const double RUN_VEL;
 	static const double JUMP_VEL;
+	
+	static const double CHARGIN_SECONDS_PER_FRAME;
+	static const double SHAKING_HEAD_HURT_SECONDS_PER_FRAME;
+	static const int FRAMES_OF_SHAKING_HEAD;
+	static const double SITTING_HURT_SECONDS_PER_FRAME;
+	static const int FRAMES_OF_SITTING;
 
 	AnimationState m_AnimationState;
+
 	CountdownTimer m_WaitingTimer;
 	CountdownTimer m_HurtTimer;
 

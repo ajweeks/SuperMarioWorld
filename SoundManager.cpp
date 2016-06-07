@@ -50,6 +50,8 @@ void SoundManager::InitialzeSoundsAndSongs()
 
 	LoadSound(Sound::FIRE_BALL_THROW, m_ResourcePath + String("fire-ball-throw.wav"));
 	LoadSound(Sound::CHARGIN_CHUCK_HEAD_BONK, m_ResourcePath + String("chargin-chuck-head-bonk.wav"));
+	LoadSong(Song::CHARGIN_CHUCK_RUN, m_ResourcePath + String("chargin-chuck-run.wav"));
+	LoadSound(Sound::CHARGIN_CHUCK_TAKE_DAMAGE, m_ResourcePath + String("chargin-chuck-take-damage.wav"));
 	LoadSound(Sound::BEANSTALK_SPAWN, m_ResourcePath + String("beanstalk-spawn.wav"));
 	LoadSound(Sound::SUPER_MUSHROOM_SPAWN, m_ResourcePath + String("super-mushroom-spawn.wav"));
 	LoadSound(Sound::MESSAGE_BLOCK_HIT, m_ResourcePath + String("message-block-hit.wav"));
@@ -92,7 +94,8 @@ void SoundManager::LoadSound(Sound sound, String filePath)
 	assert(m_SoundsPtrArr[int(sound)] == nullptr);
 
 	m_SoundsPtrArr[int(sound)] = new FmodSound();
-	m_SoundsPtrArr[int(sound)]->CreateSound(filePath);
+	// NOTE: The game engine doesn't seem to use handle Sounds correctly, just use streams instead
+	m_SoundsPtrArr[int(sound)]->CreateStream(filePath, false);
 }
 
 void SoundManager::RestartSongs()
@@ -112,10 +115,12 @@ void SoundManager::UnloadSoundsAndSongs()
 	for (int i = 0; i < int(Song::_LAST_ELEMENT); ++i)
 	{
 		delete m_SongsPtrArr[i];
+		m_SongsPtrArr[i] = nullptr;
 	}
 	for (int i = 0; i < int(Sound::_LAST_ELEMENT); ++i)
 	{
 		delete m_SoundsPtrArr[i];
+		m_SoundsPtrArr[i] = nullptr;
 	}
 }
 
@@ -123,7 +128,10 @@ void SoundManager::PlaySoundEffect(Sound sound)
 {
 	if (m_Muted) return;
 
-	m_SoundsPtrArr[int(sound)]->Play();
+	//if (m_SoundsPtrArr[int(sound)]->IsPlaying()) 
+	//	m_SoundsPtrArr[int(sound)]->SetPosition(0);
+	//else
+		m_SoundsPtrArr[int(sound)]->Play();
 }
 
 void SoundManager::SetAllSongsPaused(bool paused)
@@ -134,10 +142,11 @@ void SoundManager::SetAllSongsPaused(bool paused)
 	}
 }
 
-void SoundManager::SetSoundPaused(Sound sound, bool paused)
-{
-	m_SoundsPtrArr[int(sound)]->SetPaused(paused);
-}
+//void SoundManager::SetSoundPaused(Sound sound, bool paused)
+//{
+//	if (m_SoundsPtrArr[int(sound)] == nullptr) return;
+//	m_SoundsPtrArr[int(sound)]->SetPaused(paused);
+//}
 
 void SoundManager::PlaySong(Song song)
 {
@@ -147,6 +156,7 @@ void SoundManager::PlaySong(Song song)
 
 void SoundManager::SetSongPaused(Song song, bool paused)
 {
+	if (m_SongsPtrArr[int(song)] == nullptr) return;
 	m_SongsPtrArr[int(song)]->SetPaused(paused);
 }
 
@@ -160,11 +170,17 @@ void SoundManager::SetVolume(double volume)
 
 	for (int i = 0; i < int(Song::_LAST_ELEMENT) - 1; ++i)
 	{
-		m_SongsPtrArr[i]->SetVolume(m_GlobalVolumeLevel);
+		if (m_SongsPtrArr[i] != nullptr)
+		{
+			m_SongsPtrArr[i]->SetVolume(m_GlobalVolumeLevel);
+		}
 	}
 	for (int i = 0; i < int(Sound::_LAST_ELEMENT) - 1; ++i)
 	{
-		m_SoundsPtrArr[i]->SetVolume(m_GlobalVolumeLevel);
+		if (m_SoundsPtrArr[i] != nullptr)
+		{
+			m_SoundsPtrArr[i]->SetVolume(m_GlobalVolumeLevel);
+		}
 	}
 }
 

@@ -14,17 +14,21 @@ const double CharginChuck::TARGET_OVERSHOOT_DISTANCE = 60.0;
 const double CharginChuck::RUN_VEL = 7000.0;
 const double CharginChuck::JUMP_VEL = -21000.0;
 
+const double CharginChuck::CHARGIN_SECONDS_PER_FRAME = 0.05;
+const int CharginChuck::FRAMES_OF_SHAKING_HEAD = 30;
+const double CharginChuck::SHAKING_HEAD_HURT_SECONDS_PER_FRAME = (CharginChuck::FRAMES_OF_SHAKING_HEAD / 60.0) / 5.0;
+const int CharginChuck::FRAMES_OF_SITTING = 50;
+const double CharginChuck::SITTING_HURT_SECONDS_PER_FRAME = (CharginChuck::FRAMES_OF_SITTING / 60.0) / 5.0;
+
 CharginChuck::CharginChuck(DOUBLE2 startingPos, Level* levelPtr) :
 	Enemy(Type::CHARGIN_CHUCK, startingPos, GetWidth(), GetHeight(), BodyType::DYNAMIC, levelPtr, this)
 {
-	m_AnimationState = AnimationState::WAITING;
+	SetAnimationState(AnimationState::WAITING);
 	m_DirFacing = Direction::LEFT;
 
-	m_HurtTimer = CountdownTimer(150);
+	m_HurtTimer = CountdownTimer(90);
 	m_WaitingTimer = CountdownTimer(60);
 	m_WaitingTimer.Start();
-
-	m_AnimInfo.secondsPerFrame = 0.05;
 
 	m_HitsRemaining = 3;
 }
@@ -39,6 +43,8 @@ void CharginChuck::Tick(double deltaTime)
 	Enemy::Tick(deltaTime);
 	if (m_IsActive == false && wasActive)
 	{
+		SoundManager::SetSongPaused(SoundManager::Song::CHARGIN_CHUCK_RUN, true);
+
 		if (abs(m_LevelPtr->GetPlayer()->GetPosition().x - m_SpawingPosition.x) >= MINIMUM_PLAYER_DISTANCE)
 		{
 			m_ActPtr->SetPosition(m_SpawingPosition);
@@ -50,14 +56,12 @@ void CharginChuck::Tick(double deltaTime)
 
 	if (m_WaitingTimer.Tick() && m_WaitingTimer.IsComplete())
 	{
-		m_AnimationState = AnimationState::CHARGIN;
-		CalculateNewTarget();
+		SetAnimationState(AnimationState::CHARGIN);
 	}
 
 	if (m_HurtTimer.Tick() && m_HurtTimer.IsComplete())
 	{
-		m_AnimationState = AnimationState::CHARGIN;
-		CalculateNewTarget();
+		SetAnimationState(AnimationState::CHARGIN);
 	}
 
 	TickAnimations(deltaTime);
@@ -73,6 +77,7 @@ void CharginChuck::Tick(double deltaTime)
 	{
 	case AnimationState::WAITING:
 	{
+		CalculateNewTarget();
 	} break;
 	case AnimationState::CHARGIN:
 	{
@@ -82,7 +87,7 @@ void CharginChuck::Tick(double deltaTime)
 	{
 		if (m_IsOnGround) 
 		{
-			m_AnimationState = AnimationState::CHARGIN;
+			SetAnimationState(AnimationState::CHARGIN);
 			CalculateNewTarget();
 		}
 	} break;
@@ -109,7 +114,7 @@ void CharginChuck::Tick(double deltaTime)
 
 bool CharginChuck::CalculateOnGround()
 {
-	return abs(m_ActPtr->GetLinearVelocity().y) < 0.1;
+	//return abs(m_ActPtr->GetLinearVelocity().y) < 0.1;
 
 	if (m_ActPtr->GetLinearVelocity().y < 0) return false;
 
@@ -131,14 +136,16 @@ void CharginChuck::Paint()
 {
 	if (m_IsActive == false) return;
 
-	MATRIX3X2 matPrevWorld = GAME_ENGINE->GetWorldMatrix();
+	const MATRIX3X2 matPrevWorld = GAME_ENGINE->GetWorldMatrix();
 
-	DOUBLE2 playerPos = m_ActPtr->GetPosition();
-	double centerX = playerPos.x;
-	double centerY = playerPos.y;
+	const DOUBLE2 playerPos = m_ActPtr->GetPosition();
+	const double centerX = playerPos.x;
+	const double centerY = playerPos.y;
 
 	double xScale = 1, yScale = 1;
-	if (m_DirFacing == Direction::LEFT)
+	const bool shakingHead = m_HurtTimer.IsActive() && m_HurtTimer.FramesElapsed() >= FRAMES_OF_SITTING && m_HurtTimer.FramesElapsed() < FRAMES_OF_SHAKING_HEAD;
+	const bool lookingLeft = m_AnimInfo.frameNumber % 2 == 0;
+	if (m_DirFacing == Direction::LEFT || (shakingHead && lookingLeft))
 	{
 		xScale = -1;
 	}
@@ -151,16 +158,17 @@ void CharginChuck::Paint()
 		GAME_ENGINE->SetWorldMatrix(matTranslateInverse * matReflect * matTranslate * matPrevWorld);
 	}
 
-	INT2 animationFrame = GetAnimationFrame();
-	double yo = -2.0;
+	const INT2 animationFrame = GetAnimationFrame();
+	const double yo = -2.0;
 	SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::CHARGIN_CHUCK)->Paint(centerX, centerY + yo, animationFrame.x, animationFrame.y);
 
 	GAME_ENGINE->SetWorldMatrix(matPrevWorld);
 
-#if SMW_DISPLAY_AI_DEBUG_INFO
-	GAME_ENGINE->SetColor(COLOR(240, 80, 10));
-	GAME_ENGINE->DrawLine(m_TargetX, m_ActPtr->GetPosition().y - 300, m_TargetX, m_ActPtr->GetPosition().y + 300);
-#endif
+	if (Game::DEBUG_SHOWING_ENEMY_AI_INFO)
+	{
+		GAME_ENGINE->SetColor(COLOR(240, 80, 10));
+		GAME_ENGINE->DrawLine(m_TargetX, playerPos.y - Game::HEIGHT, m_TargetX, playerPos.y + Game::HEIGHT);
+	}
 }
 
 void CharginChuck::UpdateVelocity(double deltaTime)
@@ -216,7 +224,7 @@ void CharginChuck::TurnAround()
 {
 	m_DirFacing = -m_DirFacing;
 	m_WaitingTimer.Start();
-	m_AnimationState = AnimationState::WAITING;
+	SetAnimationState(AnimationState::WAITING);
 	m_ActPtr->SetLinearVelocity(DOUBLE2(0.0, m_ActPtr->GetLinearVelocity().y));
 }
 
@@ -230,7 +238,7 @@ void CharginChuck::Jump(double deltaTime)
 	else if (xVel == 0.0) xVel = m_DirFacing * minXVel;
 
 	m_ActPtr->SetLinearVelocity(DOUBLE2(xVel, JUMP_VEL * deltaTime));
-	m_AnimationState = AnimationState::JUMPING;
+	SetAnimationState(AnimationState::JUMPING);
 }
 
 void CharginChuck::CalculateNewTarget()
@@ -256,35 +264,32 @@ void CharginChuck::HeadBonk()
 	{
 	case AnimationState::WAITING:
 	case AnimationState::CHARGIN:
+	case AnimationState::JUMPING:
 	{
-		if (TakeDamage())
+		TakeDamage();
+		if (m_AnimationState == AnimationState::DEAD)
 		{
-			SoundManager::PlaySoundEffect(SoundManager::Sound::CHARGIN_CHUCK_HEAD_BONK);
-
-			m_AnimationState = AnimationState::HURT;
-			m_HurtTimer.Start();
-		
+			SoundManager::PlaySoundEffect(SoundManager::Sound::SHELL_KICK);
 			m_LevelPtr->GetPlayer()->AddScore(800, false, m_ActPtr->GetPosition());
 		}
 		else
 		{
-			SoundManager::PlaySoundEffect(SoundManager::Sound::SHELL_KICK);
+			SoundManager::PlaySoundEffect(SoundManager::Sound::CHARGIN_CHUCK_HEAD_BONK);
+			SoundManager::PlaySoundEffect(SoundManager::Sound::CHARGIN_CHUCK_TAKE_DAMAGE);
+
+			SetAnimationState(AnimationState::HURT);
 		}
 	} break;
 	}
 }
 
-bool CharginChuck::TakeDamage()
+void CharginChuck::TakeDamage()
 {
 	if (--m_HitsRemaining <= 0)
 	{
-		m_AnimationState = AnimationState::DEAD;
+		SetAnimationState(AnimationState::DEAD);
 		m_ActPtr->SetSensor(true);
-
-		return false;
 	}
-
-	return true;
 }
 
 INT2 CharginChuck::GetAnimationFrame()
@@ -298,7 +303,19 @@ INT2 CharginChuck::GetAnimationFrame()
 	case AnimationState::CHARGIN:
 		return INT2(1 + m_AnimInfo.frameNumber, 1);
 	case AnimationState::HURT:
-		return INT2(m_AnimInfo.frameNumber, 2);
+		if (m_HurtTimer.FramesElapsed() < FRAMES_OF_SITTING) 
+		{
+			if (m_AnimInfo.frameNumber == 0) return INT2(1, 2);
+			else return INT2(m_AnimInfo.frameNumber - 1, 2);
+		}
+		else if (m_HurtTimer.FramesElapsed() < FRAMES_OF_SHAKING_HEAD)
+		{
+			return INT2(4, 2);
+		}
+		else
+		{
+			return INT2(2, 2);
+		}
 	case AnimationState::DEAD:
 		return INT2(0, 2);
 	default:
@@ -325,7 +342,15 @@ void CharginChuck::TickAnimations(double deltaTime)
 	} break;
 	case AnimationState::HURT:
 	{
-		m_AnimInfo.frameNumber %= 4;
+		if (m_HurtTimer.FramesElapsed() < FRAMES_OF_SITTING) // We're siting on the ground
+		{
+			m_AnimInfo.frameNumber  = min(m_AnimInfo.frameNumber, 5);
+		}
+		else // We're shaking our head back and forth
+		{
+			m_AnimInfo.secondsPerFrame = SHAKING_HEAD_HURT_SECONDS_PER_FRAME;
+			// No need to modulo the frames, we'll mod it in paint (there's only one frame anyway, we just reflect it)
+		}
 	} break;
 	case AnimationState::DEAD:
 	case AnimationState::JUMPING:
@@ -339,7 +364,37 @@ void CharginChuck::TickAnimations(double deltaTime)
 	}
 }
 
-bool CharginChuck::IsRising()
+void CharginChuck::SetAnimationState(AnimationState newAnimationState)
+{
+	switch (newAnimationState)
+	{
+	case AnimationState::CHARGIN:
+	{
+		m_AnimInfo.secondsPerFrame = CHARGIN_SECONDS_PER_FRAME;
+		CalculateNewTarget();
+		SoundManager::PlaySong(SoundManager::Song::CHARGIN_CHUCK_RUN);
+	} break;
+	case AnimationState::WAITING:
+	{
+		m_AnimInfo.secondsPerFrame = CHARGIN_SECONDS_PER_FRAME;
+		SoundManager::SetSongPaused(SoundManager::Song::CHARGIN_CHUCK_RUN, true);
+	} break;
+	case AnimationState::HURT:
+	{
+		m_AnimInfo.secondsPerFrame = SITTING_HURT_SECONDS_PER_FRAME;
+		m_HurtTimer.Start();
+		SoundManager::SetSongPaused(SoundManager::Song::CHARGIN_CHUCK_RUN, true);
+	} break;
+	case AnimationState::DEAD:
+	{
+		m_AnimInfo.secondsPerFrame = SHAKING_HEAD_HURT_SECONDS_PER_FRAME;
+		SoundManager::SetSongPaused(SoundManager::Song::CHARGIN_CHUCK_RUN, true);
+	} break;
+	}
+	m_AnimationState = newAnimationState;
+}
+
+bool CharginChuck::IsRising() const
 {
 	return m_ActPtr->GetLinearVelocity().y < 0;
 }
