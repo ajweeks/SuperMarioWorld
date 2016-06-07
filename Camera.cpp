@@ -4,10 +4,19 @@
 #include "Game.h"
 #include "Player.h"
 #include "Level.h"
+#include "Keybindings.h"
 
-Camera::Camera(int width, int height, Level* levelPtr) : m_Width(width), m_Height(height)
+const int Camera::DISTANCE_FROM_EDGE = 114;
+const int Camera::HORIZONTAL_CUSHION_SIZE = 26;
+const int Camera::TOP_BOUNDARY = 106;
+const int Camera::BOTTOM_BOUNDARY = 150;
+const int Camera::FRAMES_OF_TRANSITION = 25;
+
+Camera::Camera(int width, int height, Level* levelPtr) : 
+	WIDTH(width), HEIGHT(height)
 {
 	Reset();
+	m_TransitionTimer = CountdownTimer(FRAMES_OF_TRANSITION);
 }
 
 Camera::~Camera()
@@ -16,24 +25,23 @@ Camera::~Camera()
 
 void Camera::Reset()
 {
-	m_PrevTranslation = DOUBLE2(0.0, 550);
-	m_TargetOffset = DOUBLE2();
-	m_XOffset = 0.0;
-	m_UsingConstantYO = false;
+	m_PrevTranslation = DOUBLE2(0.0, 200.0);
+	m_OffsetDirection = Direction::RIGHT;
+	m_XOffset = DISTANCE_FROM_EDGE;
 }
 
-DOUBLE2 Camera::GetOffset(DOUBLE2 playerPos, int directionFacing, Level* levelPtr, double deltaTime)
+DOUBLE2 Camera::GetOffset(Level* levelPtr, double deltaTime)
 {
 #ifdef SMW_ENABLE_JUMP_TO
-	if (GAME_ENGINE->IsKeyboardKeyPressed('O'))
+	if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::DEBUG_TELEPORT_PLAYER))
 	{
-		m_PrevTranslation.x = SMW_JUMP_TO_POS_X - Game::WIDTH / 2;
+		m_PrevTranslation.x = SMW_JUMP_TO_POS_X - WIDTH / 2.0;
 		return m_PrevTranslation;
 	}
 #endif
 
-	double xo = CalculateXTranslation(playerPos, directionFacing, levelPtr, deltaTime);
-	double yo = CalculateYTranslation(playerPos, levelPtr, deltaTime);
+	double xo = CalculateXTranslation(levelPtr, deltaTime);
+	double yo = CalculateYTranslation(levelPtr, deltaTime);
 	DOUBLE2 newTranslation = DOUBLE2(xo, yo);
 
 	Clamp(newTranslation, levelPtr);
@@ -43,54 +51,120 @@ DOUBLE2 Camera::GetOffset(DOUBLE2 playerPos, int directionFacing, Level* levelPt
 	return newTranslation;
 }
 
-double Camera::CalculateXTranslation(DOUBLE2 playerPos, int directionFacing, Level* levelPtr, double deltaTime)
+// Returns the x coordinate in world space of the camera's top left point
+double Camera::CalculateXTranslation(Level* levelPtr, double deltaTime)
 {
+	Player* playerPtr = levelPtr->GetPlayer();
+	DOUBLE2 playerPos = playerPtr->GetPosition();
+	int playerFacingDr = playerPtr->GetDirectionFacing();
+	int playerMovementDir = playerPtr->GetLinearVelocity().x >= 0.0 ? Direction::RIGHT : Direction::LEFT;
 	double translationX = m_PrevTranslation.x;
 
-	if (directionFacing == FacingDirection::LEFT)
+	if (m_TransitionTimer.Tick())
 	{
-		if (m_XOffset == MAX_X_OFFSET)
-		{
-			m_TargetOffset.x = playerPos.x - MAX_X_OFFSET;
-		}
-		else if (playerPos.x - m_PrevTranslation.x < m_XOffset - HORIZONTAL_CUSHION_SIZE)
-		{
-			m_TargetOffset.x = playerPos.x - MAX_X_OFFSET;
-			m_XOffset = MAX_X_OFFSET;
-		}
-	}
-	else if (directionFacing == FacingDirection::RIGHT)
-	{
-		if (m_XOffset == -(MAX_X_OFFSET - m_Width))
-		{
-			m_TargetOffset.x = playerPos.x + MAX_X_OFFSET - m_Width;
-		}
-		else if (playerPos.x - m_PrevTranslation.x >= m_XOffset + HORIZONTAL_CUSHION_SIZE)
-		{
-			m_TargetOffset.x = playerPos.x + MAX_X_OFFSET - m_Width;
-			m_XOffset = -(MAX_X_OFFSET - m_Width);
-		}
-	}
+		// TODO: Fix this feature
+		// Allow player to cancel transition by walking in opposite direction
+		//if (m_OffsetDirection == Direction::LEFT)
+		//{
+		//	if (playerFacingDr == Direction::RIGHT)
+		//	{
+		//		m_TransitionTimer.SetPaused(true);
+		//		return m_PrevTranslation.x;
+		//	}
+		//}
+		//else if (m_OffsetDirection == Direction::RIGHT)
+		//{
+		//	if (playerFacingDr == Direction::LEFT)
+		//	{
+		//		m_TransitionTimer.SetPaused(true);
+		//		return m_PrevTranslation.x;
+		//	}
+		//}
 
-	double epsilon = 0.001;
-	double panSpeed = 0.25;
-	double difference = abs(m_TargetOffset.x - m_PrevTranslation.x);
+		// Calculate amount to transition
+		const double maxDifference = (WIDTH - DISTANCE_FROM_EDGE * 2 + HORIZONTAL_CUSHION_SIZE);
+		const double transitionElapsed = (double(m_TransitionTimer.FramesElapsed()) / double(m_TransitionTimer.TotalFrames()));
 
-	// We will overshoot if we use the whole panSpeed, just use the difference
-	if (difference < panSpeed)
-	{
-		panSpeed = difference;
+		// Transitioning from right to left
+		if (m_OffsetDirection == Direction::LEFT)
+		{
+			m_XOffset = (DISTANCE_FROM_EDGE - HORIZONTAL_CUSHION_SIZE) + (transitionElapsed * maxDifference);
+		}
+		else if (m_OffsetDirection == Direction::RIGHT)
+		{
+			m_XOffset = -(DISTANCE_FROM_EDGE - HORIZONTAL_CUSHION_SIZE) + WIDTH - (transitionElapsed * maxDifference);
+		}
+
+		if (m_TransitionTimer.IsComplete())
+		{
+			if (m_OffsetDirection == Direction::LEFT)		m_XOffset = WIDTH - DISTANCE_FROM_EDGE;
+			else if (m_OffsetDirection == Direction::RIGHT)	m_XOffset = DISTANCE_FROM_EDGE;
+
+			return playerPos.x - m_XOffset;
+		}
+
+		translationX = playerPos.x - m_XOffset;
 	}
-	if (panSpeed > epsilon)
+	else
 	{
-		if (m_TargetOffset.x > m_PrevTranslation.x)
+		if (playerMovementDir == Direction::LEFT)
 		{
-			translationX = m_PrevTranslation.x + panSpeed * deltaTime;
+			if (m_OffsetDirection == Direction::RIGHT) 
+			{
+				if (playerPos.x < m_PrevTranslation.x + DISTANCE_FROM_EDGE - HORIZONTAL_CUSHION_SIZE)
+				{
+					// The player crossed the boundary (blue line), transition to other direction
+					m_OffsetDirection = Direction::LEFT;
+					m_TransitionTimer.Start();
+					return m_PrevTranslation.x;
+				}
+				else
+				{
+					return m_PrevTranslation.x;
+				}
+			}
+			else if (m_OffsetDirection == Direction::LEFT)
+			{
+				if (playerPos.x < m_PrevTranslation.x + WIDTH - DISTANCE_FROM_EDGE)
+				{
+					m_XOffset = WIDTH - DISTANCE_FROM_EDGE;
+				}
+				else
+				{
+					return m_PrevTranslation.x;
+				}
+			}
 		}
-		else
+		else if (playerMovementDir == Direction::RIGHT)
 		{
-			translationX = m_PrevTranslation.x - panSpeed * deltaTime;
+			if (m_OffsetDirection == Direction::LEFT)
+			{
+				if (playerPos.x > m_PrevTranslation.x + WIDTH - DISTANCE_FROM_EDGE + HORIZONTAL_CUSHION_SIZE)
+				{
+					// The player crossed the boundary (blue line), transition to other direction
+					m_OffsetDirection = Direction::RIGHT;
+					m_TransitionTimer.Start();
+					return m_PrevTranslation.x;
+				}
+				else
+				{
+					return m_PrevTranslation.x;
+				}
+			}
+			else if (m_OffsetDirection == Direction::RIGHT)
+			{
+				if (playerPos.x > m_PrevTranslation.x + DISTANCE_FROM_EDGE)
+				{
+					m_XOffset = DISTANCE_FROM_EDGE;
+				}
+				else
+				{
+					return m_PrevTranslation.x;
+				}
+			}
 		}
+
+		translationX = playerPos.x - m_XOffset;
 	}
 	
 	return translationX;
@@ -114,54 +188,57 @@ bool m_ConstantYO = true;
 
 if (player is climbing)
 {
-m_ConstantYO = false;
-if (player.y - camera.yo > threshold1)
-{
-camera.targetY = player.y - threshold1;
-}
-else if (player.y - camera.yo < threshold2)
-{
-camera.targetY = player.y - threshold2;
-}
+	m_ConstantYO = false;
+	if (player.y - camera.yo > threshold1)
+	{
+		camera.targetY = player.y - threshold1;
+	}
+	else if (player.y - camera.yo < threshold2)
+	{
+		camera.targetY = player.y - threshold2;
+	}
 }
 
 if (m_ConstantYO == false)
 {
-if (player is on ground)
-{
-if (player.feetY is on ground level)
-{
-m_ConstantYO = true;
-camera.targetY = constant value;
-return;
-}
+	if (player is on ground)
+	{
+		if (player.feetY is on ground level)
+		{
+			m_ConstantYO = true;
+			camera.targetY = constant value;
+			return;
+		}
 
-camera.targetY = player.feetY - threshold;
-}
-else if (player.feetY - camera.yo > threshold)
-{
-camera.targetY = player.feetY - threshold;
-}
+		camera.targetY = player.feetY - threshold;
+	}
+	else if (player.feetY - camera.yo > threshold)
+	{
+		camera.targetY = player.feetY - threshold;
+	}
 }
 */
 
-// TODO: The camera actually does pay attention to the player's y pos *if* they are running at full speed
-double Camera::CalculateYTranslation(DOUBLE2 playerPos, Level* levelPtr, double deltaTime)
+// TODO: Fix me :(
+// NOTE: The camera only takes into account the player's y pos if they are running at full speed or have climbed a beanstalk
+// Returns the y coordinate in world space of the camera's top left point
+double Camera::CalculateYTranslation(Level* levelPtr, double deltaTime)
 {
+	double targetYOffset = 550;
 	double translationY = m_PrevTranslation.y;
 	Player* playerPtr = levelPtr->GetPlayer();
-	double playerFeetY = playerPtr->GetPosition().y + playerPtr->GetHeight() / 2;
+	double playerFeetY = playerPtr->GetPosition().y + playerPtr->GetHeight() / 2.0;
 
-	if (playerPtr->GetAnimationState() == Player::ANIMATION_STATE::CLIMBING)
+	/*if (playerPtr->GetAnimationState() == Player::AnimationState::CLIMBING)
 	{
 		m_UsingConstantYO = false;
 		if (playerPtr->GetPosition().y - m_PrevTranslation.y > BOTTOM_BOUNDARY)
 		{
-			m_TargetOffset.y = playerPtr->GetPosition().y - BOTTOM_BOUNDARY;
+			targetYOffset = playerPtr->GetPosition().y - BOTTOM_BOUNDARY;
 		}
 		else if (playerPtr->GetPosition().y - m_PrevTranslation.y < TOP_BOUNDARY)
 		{
-			m_TargetOffset.y = playerPtr->GetPosition().y - TOP_BOUNDARY;
+			targetYOffset = playerPtr->GetPosition().y - TOP_BOUNDARY;
 		}
 	}
 
@@ -172,21 +249,22 @@ double Camera::CalculateYTranslation(DOUBLE2 playerPos, Level* levelPtr, double 
 			if (playerFeetY > 335)
 			{
 				m_UsingConstantYO = true;
-				m_TargetOffset.y = 550;
+				targetYOffset = 550;
 			}
 			else
 			{
-				m_TargetOffset.y = playerFeetY - BOTTOM_BOUNDARY;
+				targetYOffset = playerFeetY - BOTTOM_BOUNDARY;
 			}
 		}
 		else if (playerFeetY - m_PrevTranslation.y > BOTTOM_BOUNDARY)
 		{
-			m_TargetOffset.y = playerFeetY - BOTTOM_BOUNDARY;
+			translationY = playerFeetY - BOTTOM_BOUNDARY;
+			return translationY;
 		}
-	}
+	}*/
 
 	double panSpeed = 40;
-	double difference = abs(m_TargetOffset.y - m_PrevTranslation.y);
+	double difference = abs(targetYOffset - m_PrevTranslation.y);
 	double epsilon = 0.01;
 
 	if (difference < panSpeed)
@@ -195,7 +273,7 @@ double Camera::CalculateYTranslation(DOUBLE2 playerPos, Level* levelPtr, double 
 	}
 	if (panSpeed > epsilon)
 	{
-		if (m_TargetOffset.y > m_PrevTranslation.y)
+		if (targetYOffset > m_PrevTranslation.y)
 		{
 			translationY = m_PrevTranslation.y + panSpeed * deltaTime;
 		}
@@ -208,11 +286,10 @@ double Camera::CalculateYTranslation(DOUBLE2 playerPos, Level* levelPtr, double 
 	return translationY;
 }
 
-void Camera::CalculateViewMatrix(DOUBLE2 playerPos, int directionFacing, Level* levelPtr, double deltaTime)
+void Camera::CalculateViewMatrix(Level* levelPtr, double deltaTime)
 {
-	DOUBLE2 newTranslation = GetOffset(playerPos, directionFacing, levelPtr, deltaTime);
+	DOUBLE2 newTranslation = GetOffset(levelPtr, deltaTime);
 	
-	// NOTE: Uses negative position instead of .Inverse()
 	m_MatTranslation = MATRIX3X2::CreateTranslationMatrix(-newTranslation);
 }
 
@@ -224,48 +301,34 @@ MATRIX3X2 Camera::GetViewMatrix()
 /* Paints extra debug info about the camera (Expects view matrix to be Game::matIdentity) */
 void Camera::DEBUGPaint()
 {
-	double centerX = m_Width / 2;
+	double centerX = WIDTH / 2.0;
 	double x = 0;
 
-	// HORIZONTAL
 	GAME_ENGINE->SetColor(COLOR(10, 10, 250));
-	x = MAX_X_OFFSET + HORIZONTAL_CUSHION_SIZE;
-	GAME_ENGINE->DrawLine(x, 0, x, m_Height);
-	x = m_Width - MAX_X_OFFSET - HORIZONTAL_CUSHION_SIZE;
-	GAME_ENGINE->DrawLine(x, 0, x, m_Height);
+	x = DISTANCE_FROM_EDGE - HORIZONTAL_CUSHION_SIZE;
+	GAME_ENGINE->DrawLine(x, 0, x, HEIGHT);
+	x = WIDTH - DISTANCE_FROM_EDGE + HORIZONTAL_CUSHION_SIZE;
+	GAME_ENGINE->DrawLine(x, 0, x, HEIGHT);
 
 	GAME_ENGINE->SetColor(COLOR(250, 50, 50));
-	x = MAX_X_OFFSET;
-	GAME_ENGINE->DrawLine(x, 0, x, m_Height);
-	x = m_Width - MAX_X_OFFSET;
-	GAME_ENGINE->DrawLine(x, 0, x, m_Height);
+	x = DISTANCE_FROM_EDGE;
+	GAME_ENGINE->DrawLine(x, 0, x, HEIGHT);
+	x = WIDTH - DISTANCE_FROM_EDGE;
+	GAME_ENGINE->DrawLine(x, 0, x, HEIGHT);
 
 
-	// VERTICAL
 	GAME_ENGINE->SetColor(COLOR(250, 200, 180));
 	double y = TOP_BOUNDARY;
-	GAME_ENGINE->DrawLine(0, y, m_Width, y);
+	GAME_ENGINE->DrawLine(0, y, WIDTH, y);
 	y = BOTTOM_BOUNDARY;
-	GAME_ENGINE->DrawLine(0, y, m_Width, y);
+	GAME_ENGINE->DrawLine(0, y, WIDTH, y);
 }
 
 void Camera::Clamp(DOUBLE2& posRef, Level* levelPtr)
 {
-	if (posRef.x < 0)
-	{
-		posRef.x = 0;
-	}
-	else if (posRef.x > levelPtr->GetWidth() - m_Width)
-	{
-		posRef.x = levelPtr->GetWidth() - m_Width;
-	}
+	if (posRef.x < 0) posRef.x = 0;
+	else if (posRef.x > levelPtr->GetWidth() - WIDTH) posRef.x = levelPtr->GetWidth() - WIDTH;
 
-	if (posRef.y < 0)
-	{
-		posRef.y = 0;
-	}
-	else if (posRef.y > levelPtr->GetHeight() - m_Height)
-	{
-		posRef.y = levelPtr->GetHeight() - m_Height;
-	}
+	if (posRef.y < 0) posRef.y = 0;
+	else if (posRef.y > levelPtr->GetHeight() - HEIGHT) posRef.y = levelPtr->GetHeight() - HEIGHT;
 }
