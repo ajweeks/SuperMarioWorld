@@ -19,19 +19,19 @@ public:
 	void Paint();
 
 	void SetPaused(bool paused, bool pauseSongs);
+	bool ShowingSessionInfo() const;
 
-	void EnterUnderground(SessionInfo sessionInfo, Pipe* pipePtr);
-	void LeaveUnderground(SessionInfo sessionInfo, Pipe* pipeEnteredPtr);
+	// Spawn at beginning of level
+	void EnterNewLevel(int levelIndex, SessionInfo sessionInfo);
+	// Spawn from given pipe
+	void EnterNewLevel(Pipe* spawningPipePtr, SessionInfo sessionInfo);
 
 private:
 	void Reset();
 	void ResetMembers();
-
-	Level* m_CurrentLevelPtr = nullptr;
-	Level* m_LevelOverworldPtr = nullptr;
-	Level* m_LevelUndergroundPtr = nullptr; // This is used so that we can keep the overworld 
-
-	bool m_RenderDebugOverlay;
 	
-	bool m_InFrameByFrameMode = false;
+	Level* m_CurrentLevelPtr = nullptr;
+	bool m_ShowingSessionInfo;
+	bool m_RenderDebugOverlay;
+	bool m_InFrameByFrameMode;
 };

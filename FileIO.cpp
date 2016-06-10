@@ -2,7 +2,7 @@
 
 #include "FileIO.h"
 
-std::string FileIO::GetTagContent(std::string totalString, std::string tagString, int startPos)
+std::string FileIO::GetTagContent(const std::string& totalString, const std::string& tagString, int startPos)
 {
 	std::string result;
 
@@ -21,7 +21,7 @@ std::string FileIO::GetTagContent(std::string totalString, std::string tagString
 	return result;
 }
 
-RECT2 FileIO::StringToRECT2(std::string string)
+RECT2 FileIO::StringToRECT2(const std::string& string)
 {
 	RECT2 result;
 
@@ -37,7 +37,7 @@ RECT2 FileIO::StringToRECT2(std::string string)
 	return result;
 }
 
-bool FileIO::StringToBool(std::string valueString)
+bool FileIO::StringToBool(const std::string& valueString)
 {
 	return valueString != "0";
 }
@@ -45,4 +45,12 @@ bool FileIO::StringToBool(std::string valueString)
 std::string FileIO::BoolToString(bool value)
 {
 	return (value == 1 ? "true" : value == 0 ? "false" : "");
+}
+
+INT2 FileIO::StringToINT2(const std::string& int2String)
+{
+	const int comma = int2String.find(",");
+	const int x = stoi(int2String.substr(0, comma));
+	const int y = stoi(int2String.substr(comma + 1));
+	return INT2(x, y);
 }

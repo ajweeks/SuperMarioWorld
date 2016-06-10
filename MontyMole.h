@@ -52,13 +52,13 @@ public:
 	void Paint();
 	INT2 GetAnimationFrame();
 
-	int GetWidth();
-	int GetHeight();
+	int GetWidth() const;
+	int GetHeight() const;
 
 	void HeadBonk();
 	void StompKill();
 
-	bool IsAlive();
+	bool IsAlive() const;
 
 	void SetPaused(bool paused);
 	bool Raycast(DOUBLE2 point1, DOUBLE2 point2, DOUBLE2 &intersectionRef, DOUBLE2 &normalRef, double &fractionRef);
@@ -71,7 +71,7 @@ private:
 	void CalculateNewTarget();
 
 	static const int WIDTH = 12;
-	static const int HEIGHT = 14;
+	static const int HEIGHT = 16;
 
 	static const double HORIZONTAL_ACCELERATION;
 	static const double MAX_HORIZONTAL_VEL;

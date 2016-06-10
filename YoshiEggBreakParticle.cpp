@@ -9,13 +9,17 @@ YoshiEggBreakParticle::YoshiEggBreakParticle(DOUBLE2 position) : Particle(LIFETI
 {
 	m_AnimInfo.secondsPerFrame = 0.055;
 
-	DOUBLE2 acc = DOUBLE2(0, -20);
+	DOUBLE2 acc = DOUBLE2(0, 0.175);
+	double xVel = 0.2;
+	double fastXVel = xVel + 0.15;
+	double yVel = -1.4;
+	double fastYVel = yVel - 0.4;
 	int xO = 6;
 	int yO = 8;
-	m_ShellPiecesArr[0] = ShellPiece(position + DOUBLE2(-xO, -yO), DOUBLE2(-10, -60), acc); // Top L
-	m_ShellPiecesArr[1] = ShellPiece(position + DOUBLE2(xO, -yO), DOUBLE2(10, -60), acc);   // Top R
-	m_ShellPiecesArr[2] = ShellPiece(position + DOUBLE2(-xO, yO), DOUBLE2(-10, -50), acc);  // Btm L
-	m_ShellPiecesArr[3] = ShellPiece(position + DOUBLE2(xO, yO), DOUBLE2(10, -50), acc);    // Btm R
+	m_ShellPiecesArr[0] = ShellPiece(position + DOUBLE2(-xO, -yO), DOUBLE2(-fastXVel, fastYVel), acc);	// Top L
+	m_ShellPiecesArr[1] = ShellPiece(position + DOUBLE2(xO, -yO), DOUBLE2(fastXVel, fastYVel), acc);	// Top R
+	m_ShellPiecesArr[2] = ShellPiece(position + DOUBLE2(-xO, yO), DOUBLE2(-xVel, yVel), acc);			// Btm L
+	m_ShellPiecesArr[3] = ShellPiece(position + DOUBLE2(xO, yO), DOUBLE2(xVel, yVel), acc);				// Btm R
 }
 
 YoshiEggBreakParticle::~YoshiEggBreakParticle()
@@ -29,8 +33,8 @@ bool YoshiEggBreakParticle::Tick(double deltaTime)
 
 	for (size_t i = 0; i < NUM_PIECES; ++i)
 	{
-		//m_ShellPiecesArr[i].m_Vel += m_ShellPiecesArr[i].m_Acc;
-		//m_ShellPiecesArr[i].m_Pos += m_ShellPiecesArr[i].m_Vel;
+		m_ShellPiecesArr[i].m_Vel += m_ShellPiecesArr[i].m_Acc;
+		m_ShellPiecesArr[i].m_Pos += m_ShellPiecesArr[i].m_Vel;
 	}
 
 	return (m_LifeRemaining < 0);
@@ -41,7 +45,6 @@ void YoshiEggBreakParticle::Paint()
 	SpriteSheet* eggBreakParticlePtr = SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::YOSHI_EGG_BREAK_PARTICLE);
 	
 	int col = 0, row = 0;
-	if (m_AnimInfo.frameNumber == 1) col += 2;
 
 	eggBreakParticlePtr->Paint(m_ShellPiecesArr[0].m_Pos.x, m_ShellPiecesArr[0].m_Pos.y, col, row);
 	eggBreakParticlePtr->Paint(m_ShellPiecesArr[1].m_Pos.x, m_ShellPiecesArr[1].m_Pos.y, col + 1, row);

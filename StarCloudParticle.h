@@ -15,6 +15,5 @@ public:
 	void Paint();
 
 private:
-	static const int LIFETIME = 6;
+	static const int LIFETIME = 8;
 };
-

@@ -78,7 +78,7 @@ void RotatingBlock::Paint()
 	
 	if (m_IsUsed)
 	{
-		srcCol = 4;
+		srcCol = 5;
 		srcRow = 4;
 	}
 

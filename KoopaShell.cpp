@@ -10,7 +10,7 @@
 #include "EnemyPoofParticle.h"
 #include "SoundManager.h"
 
-const double KoopaShell::HORIZONTAL_KICK_BASE_VEL = 190;
+const double KoopaShell::HORIZONTAL_KICK_BASE_VEL = 340;
 const double KoopaShell::VERTICAL_KICK_VEL = -30520.0;
 const double KoopaShell::SHELL_HIT_VEL = -180.0;
 const double KoopaShell::HORIZONTAL_SHELL_SHELL_HIT_VEL = 40.0;

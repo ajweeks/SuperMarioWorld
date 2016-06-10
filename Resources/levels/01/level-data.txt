@@ -18,14 +18,36 @@
 	<Items>
 		<Item>
 			<Type>PrizeBlock</Type>
-			<TopLeft>53,19</TopLeft>
-			<Flying>1</Flying>
+			<TopLeft>5,12</TopLeft>
+			<Flyer>1</Flyer>
 		</Item>
 		<Item>
 			<Type>PrizeBlock</Type>
-			<TopLeft>54,19</TopLeft>
-			<Flying>1</Flying>
+			<TopLeft>7,11</TopLeft>
+			<Flyer>1</Flyer>
 		</Item>
+		<Item>
+			<Type>PrizeBlock</Type>
+			<TopLeft>10,13</TopLeft>
+			<Flyer>1</Flyer>
+		</Item>
+		<Item>
+			<Type>PrizeBlock</Type>
+			<TopLeft>15,9</TopLeft>
+			<Flyer>1</Flyer>
+		</Item>
+		<Item>
+			<Type>PrizeBlock</Type>
+			<TopLeft>19,14</TopLeft>
+			<Flyer>1</Flyer>
+		</Item>
+		<Item>
+			<Type>PrizeBlock</Type>
+			<TopLeft>24,12</TopLeft>
+			<Flyer>1</Flyer>
+		</Item>
+		
+		
 		
 		<Item>
 			<Type>GrabBlock</Type>

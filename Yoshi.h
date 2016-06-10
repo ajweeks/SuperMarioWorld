@@ -7,6 +7,8 @@
 class Player;
 class Enemy;
 class Message;
+class YoshiEggBreakParticle;
+class StarCloudParticle;
 
 class Yoshi : public Entity
 {
@@ -25,23 +27,23 @@ public:
 	void Tick(double deltaTime);
 	void Paint();
 
-	int GetWidth();
-	int GetHeight();
+	int GetWidth() const;
+	int GetHeight() const;
 
 	void EatItem(Item* itemPtr);
 	void EatEnemy(Enemy* enemyPtr);
 
-	bool IsHatching();
+	bool IsHatching() const;
 	void RunWild();
 	void SetCarryingPlayer(bool carryingPlayer, Player* playerPtr = nullptr);
 
-	double GetTongueLength();
-	int GetDirectionFacing();
+	double GetTongueLength() const;
+	int GetDirectionFacing() const;
 
-	AnimationState GetAnimationState();
-	bool IsAirborne();
+	AnimationState GetAnimationState() const;
+	bool IsAirborne() const;
 	void SpitOutItem();
-	bool IsTongueStuckOut();
+	bool IsTongueStuckOut() const;
 	void StickTongueOut(double deltaTime);
 	SMWTimer GetTongueTimer() const;
 
@@ -51,23 +53,29 @@ public:
 	static const int JUMP_VEL; // Yoshi never uses this field directly, but the player class does while they are riding yoshi
 
 	static const float HATCHING_SECONDS_PER_FRAME;
+	static const float BABY_SECONDS_PER_FRAME;
 	static const float WAITING_SECONDS_PER_FRAME;
 	static const float WALKING_SECONDS_PER_FRAME;
 	static const float RUNNING_SECONDS_PER_FRAME;
 	static const float TONGUE_STUCK_OUT_SECONDS_PER_FRAME;
 
 private:
-	void PaintAnimationFrame(double left, double top);
-	void HandleKeyboardInput(double deltaTime);
 	bool CalculateOnGround();
 	void UpdatePosition(double deltaTime); // Only called when yoshi is "running wild"
-
+	void TickAnimations(double deltaTime);
+	void PaintAnimationFrame(double left, double top);
+	void ChangeAnimationState(AnimationState newAnimationState);
 	void SwallowItem();
 	
 	std::string AnimationStateToString();
 
+	static const double EGG_GRAVITY_SCALE;
+	static const std::string MESSAGE_STRING;
+
+	static const int INITIAL_BUMP_Y_VEL;
 	static const int RUN_VEL;
 	static const int TONGUE_VEL;
+	static const int HOP_VEL;
 
 	static const int MAX_ITEMS_EATEN = 9;
 

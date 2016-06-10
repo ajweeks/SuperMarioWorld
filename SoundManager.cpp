@@ -98,7 +98,7 @@ void SoundManager::LoadSound(Sound sound, String filePath)
 	m_SoundsPtrArr[int(sound)]->CreateStream(filePath, false);
 }
 
-void SoundManager::RestartSongs()
+void SoundManager::RestartAndPauseSongs()
 {
 	for (int i = 0; i < int(Song::_LAST_ELEMENT); ++i)
 	{

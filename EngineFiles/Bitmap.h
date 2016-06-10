@@ -53,6 +53,9 @@ public:
 	//! alpha is ignored
 	void SetTransparencyColor(COLOR transparentColor);
 
+	// ADDED BY AJ WEEKS
+	void Invert();
+
 private:
 	//---------------------------
 	// Private methods

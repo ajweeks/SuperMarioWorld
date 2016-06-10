@@ -24,7 +24,7 @@ void FireFlower::Paint()
 	double left = m_ActPtr->GetPosition().x;
 	double top = m_ActPtr->GetPosition().y;
 	int srcCol = 4 + m_AnimInfo.frameNumber;
-	int srcRow = 13;
+	int srcRow = 16;
 
 	SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES)->Paint(left, top, srcCol, srcRow);
 }

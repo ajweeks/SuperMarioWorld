@@ -33,6 +33,7 @@ struct Keybindings
 	static int DEBUG_FRAME_BY_FRAME_ADVANCE;
 	static int DEBUG_TOGGLE_CAMERA_DEBUG_OVERLAY;
 	static int DEBUG_TOGGLE_PLAYER_INFO;
+	static int DEBUG_TOGGLE_ENEMY_AI_OVERLAY;
 
 private:
 	Keybindings() = delete;

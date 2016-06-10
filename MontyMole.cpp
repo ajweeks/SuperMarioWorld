@@ -321,14 +321,17 @@ void MontyMole::Paint()
 	}
 
 	INT2 animationFrame = GetAnimationFrame();
-	SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::MONTY_MOLE)->Paint(centerX, centerY + 1.5, animationFrame.x, animationFrame.y);
+	double yo = 2.5;
+	if (m_AnimationState == AnimationState::IN_GROUND) yo = 3;
+	SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::MONTY_MOLE)->Paint(centerX, centerY + yo, animationFrame.x, animationFrame.y);
 	
 	GAME_ENGINE->SetWorldMatrix(matPrevWorld);
 
-#if SMW_DISPLAY_AI_DEBUG_INFO
-	GAME_ENGINE->SetColor(COLOR(235, 50, 0));
-	GAME_ENGINE->DrawLine(m_TargetX, m_ActPtr->GetPosition().y - 300, m_TargetX, m_ActPtr->GetPosition().y + 300);
-#endif
+	if (Game::DEBUG_SHOWING_ENEMY_AI_INFO)
+	{
+		GAME_ENGINE->SetColor(COLOR(235, 50, 0));
+		GAME_ENGINE->DrawLine(m_TargetX, m_ActPtr->GetPosition().y - 300, m_TargetX, m_ActPtr->GetPosition().y + 300);
+	}
 }
 
 INT2 MontyMole::GetAnimationFrame()
@@ -406,17 +409,17 @@ bool MontyMole::Raycast(DOUBLE2 point1, DOUBLE2 point2, DOUBLE2 &intersectionRef
 	return m_ActPtr->Raycast(point1, point2, intersectionRef, normalRef, fractionRef);
 }
 
-int MontyMole::GetWidth()
+int MontyMole::GetWidth() const
 {
 	return WIDTH;
 }
 
-int MontyMole::GetHeight()
+int MontyMole::GetHeight() const
 {
 	return HEIGHT;
 }
 
-bool MontyMole::IsAlive()
+bool MontyMole::IsAlive() const
 {
 	return (m_AnimationState != AnimationState::DEAD);
 }

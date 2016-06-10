@@ -6,6 +6,8 @@
 #include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
 
+const int Coin::INITIAL_Y_VEL = -285;
+
 // NOTE: If 'life == -1', this coin has an infinite lifetime (until the player picks it up), 
 // otherwise it lives for 'life' ticks before it is removed
 Coin::Coin(DOUBLE2 topLeft, Level* levelPtr, int life, Type type, DOUBLE2 size) :
@@ -55,7 +57,7 @@ bool Coin::HasInfiniteLifetime()
 
 void Coin::GenerateParticles()
 {
-	CoinCollectParticle* coinParticlePtr = new CoinCollectParticle(m_ActPtr->GetPosition() + DOUBLE2(0, -5));
+	CoinCollectParticle* coinParticlePtr = new CoinCollectParticle(m_ActPtr->GetPosition() + DOUBLE2(0, -15));
 	m_LevelPtr->AddParticle(coinParticlePtr);
 }
 
@@ -69,7 +71,7 @@ void Coin::Paint()
 	if (m_IsBlock)
 	{
 		srcRow = 4;
-		srcCol = 4;
+		srcCol = 5;
 	}
 
 	SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES)->Paint(left, top, srcCol, srcRow);

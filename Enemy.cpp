@@ -43,7 +43,7 @@ void Enemy::Tick(double deltaTime)
 	}
 }
 
-Enemy::Type Enemy::GetType()
+Enemy::Type Enemy::GetType() const
 {
 	return m_Type;
 }

@@ -21,13 +21,13 @@ public:
 	void Tick(double deltaTime);
 	void Paint();
 
-	int GetWidth();
-	int GetHeight();
+	int GetWidth() const;
+	int GetHeight() const;
 
 	void HeadBonk();
 
-	bool IsRising();
-	AnimationState GetAnimationState();
+	bool IsRising() const;
+	AnimationState GetAnimationState() const;
 
 private:
 	void UpdateVelocity(double deltaTime);

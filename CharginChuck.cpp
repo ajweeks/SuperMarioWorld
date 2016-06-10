@@ -399,17 +399,17 @@ bool CharginChuck::IsRising() const
 	return m_ActPtr->GetLinearVelocity().y < 0;
 }
 
-CharginChuck::AnimationState CharginChuck::GetAnimationState()
+CharginChuck::AnimationState CharginChuck::GetAnimationState() const
 {
 	return m_AnimationState;
 }
 
-int CharginChuck::GetWidth()
+int CharginChuck::GetWidth() const
 {
 	return WIDTH;
 }
 
-int CharginChuck::GetHeight()
+int CharginChuck::GetHeight() const
 {
 	return HEIGHT;
 }

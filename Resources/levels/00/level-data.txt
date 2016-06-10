@@ -2,9 +2,9 @@
 <LevelData>
 
 	# NOTE: Once the player collects all dragon coins, they will 
-	# 		not respawn again, at least not until they reset their save
+	# 		not respawn again, at least not until the player resets their save
 	<AllDragonCoinsCollected>false</AllDragonCoinsCollected>
-
+	
 	#---------------------------------------------------------------#
 	# Platform positions are specified using LEFT,TOP,RIGHT   #
 	#---------------------------------------------------------------#

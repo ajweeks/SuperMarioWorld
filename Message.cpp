@@ -73,7 +73,7 @@ void Message::Paint()
 
 		int xPad = 8;
 		int yPad = 7;
-		SMWFont::PaintPhrase(m_MessageText, x + xPad, y + yPad, false);
+		SMWFont::PaintPhrase(m_MessageText, x + xPad, y + yPad, 0);
 	}
 
 	GAME_ENGINE->SetViewMatrix(matViewPrevious);

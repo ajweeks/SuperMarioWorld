@@ -58,6 +58,6 @@ void Beanstalk::Paint()
 	}
 	else
 	{
-		SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES)->Paint(centerX, centerY, 4, 4);
+		SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES)->Paint(centerX, centerY, 5, 4);
 	}
 }

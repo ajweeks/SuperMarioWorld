@@ -41,6 +41,7 @@ public:
 		ITEM			= (1 << 8),
 		BEANSTALK		= (1 << 9),
 	};
+
 	// Used to caculate/show the player's extra score at the end of the level
 	struct FinalExtraScore
 	{
@@ -51,6 +52,7 @@ public:
 		// The higher the bar is when the player hits it, the larger this value is (-1 if they don't hit it)
 		int m_BonusScoreShowing;
 	};
+
 	Level(Game* gamePtr, GameState* gameStatePtr, LevelInfo levelInfo, SessionInfo sessionInfo = {});
 	virtual ~Level();
 
@@ -66,27 +68,25 @@ public:
 	void AddEnemy(Enemy* newEnemyPtr);
 	void RemoveEnemy(Enemy* enemyPtr);
 	void AddYoshi(Yoshi* yoshiPtr);
-	bool IsYoshiAlive();
+	bool IsYoshiAlive() const;
 
-	double GetWidth();
-	double GetHeight();
-	int GetTimeRemaining();
+	double GetWidth() const;
+	double GetHeight() const;
+	int GetTimeRemaining() const;
 	void SetPaused(bool paused, bool pauseSongs);
 	void SetPausedTimer(int duration, bool pauseSongs);
-	bool IsPaused();
+	bool IsPaused() const;
 
-	bool IsCheckpointCleared();
-	void SetAllDragonCoinsCollected(bool allCollected);
-	bool AllDragonCoinsCollected();
-	Player* GetPlayer();
+	bool IsCheckpointCleared() const;
+	Player* GetPlayer() const;
 	DOUBLE2 GetCameraOffset(double deltaTime);
-	bool IsUnderground();
 	void SpeedUpMusic();
 
 	void SetActiveMessage(Message* activeMessagePtr);
 	void WarpPlayerToPipe(int pipeIndex);
 
 	void GiveItemToPlayer(Item* itemPtr);
+	void RemoveParticle(Particle* particlePtr);
 	void AddParticle(Particle* particlePtr);
 	bool Raycast(DOUBLE2 point1, DOUBLE2 point2, int collisionBits, DOUBLE2 &intersectionRef, DOUBLE2 &normalRef, double &fractionRef);
 	void TriggerEndScreen(int barHitHeight = -1);
@@ -101,28 +101,29 @@ private:
 
 	void DEBUGPaintZoomedOut();
 	void ResetMembers();
-	void PaintHUD();
-	unsigned int GetNumberOfDigits(unsigned int i);
+	unsigned int GetNumberOfDigits(unsigned int i) const;
 	void TogglePaused(bool pauseSongs);
 	void TurnCoinsToBlocks(bool toBlocks);
 	void ReadLevelData(int levelIndex);
+	void PaintHUD();
+	void PaintEndScreen();
 	void PaintEnclosingCircle(DOUBLE2 circleCenter, double innerCircleRadius);
 
 	static const int TIME_UP_WARNING = 100; // When this many in game seconds are remaining a sound is played
 	static const int MESSAGE_BLOCK_WARNING_TIME = 60; // Play a warning sound when this many frames are remaining in the pressed timer
 
-	int m_Index;
-	bool m_IsUnderground;
+	const int INDEX;
 
 	FinalExtraScore m_FinalExtraScore;
 
+	GameState* m_GameStatePtr = nullptr;
 	LevelData* m_LevelDataPtr = nullptr;
 	SoundManager::Song m_BackgroundSong;
 	SoundManager::Song m_BackgroundSongFast;
 
 	Game* m_GamePtr = nullptr;
 
-	bool m_IsBackgroundAnimated;
+	const bool IS_BACKGROUND_ANIMATED;
 	const int TOTAL_FRAMES_OF_BACKGROUND_ANIMATION;
 	AnimationInfo m_BackgroundAnimInfo;
 
@@ -143,15 +144,15 @@ private:
 	Message* m_ActiveMessagePtr = nullptr;
 
 	double m_SecondsElapsed; // How many real-time seconds have elapsed
-	int m_TotalTime; // How many in-game seconds the player has to complete this level
+	
+	const int TOTAL_TIME; // How many in-game seconds the player has to complete this level
 	int m_TimeRemaining; // How many in-game seconds are remaining
 	
 	// How many pixels wide the foreground of the level is
-	double m_Width;
+	const double WIDTH;
 	// How many pixels high the foreground of the level is
-	double m_Height;
+	const double HEIGHT;
 	
-	bool m_AllDragonCoinsCollected;
 	bool m_IsCheckpointCleared;
 	
 	// This can be set by various classes to pause the game for a short duration

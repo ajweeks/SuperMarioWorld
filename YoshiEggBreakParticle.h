@@ -32,9 +32,8 @@ public:
 	void Paint();
 
 private:
-	static const int LIFETIME = 25;
+	static const int LIFETIME = 11;
 	static const int NUM_PIECES = 4;
 
 	ShellPiece m_ShellPiecesArr[NUM_PIECES];
 };
-

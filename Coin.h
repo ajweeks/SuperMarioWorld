@@ -26,7 +26,7 @@ protected:
 	static const int HEIGHT = 16;
 
 private:
-	static const int INITIAL_Y_VEL = -250;
+	static const int INITIAL_Y_VEL;
 	
 	SMWTimer m_LifeRemaining;
 	bool m_IsBlock = false; // This is true for a short period of time after mario hits a p-switch

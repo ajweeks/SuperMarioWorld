@@ -200,7 +200,6 @@ int FmodSound::GetCurrentLoopCount()
 	if (m_ChannelPtr)
 	{
 		m_FMODResult = m_ChannelPtr->getLoopCount(&loopcount);
-		if (m_FMODResult == 30) return 0;
 
 		ErrCheck(m_FMODResult);
 	}
@@ -212,7 +211,7 @@ void FmodSound::ErrCheck(FMOD_RESULT m_FMODResult)
     if (m_FMODResult != FMOD_OK)
     {
 		char charArr[255];
-        sprintf_s(charArr,255,"FMOD error! (%d) %s\n", m_FMODResult, FMOD_ErrorString(m_FMODResult));
+		sprintf_s(charArr,255,"FMOD error! (%d) %s\n", m_FMODResult, FMOD_ErrorString(m_FMODResult));
 		MessageBoxA(0,charArr,"ERROR",MB_ICONERROR);
         PostQuitMessage(0);
     }
@@ -225,7 +224,7 @@ void FmodSound::ErrCheck(FMOD_RESULT m_FMODResult, char *filepathPtr)
 		char charArr[255];
 		sprintf_s(charArr, 255, "FMOD loading error! (%d) %s\nFile %s could not be loaded.\n", m_FMODResult, FMOD_ErrorString(m_FMODResult), filepathPtr);
 		MessageBoxA(0,charArr,"ERROR",MB_ICONERROR);
-        PostQuitMessage(0);
+       PostQuitMessage(0);
     }
 }
 

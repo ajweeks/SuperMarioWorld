@@ -28,18 +28,21 @@
 
 // Static Initializations
 const double Player::FRICTION = 0.2;
-const int Player::WALKING_ACCELERATION = 45000;
-const int Player::RUNNING_ACCELERATION = 65000;
-const int Player::MAX_WALK_VEL = 150;
-const int Player::MAX_RUN_VEL = 200;
-const int Player::JUMP_VEL = -16000;
+const int Player::WALKING_ACCELERATION = 40000;
+const int Player::RUNNING_ACCELERATION = 50000;
+const int Player::MAX_WALK_VEL = 120;
+const int Player::MAX_RUN_VEL = 240;
+const int Player::JUMP_VEL = -15000;
 const int Player::BEANSTALK_JUMP_VEL = -21500;
-const int Player::MAX_FALL_VEL = 8000;
+const int Player::MAX_FALL_VEL = 220;
 const int Player::BOUNCE_VEL = -195;
+const int Player::BOUNCE_VEL_HORIZONTAL = 50;
 const int Player::STARTING_LIVES = 5;
 const int Player::YOSHI_DISMOUNT_XVEL = 2500;
 const int Player::YOSHI_TURN_AROUND_FRAMES = 15;
+
 const double Player::MARIO_SECONDS_PER_FRAME = 0.065;
+const double Player::MARIO_SPINNING_SECONDS_PER_FRAME = 0.04;
 
 Player::Player(Level* levelPtr, GameState* gameStatePtr) :
 	Entity(DOUBLE2(), BodyType::DYNAMIC, levelPtr, ActorId::PLAYER, this),
@@ -75,7 +78,6 @@ void Player::Reset()
 	m_Stars = 0;
 	m_DragonCoins = 0;
 
-	m_SpriteSheetPtr = SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::SMALL_MARIO);
 	m_NeedsNewFixture = true;
 
 	m_ExtraItemPtr = nullptr;
@@ -157,8 +159,8 @@ void Player::Tick(double deltaTime)
 
 	if (m_EnteringPipeTimer.Tick())
 	{
-		// Move 0.6 units per frame while in a pipe
-		double delta = 0.6;
+		// Move delta units per frame while in a pipe
+		double delta = 0.8;
 		double dx = 0.0, dy = 0.0;
 		switch (m_PipeTouchingPtr->GetOrientation())
 		{
@@ -174,14 +176,7 @@ void Player::Tick(double deltaTime)
 			SessionInfo currentSessionInfo;
 			GameSession::RecordSessionInfo(currentSessionInfo, m_LevelPtr);
 			
-			if (m_LevelPtr->IsUnderground())
-			{
-				m_GameStatePtr->LeaveUnderground(currentSessionInfo, m_PipeTouchingPtr);
-			}
-			else
-			{
-				m_GameStatePtr->EnterUnderground(currentSessionInfo, m_PipeTouchingPtr);
-			}
+			m_GameStatePtr->EnterNewLevel(m_PipeTouchingPtr, currentSessionInfo);
 		}
 		return;
 	}
@@ -215,7 +210,7 @@ void Player::Tick(double deltaTime)
 
 	m_PowerupTransitionTimer.Tick();
 	m_ChangingDirectionsTimer.Tick();
-	m_ShellKickAnimationTimer.Tick();
+	m_ItemKickAnimationTimer.Tick();
 	m_SpawnDustCloudTimer.Tick();
 	
 	if (m_ScoreAddedTimer.Tick() && m_ScoreAddedTimer.IsComplete())
@@ -230,7 +225,7 @@ void Player::Tick(double deltaTime)
 
 	if (m_NeedsNewFixture)
 	{
-		double oldHalfHeight = double(GetHeight()) / 2.0;
+		const double oldHalfHeight = double(GetHeight()) / 2.0;
 
 		b2Fixture* fixturePtr = m_ActPtr->GetBody()->GetFixtureList();
 		while (fixturePtr != nullptr)
@@ -243,8 +238,8 @@ void Player::Tick(double deltaTime)
 		m_ActPtr->SetActive(true);
 		m_ActPtr->AddBoxFixture(GetWidth(), GetHeight(), 0.0, FRICTION);
 
-		double newHalfHeight = double(GetHeight()) / 2.0;
-		double newCenterY = m_ActPtr->GetPosition().y + (newHalfHeight - oldHalfHeight);
+		const double newHalfHeight = double(GetHeight()) / 2.0;
+		const double newCenterY = m_ActPtr->GetPosition().y + (oldHalfHeight - newHalfHeight) - 1;
 		m_ActPtr->SetPosition(DOUBLE2(m_ActPtr->GetPosition().x, newCenterY));
 
 		m_NeedsNewFixture = false;
@@ -360,6 +355,35 @@ void Player::HandleKeyboardInput(double deltaTime)
 		m_IsLookingUp = false;
 	}
 
+	const bool regularJumpKeyPressed = GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::B_BUTTON);
+	const bool spinJumpKeyPressed = GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::A_BUTTON);
+
+	if (m_IsRidingYoshi)
+	{
+		if (spinJumpKeyPressed)
+		{
+			// Dismount Yoshi
+			if (spinJumpKeyPressed)
+			{
+				targetYVel = JUMP_VEL * deltaTime;
+				if (m_RidingYoshiPtr->IsAirborne())
+				{
+					m_AnimationState = AnimationState::JUMPING;
+				}
+				else
+				{
+					m_AnimationState = AnimationState::SPIN_JUMPING;
+					m_AnimInfo.secondsPerFrame = MARIO_SPINNING_SECONDS_PER_FRAME;
+					m_DirFacing = -m_RidingYoshiPtr->GetDirectionFacing();
+					targetXVel = m_DirFacing * YOSHI_DISMOUNT_XVEL;
+					SoundManager::PlaySoundEffect(SoundManager::Sound::PLAYER_SPIN_JUMP);
+				}
+				m_FramesSpentInAir = 0;
+				DismountYoshi();
+			}
+		}
+	}
+	
 	m_IsOnGround = CalculateOnGround();
 	if (m_IsOnGround)
 	{
@@ -368,55 +392,30 @@ void Player::HandleKeyboardInput(double deltaTime)
 			m_AnimationState = AnimationState::WAITING;
 		}
 
-		const bool regularJumpKeyPressed = GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::B_BUTTON);
-		const bool spinJumpKeyPressed = GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::A_BUTTON);
-
 		if (m_AnimationState != AnimationState::SPIN_JUMPING &&
 			regularJumpKeyPressed ||
-			(spinJumpKeyPressed && m_IsHoldingItem) ||
-			(spinJumpKeyPressed && m_IsRidingYoshi)) 
+			(spinJumpKeyPressed && m_IsHoldingItem)) 
 		{
 			// Regular jump
 			m_AnimationState = AnimationState::JUMPING;
 			m_IsOnGround = false;
 			SoundManager::PlaySoundEffect(SoundManager::Sound::PLAYER_JUMP);
 			m_FramesSpentInAir = 0;
-			targetYVel = JUMP_VEL * deltaTime;
+			// The player jumps higher the faster they are running
+			const double jumpVel = JUMP_VEL * deltaTime + (abs(m_ActPtr->GetLinearVelocity().x) / double(MAX_RUN_VEL)) * -25.0; 
+			targetYVel = jumpVel;
 			m_IsLookingUp = false;
 		}
-		else if (spinJumpKeyPressed) 
+		else if (spinJumpKeyPressed && m_IsRidingYoshi == false) 
 		{
-			if (m_IsRidingYoshi)
-			{
-				// Dismount Yoshi
-				if (spinJumpKeyPressed)
-				{
-					targetYVel = JUMP_VEL * deltaTime;
-					if (m_RidingYoshiPtr->IsAirborne())
-					{
-						m_AnimationState = AnimationState::JUMPING;
-					}
-					else
-					{
-						m_AnimationState = AnimationState::SPIN_JUMPING;
-						m_DirFacing = -m_RidingYoshiPtr->GetDirectionFacing();
-						targetXVel = m_DirFacing * YOSHI_DISMOUNT_XVEL;
-						SoundManager::PlaySoundEffect(SoundManager::Sound::PLAYER_SPIN_JUMP);
-					}
-					m_FramesSpentInAir = 0;
-					DismountYoshi();
-				}
-			}
-			else
-			{
-				// Normal Spin jump
-				m_AnimationState = AnimationState::SPIN_JUMPING;
-				m_IsOnGround = false;
-				SoundManager::PlaySoundEffect(SoundManager::Sound::PLAYER_SPIN_JUMP);
-				m_FramesSpentInAir = 0;
-				targetYVel = JUMP_VEL * deltaTime;
-				m_IsLookingUp = false;
-			}
+			// Regular spin jump
+			m_AnimationState = AnimationState::SPIN_JUMPING;
+			m_AnimInfo.secondsPerFrame = MARIO_SPINNING_SECONDS_PER_FRAME;
+			m_IsOnGround = false;
+			SoundManager::PlaySoundEffect(SoundManager::Sound::PLAYER_SPIN_JUMP);
+			m_FramesSpentInAir = 0;
+			targetYVel = JUMP_VEL * deltaTime;
+			m_IsLookingUp = false;
 		}
 		else
 		{
@@ -453,6 +452,7 @@ void Player::HandleKeyboardInput(double deltaTime)
 			if (m_AnimationState != AnimationState::SPIN_JUMPING)
 			{
 				m_AnimationState = AnimationState::FALLING;
+				m_AnimInfo.secondsPerFrame = MARIO_SECONDS_PER_FRAME;
 			}
 		}
 	}
@@ -504,13 +504,19 @@ void Player::HandleKeyboardInput(double deltaTime)
 			// Grab blocks
 			if (m_RecentlyTouchedGrabBlocksPtrArr[0] != nullptr)
 			{
-				AddItemToBeHeld((Item*)m_RecentlyTouchedGrabBlocksPtrArr[0]);
-				m_RecentlyTouchedGrabBlocksPtrArr[0] = nullptr;
-
-				if (m_RecentlyTouchedGrabBlocksPtrArr[1] != nullptr)
+				if (m_RecentlyTouchedGrabBlocksPtrArr[0]->GetType() == Item::Type::GRAB_BLOCK) // Prevent strange crash
 				{
-					m_RecentlyTouchedGrabBlocksPtrArr[0] = m_RecentlyTouchedGrabBlocksPtrArr[1];
-					m_RecentlyTouchedGrabBlocksPtrArr[1] = nullptr;
+					AddItemToBeHeld(m_RecentlyTouchedGrabBlocksPtrArr[0]);
+					m_RecentlyTouchedGrabBlocksPtrArr[0] = nullptr;
+
+					if (m_RecentlyTouchedGrabBlocksPtrArr[1] != nullptr)
+					{
+						m_RecentlyTouchedGrabBlocksPtrArr[0] = m_RecentlyTouchedGrabBlocksPtrArr[1];
+						m_RecentlyTouchedGrabBlocksPtrArr[1] = nullptr;
+					}
+
+					GrabBlock* grabBlockPtr = (GrabBlock*)m_ItemHoldingPtr;
+					grabBlockPtr->Grab();
 				}
 			}
 		}
@@ -614,6 +620,7 @@ void Player::HandleKeyboardInput(double deltaTime)
 	}
 
 	if (targetYVel == 0.0) targetYVel = prevVel.y;
+	if (targetYVel > MAX_FALL_VEL)  targetYVel = MAX_FALL_VEL;
 
 	if (newXVel == 0.0)
 	{
@@ -638,10 +645,15 @@ void Player::HandleKeyboardInput(double deltaTime)
 	}
 
 	// Dust particles / changing directions
-	if (m_DirFacingLastFrame != m_DirFacing)
+	bool dirSwitched = m_DirFacingLastFrame != m_DirFacing;
+	bool duckSliding = (m_IsDucking && abs(m_ActPtr->GetLinearVelocity().x) > 1);
+	if (dirSwitched)
 	{
 		m_ChangingDirectionsTimer.Start();
+	}
 
+	if (dirSwitched || duckSliding)
+	{
 		if (m_SpawnDustCloudTimer.IsActive() == false && m_IsOnGround)
 		{
 			DustParticle* dustParticlePtr = new DustParticle(m_ActPtr->GetPosition() + DOUBLE2(0, GetHeight() / 2 + 1));
@@ -654,8 +666,6 @@ void Player::HandleKeyboardInput(double deltaTime)
 	m_DirFacingLastFrame = m_DirFacing;
 }
 
-// NOTE: Technically this isn't exactly the same as in the original, since when the player
-// stands on the edge of a block they can't jump, but it's definitely close enough
 bool Player::CalculateOnGround()
 {
 	if (m_ActPtr->GetLinearVelocity().y < 0) return false;
@@ -712,7 +722,14 @@ void Player::TickAnimations(double deltaTime)
 			}
 			else
 			{
-				m_AnimInfo.frameNumber %= 2;
+				if (m_PowerupState == PowerupState::NORMAL)
+				{
+					m_AnimInfo.frameNumber %= 2;
+				}
+				else if (m_PowerupState == PowerupState::SUPER)
+				{
+					m_AnimInfo.frameNumber %= 3;
+				}
 			}
 		} break;
 		case AnimationState::SPIN_JUMPING:
@@ -736,9 +753,22 @@ void Player::Paint()
 		m_ExtraItemPtr->Paint();
 	}
 
-	if (m_InvincibilityTimer.IsActive() && m_InvincibilityTimer.FramesElapsed() % 10 < 5)
+	if (m_InvincibilityTimer.IsActive()) 
 	{
-		return; // NOTE: The player flashes while invincible
+		const int slowFlashStart = 50;
+		const int fastFlashStart = m_InvincibilityTimer.TotalFrames() - 50;
+
+		const bool slowFlash = m_InvincibilityTimer.FramesElapsed() >= slowFlashStart &&
+							   m_InvincibilityTimer.FramesElapsed() < fastFlashStart &&
+							   m_InvincibilityTimer.FramesElapsed() % 10 < 5;
+
+		const bool fastFlash = m_InvincibilityTimer.FramesElapsed() >= fastFlashStart &&
+							   m_InvincibilityTimer.FramesElapsed() % 6 < 3;
+
+		if (slowFlash || fastFlash)
+		{
+			return; // NOTE: The player flashes while invincible
+		}
 	}
 
 	double centerX = m_ActPtr->GetPosition().x;
@@ -764,7 +794,8 @@ void Player::Paint()
 		GAME_ENGINE->SetWorldMatrix(matTranslateInverse * matReflect * matTranslate * matPrevWorld);
 	}
 
-	PowerupState powerupStateToPaint;
+	SpriteSheet* spriteSheetToPaint = GetSpriteSheetForPowerupState(m_PowerupState);
+	INT2 spriteTile(-1, -1);
 	double yo;
 	if (m_PowerupTransitionTimer.IsActive())
 	{
@@ -773,25 +804,37 @@ void Player::Paint()
  			m_LevelPtr->SetPausedTimer(m_PowerupTransitionTimer.TotalFrames()-1, false);
 		}
 
-		yo = double(GetHeight()) / 2.0 - (m_PrevPowerupState == PowerupState::NORMAL ? 6 : 4);
-		
-		if (m_PowerupTransitionTimer.FramesElapsed() % 20 > 10)
-		{
-			powerupStateToPaint = m_PrevPowerupState;
-		}
-		else
-		{
-			powerupStateToPaint = m_PowerupState;
-		}
+		yo = double(GetHeight()) / 2.0 - (m_PowerupState == PowerupState::NORMAL ? 6 : 4);
 
-		if (m_PowerupTransitionTimer.IsComplete())
+		if (m_PowerupTransitionTimer.FramesElapsed() < m_PowerupTransitionTimer.TotalFrames() / 2)
 		{
-			m_NeedsNewFixture = true;
+			if (m_PowerupTransitionTimer.FramesElapsed() % 8 < 4)
+			{
+				spriteSheetToPaint = GetSpriteSheetForPowerupState(m_PrevPowerupState);
+			} 
+			else
+			{
+				// "Medium" mario
+				spriteSheetToPaint = SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::SMALL_MARIO);
+				spriteTile = INT2(7, 1);
+			}
+		}
+		else // in the second half of the transition
+		{
+			if (m_PowerupTransitionTimer.FramesElapsed() % 8 < 4)
+			{
+				spriteSheetToPaint = GetSpriteSheetForPowerupState(m_PowerupState);
+			}
+			else
+			{
+				// "Medium" mario
+				spriteSheetToPaint = SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::SMALL_MARIO);
+				spriteTile = INT2(7, 1);
+			}
 		}
 	}
 	else
 	{
-		powerupStateToPaint = m_PowerupState;
 		if (m_IsRidingYoshi)
 		{
 			yo = GetHeight() / 2.0 - 9.5;
@@ -806,36 +849,38 @@ void Player::Paint()
 		}
 	}
 
-	SpriteSheet* spriteSheetToPaint = GetSpriteSheetForPowerupState(powerupStateToPaint);
-	INT2 spriteTile = CalculateAnimationFrame();
+	if (spriteTile.x == -1 || spriteTile.y == -1)
+	{
+		spriteTile = CalculateAnimationFrame();
+	}
 	spriteSheetToPaint->Paint(centerX, centerY - GetHeight() / 2 + yo, spriteTile.x, spriteTile.y);
 
 	// Yoshi's Tongue
 	if (m_IsRidingYoshi && m_RidingYoshiPtr->IsTongueStuckOut())
 	{
 		int toungeTimerFramesElapsed = m_RidingYoshiPtr->GetTongueTimer().FramesElapsed();
-		int toungeTimerTotalFrames = m_RidingYoshiPtr->GetTongueTimer().OriginalNumberOfFrames();
+		int toungeTimerTotalFrames = m_RidingYoshiPtr->GetTongueTimer().TotalFrames();
 		
 		if (toungeTimerFramesElapsed > 12 &&
 			toungeTimerFramesElapsed < toungeTimerTotalFrames - 7)
 		{
 			SpriteSheet* yoshiWithMarioBmpPtr = SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::YOSHI_WITH_MARIO);
-			int tileWidth = yoshiWithMarioBmpPtr->GetTileWidth();
-			int tileHeight = yoshiWithMarioBmpPtr->GetTileHeight();
-			int srcX = 12 * tileWidth;
-			int srcY = 0 * tileHeight;
+			int spriteTileWidth = yoshiWithMarioBmpPtr->GetTileWidth();
+			int spriteTileHeight = yoshiWithMarioBmpPtr->GetTileHeight();
+			int srcX = 12 * spriteTileWidth;
+			int srcY = 0 * spriteTileHeight;
 			int width = int(m_RidingYoshiPtr->GetTongueLength() - 7);
-			int height = tileHeight;
-			int left = int(centerX - m_RidingYoshiPtr->GetWidth() / 2 + 31 - tileWidth / 2);
-			int top = int(centerY - m_RidingYoshiPtr->GetHeight() / 2 - 1 - tileHeight / 2);
+			int height = spriteTileHeight;
+			int left = int(centerX - m_RidingYoshiPtr->GetWidth() / 2 + 32 - spriteTileWidth / 2);
+			int top = int(centerY - m_RidingYoshiPtr->GetHeight() / 2 - 1 - spriteTileHeight / 2);
 			RECT2 srcRect(srcX, srcY, srcX + width, srcY + height);
 			// NOTE: We can't use the normal sprite sheet paint here since
-			// we need to draw only part of yoshi's tounge at times
+			// we need to draw only part of yoshi's tounge
 			GAME_ENGINE->DrawBitmap(yoshiWithMarioBmpPtr->GetBitmap(), left, top, srcRect);
 
 			// Tongue tip
 			left += width - 3;
-			top += tileHeight / 2 + 7;
+			top += spriteTileHeight / 2 + 7;
 			srcX = 422;
 			srcY = 26;
 			width = 7;
@@ -878,7 +923,11 @@ INT2 Player::CalculateAnimationFrame()
 		{
 			srcY = 1;
 
-			if (m_AnimationState == AnimationState::JUMPING) srcX = 3;
+			if (m_AnimationState == AnimationState::JUMPING) 
+			{
+				if (m_PowerupState == PowerupState::NORMAL) srcX = 3;
+				else if (m_PowerupState == PowerupState::SUPER) srcX = 4;
+			}
 			else if (m_AnimationState == AnimationState::WAITING) srcX = 2;
 			else srcX = 2 + m_AnimInfo.frameNumber;
 		}
@@ -955,20 +1004,36 @@ INT2 Player::CalculateAnimationFrame()
 		} break;
 		case AnimationState::WALKING:
 		{
-			if (m_ShellKickAnimationTimer.IsActive())
+			if (m_ItemKickAnimationTimer.IsActive())
 			{
 				srcX = 5;
 				srcY = 1;
 			}
 			else if (m_ChangingDirectionsTimer.IsActive())
 			{
-				srcX = 6;
-				srcY = 0;
+				if (m_PowerupState == PowerupState::NORMAL)
+				{
+					srcX = 6;
+					srcY = 0;
+				}
+				else if (m_PowerupState == PowerupState::SUPER)
+				{
+					srcX = 7;
+					srcY = 1;
+				}
 			}
 			else if (m_IsRunning)
 			{
-				srcX = 4 + m_AnimInfo.frameNumber;
-				srcY = 0;
+				if (m_PrevPowerupState == PowerupState::NORMAL)
+				{
+					srcX = 4 + m_AnimInfo.frameNumber;
+					srcY = 0;
+				}
+				else if (m_PrevPowerupState == PowerupState::SUPER)
+				{
+					srcX = 5 + m_AnimInfo.frameNumber;
+					srcY = 0;
+				}
 			}
 			else
 			{
@@ -1112,14 +1177,13 @@ void Player::OnItemPickup(Item* itemPtr)
 	} break;
 	case Item::Type::SUPER_MUSHROOM:
 	{
-		AddScore(1000, false, m_ActPtr->GetPosition());
+		AddScore(1000, false, m_ActPtr->GetPosition() + DOUBLE2(0, -12));
 
 		switch (m_PowerupState)
 		{
 		case PowerupState::NORMAL:
 		{
 			SoundManager::PlaySoundEffect(SoundManager::Sound::PLAYER_SUPER_MUSHROOM_COLLECT);
-			m_SpriteSheetPtr = SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::SUPER_MARIO);
 			ChangePowerupState(PowerupState::SUPER);
 		} break;
 		case PowerupState::SUPER:
@@ -1174,9 +1238,9 @@ void Player::ChangePowerupState(PowerupState newPowerupState, bool isUpgrade)
 	m_PrevPowerupState = m_PowerupState;
 
 	m_PowerupState = newPowerupState;
-	m_SpriteSheetPtr = GetSpriteSheetForPowerupState(m_PowerupState);
 
 	m_PowerupTransitionTimer.Start();
+	m_NeedsNewFixture = true;
 
 	if (isUpgrade)
 	{
@@ -1214,6 +1278,7 @@ SpriteSheet* Player::GetSpriteSheetForPowerupState(PowerupState powerupState)
 void Player::AddItemToBeHeld(Item* itemPtr)
 {
 	assert(m_ItemHoldingPtr == nullptr);
+	assert(itemPtr != nullptr);
 
 	m_ItemHoldingPtr = itemPtr;
 	m_IsHoldingItem = true;
@@ -1258,30 +1323,86 @@ void Player::KickHeldItem(double deltaTime, bool gently)
 {
 	assert(m_ItemHoldingPtr != nullptr);
 
-	if (gently)
+	switch (m_ItemHoldingPtr->GetType())
 	{
-		((KoopaShell*)m_ItemHoldingPtr)->SetLinearVelocity(m_ActPtr->GetLinearVelocity() + DOUBLE2(m_DirFacing * 30, 0));
-	}
-	else
+	case Item::Type::KOOPA_SHELL:
 	{
-		if (GAME_ENGINE->IsKeyboardKeyDown(Keybindings::D_PAD_UP))
+		KoopaShell* koopaShellPtr = (KoopaShell*)m_ItemHoldingPtr;
+		if (gently)
 		{
-			double scale = 0.5;
-			double horizontalVel = (m_ActPtr->GetLinearVelocity().x) * scale;
-			((KoopaShell*)m_ItemHoldingPtr)->KickVertically(deltaTime, horizontalVel);
+			koopaShellPtr->SetLinearVelocity(m_ActPtr->GetLinearVelocity() + DOUBLE2(m_DirFacing * 30, 0));
 		}
 		else
 		{
-			((KoopaShell*)m_ItemHoldingPtr)->KickHorizontally(m_DirFacing, true);
-		}
+			if (GAME_ENGINE->IsKeyboardKeyDown(Keybindings::D_PAD_UP))
+			{
+				const double xScale = 0.5;
+				const double horizontalVel = (m_ActPtr->GetLinearVelocity().x) * xScale;
+				((KoopaShell*)m_ItemHoldingPtr)->KickVertically(deltaTime, horizontalVel);
+			}
+			else
+			{
+				((KoopaShell*)m_ItemHoldingPtr)->KickHorizontally(m_DirFacing, true);
+			}
 
-		m_ShellKickAnimationTimer.Start();
+			m_ItemKickAnimationTimer.Start();
+		}
+	} break;
+	case Item::Type::GRAB_BLOCK:
+	{
+		GrabBlock* grabBlockPtr = (GrabBlock*)m_ItemHoldingPtr;
+		if (GAME_ENGINE->IsKeyboardKeyDown(Keybindings::D_PAD_UP))
+		{
+			const double horizontalVel = (m_ActPtr->GetLinearVelocity().x);
+			grabBlockPtr->KickVertically(deltaTime, horizontalVel);
+		}
+		else
+		{
+			grabBlockPtr->SetMoving(m_ActPtr->GetLinearVelocity() + DOUBLE2(m_DirFacing * 30, 0));
+		}
+	} break;
 	}
 
 	m_ItemHoldingPtr = nullptr;
 
 	m_IsHoldingItem = false;
-	m_ShellKickAnimationTimer.Start();
+	m_ItemKickAnimationTimer.Start();
+}
+
+void Player::SetTouchingGrabBlock(bool touching, GrabBlock* grabBlockPtr)
+{
+	if (touching)
+	{
+		if (m_RecentlyTouchedGrabBlocksPtrArr[0] != nullptr)
+		{
+			m_RecentlyTouchedGrabBlocksPtrArr[1] = m_RecentlyTouchedGrabBlocksPtrArr[0];
+			m_RecentlyTouchedGrabBlocksPtrArr[0] = grabBlockPtr;
+		}
+		else
+		{
+			m_RecentlyTouchedGrabBlocksPtrArr[0] = grabBlockPtr;
+		}
+	}
+	else
+	{
+		if (m_RecentlyTouchedGrabBlocksPtrArr[0] == grabBlockPtr)
+		{
+			m_RecentlyTouchedGrabBlocksPtrArr[0] = nullptr;
+			if (m_RecentlyTouchedGrabBlocksPtrArr[1] != nullptr)
+			{
+				m_RecentlyTouchedGrabBlocksPtrArr[0] = m_RecentlyTouchedGrabBlocksPtrArr[1];
+				m_RecentlyTouchedGrabBlocksPtrArr[1] = nullptr;
+			}
+		}
+		else if (m_RecentlyTouchedGrabBlocksPtrArr[1] == grabBlockPtr)
+		{
+			m_RecentlyTouchedGrabBlocksPtrArr[1] = nullptr;
+		}
+		else
+		{
+			//OutputDebugString(String("ERROR: Player::SetTouchingGrabBlock(false) called with unknown grab block!\n"));
+		}
+	}
 }
 
 void Player::AddCoin(Coin* coinPtr, bool playSound, bool showParticle)
@@ -1312,7 +1433,6 @@ void Player::AddDragonCoin(DragonCoin* dragonCoinPtr)
 	{
 		m_DragonCoins = 0;
 		AddLife(dragonCoinPtr->GetPosition());
-		m_LevelPtr->SetAllDragonCoinsCollected(true);
 	}
 }
 
@@ -1325,9 +1445,13 @@ void Player::AddLife(DOUBLE2 particlePos)
 	SoundManager::PlaySoundEffect(SoundManager::Sound::PLAYER_ONE_UP);
 }
 
-void Player::Bounce()
+void Player::Bounce(int horizontalDir)
 {
-	m_ActPtr->SetLinearVelocity(DOUBLE2(m_ActPtr->GetLinearVelocity().x, BOUNCE_VEL));
+	double xVel;
+	if (horizontalDir == 0) xVel = m_ActPtr->GetLinearVelocity().x;
+	else xVel = BOUNCE_VEL_HORIZONTAL * horizontalDir; 
+	
+	m_ActPtr->SetLinearVelocity(DOUBLE2(xVel, BOUNCE_VEL));
 }
 
 void Player::Die()
@@ -1437,45 +1561,6 @@ void Player::AddRedStars(int numberOfRedStars)
 	assert(numberOfRedStars > 0);
 
 	m_Stars += numberOfRedStars;
-}
-
-void Player::SetTouchingGrabBlock(bool touching, GrabBlock* grabBlockPtr)
-{
-	if (touching)
-	{
-		if (m_RecentlyTouchedGrabBlocksPtrArr[0] != nullptr)
-		{
-			if (m_RecentlyTouchedGrabBlocksPtrArr[1] == nullptr)
-			{
-				m_RecentlyTouchedGrabBlocksPtrArr[1] = m_RecentlyTouchedGrabBlocksPtrArr[0];
-				m_RecentlyTouchedGrabBlocksPtrArr[0] = grabBlockPtr;
-			}
-		}
-		else
-		{
-			m_RecentlyTouchedGrabBlocksPtrArr[0] = grabBlockPtr;
-		}
-	}
-	else
-	{
-		if (m_RecentlyTouchedGrabBlocksPtrArr[0] == grabBlockPtr)
-		{
-			m_RecentlyTouchedGrabBlocksPtrArr[0] = nullptr;
-			if (m_RecentlyTouchedGrabBlocksPtrArr[1] != nullptr)
-			{
-				m_RecentlyTouchedGrabBlocksPtrArr[0] = m_RecentlyTouchedGrabBlocksPtrArr[1];
-				m_RecentlyTouchedGrabBlocksPtrArr[1] = nullptr;
-			}
-		}
-		else if (m_RecentlyTouchedGrabBlocksPtrArr[1] == grabBlockPtr)
-		{
-			m_RecentlyTouchedGrabBlocksPtrArr[1] = nullptr;
-		}
-		else
-		{
-			OutputDebugString(String("ERROR: Player::SetTouchingGrabBlock called with unknown grab block!\n"));
-		}
-	}
 }
 
 void Player::SetOverlappingWithBeanstalk(bool overlapping)
@@ -1811,7 +1896,6 @@ bool Player::IsAirborne()
 			m_AnimationState == AnimationState::FALLING;
 }
 
-
 bool Player::IsTransitioningPowerups()
 {
 	return m_PowerupTransitionTimer.IsActive();
@@ -1820,4 +1904,9 @@ bool Player::IsTransitioningPowerups()
 bool Player::IsDucking()
 {
 	return m_IsDucking;
+}
+
+bool Player::DEBUGIsTouchingGrabBlock()
+{
+	return m_RecentlyTouchedGrabBlocksPtrArr[0] != nullptr;
 }

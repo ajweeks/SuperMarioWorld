@@ -5,7 +5,7 @@
 class BlockChunk
 {
 public:
-	BlockChunk(DOUBLE2 position, DOUBLE2 velocity);
+	BlockChunk(DOUBLE2 position, DOUBLE2 velocity, bool isRainbow = false);
 
 	BlockChunk(const BlockChunk&) = delete;
 	BlockChunk& operator=(const BlockChunk&) = delete;
@@ -14,13 +14,12 @@ public:
 	void Paint();
 
 private:
-	RECT2 GetBlockParticleSrcRect(int index);
-
+	AnimationInfo m_AnimInfo;
 	DOUBLE2 m_Position;
 	DOUBLE2 m_Velocity;
 	int m_BlockType;
 	int m_TypeTimer;
-
+	bool m_IsRanbow;
 };
 
 
@@ -28,7 +27,7 @@ private:
 class BlockBreakParticle : public Particle
 {
 public:
-	BlockBreakParticle(DOUBLE2 centerPos);
+	BlockBreakParticle(DOUBLE2 centerPos, bool isGrabBlock = false);
 	virtual ~BlockBreakParticle();
 
 	BlockBreakParticle(const BlockBreakParticle&) = delete;

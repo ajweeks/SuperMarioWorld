@@ -30,16 +30,27 @@ int Keybindings::DEBUG_TOGGLE_PHYSICS_RENDERING;
 int Keybindings::DEBUG_FRAME_BY_FRAME_ADVANCE;
 int Keybindings::DEBUG_TOGGLE_CAMERA_DEBUG_OVERLAY;
 int Keybindings::DEBUG_TOGGLE_PLAYER_INFO;
+int Keybindings::DEBUG_TOGGLE_ENEMY_AI_OVERLAY;
 
 int Keybindings::LEFT_SHOULDER;
 int Keybindings::RIGHT_SHOULDER;
 
 void Keybindings::ReadBindingsFromFile()
 {
+	const std::string filePath = "Resources/Keybindings.xml";
 	std::ifstream fileInStream;
 	std::stringstream stringStream;
 
-	fileInStream.open("Resources/Keybindings.xml");
+	fileInStream.open(filePath);
+	if (!fileInStream) // The file hasn't yet been created
+	{
+		std::ofstream fileOutStream;
+		fileOutStream.open(filePath); // Create the file
+		fileOutStream.close();
+
+		fileInStream.open(filePath);
+	}
+
 	if (fileInStream.fail() == false)
 	{
 		std::string line;
@@ -82,6 +93,7 @@ void Keybindings::StoreStringData(const std::string& fileContents)
 	DEBUG_FRAME_BY_FRAME_ADVANCE = RegisterKeycode(fileContents, "DEBUGFrameByFrameAdvance", VK_OEM_5); // (Backslash)
 	DEBUG_TOGGLE_CAMERA_DEBUG_OVERLAY = RegisterKeycode(fileContents, "DEBUGToggleCameraDebugOverlay", VK_F9);
 	DEBUG_TOGGLE_PLAYER_INFO = RegisterKeycode(fileContents, "DEBUGTogglePlayerInfo", VK_F10);
+	DEBUG_TOGGLE_ENEMY_AI_OVERLAY = RegisterKeycode(fileContents, "DEBUGToggleEnemyAIInfo", VK_F11);
 
 	LEFT_SHOULDER = RegisterKeycode(fileContents, "LeftShoulder", 'Q');
 	RIGHT_SHOULDER = RegisterKeycode(fileContents, "RightShoulder", 'E');

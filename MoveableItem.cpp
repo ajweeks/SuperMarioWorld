@@ -90,7 +90,7 @@ void MoveableItem::Paint()
 	{
 		double left = m_SpawnLocation.x + WIDTH / 2;
 		double top = m_SpawnLocation.y + Block::HEIGHT / 2 + 2;
-		SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES)->Paint(left, top, 4, 4);
+		SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES)->Paint(left, top, 5, 4);
 	}
 }
 

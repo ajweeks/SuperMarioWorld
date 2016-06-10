@@ -33,6 +33,7 @@ MATRIX3X2 Game::matIdentity;
 
 bool Game::DEBUG_SHOWING_CAMERA_INFO = false;
 bool Game::DEBUG_SHOWING_PLAYER_INFO = false;
+bool Game::DEBUG_SHOWING_ENEMY_AI_INFO = false;
 
 Game::Game()
 {
@@ -76,7 +77,6 @@ void Game::GameStart()
 	SoundManager::SetMuted(true);
 #endif
 
-	// TODO: Add mario fonts
 	Game::Font12Ptr = new Font(String("consolas"), 12);
 	Game::Font9Ptr = new Font(String("consolas"), 9);
 	Game::Font6Ptr = new Font(String("consolas"), 6);
@@ -97,8 +97,6 @@ void Game::GameStart()
 void Game::Reset()
 {
 	GameSession::Reset();
-
-	m_ShowingSessionInfo = false;
 }
 
 void Game::GameSetSleeping(bool sleeping)
@@ -131,21 +129,6 @@ void Game::GameEnd()
 
 void Game::GameTick(double deltaTime)
 {	
-	if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::TOGGLE_INFO_OVERLAY))
-	{
-		m_ShowingSessionInfo = !m_ShowingSessionInfo;
-
-		if (m_StateManagerPtr->CurrentState()->GetType() == StateType::GAME)
-		{
-			((GameState*)m_StateManagerPtr->CurrentState())->SetPaused(m_ShowingSessionInfo, true);
-		}
-	}
-
-	if (m_ShowingSessionInfo)
-	{
-		GameSession::Tick(deltaTime);
-	}
-
 	if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::TOGGLE_MUTED))
 	{
 		SoundManager::ToggleMuted();
@@ -159,6 +142,10 @@ void Game::GameTick(double deltaTime)
 	{
 		DEBUG_SHOWING_PLAYER_INFO = !DEBUG_SHOWING_PLAYER_INFO;
 	}
+	if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::DEBUG_TOGGLE_ENEMY_AI_OVERLAY))
+	{
+		DEBUG_SHOWING_ENEMY_AI_INFO = !DEBUG_SHOWING_ENEMY_AI_INFO;
+	}
 
 	m_StateManagerPtr->Tick(deltaTime);
 }
@@ -168,14 +155,4 @@ void Game::GamePaint()
 	GAME_ENGINE->SetViewMatrix(matIdentity);
 
 	m_StateManagerPtr->Paint();
-
-	if (m_ShowingSessionInfo)
-	{
-		GameSession::Paint();
-	}
-}
-
-bool Game::ShowingSessionInfo()
-{
-	return m_ShowingSessionInfo;
 }

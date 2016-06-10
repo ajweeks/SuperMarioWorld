@@ -1,7 +1,7 @@
 #include "stdafx.h"
-#include "SpriteSheet.h"
 
-#define GAME_ENGINE (GameEngine::GetSingleton())
+#include "SpriteSheet.h"
+#include "Game.h"
 
 SpriteSheet::SpriteSheet(const String filePath, int tilesWide, int tilesHigh) :
 	m_TilesWide(tilesWide), m_TilesHigh(tilesHigh)
@@ -24,21 +24,16 @@ void SpriteSheet::Paint(double centerX, double centerY, int col, int row)
 	GAME_ENGINE->DrawBitmap(m_BmpSpriteSheetPtr, centerX - m_TileWidth / 2, centerY - m_TileHeight / 2, srcRect);
 }
 
-void SpriteSheet::SetTransparencyColor(COLOR& colorRef)
-{
-	m_BmpSpriteSheetPtr->SetTransparencyColor(colorRef);
-}
-
-Bitmap* SpriteSheet::GetBitmap()
+Bitmap* SpriteSheet::GetBitmap() const
 {
 	return m_BmpSpriteSheetPtr;
 }
-int SpriteSheet::GetTileWidth()
+int SpriteSheet::GetTileWidth() const
 {
 	return m_TileWidth;
 }
 
-int SpriteSheet::GetTileHeight()
+int SpriteSheet::GetTileHeight() const
 {
 	return m_TileHeight;
 }

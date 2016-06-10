@@ -309,7 +309,7 @@ void KoopaTroopa::StompKill()
 	m_ShouldBeRemoved = true;
 }
 
-Colour KoopaTroopa::GetColour()
+Colour KoopaTroopa::GetColour() const
 {
 	return m_Colour;
 }
@@ -319,23 +319,23 @@ void KoopaTroopa::ChangeAnimationState(AnimationState newAnimationState)
 	m_AnimationState = newAnimationState;
 }
 
-bool KoopaTroopa::IsShelless()
+bool KoopaTroopa::IsShelless() const
 {
 	return  m_AnimationState == AnimationState::SHELLESS ||
 			m_AnimationState == AnimationState::WALKING_SHELLESS;
 }
 
-KoopaTroopa::AnimationState KoopaTroopa::GetAnimationState()
+KoopaTroopa::AnimationState KoopaTroopa::GetAnimationState() const
 {
 	return m_AnimationState;
 }
 
-int KoopaTroopa::GetWidth()
+int KoopaTroopa::GetWidth() const
 {
 	return WIDTH;
 }
 
-int KoopaTroopa::GetHeight()
+int KoopaTroopa::GetHeight() const
 {
 	return HEIGHT;
 }

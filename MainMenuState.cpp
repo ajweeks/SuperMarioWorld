@@ -236,13 +236,13 @@ void MainMenuState::Paint()
 	{
 		left = 80;
 		top = textStartY;
-		SMWFont::PaintPhrase("MARIO A ... 2", left, top, true);
+		SMWFont::PaintPhrase("MARIO A ... 2", left, top, SMWFont::OUTLINED);
 		top += lineHeight;
-		SMWFont::PaintPhrase("MARIO B ...EMPTY", left, top, true);
+		SMWFont::PaintPhrase("MARIO B ...EMPTY", left, top, SMWFont::OUTLINED);
 		top += lineHeight;
-		SMWFont::PaintPhrase("MARIO C ...EMPTY", left, top, true);
+		SMWFont::PaintPhrase("MARIO C ...EMPTY", left, top, SMWFont::OUTLINED);
 		top += lineHeight;
-		SMWFont::PaintPhrase("ERASE DATA", left, top, true);
+		SMWFont::PaintPhrase("ERASE DATA", left, top, SMWFont::OUTLINED);
 
 		left -= 16;
 		top = textStartY + m_CursorIndex * lineHeight;
@@ -255,11 +255,11 @@ void MainMenuState::Paint()
 
 		left = 55;
 		top = textStartY;
-		SMWFont::PaintPhrase("ERASE MARIO A ... 2", left, top, true);
+		SMWFont::PaintPhrase("ERASE MARIO A ... 2", left, top, SMWFont::OUTLINED);
 		top += lineHeight;
-		SMWFont::PaintPhrase("ERASE MARIO B ...EMPTY", left, top, true);
+		SMWFont::PaintPhrase("ERASE MARIO B ...EMPTY", left, top, SMWFont::OUTLINED);
 		top += lineHeight;
-		SMWFont::PaintPhrase("ERASE MARIO C ...EMPTY", left, top, true);
+		SMWFont::PaintPhrase("ERASE MARIO C ...EMPTY", left, top, SMWFont::OUTLINED);
 		top += lineHeight;
 		SMWFont::PaintPhrase("END", left, top, true);
 
@@ -271,9 +271,9 @@ void MainMenuState::Paint()
 	{
 		left = 85;
 		top = 128;
-		SMWFont::PaintPhrase("1 PLAYER GAME", left, top, true);
+		SMWFont::PaintPhrase("1 PLAYER GAME", left, top, SMWFont::OUTLINED);
 		top += lineHeight;
-		SMWFont::PaintPhrase("2 PLAYER GAME", left, top, true);
+		SMWFont::PaintPhrase("2 PLAYER GAME", left, top, SMWFont::OUTLINED);
 
 		left -= 16;
 		top = 128 + m_CursorIndex * lineHeight;
@@ -299,13 +299,13 @@ void MainMenuState::Paint()
 
 	if (m_IntroFadeInTimer.IsActive())
 	{
-		int alpha = int(255 - (double(m_IntroFadeInTimer.FramesElapsed()) / double(m_IntroFadeInTimer.OriginalNumberOfFrames())) * 255);
+		int alpha = int(255 - (double(m_IntroFadeInTimer.FramesElapsed()) / double(m_IntroFadeInTimer.TotalFrames())) * 255);
 		GAME_ENGINE->SetColor(COLOR(0, 0, 0, alpha));
 		GAME_ENGINE->FillRect(0, 0, Game::WIDTH, Game::HEIGHT);
 	}
 	else if (m_OutroFadeOutTimer.IsActive())
 	{
-		int alpha = int((double(m_OutroFadeOutTimer.FramesElapsed()) / double(m_OutroFadeOutTimer.OriginalNumberOfFrames())) * 255);
+		int alpha = int((double(m_OutroFadeOutTimer.FramesElapsed()) / double(m_OutroFadeOutTimer.TotalFrames())) * 255);
 		GAME_ENGINE->SetColor(COLOR(0, 0, 0, alpha));
 		GAME_ENGINE->FillRect(0, 0, Game::WIDTH, Game::HEIGHT);
 	}

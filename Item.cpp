@@ -6,12 +6,13 @@
 #include "Level.h"
 #include "Game.h"
 #include "Player.h"
+#include "Coin.h"
 
 const int Item::MINIMUM_PLAYER_DISTANCE = int(Game::WIDTH * (4.0 / 5.0));
 
 Item::Item(DOUBLE2 topLeft, Type type, Level* levelPtr, int filterCategoryBits, BodyType bodyType, int width, int height) :
 	Entity(topLeft + DOUBLE2(width / 2, height / 2), bodyType, levelPtr, ActorId::ITEM, this),
-	m_Type(type), WIDTH(width), HEIGHT(height)
+	m_Type(type), WIDTH(width), HEIGHT(height), m_SpawningPosition(topLeft + DOUBLE2(width / 2, height / 2))
 {
 	m_ActPtr->AddBoxFixture(width, height, 0.0);
 
@@ -134,5 +135,6 @@ bool Item::IsBlock()
 			m_Type == Type::PRIZE_BLOCK ||
 			m_Type == Type::ROTATING_BLOCK ||
 			m_Type == Type::CLOUD_BLOCK ||
-			m_Type == Type::GRAB_BLOCK);
+			m_Type == Type::GRAB_BLOCK ||
+			(m_Type == Type::COIN && ((Coin*)this)->IsBlock()));
 }

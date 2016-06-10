@@ -22,8 +22,8 @@ public:
 	void DEBUGPaint();
 
 private:
-	double CalculateXTranslation(Level* levelPtr, double deltaTime);
-	double CalculateYTranslation(Level* levelPtr, double deltaTime);
+	double CalculateXOffset(Level* levelPtr, double deltaTime);
+	double CalculateYOffset(Level* levelPtr, double deltaTime);
 
 	void Clamp(DOUBLE2& posRef, Level* levelPtr);
 
@@ -37,12 +37,15 @@ private:
 	//static const double HORIZONTAL_PAN_SPEED;
 
 	static const int TOP_BOUNDARY;
+	static const int TOP_BOUNDARY_LOW;
 	static const int BOTTOM_BOUNDARY;
 	static const int FRAMES_OF_TRANSITION;
 	
+	static const int DEFAULT_Y_OFFSET;
+
 	const int WIDTH, HEIGHT;
 
-	DOUBLE2 m_PrevTranslation;
+	DOUBLE2 m_PrevOffset;
 	int m_OffsetDirection;
 
 	SMWTimer m_TransitionTimer;

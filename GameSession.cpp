@@ -8,8 +8,8 @@
 #include "FileIO.h"
 #include "Keybindings.h"
 
-int GameSession::m_CurrentSessionShowingIndex = 0;
-int GameSession::m_NumberOfSessions = 0;
+size_t GameSession::m_CurrentSessionShowingIndex = 0;
+size_t GameSession::m_NumberOfSessions = 0;
 std::string GameSession::m_AllSessionsInfoString = "";
 SessionInfoPair GameSession::m_CurrentSessionInfoRecording = {};
 std::vector<SessionInfoPair> GameSession::m_AllSessionInfoArr;
@@ -68,7 +68,7 @@ void GameSession::RecordSessionInfo(SessionInfo &sessionInfo, Level* levelPtr)
 	sessionInfo.m_PlayerPowerupState = Player::PowerupStateToString(levelPtr->GetPlayer()->GetPowerupState());
 	sessionInfo.m_TimeRemaining = levelPtr->GetTimeRemaining();
 	sessionInfo.m_CoinsCollected = levelPtr->GetPlayer()->GetCoinsCollected();
-	sessionInfo.m_AllDragonCoinsCollected = levelPtr->AllDragonCoinsCollected();
+	sessionInfo.m_DragonCoinsCollected = levelPtr->GetPlayer()->GetDragonCoinsCollected();
 }
 
 void GameSession::WriteSessionInfoToFile(Level* levelPtr)
@@ -110,7 +110,7 @@ std::string GameSession::GetSessionInfoMarkedUp(SessionInfo sessionInfo)
 	stringStream << "\t\t<PlayerPowerupState>" << sessionInfo.m_PlayerPowerupState << "</PlayerPowerupState>" << std::endl;
 	stringStream << "\t\t<TimeRemaining>" << sessionInfo.m_TimeRemaining << "</TimeRemaining>" << std::endl;
 	stringStream << "\t\t<CoinsCollected>" << sessionInfo.m_CoinsCollected << "</CoinsCollected>" << std::endl;
-	stringStream << "\t\t<AllDragonCoinsCollected>" << sessionInfo.m_AllDragonCoinsCollected << "</AllDragonCoinsCollected>" << std::endl;
+	stringStream << "\t\t<DragonCoinsCollected>" << sessionInfo.m_DragonCoinsCollected << "</DragonCoinsCollected>" << std::endl;
 
 	return stringStream.str();
 }
@@ -120,7 +120,7 @@ void GameSession::ReadSessionInfoFromFile()
 	std::ifstream fileInStream;
 	std::stringstream stringStream;
 
-	static const std::string filePath = "Resources/GameSessions.txt";
+	const std::string filePath = "Resources/GameSessions.txt";
 
 	fileInStream.open(filePath);
 
@@ -133,11 +133,14 @@ void GameSession::ReadSessionInfoFromFile()
 		fileInStream.open(filePath);
 	}
 
-	std::string line;
-	while (fileInStream.eof() == false)
+	if (fileInStream.fail() == false)
 	{
-		std::getline(fileInStream, line);
-		stringStream << line << "\n";
+		std::string line;
+		while (fileInStream.eof() == false)
+		{
+			std::getline(fileInStream, line);
+			stringStream << line << "\n";
+		}
 	}
 
 	fileInStream.close();
@@ -163,7 +166,7 @@ void GameSession::ReadAllSessionData()
 	m_AllSessionInfoArr.resize(m_NumberOfSessions);
 
 	int currentIndexInFileString = 0;
-	for (int i = 0; i < m_NumberOfSessions-1; ++i)
+	for (size_t i = 0; i < m_NumberOfSessions-1; ++i)
 	{
 		const int currentArrIndex = m_NumberOfSessions - i - 1;
 		const int sessionTagStart = currentIndexInFileString;
@@ -190,7 +193,7 @@ void GameSession::ReadAllSessionData()
 	}
 }
 
-SessionInfoPair GameSession::FindSessionInfoPair(int sessionIndex)
+SessionInfoPair GameSession::FindSessionInfoPair(size_t sessionIndex)
 {
 	if (sessionIndex < m_AllSessionInfoArr.size()) return m_AllSessionInfoArr[sessionIndex];
 
@@ -245,29 +248,29 @@ SessionInfo GameSession::GetSessionInfo(const std::string& sessionString)
 	sessionInfo.m_Date = FileIO::GetTagContent(sessionString, "Date");
 	sessionInfo.m_Time = FileIO::GetTagContent(sessionString, "Time");
 
-	std::string playerPowerupStateStr = FileIO::GetTagContent(sessionString, "PlayerPowerupState");
+	const std::string playerPowerupStateStr = FileIO::GetTagContent(sessionString, "PlayerPowerupState");
 	if (playerPowerupStateStr.length() > 0) sessionInfo.m_PlayerPowerupState = playerPowerupStateStr;
 
-	std::string playerLivesStr = FileIO::GetTagContent(sessionString, "PlayerLives");
+	const std::string playerLivesStr = FileIO::GetTagContent(sessionString, "PlayerLives");
 	if (playerLivesStr.length() > 0) sessionInfo.m_PlayerLives = stoi(playerLivesStr);
 
-	std::string playerScoreStr = FileIO::GetTagContent(sessionString, "Score");
+	const std::string playerScoreStr = FileIO::GetTagContent(sessionString, "Score");
 	if (playerScoreStr.length() > 0) sessionInfo.m_PlayerScore = stoi(playerScoreStr);
 
-	std::string timeRemainingStr = FileIO::GetTagContent(sessionString, "TimeRemaining");
+	const std::string timeRemainingStr = FileIO::GetTagContent(sessionString, "TimeRemaining");
 	if (timeRemainingStr.length() > 0) sessionInfo.m_TimeRemaining = stoi(timeRemainingStr);
 
-	std::string coinsCollectedStr = FileIO::GetTagContent(sessionString, "CoinsCollected");
+	const std::string coinsCollectedStr = FileIO::GetTagContent(sessionString, "CoinsCollected");
 	if(coinsCollectedStr.length() > 0) sessionInfo.m_CoinsCollected = stoi(coinsCollectedStr);
 
-	std::string checkpointClearedStr = FileIO::GetTagContent(sessionString, "CheckpointCleared");
+	const std::string checkpointClearedStr = FileIO::GetTagContent(sessionString, "CheckpointCleared");
 	if (checkpointClearedStr.length() > 0) sessionInfo.m_CheckpointCleared = FileIO::StringToBool(checkpointClearedStr);
 
-	std::string playerRidingYoshiStr = FileIO::GetTagContent(sessionString, "PlayerRidingYoshi");
+	const std::string playerRidingYoshiStr = FileIO::GetTagContent(sessionString, "PlayerRidingYoshi");
 	if (playerRidingYoshiStr.length() > 0) sessionInfo.m_PlayerRidingYoshi = FileIO::StringToBool(playerRidingYoshiStr);
 
-	std::string allDragonCoinsCollectedStr = FileIO::GetTagContent(sessionString, "AllDragonCoinsCollected");
-	if (allDragonCoinsCollectedStr.length() > 0) sessionInfo.m_AllDragonCoinsCollected = FileIO::StringToBool(allDragonCoinsCollectedStr);
+	const std::string allDragonCoinsCollectedStr = FileIO::GetTagContent(sessionString, "DragonCoinsCollected");
+	if (allDragonCoinsCollectedStr.length() > 0) sessionInfo.m_DragonCoinsCollected = FileIO::StringToBool(allDragonCoinsCollectedStr);
 
 	//sessionInfo.m_Initialized = true;
 
@@ -386,6 +389,11 @@ void GameSession::Paint()
 		m_CurrentSessionInfoShowing.sessionInfoEnd.m_CoinsCollected,
 		x, y);
 
+	PaintInfoString("Dragon coins: ",
+		m_CurrentSessionInfoShowing.sessionInfoStart.m_DragonCoinsCollected,
+		m_CurrentSessionInfoShowing.sessionInfoEnd.m_DragonCoinsCollected,
+		x, y);
+
 	PaintInfoString("Player powerup state: ",
 		m_CurrentSessionInfoShowing.sessionInfoStart.m_PlayerPowerupState,
 		m_CurrentSessionInfoShowing.sessionInfoEnd.m_PlayerPowerupState,
@@ -404,11 +412,6 @@ void GameSession::Paint()
 	PaintInfoString("Riding yoshi: ",
 		m_CurrentSessionInfoShowing.sessionInfoStart.m_PlayerRidingYoshi,
 		m_CurrentSessionInfoShowing.sessionInfoEnd.m_PlayerRidingYoshi,
-		x, y);
-
-	PaintInfoString("All dragon coins collected: ",
-		m_CurrentSessionInfoShowing.sessionInfoStart.m_AllDragonCoinsCollected,
-		m_CurrentSessionInfoShowing.sessionInfoEnd.m_AllDragonCoinsCollected,
 		x, y);
 
 	x = 12;
@@ -612,7 +615,7 @@ void GameSession::CountDaysOfWeek()
 	std::vector<int> daysOfTheWeekArr(7); // [Sunday, Monday, ..., Saturday]
 
 	static const int t[] = { 0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4 }; // Magic array
-	for (int i = 0; i < m_NumberOfSessions; ++i)
+	for (size_t i = 0; i < m_NumberOfSessions; ++i)
 	{
 		const SessionInfoPair currentSessionInfoPair = m_AllSessionInfoArr[i];
 		const std::string dateString = currentSessionInfoPair.sessionInfoStart.m_Date;

@@ -355,3 +355,44 @@ void Bitmap::SetTransparencyColor(COLOR transparentColor)
 		iWICBitmapPtr->Release();
 	}
 }
+
+
+
+// ADDED BY AJ WEEKS
+void Bitmap::Invert()
+{
+	if (this == nullptr) MessageBoxA(NULL, "Bitmap::SetTransparencyColor() called from a pointer that is a nullptr\nThe MessageBox that will appear after you close this MessageBox is the default error message from visual studio.", "GameEngine says NO", MB_OK);
+
+	UINT width = 0, height = 0;
+	WICPixelFormatGUID pixelFormat;
+	m_ConvertorPtr->GetPixelFormat(&pixelFormat);
+	m_ConvertorPtr->GetSize(&width, &height);
+	UINT bitmapStride = 4 * width;
+	UINT size = width * height * 4;
+	unsigned char* pixelsPtr = new unsigned char[size]; // create 32 bit buffer
+	m_ConvertorPtr->CopyPixels(NULL, bitmapStride, size, pixelsPtr);
+
+	for (unsigned int count = 0; count < width * height; ++count)
+	{
+		if (RGB(pixelsPtr[count * 4 + 2], pixelsPtr[count * 4 + 1], pixelsPtr[count * 4]) != 0) // if the color of this pixel is not transparent
+		{
+			pixelsPtr[count * 4 + 2] = 255 - pixelsPtr[count * 4 + 2];
+			pixelsPtr[count * 4 + 1] = 255 - pixelsPtr[count * 4 + 1];
+			pixelsPtr[count * 4] = 255 - pixelsPtr[count * 4];
+		}
+	}
+
+	//assign modified pixels to bitmap
+	IWICImagingFactory* iWICFactoryPtr = GameEngine::GetSingleton()->GetWICImagingFactory();
+	IWICBitmap* iWICBitmapPtr = nullptr;
+	HRESULT hr = iWICFactoryPtr->CreateBitmapFromMemory(width, height, GUID_WICPixelFormat32bppPBGRA, bitmapStride, size, pixelsPtr, &iWICBitmapPtr);
+	delete[] pixelsPtr; //destroy buffer
+	if (hr == S_OK)
+	{
+		ID2D1RenderTarget *renderTargetPtr = GameEngine::GetSingleton()->GetHwndRenderTarget();
+		if (m_BitmapPtr != nullptr) m_BitmapPtr->Release();
+		renderTargetPtr->CreateBitmapFromWicBitmap(iWICBitmapPtr, &m_BitmapPtr);
+		iWICBitmapPtr->Release();
+	}
+}
+

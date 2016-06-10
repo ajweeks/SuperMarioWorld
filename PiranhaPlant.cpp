@@ -98,7 +98,7 @@ void PiranhaPlant::Tick(double deltaTime)
 	m_ActPtr->SetPosition(DOUBLE2(prevPos.x, prevPos.y + m_DirMoving * m_VerticalVel * deltaTime));
 }
 
-bool PiranhaPlant::IsPlayerNearby()
+bool PiranhaPlant::IsPlayerNearby() const
 {
 	DOUBLE2 playerPos = m_LevelPtr->GetPlayer()->GetPosition();
 	int minimumDistance = 30;
@@ -120,12 +120,12 @@ void PiranhaPlant::Paint()
 	GAME_ENGINE->SetWorldMatrix(matPrevWorld);
 }
 
-int PiranhaPlant::GetWidth()
+int PiranhaPlant::GetWidth() const
 {
 	return WIDTH;
 }
 
-int PiranhaPlant::GetHeight()
+int PiranhaPlant::GetHeight() const
 {
 	return HEIGHT;
 }

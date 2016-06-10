@@ -6,7 +6,7 @@
 class Block : public Item
 {
 public:
-	Block(DOUBLE2 topLeft, Item::Type type, Level* levelPtr, BodyType bodyType = BodyType::STATIC);
+	Block(DOUBLE2 topLeft, Item::Type type, Level* levelPtr, BodyType bodyType = BodyType::STATIC, int width = WIDTH, int height = HEIGHT);
 	virtual ~Block();
 
 	Block(const Block&) = delete;

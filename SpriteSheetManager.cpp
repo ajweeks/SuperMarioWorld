@@ -30,16 +30,19 @@ void SpriteSheetManager::Load()
 	m_SpriteSheetPtrArr[int(SpriteSheets::LEVEL_SELECT_MARIO)] = new SpriteSheet(String("Resources/level-select-mario.png"), 11, 2);
 
 	m_BitmapPtrArr[int(Bitmaps::HUD)] = new Bitmap(String("Resources/hud.png"));
+	m_SpriteSheetPtrArr[int(SpriteSheets::TITLE_TEXT)] = new SpriteSheet(String("Resources/title-text.png"), 1, 4);
 
 	m_BitmapPtrArr[int(Bitmaps::MAIN_MENU_SCREEN)] = new Bitmap(String("Resources/main-menu-screen.png"));
 	m_BitmapPtrArr[int(Bitmaps::MAIN_MENU_SCREEN_BACKGROUND)] = new Bitmap(String("Resources/main-menu-bg.png"));
 	m_SpriteSheetPtrArr[int(SpriteSheets::FONT)] = new SpriteSheet(String("Resources/font.png"), 18, 8);
+	m_SpriteSheetPtrArr[int(SpriteSheets::FONT_INVERTED)] = new SpriteSheet(String("Resources/font.png"), 18, 8);
+	m_SpriteSheetPtrArr[int(SpriteSheets::FONT_INVERTED)]->GetBitmap()->Invert();
 
 	// Mario
 	m_SpriteSheetPtrArr[int(SpriteSheets::SMALL_MARIO)] = new SpriteSheet(String("Resources/small-mario.png"), 8, 3);
 	m_SpriteSheetPtrArr[int(SpriteSheets::SUPER_MARIO)] = new SpriteSheet(String("Resources/super-mario.png"), 8, 3);
 	
-	m_SpriteSheetPtrArr[int(SpriteSheets::GENERAL_TILES)] = new SpriteSheet(String("Resources/general-tiles.png"), 14, 25);
+	m_SpriteSheetPtrArr[int(SpriteSheets::GENERAL_TILES)] = new SpriteSheet(String("Resources/general-tiles.png"), 6, 25);
 	m_SpriteSheetPtrArr[int(SpriteSheets::BEANSTALK)] = new SpriteSheet(String("Resources/beanstalk.png"), 1, 3);
 
 	// Particles
@@ -61,8 +64,8 @@ void SpriteSheetManager::Load()
 	m_SpriteSheetPtrArr[int(SpriteSheets::CHARGIN_CHUCK)] = new SpriteSheet(String("Resources/chargin-chuck.png"), 5, 3);
 
 	// Yoshi
-	m_SpriteSheetPtrArr[int(SpriteSheets::YOSHI)] = new SpriteSheet(String("Resources/yoshi.png"), 5, 1);
-	m_SpriteSheetPtrArr[int(SpriteSheets::SMALL_YOSHI)] = new SpriteSheet(String("Resources/yoshi-small.png"), 3, 2);
+	m_SpriteSheetPtrArr[int(SpriteSheets::YOSHI)] = new SpriteSheet(String("Resources/yoshi.png"), 4, 1);
+	m_SpriteSheetPtrArr[int(SpriteSheets::SMALL_YOSHI)] = new SpriteSheet(String("Resources/yoshi-small.png"), 4, 2);
 	m_SpriteSheetPtrArr[int(SpriteSheets::YOSHI_WITH_MARIO)] = new SpriteSheet(String("Resources/yoshi-with-mario.png"), 13, 2);
 }
 

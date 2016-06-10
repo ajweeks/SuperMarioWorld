@@ -43,10 +43,10 @@ public:
 	void Tick(double deltaTime);
 	void Paint();
 
-	int GetWidth();
-	int GetHeight();
+	int GetWidth() const;
+	int GetHeight() const;
 
-	AnimationState GetAnimationState();
+	AnimationState GetAnimationState() const;
 
 	// Called when the player regular jumps on this koopa's head. (not spin jump)
 	// This causes the koopa to lose its shell, or if it 
@@ -62,9 +62,9 @@ public:
 	// that is removed once it reaches the bottom of the screen
 	void ShellHit(bool shellWasBeingHeld = false);
 
-	bool IsShelless();
+	bool IsShelless() const;
 
-	Colour GetColour();
+	Colour GetColour() const;
 
 private:
 	static const int WIDTH = 14;

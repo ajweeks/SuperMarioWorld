@@ -9,12 +9,11 @@ public:
 	SpriteSheet(const SpriteSheet&) = delete;
 	SpriteSheet& operator=(const SpriteSheet&) = delete;
 
-	void SetTransparencyColor(COLOR& colorRef);
 	void Paint(double centerX, double centerY, int col, int row);
 
-	int GetTileWidth();
-	int GetTileHeight();
-	Bitmap* GetBitmap();
+	int GetTileWidth() const;
+	int GetTileHeight() const;
+	Bitmap* GetBitmap() const;
 
 private:
 	Bitmap *m_BmpSpriteSheetPtr;

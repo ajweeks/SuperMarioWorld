@@ -38,7 +38,7 @@ public:
 	static void PlaySong(Song song);
 	static void SetSongPaused(Song song, bool paused);
 
-	static void RestartSongs();
+	static void RestartAndPauseSongs();
 
 	static void SetMuted(bool muted);
 	static void ToggleMuted();

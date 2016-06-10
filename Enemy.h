@@ -22,10 +22,10 @@ public:
 	void Tick(double deltaTime);
 	virtual void Paint() = 0;
 
-	virtual int GetWidth() = 0;
-	virtual int GetHeight() = 0;
+	virtual int GetWidth() const = 0;
+	virtual int GetHeight() const = 0;
 
-	Type GetType();
+	Type GetType() const;
 
 	static std::string TYPEToString(Type type);
 	static Type StringToTYPE(const std::string& string);

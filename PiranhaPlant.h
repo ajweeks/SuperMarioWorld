@@ -14,11 +14,11 @@ public:
 	void Tick(double deltaTime);
 	void Paint();
 
-	int GetWidth();
-	int GetHeight();
+	int GetWidth() const;
+	int GetHeight() const;
 
 private:
-	bool IsPlayerNearby();
+	bool IsPlayerNearby() const;
 		
 	static const int WIDTH = 15;
 	static const int HEIGHT = 15;

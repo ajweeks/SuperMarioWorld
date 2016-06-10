@@ -15,11 +15,11 @@ public:
 	void Paint();
 
 	void AddParticle(Particle* newParticlePtr);
+	void RemoveParticle(Particle* particlePtr);
 	void Reset();
 
 private:
 	void RemoveParticle(int index);
-	void RemoveParticle(Particle* particlePtr);
 
 	std::vector<Particle*> m_ParticlesPtrArr;
 

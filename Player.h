@@ -73,7 +73,7 @@ public:
 	void DismountYoshi(bool runWild = false);
 
 	// Called when the player bounces off an enemy's head, or off a moving koopa shell
-	void Bounce();
+	void Bounce(int horizontalDir = 0);
 	void Die();
 	void TakeDamage();
 	void KickShell(KoopaShell* koopaShellPtr, bool wasThrown);
@@ -97,6 +97,7 @@ public:
 	bool IsDucking();
 	bool IsInvincible();
 	bool IsAirborne();
+	bool DEBUGIsTouchingGrabBlock();
 
 	// NOTE: This should be called every time the player stomps on a KoopaTroopa's head
 	//       Every frames m_FramesUntilEnemyHeadBounceEndSound is decremented, and plays the
@@ -122,8 +123,6 @@ private:
 	// Returns whether or not we were successful in entering a pipe
 	bool AttemptToEnterPipes(); 
 	
-	SpriteSheet* m_SpriteSheetPtr;
-
 	static const double FRICTION;
 	static const int WALKING_ACCELERATION;
 	static const int RUNNING_ACCELERATION;
@@ -133,10 +132,13 @@ private:
 	static const int BEANSTALK_JUMP_VEL;
 	static const int MAX_FALL_VEL;
 	static const int BOUNCE_VEL;
+	static const int BOUNCE_VEL_HORIZONTAL;
 	static const int STARTING_LIVES;
 	static const int YOSHI_DISMOUNT_XVEL;
 	static const int YOSHI_TURN_AROUND_FRAMES;
+
 	static const double MARIO_SECONDS_PER_FRAME;
+	static const double MARIO_SPINNING_SECONDS_PER_FRAME;
 
 	bool m_IsOnGround;
 	bool m_WasOnGround;
@@ -192,5 +194,7 @@ private:
 	Pipe* m_PipeTouchingPtr;
 	bool m_TouchingPipe;
 
+	// We can be touching two grab blocks at once
+	// Our most recently touched block will always be in index 0
 	std::vector<GrabBlock*> m_RecentlyTouchedGrabBlocksPtrArr;
 };

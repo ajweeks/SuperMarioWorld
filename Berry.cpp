@@ -36,13 +36,13 @@ void Berry::Paint()
 	if (m_AnimInfo.frameNumber == 2) left += 1;
 	
 	double top = m_ActPtr->GetPosition().y;
-	int srcCol = 11 + m_AnimInfo.frameNumber;
+	int srcCol = 3 + m_AnimInfo.frameNumber;
 	if (m_AnimInfo.frameNumber == 3) 
 	{
 		srcCol -= 2;
 	}
 
-	int srcRow = 22;
+	int srcRow = 21;
 	if (m_Colour == Colour::PINK) srcRow += 1;
 	else if (m_Colour == Colour::GREEN) srcRow += 2;
 	SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES)->Paint(left, top, srcCol, srcRow);

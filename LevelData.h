@@ -29,7 +29,7 @@ public:
 	void RemoveEnemy(Enemy* enemyPtr);
 	void RemoveEnemy(int enemyIndex);
 
-	Pipe* GetPipeWithIndex(int index);
+	Pipe* GetPipeWithIndex(int index) const;
 
 	void PaintEnemiesInBackground(); // These enemies are drawn behind the level image (piranha plants)
 	void PaintItemsAndEnemies();
@@ -38,10 +38,10 @@ public:
 
 	void SetItemsAndEnemiesPaused(bool paused);
 
-	std::vector<Platform*> GetPlatforms();
-	std::vector<Pipe*> GetPipes();
-	std::vector<Item*> GetItems();
-	std::vector<Enemy*> GetEnemies();
+	std::vector<Platform*> GetPlatforms() const;
+	std::vector<Pipe*> GetPipes() const;
+	std::vector<Item*> GetItems() const;
+	std::vector<Enemy*> GetEnemies() const;
 
 private:
 	LevelData(std::string platforms, std::string pipes, std::string items, std::string enemies, Level* levelPtr);
@@ -56,47 +56,10 @@ private:
 
 	Level* m_LevelPtr = nullptr;
 
-	DOUBLE2 StringToDOUBLE2(std::string double2String);
+	DOUBLE2 StringToDOUBLE2(const std::string& double2String) const;
 
 	std::vector<Platform*> m_PlatformsPtrArr;
 	std::vector<Pipe*> m_PipesPtrArr;
 	std::vector<Item*> m_ItemsPtrArr;
 	std::vector<Enemy*> m_EnemiesPtrArr;
-};
-
-// Remove whitespace from level data read from file, but preserves spacing in quotes
-class IsWhitespace
-{
-public:
-	IsWhitespace() {}
-
-	bool operator()(int c)
-	{
-		if (m_InQuote)
-		{
-			if (c == '\"')
-			{
-				m_InQuote = false;
-				return true;
-			}
-			else if (c == '\t')
-			{
-				return true;
-			}
-			return false;
-		}
-		else if (c == '\"')
-		{
-			m_InQuote = true;
-			return true;
-		}
-		else
-		{
-			return !!isspace(c);
-		}
-	}
-	
-private:
-	bool m_InQuote = false;
-
 };

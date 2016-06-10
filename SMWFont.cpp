@@ -6,7 +6,7 @@
 #include "SpriteSheet.h"
 #include "HUD.h"
 
-void SMWFont::PaintPhrase(std::string phrase, int left, int top, bool outlined)
+void SMWFont::PaintPhrase(std::string phrase, int left, int top, int attributeFlags)
 {
 	left += CHARACTER_WIDTH / 2;
 	int xo = left;
@@ -31,7 +31,7 @@ void SMWFont::PaintPhrase(std::string phrase, int left, int top, bool outlined)
 			--i;
 			xo += (numberStr.length()-1) * CHARACTER_WIDTH;
 
-			HUD::PaintSeveralDigitNumber(xo, top + 2, stoi(numberStr), false);
+			HUD::PaintSeveralDigitNumber(xo - 4, top + 2, stoi(numberStr), false);
 			xo += CHARACTER_WIDTH;
 			continue;
 		}
@@ -61,13 +61,17 @@ void SMWFont::PaintPhrase(std::string phrase, int left, int top, bool outlined)
 		else if (currentChar == '*') spriteIndex = 63; // NOTE: * refers to multiplication X
 		else if (currentChar == '=') spriteIndex = 64;
 		else if (currentChar == '!') spriteIndex = 65;
+		else if (currentChar == '\'') spriteIndex = 67;
 
 		srcX = spriteIndex % CHARS_WIDE;
 		srcY = int(spriteIndex / CHARS_WIDE);
 
-		if (outlined) srcY += 4;
+		if (attributeFlags & OUTLINED) srcY += 4;
+
+		SpriteSheet* spriteSheetPtr = SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::FONT);
+		if (attributeFlags & INVERTED) spriteSheetPtr = SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::FONT_INVERTED);
 		
-		SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::FONT)->Paint(xo, yo, srcX, srcY);
+		spriteSheetPtr->Paint(xo, yo, srcX, srcY);
 
 		xo += CHARACTER_WIDTH;
 	}

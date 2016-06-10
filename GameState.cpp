@@ -17,8 +17,7 @@ GameState::GameState(StateManager* stateManagerPtr) :
 	GameSession::ReadSessionInfoFromFile();
 
 	int levelIndex = 0; // Start the player in level 0
-	m_LevelOverworldPtr = new Level(m_StateManagerPtr->GetGamePtr(), this, LevelInfo::levelInfoArr[levelIndex]);
-	m_CurrentLevelPtr = m_LevelOverworldPtr;
+	m_CurrentLevelPtr = new Level(m_StateManagerPtr->GetGamePtr(), this, LevelInfo::levelInfoArr[levelIndex]);
 
 	ResetMembers();
 	
@@ -28,12 +27,7 @@ GameState::GameState(StateManager* stateManagerPtr) :
 GameState::~GameState()
 {
 	GameSession::WriteSessionInfoToFile(m_CurrentLevelPtr);
-	delete m_LevelOverworldPtr;
-
-	if (m_LevelUndergroundPtr != nullptr)
-	{
-		delete m_LevelUndergroundPtr;
-	}
+	delete m_CurrentLevelPtr;
 }
 
 void GameState::Reset()
@@ -47,12 +41,25 @@ void GameState::Reset()
 
 void GameState::ResetMembers()
 {
+	m_ShowingSessionInfo = false;
+	m_InFrameByFrameMode = false;
 	m_RenderDebugOverlay = false;
 	GAME_ENGINE->EnablePhysicsDebugRendering(m_RenderDebugOverlay);
 }
 
 void GameState::Tick(double deltaTime)
 {
+	if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::TOGGLE_INFO_OVERLAY))
+	{
+		m_ShowingSessionInfo = !m_ShowingSessionInfo;
+		SetPaused(m_ShowingSessionInfo, true);
+	}
+
+	if (m_ShowingSessionInfo)
+	{
+		GameSession::Tick(deltaTime);
+	}
+
 	if (m_InFrameByFrameMode && m_CurrentLevelPtr->IsPaused() == false)
 	{
 		// We've advanced by one frame, now we need to pause again
@@ -95,6 +102,11 @@ void GameState::Tick(double deltaTime)
 void GameState::Paint()
 {
 	m_CurrentLevelPtr->Paint();
+
+	if (m_ShowingSessionInfo)
+	{
+		GameSession::Paint();
+	}
 }
 
 void GameState::SetPaused(bool paused, bool pauseSongs)
@@ -102,42 +114,22 @@ void GameState::SetPaused(bool paused, bool pauseSongs)
 	m_CurrentLevelPtr->SetPaused(paused, pauseSongs);
 }
 
-void GameState::EnterUnderground(SessionInfo sessionInfo, Pipe* pipePtr)
+void GameState::EnterNewLevel(Pipe* spawningPipePtr, SessionInfo sessionInfo)
 {
-	if (m_LevelUndergroundPtr == nullptr)
-	{
-		int warpLevelIndex = pipePtr->GetWarpLevelIndex();
-		int warpPipeIndex = pipePtr->GetWarpPipeIndex();
+	EnterNewLevel(spawningPipePtr->GetWarpLevelIndex(), sessionInfo);
 
-		assert(warpLevelIndex != -1);
-
-		m_LevelUndergroundPtr = new Level(m_StateManagerPtr->GetGamePtr(), this, LevelInfo::levelInfoArr[warpLevelIndex], sessionInfo);
-		m_CurrentLevelPtr = m_LevelUndergroundPtr;
-
-		if (warpPipeIndex != -1)
-		{
-			m_CurrentLevelPtr->WarpPlayerToPipe(warpPipeIndex);
-		}
-
-		m_CurrentLevelPtr->SetPaused(true, false);
-	}
+	m_CurrentLevelPtr->WarpPlayerToPipe(spawningPipePtr->GetWarpPipeIndex());
 }
 
-void GameState::LeaveUnderground(SessionInfo sessionInfo, Pipe* pipeEnteredPtr)
+void GameState::EnterNewLevel(int levelIndex, SessionInfo sessionInfo)
 {
-	m_CurrentLevelPtr = m_LevelOverworldPtr;
+	// TODO: get current level info (score, time remaining)
 
-	if (m_LevelUndergroundPtr != nullptr)
-	{
-		int warpLevelIndex = pipeEnteredPtr->GetWarpLevelIndex();
-		int warpPipeIndex = pipeEnteredPtr->GetWarpPipeIndex();
+	delete m_CurrentLevelPtr;
+	m_CurrentLevelPtr = new Level(m_StateManagerPtr->GetGamePtr(), this, LevelInfo::levelInfoArr[levelIndex], sessionInfo);
+}
 
-		if (warpPipeIndex != -1)
-		{
-			m_CurrentLevelPtr->WarpPlayerToPipe(warpPipeIndex);
-		}
-
-		delete m_LevelUndergroundPtr;
-		m_LevelUndergroundPtr = nullptr;
-	}
+bool GameState::ShowingSessionInfo() const
+{
+	return m_ShowingSessionInfo;
 }

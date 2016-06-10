@@ -17,12 +17,19 @@
 #include "StarCloudParticle.h"
 
 // STATIC INITIALIZATIONS
+const std::string Yoshi::MESSAGE_STRING = "Hooray!  Thank you\n" "for rescuing   me.\n" "My name  is Yoshi.\n" 
+		"On   my   way   to\n" "rescue my friends,\n" "Bowser trapped me\n" "in that egg.";
+
+const double Yoshi::EGG_GRAVITY_SCALE = 0.6;
+const int Yoshi::INITIAL_BUMP_Y_VEL = -130;
 const int Yoshi::JUMP_VEL = -25000;
 const int Yoshi::TONGUE_VEL = 130;
+const int Yoshi::HOP_VEL = -2200;
 
 const int Yoshi::RUN_VEL = 5000;
 
 const float Yoshi::HATCHING_SECONDS_PER_FRAME = 0.6f;
+const float Yoshi::BABY_SECONDS_PER_FRAME = 0.2f;
 const float Yoshi::WAITING_SECONDS_PER_FRAME = 0.3f;
 const float Yoshi::WALKING_SECONDS_PER_FRAME = 0.03f;
 const float Yoshi::RUNNING_SECONDS_PER_FRAME = 0.015f;
@@ -32,6 +39,8 @@ Yoshi::Yoshi(DOUBLE2 position, Level* levelPtr) :
 	Entity(position, BodyType::DYNAMIC, levelPtr, ActorId::YOSHI, this)
 {
 	m_ActPtr->AddBoxFixture(GetWidth(), GetHeight(), 0.0);
+	m_ActPtr->SetLinearVelocity(DOUBLE2(0, INITIAL_BUMP_Y_VEL));
+	m_ActPtr->SetGravityScale(EGG_GRAVITY_SCALE);
 
 	b2Filter bodyCollisionFilter;
 	bodyCollisionFilter.categoryBits = Level::YOSHI;
@@ -49,12 +58,11 @@ Yoshi::Yoshi(DOUBLE2 position, Level* levelPtr) :
 	m_ActToungePtr->SetFixedRotation(true);
 
 	b2Filter toungeCollisionFilter;
-	toungeCollisionFilter.categoryBits = Level::YOSHI_TOUNGE;		// I am Yoshi's tounge
+	toungeCollisionFilter.categoryBits = Level::YOSHI_TOUNGE;					// I am Yoshi's tounge
 	toungeCollisionFilter.maskBits = Level::BERRY | Level::ENEMY | Level::ITEM; // I collide with berries and enemies
 	m_ActToungePtr->SetCollisionFilter(toungeCollisionFilter);
 
-	m_AnimInfo.secondsPerFrame = HATCHING_SECONDS_PER_FRAME;
-	m_AnimationState = AnimationState::EGG;
+	ChangeAnimationState(AnimationState::EGG);
 
 	m_SpriteSheetPtr = SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::SMALL_YOSHI);
 
@@ -69,13 +77,7 @@ Yoshi::Yoshi(DOUBLE2 position, Level* levelPtr) :
 
 	m_ItemsEaten = 0;
 
-	m_MessagePtr = new Message("Hooray!  Thank you\n"
-							   "for rescuing   me.\n"
-							   "My name  is Yoshi.\n"
-							   "On   my   way   to\n"
-							   "rescue my friends,\n"
-							   "Bowser trapped me\n"
-							   "in that egg.", levelPtr);
+	m_MessagePtr = new Message(MESSAGE_STRING, levelPtr);
 
 	SoundManager::PlaySoundEffect(SoundManager::Sound::YOSHI_SPAWN);
 	SoundManager::PlaySoundEffect(SoundManager::Sound::YOSHI_EGG_BREAK); // LATER: add delay here?
@@ -144,15 +146,7 @@ void Yoshi::Tick(double deltaTime)
 		m_NeedsNewFixture = false;
 	}
 
-	m_AnimInfo.Tick(deltaTime);
-	if (m_AnimationState == AnimationState::WAITING)
-	{
-		m_AnimInfo.frameNumber %= 3;
-	}
-	else
-	{
-		m_AnimInfo.frameNumber %= 2;
-	}
+	TickAnimations(deltaTime);
 
 	if (m_TongueTimer.Tick() && m_TongueTimer.IsComplete())
 	{
@@ -161,39 +155,68 @@ void Yoshi::Tick(double deltaTime)
 		m_IsTongueStuckOut = false;
 	}
 
-	if (m_HatchingTimer.Tick() && m_HatchingTimer.IsComplete())
+	if (m_HatchingTimer.Tick())
 	{
-		m_AnimationState = AnimationState::BABY;
+		if (m_HatchingTimer.IsComplete())
+		{
+			ChangeAnimationState(AnimationState::BABY);
+			m_ActPtr->SetGravityScale(1.0);
+			m_GrowingTimer.Start();
 
-		StarCloudParticle* starCloudParticlePtr = new StarCloudParticle(m_ActPtr->GetPosition());
-		m_LevelPtr->AddParticle(starCloudParticlePtr);
+			StarCloudParticle* starCloudParticlePtr = new StarCloudParticle(m_ActPtr->GetPosition() + DOUBLE2(-8, -8));
+			m_LevelPtr->AddParticle(starCloudParticlePtr);
 
-		YoshiEggBreakParticle* yoshiEggBreakParticle = new YoshiEggBreakParticle(m_ActPtr->GetPosition());
-		m_LevelPtr->AddParticle(yoshiEggBreakParticle);
+			YoshiEggBreakParticle* yoshiEggBreakParticle = new YoshiEggBreakParticle(m_ActPtr->GetPosition());
+			m_LevelPtr->AddParticle(yoshiEggBreakParticle);
 
-		m_LevelPtr->SetPaused(true, false);
+			m_LevelPtr->SetPaused(true, false);
+		}
 	}
 
-	if (m_GrowingTimer.Tick() && m_GrowingTimer.IsComplete())
+	if (m_GrowingTimer.Tick())
 	{
-		m_AnimationState = AnimationState::WAITING;
-		m_MessagePtr->StartIntroAnimation();
-		m_SpriteSheetPtr = SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::YOSHI);
-		m_AnimInfo.secondsPerFrame = WAITING_SECONDS_PER_FRAME;
+		if (m_GrowingTimer.IsComplete())
+		{
+			ChangeAnimationState(AnimationState::WAITING);
+			m_MessagePtr->StartIntroAnimation();
+			m_SpriteSheetPtr = SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::YOSHI);
+		}
+	}
+
+	if (m_YappingTimer.Tick() && m_YappingTimer.IsComplete())
+	{
+		m_YappingTimer.Start(); // Keep on yapping
 	}
 
 	if (m_IsCarryingPlayer)
 	{
-		HandleKeyboardInput(deltaTime);
+		m_IsOnGround = m_PlayerPtr->IsOnGround();
+		m_ActPtr->SetPosition(m_PlayerPtr->GetPosition());
+		m_DirFacing = m_PlayerPtr->GetDirectionFacing();
 	}
-	else if (m_AnimationState == AnimationState::WILD)
+	else
 	{
-		UpdatePosition(deltaTime);
+		m_IsOnGround = CalculateOnGround();
+		if (m_AnimationState == AnimationState::FALLING && m_IsOnGround)
+		{
+			ChangeAnimationState(AnimationState::WAITING);
+		}
+		else if (m_AnimationState == AnimationState::WAITING)
+		{
+			if (m_IsOnGround)
+			{
+				m_ActPtr->SetLinearVelocity(m_ActPtr->GetLinearVelocity() + DOUBLE2(0, HOP_VEL * deltaTime));
+			}
+		}
+		else if (m_AnimationState == AnimationState::WILD)
+		{
+			UpdatePosition(deltaTime);
+		}
 	}
 
 	if (m_IsTongueStuckOut)
 	{
-		if (m_TongueTimer.FramesElapsed() == m_TongueTimer.OriginalNumberOfFrames() / 2)
+		if (m_TongueTimer.FramesElapsed() == m_TongueTimer.TotalFrames() / 2)
 		{
 			m_TongueXVel = -m_TongueXVel;
 		}
@@ -207,6 +230,24 @@ void Yoshi::Tick(double deltaTime)
 		xo = 3;
 	}
 	m_ActToungePtr->SetPosition(m_ActPtr->GetPosition() + DOUBLE2(m_TongueLength + xo, yo));
+}
+
+void Yoshi::TickAnimations(double deltaTime)
+{
+	m_AnimInfo.Tick(deltaTime);
+	switch(m_AnimationState)
+	{
+	case AnimationState::WAITING:
+	{
+		m_AnimInfo.frameNumber %= 3;
+	} break;
+	case AnimationState::WILD:
+	case AnimationState::EGG:
+	case AnimationState::BABY:
+	{
+		m_AnimInfo.frameNumber %= 2;
+	} break;
+	}
 }
 
 void Yoshi::UpdatePosition(double deltaTime)
@@ -239,13 +280,6 @@ void Yoshi::UpdatePosition(double deltaTime)
 	m_ActPtr->SetLinearVelocity(DOUBLE2(newXVel, prevVel.y));
 }
 
-void Yoshi::HandleKeyboardInput(double deltaTime)
-{
-	m_IsOnGround = m_PlayerPtr->IsOnGround();
-	m_ActPtr->SetPosition(m_PlayerPtr->GetPosition());
-	m_DirFacing = m_PlayerPtr->GetDirectionFacing();
-}
-
 bool Yoshi::CalculateOnGround()
 {
 	DOUBLE2 point1 = m_ActPtr->GetPosition();
@@ -264,6 +298,8 @@ bool Yoshi::CalculateOnGround()
 
 void Yoshi::Paint()
 {
+	if (m_AnimationState == AnimationState::BABY && m_GrowingTimer.FramesElapsed() < 20) return;
+
 	MATRIX3X2 matPrevWorld = GAME_ENGINE->GetWorldMatrix();
 
 	double centerX = m_ActPtr->GetPosition().x;
@@ -282,8 +318,6 @@ void Yoshi::Paint()
 
 	PaintAnimationFrame(centerX - WIDTH/2 + 10, centerY - HEIGHT/2 + yo);
 
-	// LATER: Figure out a way to paint yoshi's tounge when the player isn't riding him
-
 	m_MessagePtr->Paint();
 
 	GAME_ENGINE->SetWorldMatrix(matPrevWorld);
@@ -292,22 +326,13 @@ void Yoshi::Paint()
 void Yoshi::PaintAnimationFrame(double left, double top)
 {
 	int srcX = 0, srcY = 0;
-	bool playerIsSmall = false;
-
-	if (m_PlayerPtr != nullptr) playerIsSmall = (m_PlayerPtr->GetPowerupState() == Player::PowerupState::NORMAL);
+	double xo = 0;
+	double yo = -5;
 
 	if (m_IsTongueStuckOut)
 	{
-		if (m_IsCarryingPlayer)
-		{
-			srcX = 10 + m_AnimInfo.frameNumber;
-			srcY = playerIsSmall ? 0 : 1;
-		}
-		else
-		{
-			srcX = 3;
-			srcY = 0;
-		}
+		srcX = 3;
+		srcY = 0;
 	}
 	else
 	{
@@ -317,11 +342,15 @@ void Yoshi::PaintAnimationFrame(double left, double top)
 		{
 			srcX = 0 + m_AnimInfo.frameNumber;
 			srcY = 1;
+			xo = -5;
+			yo = -5;
 		} break;
 		case AnimationState::BABY:
 		{
 			srcX = 0 + m_AnimInfo.frameNumber;
 			srcY = 0;
+			yo = 3.5;
+			xo = -3;
 		} break;
 		case AnimationState::WILD:
 		{
@@ -330,70 +359,77 @@ void Yoshi::PaintAnimationFrame(double left, double top)
 		} break;
 		case AnimationState::WAITING:
 		{
-			if (m_IsCarryingPlayer)
+			srcX = 2;
+			srcY = 0;
+			int framesRemaining = m_YappingTimer.TotalFrames() - m_YappingTimer.FramesElapsed();
+			if (m_YappingTimer.IsActive() && framesRemaining < 14)
 			{
-				srcY = playerIsSmall ? 0 : 1;
-				if (m_PlayerPtr->IsDucking())
-				{
-					srcX = 5;
-				}
-				else
-				{
-					srcX = 1;
-				}
-			}
-			else
-			{
-				srcX = 2 + m_AnimInfo.frameNumber;
-				srcY = 0;
+				srcX = 3;
 			}
 		} break;
 		case AnimationState::FALLING:
 		{
-			if (m_IsCarryingPlayer)
-			{
-				srcX = 2;
-				srcY = playerIsSmall ? 0 : 1;
-			}
-			else
-			{
-				srcX = 1;
-				srcY = 0;
-			}
+			srcX = 1;
+			srcY = 0;
 		} break;
 		}
 	}
 
-	m_SpriteSheetPtr->Paint(left, top - 5, srcX, srcY);
+	m_SpriteSheetPtr->Paint(left + xo, top + yo, srcX, srcY);
+}
+
+void Yoshi::ChangeAnimationState(AnimationState newAnimationState)
+{
+	switch (newAnimationState)
+	{
+	case AnimationState::EGG:
+	{
+		m_AnimInfo.secondsPerFrame = HATCHING_SECONDS_PER_FRAME;
+	} break;
+	case AnimationState::BABY:
+	{
+		m_AnimInfo.secondsPerFrame = BABY_SECONDS_PER_FRAME;
+	} break;
+	case AnimationState::WAITING:
+	{
+		m_AnimInfo.secondsPerFrame = WAITING_SECONDS_PER_FRAME;
+		m_YappingTimer.Start();
+	} break;
+	case AnimationState::WILD:
+	{
+		m_AnimInfo.secondsPerFrame = RUNNING_SECONDS_PER_FRAME;
+		m_YappingTimer.SetComplete();
+	} break;
+	}
+
+	m_AnimationState = newAnimationState;
 }
 
 void Yoshi::RunWild()
 {
 	SetCarryingPlayer(false, nullptr);
-	m_AnimationState = AnimationState::WILD;
-	m_AnimInfo.secondsPerFrame = RUNNING_SECONDS_PER_FRAME;
+	ChangeAnimationState(AnimationState::WILD);
 }
 
 void Yoshi::SetCarryingPlayer(bool carryingPlayer, Player* playerPtr)
 {
 	if (carryingPlayer)
 	{
-		m_AnimInfo.secondsPerFrame = WALKING_SECONDS_PER_FRAME;
+		m_YappingTimer.SetComplete(); // stop yer yapping!
 	}
 	else
 	{
-		m_AnimInfo.secondsPerFrame = WAITING_SECONDS_PER_FRAME;
-
+		m_YappingTimer.Start();
 		m_SpriteSheetPtr = SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::YOSHI);
 		
 		if (m_PlayerPtr->IsAirborne()) 
 		{
-			m_AnimationState = AnimationState::FALLING;
+			ChangeAnimationState(AnimationState::FALLING);
 			m_ActPtr->SetLinearVelocity(DOUBLE2(m_ActPtr->GetLinearVelocity().x, 0));
 		}
 		else
 		{
-			m_AnimationState = AnimationState::WAITING;
+			ChangeAnimationState(AnimationState::WAITING);
 		}
 
 		m_AnimInfo.frameNumber = 0;
@@ -497,7 +533,7 @@ void Yoshi::StickTongueOut(double deltaTime)
 	m_TongueXVel = TONGUE_VEL * m_DirFacing;
 }
 
-bool Yoshi::IsTongueStuckOut()
+bool Yoshi::IsTongueStuckOut() const
 {
 	return m_IsTongueStuckOut;
 }
@@ -507,32 +543,32 @@ SMWTimer Yoshi::GetTongueTimer() const
 	return m_TongueTimer;
 }
 
-int Yoshi::GetWidth()
+int Yoshi::GetWidth() const
 {
 	return WIDTH;
 }
 
-int Yoshi::GetHeight()
+int Yoshi::GetHeight() const
 {
 	return HEIGHT;
 }
 
-bool Yoshi::IsHatching()
+bool Yoshi::IsHatching() const
 {
 	return m_AnimationState == AnimationState::EGG || m_AnimationState == AnimationState::BABY;
 }
 
-int Yoshi::GetDirectionFacing()
+int Yoshi::GetDirectionFacing() const
 {
 	return m_DirFacing;
 }
 
-Yoshi::AnimationState Yoshi::GetAnimationState()
+Yoshi::AnimationState Yoshi::GetAnimationState() const
 {
 	return m_AnimationState;
 }
 
-bool Yoshi::IsAirborne()
+bool Yoshi::IsAirborne() const
 {
 	return !m_IsOnGround;
 }
@@ -547,9 +583,9 @@ void Yoshi::SetPaused(bool paused)
 	}
 }
 
-double Yoshi::GetTongueLength()
+double Yoshi::GetTongueLength() const
 {
-	return m_TongueLength;
+	return abs(m_TongueLength);
 }
 
 std::string Yoshi::AnimationStateToString()

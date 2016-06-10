@@ -117,7 +117,9 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 		case int(Item::Type::PRIZE_BLOCK):
 		{
 			std::string spawnsString = FileIO::GetTagContent(itemContent, "Spawns");
-			m_ItemsPtrArr.push_back(new PrizeBlock(topLeft, levelPtr, spawnsString));
+			std::string isFlyerString = FileIO::GetTagContent(itemContent, "Flyer");
+			bool isFlyer = (isFlyerString.length() > 0);
+			m_ItemsPtrArr.push_back(new PrizeBlock(topLeft, levelPtr, spawnsString, isFlyer));
 		} break;
 		case int(Item::Type::EXCLAMATION_MARK_BLOCK):
 		{
@@ -313,7 +315,6 @@ void LevelData::RemoveItem(Item* itemPtr)
 	}
 
 	OutputDebugString(String("ERROR: Could not delete item in LevelData::RemoveItem\n"));
-	assert(false);
 }
 
 void LevelData::RemoveItem(int itemIndex)
@@ -430,19 +431,19 @@ void LevelData::PaintEnemiesInBackground()
 	}
 }
 
-DOUBLE2 LevelData::StringToDOUBLE2(std::string double2String)
+DOUBLE2 LevelData::StringToDOUBLE2(const std::string& DOUBLE2String) const
 {
 	DOUBLE2 result;
 
-	int comma = double2String.find(',');
+	int comma = DOUBLE2String.find(',');
 
 	if (comma != std::string::npos)
 	{
-		result = DOUBLE2(stod(double2String.substr(0, comma)), stod(double2String.substr(comma + 1)));
+		result = DOUBLE2(stod(DOUBLE2String.substr(0, comma)), stod(DOUBLE2String.substr(comma + 1)));
 	}
 	else
 	{
-		OutputDebugString(String("\nERROR: Malformed platform data string: \n") + String(double2String.c_str()) + String("\n"));
+		OutputDebugString(String("\nERROR: Malformed platform data string: \n") + String(DOUBLE2String.c_str()) + String("\n"));
 	}
 
 	return result;
@@ -484,7 +485,7 @@ void LevelData::SetItemsAndEnemiesPaused(bool paused)
 	}
 }
 
-Pipe* LevelData::GetPipeWithIndex(int index)
+Pipe* LevelData::GetPipeWithIndex(int index) const
 {
 	for (size_t i = 0; i < m_PipesPtrArr.size(); ++i)
 	{
@@ -498,22 +499,22 @@ Pipe* LevelData::GetPipeWithIndex(int index)
 	return nullptr;
 }
 
-std::vector<Platform*> LevelData::GetPlatforms()
+std::vector<Platform*> LevelData::GetPlatforms() const
 {
 	return m_PlatformsPtrArr;
 }
 
-std::vector<Pipe*> LevelData::GetPipes()
+std::vector<Pipe*> LevelData::GetPipes() const
 {
 	return m_PipesPtrArr;
 }
 
-std::vector<Item*> LevelData::GetItems()
+std::vector<Item*> LevelData::GetItems() const
 {
 	return m_ItemsPtrArr;
 }
 
-std::vector<Enemy*> LevelData::GetEnemies()
+std::vector<Enemy*> LevelData::GetEnemies() const
 {
 	return m_EnemiesPtrArr;
 }

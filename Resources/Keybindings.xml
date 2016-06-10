@@ -28,6 +28,7 @@
 	<DEBUGFrameByFrameAdvance>190</DEBUGFrameByFrameAdvance>
 	<DEBUGToggleCameraDebugOverlay>120</DEBUGToggleCameraDebugOverlay>
 	<DEBUGTogglePlayerInfo>121</DEBUGTogglePlayerInfo>
+	<DEBUGToggleEnemyAIInfo>122</DEBUGToggleEnemyAIInfo>
 	
 	<!-- NOTE: These have no use in the game currently -->
 	<LeftShoulder>69</LeftShoulder>
