@@ -25,6 +25,10 @@ void SpriteSheetManager::Load()
 	m_BitmapPtrArr[int(Bitmaps::LEVEL_ONE_BACKGROUND)] = new Bitmap(String("Resources/background.png"));
 	m_BitmapPtrArr[int(Bitmaps::LEVEL_ONE_UNDERGROUND_BACKGROUND)] = new Bitmap(String("Resources/cave-bg-animated.png"));
 
+	m_BitmapPtrArr[int(Bitmaps::LEVEL_SELECT_BACKGROUND)] = new Bitmap(String("Resources/level-select-background.png"));
+	m_BitmapPtrArr[int(Bitmaps::LEVEL_SELECT_WINDOW)] = new Bitmap(String("Resources/level-select-window.png"));
+	m_SpriteSheetPtrArr[int(SpriteSheets::LEVEL_SELECT_MARIO)] = new SpriteSheet(String("Resources/level-select-mario.png"), 11, 2);
+
 	m_BitmapPtrArr[int(Bitmaps::HUD)] = new Bitmap(String("Resources/hud.png"));
 
 	m_BitmapPtrArr[int(Bitmaps::MAIN_MENU_SCREEN)] = new Bitmap(String("Resources/main-menu-screen.png"));
@@ -54,7 +58,7 @@ void SpriteSheetManager::Load()
 	m_SpriteSheetPtrArr[int(SpriteSheets::KOOPA_TROOPA)] = new SpriteSheet(String("Resources/koopa-troopa.png"), 8, 2);
 	m_SpriteSheetPtrArr[int(SpriteSheets::KOOPA_SHELL)] = new SpriteSheet(String("Resources/koopa-shell.png"), 2, 3);
 	m_SpriteSheetPtrArr[int(SpriteSheets::PIRANHA_PLANT)] = new SpriteSheet(String("Resources/piranha-plant.png"), 4, 1);
-	m_SpriteSheetPtrArr[int(SpriteSheets::CHARGIN_CHUCK)] = new SpriteSheet(String("Resources/chargin-chuck.png"), 4, 3);
+	m_SpriteSheetPtrArr[int(SpriteSheets::CHARGIN_CHUCK)] = new SpriteSheet(String("Resources/chargin-chuck.png"), 5, 3);
 
 	// Yoshi
 	m_SpriteSheetPtrArr[int(SpriteSheets::YOSHI)] = new SpriteSheet(String("Resources/yoshi.png"), 5, 1);

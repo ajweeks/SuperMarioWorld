@@ -17,16 +17,14 @@ public:
 	void Tick(double deltaTime);
 	void Paint();
 
-	inline BaseState* CurrentState();
+	BaseState* CurrentState() const;
+	Game* GetGamePtr() const;
 
-	void PushState(BaseState* newStatePtr);
-	void PopState();
-
-	Game* GetGamePtr();
+	void SetState(BaseState* newStatePtr);
 
 private:
 
 	Game* m_GamePtr = nullptr;
 
-	std::stack<BaseState*> m_StatesPtrStack;
+	BaseState* m_CurrentStatePtr = nullptr;
 };

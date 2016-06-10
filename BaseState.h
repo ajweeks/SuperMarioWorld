@@ -6,7 +6,7 @@ class StateManager;
 
 enum class StateType
 {
-	MAIN_MENU, GAME
+	MAIN_MENU, LEVEL_SELECT, GAME
 };
 
 class BaseState

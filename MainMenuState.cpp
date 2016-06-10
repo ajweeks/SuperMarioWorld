@@ -3,7 +3,7 @@
 #include "MainMenuState.h"
 #include "Game.h"
 #include "StateManager.h"
-#include "GameState.h"
+#include "LevelSelectState.h"
 #include "SoundManager.h"
 #include "SpriteSheetManager.h"
 #include "SMWFont.h"
@@ -51,7 +51,8 @@ void MainMenuState::Tick(double deltaTime)
 
 	if (m_OutroFadeOutTimer.Tick() && m_OutroFadeOutTimer.IsComplete())
 	{
-		m_StateManagerPtr->PushState(new GameState(m_StateManagerPtr));
+		SoundManager::RestartAndPauseSongs();
+		m_StateManagerPtr->SetState(new LevelSelectState(m_StateManagerPtr));
 		return;
 	}
 

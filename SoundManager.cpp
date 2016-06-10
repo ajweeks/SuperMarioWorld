@@ -65,7 +65,7 @@ void SoundManager::InitialzeSoundsAndSongs()
 	LoadSound(Sound::COURSE_CLEAR_FANFARE, m_ResourcePath + String("course-clear-fanfare.wav"));
 	LoadSound(Sound::DRUMROLL, m_ResourcePath + String("outro-drumroll.wav"));
 	LoadSound(Sound::OUTRO_CIRCLE_TRANSITION, m_ResourcePath + String("outro-circle-transition.wav"));
-	LoadSound(Sound::MAP_NEW_LOCATION_STOMP, m_ResourcePath + String("map-new-location-stomp.wav"));
+	LoadSound(Sound::LEVEL_SELECT_NODE_STOMP, m_ResourcePath + String("level-select-node-stomp.wav"));
 
 	LoadSound(Sound::YOSHI_SPAWN, m_ResourcePath + String("yoshi-spawn.wav"));
 	LoadSound(Sound::YOSHI_EGG_BREAK, m_ResourcePath + String("yoshi-egg-break.wav"));

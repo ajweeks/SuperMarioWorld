@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<LevelSelectScreenData>
+	
+	<Destination>
+		<PixelCoordinate>120, 150</PixelCoordinate>
+		<Name>"Yoshi's House"</Name>
+		<ID>0</ID>
+		 <Neighbors>
+			<Neighbor>Right, 1</Neighbor>
+		 </Neighbors>
+	</Destination>
+	
+	<Destination>
+		<PixelCoordinate>169, 166</PixelCoordinate>
+		<Name>"Yoshi's Island 2"</Name>
+		<ID>1</ID>
+		 <Neighbors>
+			<Neighbor>Left, 0</Neighbor>
+		 </Neighbors>
+	</Destination>
+	
+</LevelSelectScreenData>

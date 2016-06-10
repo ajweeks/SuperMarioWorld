@@ -9,19 +9,15 @@ StateManager::StateManager(Game* gamePtr) :
 	m_GamePtr(gamePtr)
 {
 #if SMW_SKIP_MAIN_MENU
-	m_StatesPtrStack.push(new GameState(this));
+	m_CurrentStatePtr = new GameState(this);
 #else
-	m_StatesPtrStack.push(new MainMenuState(this));
+	m_CurrentStatePtr = new MainMenuState(this);
 #endif
 }
 
 StateManager::~StateManager()
 {
-	for (size_t i = 0; i < m_StatesPtrStack.size(); ++i)
-	{
-		delete m_StatesPtrStack.top();
-		m_StatesPtrStack.pop();
-	}
+	delete m_CurrentStatePtr;
 }
 
 void StateManager::Tick(double deltaTime)
@@ -34,25 +30,18 @@ void StateManager::Paint()
 	CurrentState()->Paint();
 }
 
-BaseState* StateManager::CurrentState()
+BaseState* StateManager::CurrentState() const
 {
-	return m_StatesPtrStack.top();
+	return m_CurrentStatePtr;
 }
 
-void StateManager::PushState(BaseState* newStatePtr)
+void StateManager::SetState(BaseState* newStatePtr)
 {
-	m_StatesPtrStack.push(newStatePtr);
+	if (m_CurrentStatePtr != nullptr) delete m_CurrentStatePtr;
+	m_CurrentStatePtr = newStatePtr;
 }
 
-void StateManager::PopState()
-{
-	if (m_StatesPtrStack.size() == 1) return;
-
-	delete CurrentState();
-	m_StatesPtrStack.pop();
-}
-
-Game* StateManager::GetGamePtr()
+Game* StateManager::GetGamePtr() const
 {
 	return m_GamePtr;
 }
