@@ -2,7 +2,7 @@
 
 #include "Entity.h"
 #include "Enumerations.h"
-#include "CountdownTimer.h"
+#include "SMWTimer.h"
 
 class Enemy : public Entity
 {

@@ -11,12 +11,12 @@ GrabBlock::GrabBlock(DOUBLE2 topLeft, Level* levelPtr) :
 	Block(topLeft, Type::GRAB_BLOCK, levelPtr, BodyType::KINEMATIC)
 {
 	m_AnimInfo.secondsPerFrame = 0.03;
-	m_LifeRemainingTimer = CountdownTimer(180);
+	m_LifeRemaining = SMWTimer(500);
 }
 
 void GrabBlock::Tick(double deltaTime)
 {
-	if (m_LifeRemainingTimer.Tick() && m_LifeRemainingTimer.IsComplete())
+	if (m_LifeRemaining.Tick() && m_LifeRemaining.IsComplete())
 	{
 		EnemyDeathCloudParticle* cloudParticlePtr = new EnemyDeathCloudParticle(m_ActPtr->GetPosition());
 		m_LevelPtr->AddParticle(cloudParticlePtr);

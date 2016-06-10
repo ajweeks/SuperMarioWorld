@@ -16,9 +16,9 @@ MainMenuState::MainMenuState(StateManager* stateManagerPtr) :
 
 	SoundManager::PlaySong(SoundManager::Song::MENU_SCREEN_BGM);
 
-	m_IntroTitleTimer = CountdownTimer(190);
-	m_IntroFadeInTimer = CountdownTimer(75);
-	m_OutroFadeOutTimer = CountdownTimer(75);
+	m_IntroTitleTimer = SMWTimer(190);
+	m_IntroFadeInTimer = SMWTimer(75);
+	m_OutroFadeOutTimer = SMWTimer(75);
 
 	m_IntroTitleTimer.Start();
 

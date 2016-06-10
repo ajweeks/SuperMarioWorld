@@ -22,7 +22,7 @@ MoveableItem::MoveableItem(DOUBLE2 topLeft, Type itemType, int spriteSheetXIndex
 	collisionFilter.maskBits = Level::LEVEL | Level::BLOCK | Level::PLAYER | Level::YOSHI_TOUNGE;
 	m_ActPtr->SetCollisionFilter(collisionFilter);
 
-	m_IntroAnimationTimer = CountdownTimer(95);
+	m_IntroAnimationTimer = SMWTimer(95);
 	m_IntroAnimationTimer.Start();
 }
 

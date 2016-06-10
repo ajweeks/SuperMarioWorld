@@ -27,8 +27,8 @@ private:
 	static const int BUMP_HEIGHT = 20;
 	static const int FRAMES_OF_BUMP_ANIMATION = 12;
 
-	CountdownTimer m_DelayBeforeIntroAnimationTimer;
-	CountdownTimer m_BumpAnimationTimer;
+	SMWTimer m_DelayBeforeIntroAnimationTimer;
+	SMWTimer m_BumpAnimationTimer;
 
 	int m_yo = 0;
 };

@@ -26,8 +26,8 @@ CharginChuck::CharginChuck(DOUBLE2 startingPos, Level* levelPtr) :
 	SetAnimationState(AnimationState::WAITING);
 	m_DirFacing = Direction::LEFT;
 
-	m_HurtTimer = CountdownTimer(90);
-	m_WaitingTimer = CountdownTimer(60);
+	m_HurtTimer = SMWTimer(90);
+	m_WaitingTimer = SMWTimer(60);
 	m_WaitingTimer.Start();
 
 	m_HitsRemaining = 3;

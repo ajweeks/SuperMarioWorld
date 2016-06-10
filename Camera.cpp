@@ -16,7 +16,7 @@ Camera::Camera(int width, int height, Level* levelPtr) :
 	WIDTH(width), HEIGHT(height)
 {
 	Reset();
-	m_TransitionTimer = CountdownTimer(FRAMES_OF_TRANSITION);
+	m_TransitionTimer = SMWTimer(FRAMES_OF_TRANSITION);
 }
 
 Camera::~Camera()

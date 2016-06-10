@@ -34,6 +34,6 @@ private:
 	bool m_IsFalingFromTopOfScreen = false;
 
 	static const int FRAMES_OF_ANIMATION_DELAY = 14; // How long to wait before starting the animation
-	CountdownTimer m_IntroAnimationTimer;
+	SMWTimer m_IntroAnimationTimer;
 
 };

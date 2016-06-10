@@ -13,8 +13,8 @@ MessageBlock::MessageBlock(DOUBLE2 topLeft, std::string messageText, Level* leve
 {
 	m_MessagePtr = new Message(messageText, levelPtr);
 
-	m_DelayBeforeIntroAnimationTimer = CountdownTimer(12);
-	m_BumpAnimationTimer = CountdownTimer(FRAMES_OF_BUMP_ANIMATION);
+	m_DelayBeforeIntroAnimationTimer = SMWTimer(12);
+	m_BumpAnimationTimer = SMWTimer(FRAMES_OF_BUMP_ANIMATION);
 }
 
 MessageBlock::~MessageBlock()

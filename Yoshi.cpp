@@ -58,10 +58,12 @@ Yoshi::Yoshi(DOUBLE2 position, Level* levelPtr) :
 
 	m_SpriteSheetPtr = SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::SMALL_YOSHI);
 
-	m_TongueTimer = CountdownTimer(35);
-	m_HatchingTimer = CountdownTimer(80);
+	m_TongueTimer = SMWTimer(35);
+	m_HatchingTimer = SMWTimer(50);
 	m_HatchingTimer.Start();
-	m_GrowingTimer = CountdownTimer(30);
+	m_GrowingTimer = SMWTimer(80);
+	m_YappingTimer = SMWTimer(70);
+	m_YappingTimer.Start();
 
 	m_DirFacing = Direction::RIGHT;
 
@@ -500,7 +502,7 @@ bool Yoshi::IsTongueStuckOut()
 	return m_IsTongueStuckOut;
 }
 
-const CountdownTimer Yoshi::GetTongueTimer()
+SMWTimer Yoshi::GetTongueTimer() const
 {
 	return m_TongueTimer;
 }

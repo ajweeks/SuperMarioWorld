@@ -13,8 +13,8 @@ RotatingBlock::RotatingBlock(DOUBLE2 topLeft, Level* levelPtr, bool spawnsBeanst
 {
 	m_AnimInfo.secondsPerFrame = 0.135;
 
-	m_RotationTimer = CountdownTimer(255);
-	m_BumpAnimationTimer = CountdownTimer(14);
+	m_RotationTimer = SMWTimer(255);
+	m_BumpAnimationTimer = SMWTimer(14);
 }
 
 void RotatingBlock::Tick(double deltaTime)
@@ -48,9 +48,9 @@ void RotatingBlock::Tick(double deltaTime)
 	if (m_BumpAnimationTimer.Tick())
 	{
 		m_yo = m_BumpAnimationTimer.FramesElapsed();
-		if (m_yo > m_BumpAnimationTimer.OriginalNumberOfFrames() / 2)
+		if (m_yo > m_BumpAnimationTimer.TotalFrames() / 2)
 		{
-			m_yo = (m_BumpAnimationTimer.OriginalNumberOfFrames() / 2) - (m_yo - (m_BumpAnimationTimer.OriginalNumberOfFrames() / 2));
+			m_yo = (m_BumpAnimationTimer.TotalFrames() / 2) - (m_yo - (m_BumpAnimationTimer.TotalFrames() / 2));
 		}
 		m_yo = int(m_yo * -0.5);
 

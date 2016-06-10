@@ -3,7 +3,7 @@
 #include "BaseState.h"
 
 class Level;
-struct CountdownTimer;
+struct SMWTimer;
 
 class MainMenuState : public BaseState
 {
@@ -40,8 +40,8 @@ private:
 	int m_CursorIndex;
 	int m_MaxCursorIndex;
 
-	CountdownTimer m_IntroTitleTimer; // Nintendo presents...
-	CountdownTimer m_IntroFadeInTimer; // Fade in from black
-	CountdownTimer m_OutroFadeOutTimer; // Fade out to black
+	SMWTimer m_IntroTitleTimer; // Nintendo presents...
+	SMWTimer m_IntroFadeInTimer; // Fade in from black
+	SMWTimer m_OutroFadeOutTimer; // Fade out to black
 
 };

@@ -57,8 +57,8 @@ private:
 
 	AnimationState m_AnimationState;
 
-	CountdownTimer m_WaitingTimer;
-	CountdownTimer m_HurtTimer;
+	SMWTimer m_WaitingTimer;
+	SMWTimer m_HurtTimer;
 
 	int m_HitsRemaining; // How many more hits from the player we can take before kicking the can
 
@@ -67,4 +67,3 @@ private:
 	bool m_ShouldRemoveActor;
 
 };
-

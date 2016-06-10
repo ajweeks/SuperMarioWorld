@@ -1,6 +1,6 @@
 #pragma once
 
-#include "CountdownTimer.h"
+#include "SMWTimer.h"
 
 class Level;
 
@@ -26,8 +26,8 @@ private:
 	static const int WIDTH;
 	static const int HEIGHT;
 
-	CountdownTimer m_IntroAnimationTimer;
-	CountdownTimer m_OutroAnimationTimer;
+	SMWTimer m_IntroAnimationTimer;
+	SMWTimer m_OutroAnimationTimer;
 
 	std::string m_MessageText = "";
 	Level* m_LevelPtr = nullptr;

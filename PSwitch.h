@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Item.h"
-#include "CountdownTimer.h"
+#include "SMWTimer.h"
 
 class PSwitch : public Item
 {
@@ -20,6 +20,6 @@ private:
 	bool m_IsPressed = false;
 
 	// This timer starts when we get pressed by the player and we are removed when it finishes
-	CountdownTimer m_PressedTimer; 
+	SMWTimer m_PressedTimer; 
 
 };

@@ -12,8 +12,8 @@ Message::Message(std::string messageText, Level* levelPtr) :
 	m_LevelPtr(levelPtr),
 	m_MessageText(messageText)
 {
-	m_IntroAnimationTimer = CountdownTimer(26);
-	m_OutroAnimationTimer = CountdownTimer(26);
+	m_IntroAnimationTimer = SMWTimer(26);
+	m_OutroAnimationTimer = SMWTimer(26);
 }
 
 Message::~Message()
@@ -45,7 +45,7 @@ void Message::Paint()
 	{
 		// NOTE: Paints a growing black rectangle
 		int framesElapsed = m_IntroAnimationTimer.FramesElapsed();
-		int totalFrames = m_IntroAnimationTimer.OriginalNumberOfFrames();
+		int totalFrames = m_IntroAnimationTimer.TotalFrames();
 		int width = int(framesElapsed * (double(WIDTH) / double(totalFrames)));
 		int height = int(framesElapsed * (double(HEIGHT) / double(totalFrames)));
 
@@ -57,7 +57,7 @@ void Message::Paint()
 	{
 		// NOTE: Paints a shrinking black rectangle
 		int framesElapsed = m_OutroAnimationTimer.FramesElapsed();
-		int totalFrames = m_OutroAnimationTimer.OriginalNumberOfFrames();
+		int totalFrames = m_OutroAnimationTimer.TotalFrames();
 		int width = WIDTH - int(framesElapsed * (double(WIDTH) / double(totalFrames)));
 		int height = HEIGHT - int(framesElapsed * (double(HEIGHT) / double(totalFrames)));
 

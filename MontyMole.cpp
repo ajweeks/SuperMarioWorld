@@ -28,9 +28,9 @@ MontyMole::MontyMole(DOUBLE2& startingPos, Level* levelPtr, SpawnLocationType sp
 	m_ActPtr->SetSensor(true);
 	m_ActPtr->SetActive(false);
 
-	m_FramesSpentWrigglingInDirtTimer = CountdownTimer(90);
-	m_SpawnDustCloudTimer = CountdownTimer(4);
-	m_FramesSinceLastHop = CountdownTimer(60);
+	m_FramesSpentWrigglingInDirtTimer = SMWTimer(90);
+	m_SpawnDustCloudTimer = SMWTimer(4);
+	m_FramesSinceLastHop = SMWTimer(60);
 
 	if (m_AiType == AIType::DUMB) m_FramesSinceLastHop.Start();
 }

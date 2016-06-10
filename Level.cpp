@@ -56,11 +56,11 @@ Level::Level(Game* gamePtr, GameState* gameStatePtr, LevelInfo levelInfo, Sessio
 
 	m_ParticleManagerPtr = new ParticleManager();
 
-	m_CoinsToBlocksTimer = CountdownTimer(480);
 
 	m_IsUnderground = levelInfo.m_IsUnderground;
 
 	m_IsBackgroundAnimated = levelInfo.m_NumberOfBackgroundAnimationFrames > -1;
+	m_CoinsToBlocksTimer = SMWTimer(480);
 	m_BackgroundAnimInfo.secondsPerFrame = 0.135;
 
 	ResetMembers();

@@ -84,9 +84,9 @@ private:
 
 	AnimationState m_AnimationState;
 
-	CountdownTimer m_SpawnDustCloudTimer;
-	CountdownTimer m_FramesSpentWrigglingInDirtTimer;
-	CountdownTimer m_FramesSinceLastHop; // Only used by "dumb" moles
+	SMWTimer m_SpawnDustCloudTimer;
+	SMWTimer m_FramesSpentWrigglingInDirtTimer;
+	SMWTimer m_FramesSinceLastHop; // Only used by "dumb" moles
 
 	double m_TargetX;
 

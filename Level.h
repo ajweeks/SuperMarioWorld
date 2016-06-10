@@ -2,7 +2,7 @@
 
 #include "ContactListener.h"
 #include "Enumerations.h"
-#include "CountdownTimer.h"
+#include "SMWTimer.h"
 #include "SoundManager.h"
 #include "AnimationInfo.h"
 #include "SessionInfo.h"
@@ -156,8 +156,8 @@ private:
 	
 	// This can be set by various classes to pause the game for a short duration
 	// (eg. when the player changes powerup states, when a message block is animating in or out, etc.)
-	CountdownTimer m_GamePausedTimer;
-	CountdownTimer m_CoinsToBlocksTimer;
+	SMWTimer m_GamePausedTimer;
+	SMWTimer m_CoinsToBlocksTimer;
 
 	Player *m_PlayerPtr = nullptr;
 	Camera* m_CameraPtr = nullptr;

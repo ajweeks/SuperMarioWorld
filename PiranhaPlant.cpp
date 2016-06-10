@@ -20,7 +20,7 @@ PiranhaPlant::PiranhaPlant(DOUBLE2 topLeft, Level* levelPtr) :
 	m_ActPtr->SetSensor(true);
 	m_ActPtr->SetGravityScale(0.0);
 
-	m_PausedAtTopTimer = CountdownTimer(25);
+	m_PausedAtTopTimer = SMWTimer(25);
 }
 
 PiranhaPlant::~PiranhaPlant()

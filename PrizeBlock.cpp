@@ -15,7 +15,7 @@ PrizeBlock::PrizeBlock(DOUBLE2 topLeft, Level* levelPtr, std::string spawnTypeSt
 	m_SpawnTypeStr(spawnTypeStr)
 {
 	m_AnimInfo.secondsPerFrame = 0.09;
-	m_BumpAnimationTimer = CountdownTimer(14);
+	m_BumpAnimationTimer = SMWTimer(14);
 }
 
 void PrizeBlock::Tick(double deltaTime)
@@ -53,9 +53,9 @@ void PrizeBlock::Tick(double deltaTime)
 		//		 Then the block is "used" and renders the brown used block texture
 
 		m_yo = m_BumpAnimationTimer.FramesElapsed();
-		if (m_yo > m_BumpAnimationTimer.OriginalNumberOfFrames() / 2)
+		if (m_yo > m_BumpAnimationTimer.TotalFrames() / 2)
 		{
-			m_yo = (m_BumpAnimationTimer.OriginalNumberOfFrames() / 2) - (m_yo - (m_BumpAnimationTimer.OriginalNumberOfFrames() / 2));
+			m_yo = (m_BumpAnimationTimer.TotalFrames() / 2) - (m_yo - (m_BumpAnimationTimer.TotalFrames() / 2));
 		}
 		m_yo = int(m_yo * -0.5);
 

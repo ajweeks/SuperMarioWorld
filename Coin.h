@@ -28,7 +28,7 @@ protected:
 private:
 	static const int INITIAL_Y_VEL = -250;
 	
-	CountdownTimer m_LifeRemaining;
+	SMWTimer m_LifeRemaining;
 	bool m_IsBlock = false; // This is true for a short period of time after mario hits a p-switch
 
 };

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "CountdownTimer.h"
+#include "SMWTimer.h"
 
 class Player;
 class Level;
@@ -45,7 +45,7 @@ private:
 	DOUBLE2 m_PrevTranslation;
 	int m_OffsetDirection;
 
-	CountdownTimer m_TransitionTimer;
+	SMWTimer m_TransitionTimer;
 
 	// Stores the distance between the player and the camera
 	double m_XOffset;

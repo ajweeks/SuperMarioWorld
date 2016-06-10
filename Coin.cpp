@@ -17,7 +17,7 @@ Coin::Coin(DOUBLE2 topLeft, Level* levelPtr, int life, Type type, DOUBLE2 size) 
 
 	if (life > -1)
 	{
-		m_LifeRemaining = CountdownTimer(LIFETIME);
+		m_LifeRemaining = SMWTimer(LIFETIME);
 		m_LifeRemaining.Start();
 
 		// This coin shoots up, then falls down, then disapears

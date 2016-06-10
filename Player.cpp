@@ -86,16 +86,16 @@ void Player::Reset()
 	m_FramesSpentInAir = -1;
 	m_LastScoreAdded = -1;
 
-	m_DeathAnimationTimer = CountdownTimer(240);
-	m_ShellKickAnimationTimer = CountdownTimer(10);
-	m_HeadStompSoundDelayTimer = CountdownTimer(10);
-	m_PowerupTransitionTimer = CountdownTimer(50);
-	m_InvincibilityTimer = CountdownTimer(115);
-	m_SpawnDustCloudTimer = CountdownTimer(4);
-	m_ChangingDirectionsTimer = CountdownTimer(3);
-	m_EnteringPipeTimer = CountdownTimer(60);
-	m_ExitingPipeTimer = CountdownTimer(35);
-	m_ScoreAddedTimer = CountdownTimer(15);
+	m_DeathAnimationTimer = SMWTimer(240);
+	m_ItemKickAnimationTimer = SMWTimer(10);
+	m_HeadStompSoundDelayTimer = SMWTimer(10);
+	m_PowerupTransitionTimer = SMWTimer(50);
+	m_InvincibilityTimer = SMWTimer(160);
+	m_SpawnDustCloudTimer = SMWTimer(4);
+	m_ChangingDirectionsTimer = SMWTimer(3);
+	m_EnteringPipeTimer = SMWTimer(60);
+	m_ExitingPipeTimer = SMWTimer(35);
+	m_ScoreAddedTimer = SMWTimer(15);
 
 	m_AnimationState = AnimationState::WAITING;
 	m_IsDucking = false;
@@ -213,6 +213,7 @@ void Player::Tick(double deltaTime)
 		SoundManager::PlaySoundEffect(SoundManager::Sound::ENEMY_HEAD_STOMP_END);
 	}
 
+	m_PowerupTransitionTimer.Tick();
 	m_ChangingDirectionsTimer.Tick();
 	m_ShellKickAnimationTimer.Tick();
 	m_SpawnDustCloudTimer.Tick();
@@ -746,7 +747,7 @@ void Player::Paint()
 	bool climbingFlip = m_AnimationState == AnimationState::CLIMBING && m_LastClimbingPose == Direction::LEFT;
 
 	bool changingDirections = m_ChangingDirectionsTimer.IsActive();
-	bool firstHalf = m_ChangingDirectionsTimer.FramesElapsed() < m_ChangingDirectionsTimer.OriginalNumberOfFrames() / 2;
+	bool firstHalf = m_ChangingDirectionsTimer.FramesElapsed() < m_ChangingDirectionsTimer.TotalFrames() / 2;
 	bool yoshiFlip = m_RidingYoshiPtr &&
 					 ((m_DirFacing == Direction::LEFT && !changingDirections) ||
 					 (m_DirFacing == Direction::LEFT && changingDirections && !firstHalf) ||
@@ -765,11 +766,11 @@ void Player::Paint()
 
 	PowerupState powerupStateToPaint;
 	double yo;
-	if (m_PowerupTransitionTimer.Tick())
+	if (m_PowerupTransitionTimer.IsActive())
 	{
 		if (m_PowerupTransitionTimer.FramesElapsed() == 1)
 		{
- 			m_LevelPtr->SetPausedTimer(m_PowerupTransitionTimer.OriginalNumberOfFrames()-1, false);
+ 			m_LevelPtr->SetPausedTimer(m_PowerupTransitionTimer.TotalFrames()-1, false);
 		}
 
 		yo = double(GetHeight()) / 2.0 - (m_PrevPowerupState == PowerupState::NORMAL ? 6 : 4);
@@ -1052,7 +1053,7 @@ void Player::RideYoshi(Yoshi* yoshiPtr)
 
 	m_NeedsNewFixture = true;
 
-	m_ChangingDirectionsTimer = CountdownTimer(YOSHI_TURN_AROUND_FRAMES);
+	m_ChangingDirectionsTimer = SMWTimer(YOSHI_TURN_AROUND_FRAMES);
 	m_AnimInfo.secondsPerFrame = Yoshi::TONGUE_STUCK_OUT_SECONDS_PER_FRAME;
 
 	m_IsRidingYoshi = true;
@@ -1079,7 +1080,7 @@ void Player::DismountYoshi(bool runWild)
 
 	m_NeedsNewFixture = true;
 
-	m_ChangingDirectionsTimer = CountdownTimer(3);
+	m_ChangingDirectionsTimer = SMWTimer(3);
 	m_AnimInfo.secondsPerFrame = MARIO_SECONDS_PER_FRAME;
 
 	m_IsRidingYoshi = false;

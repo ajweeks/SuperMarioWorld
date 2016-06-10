@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Item.h"
-#include "CountdownTimer.h"
+#include "SMWTimer.h"
 
 class Block : public Item
 {

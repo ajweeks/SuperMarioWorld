@@ -31,7 +31,7 @@ private:
 
 	DOUBLE2 m_StartingPostion;
 
-	CountdownTimer m_PausedAtTopTimer;
+	SMWTimer m_PausedAtTopTimer;
 
 	double m_VerticalVel;
 

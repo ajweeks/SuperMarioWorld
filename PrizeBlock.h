@@ -18,7 +18,7 @@ public:
 	void SetUsed(bool used);
 
 private:
-	CountdownTimer m_BumpAnimationTimer;
+	SMWTimer m_BumpAnimationTimer;
 	int m_yo = 0;
 	bool m_IsUsed = false;
 	bool m_ShouldSpawnItem = false;

@@ -17,8 +17,7 @@ public:
 
 private:
 	Colour m_Colour;
-	int m_CurrentFrameOfBumpAnimation = -1;
-	int m_FramesOfBumpAnimation = 14;
+	SMWTimer m_BumpAnimationTimer;
 	int m_yo = 0; // NOTE: Used for the bump animation
 				  // NOTE: This is set to true for every ! block when the player hits the
 				  // yellow switch palace switch block

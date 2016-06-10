@@ -10,7 +10,7 @@
 PSwitch::PSwitch(DOUBLE2 topLeft, Colour colour, Level* levelPtr) :
 	Item(topLeft, Item::Type::P_SWITCH, levelPtr, Level::ITEM, BodyType::DYNAMIC), m_Colour(colour)
 {
-	m_PressedTimer = CountdownTimer(20);
+	m_PressedTimer = SMWTimer(20);
 }
 
 void PSwitch::Tick(double deltaTime)

@@ -2,7 +2,7 @@
 
 #include "Entity.h"
 #include "Item.h"
-#include "CountdownTimer.h"
+#include "SMWTimer.h"
 
 class Player;
 class Enemy;
@@ -43,10 +43,10 @@ public:
 	void SpitOutItem();
 	bool IsTongueStuckOut();
 	void StickTongueOut(double deltaTime);
+	SMWTimer GetTongueTimer() const;
 
 	void SetPaused(bool paused);
 
-	const CountdownTimer GetTongueTimer();
 
 	static const int JUMP_VEL; // Yoshi never uses this field directly, but the player class does while they are riding yoshi
 
@@ -87,10 +87,11 @@ private:
 	double m_TongueXVel = 0.0;
 	double m_TongueLength = 0.0;
 
-	CountdownTimer m_HatchingTimer;
-	CountdownTimer m_GrowingTimer; // Times yoshi growing from a baby to an adult
-	CountdownTimer m_TongueTimer; // Records how long yoshi's tongue has been stuck out for
-	
+	SMWTimer m_HatchingTimer;
+	SMWTimer m_GrowingTimer;
+	SMWTimer m_TongueTimer;  // Records how long yoshi's tongue has been stuck out for
+	SMWTimer m_YappingTimer;  // Time until we yap our mouth again (only when not carrying the player and not running wild)
+
 	SpriteSheet* m_SpriteSheetPtr = nullptr;
 	PhysicsActor* m_ActToungePtr = nullptr;
 	Player* m_PlayerPtr = nullptr;

@@ -3,7 +3,7 @@
 #include "Enumerations.h"
 #include "SpriteSheet.h"
 #include "Item.h"
-#include "CountdownTimer.h"
+#include "SMWTimer.h"
 #include "INT2.h"
 
 class Level;
@@ -151,16 +151,16 @@ private:
 	bool m_NeedsNewFixture;
 	bool m_IsInvincible;
 
-	CountdownTimer m_DeathAnimationTimer;
-	CountdownTimer m_ChangingDirectionsTimer;
-	CountdownTimer m_ShellKickAnimationTimer;
-	CountdownTimer m_HeadStompSoundDelayTimer;
-	CountdownTimer m_PowerupTransitionTimer;
-	CountdownTimer m_InvincibilityTimer;
-	CountdownTimer m_SpawnDustCloudTimer;
-	CountdownTimer m_EnteringPipeTimer;
-	CountdownTimer m_ExitingPipeTimer;
-	CountdownTimer m_ScoreAddedTimer;
+	SMWTimer m_DeathAnimationTimer;
+	SMWTimer m_ChangingDirectionsTimer;
+	SMWTimer m_ItemKickAnimationTimer;
+	SMWTimer m_HeadStompSoundDelayTimer;
+	SMWTimer m_PowerupTransitionTimer;
+	SMWTimer m_InvincibilityTimer;
+	SMWTimer m_SpawnDustCloudTimer;
+	SMWTimer m_EnteringPipeTimer;
+	SMWTimer m_ExitingPipeTimer;
+	SMWTimer m_ScoreAddedTimer;
 
 	GameState* m_GameStatePtr;
 

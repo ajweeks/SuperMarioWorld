@@ -19,8 +19,8 @@ public:
 	void SetMoving(DOUBLE2 velocity);
 
 private:
-	CountdownTimer m_LifeRemainingTimer;
 
 	bool m_IsFlashing = false; // True once the player picks us up
 	bool m_IsMoving = false; // True once the player picks us up and then releases us
+	SMWTimer m_LifeRemaining; // This starts counting down when the player picks us up
 };

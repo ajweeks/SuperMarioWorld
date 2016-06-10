@@ -10,8 +10,8 @@
 ExclamationMarkBlock::ExclamationMarkBlock(DOUBLE2 topLeft, Colour colour, bool isSolid, Level* levelPtr):
 	Block(topLeft, Type::EXCLAMATION_MARK_BLOCK, levelPtr), m_Colour(colour)
 {
-	m_AnimInfo.frameNumber = 0;
 	SetSolid(isSolid);
+	m_BumpAnimationTimer = SMWTimer(14);
 }
 
 void ExclamationMarkBlock::Tick(double deltaTime)
@@ -24,24 +24,17 @@ void ExclamationMarkBlock::Tick(double deltaTime)
 		m_ShouldSpawnSuperMushroom = false;
 	}
 
-	if (m_CurrentFrameOfBumpAnimation > -1)
+	if (m_BumpAnimationTimer.Tick())
 	{
-		// NOTE: I *think* what happens during the bump animation is
-		//		 the block renders the normal question mark (not spinning)
-		//       and moves up then down around 3 or 5 pixels.
-		//		 Then the block is "used" and renders the brown used block texture
-
-		m_yo = m_CurrentFrameOfBumpAnimation;
-		if (m_yo > m_FramesOfBumpAnimation / 2)
+		m_yo = m_BumpAnimationTimer.FramesElapsed();
+		if (m_yo > m_BumpAnimationTimer.TotalFrames() / 2)
 		{
-			m_yo = (m_FramesOfBumpAnimation / 2) - (m_yo - (m_FramesOfBumpAnimation / 2));
+			m_yo = (m_BumpAnimationTimer.TotalFrames() / 2) - (m_yo - (m_BumpAnimationTimer.TotalFrames() / 2));
 		}
 		m_yo = int(m_yo * -0.5);
 
-		m_CurrentFrameOfBumpAnimation++;
-		if (m_CurrentFrameOfBumpAnimation > m_FramesOfBumpAnimation)
+		if (m_BumpAnimationTimer.IsComplete())
 		{
-			m_CurrentFrameOfBumpAnimation = -1;
 			m_yo = 0;
 		}
 	}
@@ -56,10 +49,15 @@ void ExclamationMarkBlock::Paint()
 		srcRow -= 1;
 	}
 
-	if (m_IsUsed)
+	if (m_BumpAnimationTimer.IsActive())
+	{
+		srcRow = 5;
+		srcCol = 0;
+	}
+	else if (m_IsUsed)
 	{
 		srcRow = 4;
-		srcCol = 4;
+		srcCol = 5;
 	}
 
 	double left = m_ActPtr->GetPosition().x;
@@ -80,7 +78,7 @@ void ExclamationMarkBlock::Hit()
 		SoundManager::PlaySoundEffect(SoundManager::Sound::SUPER_MUSHROOM_SPAWN);
 
 		m_IsUsed = true;
-		m_CurrentFrameOfBumpAnimation = 2;
+		m_BumpAnimationTimer.Start();
 		m_yo = 0;
 
 		m_ShouldSpawnSuperMushroom = true;
