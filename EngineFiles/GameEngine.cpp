@@ -11,6 +11,7 @@
 #include "GameEngine.h"
 #include "../ContactListener.h"
 #include "../AbstractGame.h"
+
 //-----------------------------------------------------------------
 // Static Variable Initialization
 //-----------------------------------------------------------------
@@ -870,6 +871,10 @@ bool GameEngine::DrawBitmap(Bitmap* imagePtr, double x, double y, RECT2 srcRect)
 
 bool GameEngine::DrawBitmap(Bitmap* imagePtr, DOUBLE2 position, RECT2 srcRect)
 {
+	// Following 2 lines added by AJ Weeks (since painting using non-integral values sometimes results in borders around sprites)
+	position = DOUBLE2(int(position.x), int(position.y));
+	srcRect = RECT2(int(srcRect.left), int(srcRect.top), int(srcRect.right), int(srcRect.bottom));
+
 	if (!CanIPaint()) return false;
 	if (imagePtr == nullptr) MessageBoxA(NULL, "DrawBitmap called using a bitmap pointer that is a nullptr\nThe MessageBox that will appear after you close this MessageBox is the default error message from visual studio.", "GameEngine says NO", MB_OK);
 	//The size and position, in device-independent pixels in the bitmap's coordinate space, of the area within the bitmap to draw.

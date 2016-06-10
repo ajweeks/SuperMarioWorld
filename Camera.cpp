@@ -40,9 +40,9 @@ DOUBLE2 Camera::GetOffset(Level* levelPtr, double deltaTime)
 	}
 #endif
 
-	double xo = CalculateXTranslation(levelPtr, deltaTime);
-	double yo = CalculateYTranslation(levelPtr, deltaTime);
-	DOUBLE2 newTranslation = DOUBLE2(xo, yo);
+	int xo = int(CalculateXOffset(levelPtr, deltaTime));
+	int yo = int(CalculateYOffset(levelPtr, deltaTime));
+	DOUBLE2 newOffset = DOUBLE2(xo, yo);
 
 	Clamp(newTranslation, levelPtr);
 
