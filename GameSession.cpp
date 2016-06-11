@@ -61,14 +61,17 @@ void GameSession::RecordSessionInfo(SessionInfo &sessionInfo, Level* levelPtr)
 	stringStream.str(std::string());
 	stringStream.clear();
 
-	sessionInfo.m_PlayerLives = levelPtr->GetPlayer()->GetLives();
-	sessionInfo.m_PlayerScore = levelPtr->GetPlayer()->GetScore();
+	Player* playerPtr = levelPtr->GetPlayer();
+	sessionInfo.m_PlayerLives = playerPtr->GetLives();
+	sessionInfo.m_PlayerScore = playerPtr->GetScore();
+	sessionInfo.m_CoinsCollected = playerPtr->GetCoinsCollected();
+	sessionInfo.m_DragonCoinsCollected = playerPtr->GetDragonCoinsCollected();
+	sessionInfo.m_RedStarsCollected = playerPtr->GetRedStarsCollected();
 	sessionInfo.m_CheckpointCleared = levelPtr->IsCheckpointCleared();
-	sessionInfo.m_PlayerRidingYoshi = levelPtr->GetPlayer()->IsRidingYoshi();
-	sessionInfo.m_PlayerPowerupState = Player::PowerupStateToString(levelPtr->GetPlayer()->GetPowerupState());
+	sessionInfo.m_PlayerRidingYoshi = playerPtr->IsRidingYoshi();
+	sessionInfo.m_PlayerPowerupState = Player::PowerupStateToString(playerPtr->GetPowerupState());
+	if (playerPtr->GetHeldItemPtr() != nullptr) sessionInfo.m_HeldItemType = playerPtr->ItemToString(playerPtr->GetHeldItemPtr());
 	sessionInfo.m_TimeRemaining = levelPtr->GetTimeRemaining();
-	sessionInfo.m_CoinsCollected = levelPtr->GetPlayer()->GetCoinsCollected();
-	sessionInfo.m_DragonCoinsCollected = levelPtr->GetPlayer()->GetDragonCoinsCollected();
 }
 
 void GameSession::WriteSessionInfoToFile(Level* levelPtr)
@@ -648,7 +651,7 @@ void GameSession::ShowNextSession()
 
 void GameSession::ShowPreviousSession()
 {
-	if (m_CurrentSessionShowingIndex - 1 >= 0)
+	if (m_CurrentSessionShowingIndex != 0)
 	{
 		m_CurrentSessionShowingIndex--;
 	}
