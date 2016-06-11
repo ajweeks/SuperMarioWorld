@@ -68,6 +68,7 @@ Level::Level(Game* gamePtr, GameState* gameStatePtr, LevelInfo levelInfo, Sessio
 Level::~Level()
 {
 	SoundManager::SetAllSongsPaused(true);
+	LevelData::UnloadLevelData(INDEX);
 	delete m_ActLevelPtr;
 	delete m_PlayerPtr;
 	delete m_CameraPtr;
