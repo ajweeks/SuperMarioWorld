@@ -17,6 +17,8 @@ public:
 
 private:
 	Colour m_Colour;
+	static const int WIDTH = 10;
+	static const int HEIGHT = 14;
 	bool m_IsPressed = false;
 
 	// This timer starts when we get pressed by the player and we are removed when it finishes

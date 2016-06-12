@@ -17,6 +17,8 @@ void PSwitch::Tick(double deltaTime)
 {
 	Item::Tick(deltaTime);
 
+	m_ActPtr->SetAwake(true); // This line ensures that this p switch will fall through rotating blocks reliably
+
 	if (m_PressedTimer.Tick() && m_PressedTimer.IsComplete())
 	{
 		EnemyDeathCloudParticle* cloudParticlePtr = new EnemyDeathCloudParticle(m_ActPtr->GetPosition());
