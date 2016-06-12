@@ -42,6 +42,7 @@ void RotatingBlock::Tick(double deltaTime)
 		if (m_RotationTimer.IsComplete())
 		{
 			m_AnimInfo.frameNumber = 0;
+			m_ActPtr->SetSensor(false);
 		}
 	}
 
@@ -101,6 +102,7 @@ void RotatingBlock::Hit()
 	{
 		SoundManager::PlaySoundEffect(SoundManager::Sound::BLOCK_HIT);
 		m_BumpAnimationTimer.Start();
+		m_ActPtr->SetSensor(true);
 	}
 }
 
