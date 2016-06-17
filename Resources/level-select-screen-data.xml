@@ -5,18 +5,28 @@
 	<Destination>
 		<PixelCoordinate>120, 150</PixelCoordinate>
 		<Name>"Yoshi's House"</Name>
-		<ID>0</ID>
+		<ID>2</ID>
 		 <Neighbors>
-			<Neighbor>Right, 1</Neighbor>
+			<Neighbor>Left, 3</Neighbor>
+			<Neighbor>Right, 0</Neighbor>
 		 </Neighbors>
 	</Destination>
 	
 	<Destination>
 		<PixelCoordinate>169, 166</PixelCoordinate>
 		<Name>"Yoshi's Island 2"</Name>
-		<ID>1</ID>
+		<ID>0</ID>
 		 <Neighbors>
-			<Neighbor>Left, 0</Neighbor>
+			<Neighbor>Left, 2</Neighbor>
+		 </Neighbors>
+	</Destination>
+	
+	<Destination>
+		<PixelCoordinate>71, 166</PixelCoordinate>
+		<Name>"Yoshi's Island 1"</Name>
+		<ID>3</ID>
+		 <Neighbors>
+			<Neighbor>Right, 2</Neighbor>
 		 </Neighbors>
 	</Destination>
 	

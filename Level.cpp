@@ -7,10 +7,13 @@
 #include "LevelData.h"
 #include "SpriteSheetManager.h"
 #include "HUD.h"
-#include "LevelInfo.h"
+#include "LevelProperties.h"
 #include "SMWFont.h"
 #include "Keybindings.h"
 #include "GameSession.h"
+#include "StateManager.h"
+#include "LevelSelectState.h"
+#include "EndScreen.h"
 
 #include "Platform.h"
 #include "Pipe.h"
@@ -35,7 +38,12 @@
 #include "MontyMole.h"
 #include "CharginChuck.h"
 
-Level::Level(Game* gamePtr, GameState* gameStatePtr, LevelInfo levelInfo, SessionInfo sessionInfo) :
+// For every 1 real life second, 1.5 in game seconds elapse
+const double Level::TIME_SCALE = 1.5;
+const int Level::TIME_UP_WARNING = 100;
+const int Level::MESSAGE_BLOCK_WARNING_TIME = 60;
+
+Level::Level(Game* gamePtr, GameState* gameStatePtr, LevelProperties levelInfo, SessionInfo sessionInfo, Pipe* spawningPipePtr) :
 	m_GamePtr(gamePtr), 
 	INDEX(levelInfo.m_Index),
 	WIDTH(levelInfo.m_Width),
@@ -49,7 +57,28 @@ Level::Level(Game* gamePtr, GameState* gameStatePtr, LevelInfo levelInfo, Sessio
 	TOTAL_TIME(levelInfo.m_TotalTime),
 	m_GameStatePtr(gameStatePtr)
 {
-	m_PlayerPtr = new Player(this, gameStatePtr);
+	m_ParticleManagerPtr = new ParticleManager();
+	ResetMembers();
+
+	if (sessionInfo.m_PlayerLives == -1) // The session info hasn't been set, use defaults
+	{
+		m_TimeRemaining = TOTAL_TIME;
+		m_IsCheckpointCleared = false;
+	}
+	else // The session info has been set, use it
+	{
+		m_TimeRemaining = sessionInfo.m_TimeRemaining;
+		m_SecondsElapsed = int((TOTAL_TIME - m_TimeRemaining + 1) * (1.0 / TIME_SCALE));
+		m_IsCheckpointCleared = (sessionInfo.m_CheckpointCleared == 1);
+		if (sessionInfo.m_PlayerRidingYoshi)
+		{
+			DOUBLE2 yoshiPos(0, 0);
+			if (spawningPipePtr != nullptr) yoshiPos = spawningPipePtr->GetWarpToPosition();
+			m_YoshiPtr = new Yoshi(yoshiPos, this, true);
+		}
+	}
+
+	m_PlayerPtr = new Player(this, gameStatePtr, sessionInfo);
 
 	m_ActLevelPtr = new PhysicsActor(DOUBLE2(0, 0), 0, BodyType::STATIC);
 	m_ActLevelPtr->AddSVGFixture(levelInfo.m_LevelSVGFilePath, 0.0);
@@ -57,12 +86,9 @@ Level::Level(Game* gamePtr, GameState* gameStatePtr, LevelInfo levelInfo, Sessio
 	m_ActLevelPtr->SetUserData(int(ActorId::LEVEL));
 
 	m_CameraPtr = new Camera(Game::WIDTH, Game::HEIGHT, this);
-	m_ParticleManagerPtr = new ParticleManager();
 
 	m_CoinsToBlocksTimer = SMWTimer(480);
 	m_BackgroundAnimInfo.secondsPerFrame = 0.135;
-
-	ResetMembers();
 }
 
 Level::~Level()
@@ -87,30 +113,24 @@ void Level::Reset()
 void Level::ResetMembers()
 {
 	m_Paused = false;
-
-	m_SecondsElapsed = 0.0;
 	m_TimeRemaining = TOTAL_TIME;
-
 	m_IsCheckpointCleared = false;
-
+	m_IsShowingEndScreen = false;
 	m_TimeWarningPlayed = false;
 	m_PSwitchTimeWarningPlayed = false;
 
-	LevelData::UnloadLevel(INDEX);
+	LevelData::UnloadLevelData(INDEX);
 	ReadLevelData(INDEX);
 
 	delete m_YoshiPtr;
 	m_YoshiPtr = nullptr;
 	m_ActiveMessagePtr = nullptr;
 
-	m_IsShowingEndScreen = false;
-	m_FramesShowingEndScreen = 0;
-
+	m_SecondsElapsed = 0.0;
 	m_ParticleManagerPtr->Reset();
 	m_FinalExtraScore = {};
 
 	SoundManager::RestartAndPauseSongs();
-
 	SoundManager::PlaySong(m_BackgroundSong);
 }
 
@@ -206,6 +226,12 @@ void Level::Tick(double deltaTime)
 
 	if (m_IsShowingEndScreen)
 	{
+		if (EndScreen::Tick())
+		{
+			StateManager* stateManagerPtr = m_GameStatePtr->GetStateManagerPtr();
+			stateManagerPtr->SetState(new LevelSelectState(stateManagerPtr));
+			m_IsShowingEndScreen = false;
+		}
 		return;
 	}
 
@@ -217,6 +243,14 @@ void Level::Tick(double deltaTime)
 		{
 			m_LevelDataPtr->RemoveItem(m_ItemsToBeRemovedPtrArr[i]);
 			m_ItemsToBeRemovedPtrArr[i] = nullptr;
+		}
+	}
+	for (size_t i = 0; i < m_EnemiesToBeRemovedPtrArr.size(); ++i)
+	{
+		if (m_EnemiesToBeRemovedPtrArr[i] != nullptr)
+		{
+			m_LevelDataPtr->RemoveEnemy(m_EnemiesToBeRemovedPtrArr[i]);
+			m_EnemiesToBeRemovedPtrArr[i] = nullptr;
 		}
 	}
 
@@ -265,13 +299,13 @@ void Level::Tick(double deltaTime)
 
 void Level::Paint()
 {
-	MATRIX3X2 matCameraView = m_CameraPtr->GetViewMatrix();
-	MATRIX3X2 matTotalView = matCameraView *  Game::matIdentity;
+	const MATRIX3X2 matCameraView = m_CameraPtr->GetViewMatrix();
+	const MATRIX3X2 matTotalView = matCameraView *  Game::matIdentity;
 	GAME_ENGINE->SetViewMatrix(matTotalView);
 
-	int bgWidth = m_BmpBackgroundPtr->GetWidth();
-	double cameraX = -matCameraView.orig.x;
-	double parallax = (1.0 - 0.50); // 50% of the speed of the camera
+	const int bgWidth = m_BmpBackgroundPtr->GetWidth();
+	const double cameraX = -matCameraView.orig.x;
+	const double parallax = (1.0 - 0.50); // 50% of the speed of the camera
 	int xo = int(cameraX * parallax);
 	xo += (int(cameraX - xo) / bgWidth) * bgWidth;
 
@@ -284,8 +318,8 @@ void Level::Paint()
 			frameToShow = TOTAL_FRAMES_OF_BACKGROUND_ANIMATION - m_BackgroundAnimInfo.frameNumber + 1;
 		}
 
-		int bgWidth = m_BmpBackgroundPtr->GetWidth() / TOTAL_FRAMES_OF_BACKGROUND_ANIMATION;
-		int bgHeight = m_BmpBackgroundPtr->GetHeight();
+		const int bgWidth = m_BmpBackgroundPtr->GetWidth() / TOTAL_FRAMES_OF_BACKGROUND_ANIMATION;
+		const int bgHeight = m_BmpBackgroundPtr->GetHeight();
 		bgSrcRect = RECT2(frameToShow * bgWidth, 0, (frameToShow + 1) * bgWidth, bgHeight);
 	}
 	else
@@ -322,7 +356,7 @@ void Level::Paint()
 
 	if (m_IsShowingEndScreen)
 	{
-		PaintEndScreen();
+		EndScreen::Paint();
 	}
 
 	if (Game::DEBUG_ZOOM_OUT)
@@ -358,177 +392,16 @@ void Level::Paint()
 	GAME_ENGINE->SetViewMatrix(matTotalView);
 }
 
-void Level::PaintEndScreen()
-{
-	const int fadeTransition = 1600; // after this many frames, the transition will occur
-	const int drumrollStart = fadeTransition + 1600;
-	const int fadeFromBlackTransition = fadeTransition + 3550;
-	const int backToClearTransition = fadeTransition + fadeFromBlackTransition;
-	const int resetGameTransition = backToClearTransition + 600;
-
-	++m_FramesShowingEndScreen;
-
-	if (m_FramesShowingEndScreen < fadeTransition)
-	{
-		// Fade from clear to black
-		int alpha = int((double(m_FramesShowingEndScreen) / double(fadeTransition)) * 255);
-		GAME_ENGINE->SetColor(COLOR(0, 0, 0, alpha));
-		GAME_ENGINE->FillRect(0, 0, Game::WIDTH, Game::HEIGHT);
-	}
-	else 
-	{
-		if (m_FramesShowingEndScreen == drumrollStart)
-		{
-			SoundManager::PlaySoundEffect(SoundManager::Sound::DRUMROLL);
-		}
-
-		GAME_ENGINE->SetColor(COLOR(0, 0, 0));
-		GAME_ENGINE->FillRect(0, 0, Game::WIDTH, Game::HEIGHT);
-
-		// Once the drumroll starts, the final score begins "moving" to the score in the top right
-		if (m_FramesShowingEndScreen > drumrollStart)
-		{
-			if (m_FinalExtraScore.m_ScoreShowing > 0)
-			{
-				int delta = 50;
-				if (m_FinalExtraScore.m_ScoreShowing - delta < 0) delta = m_FinalExtraScore.m_ScoreShowing;
-
-				m_FinalExtraScore.m_ScoreShowing -= delta;
-				m_PlayerPtr->AddScore(delta, false);
-			}
-
-			if (m_FinalExtraScore.m_BonusScoreShowing > 0)
-			{
-				m_FinalExtraScore.m_BonusScoreShowing -= 1;
-				m_PlayerPtr->AddRedStars(1);
-			}
-		}
-
-		int left = 75;
-		int top = 60;
-
-		Bitmap* hudBmpPtr = SpriteSheetManager::GetBitmapPtr(SpriteSheetManager::HUD);
-
-		// MARIO
-		RECT2 srcRect = RECT2(1, 1, 41, 9);
-		GAME_ENGINE->DrawBitmap(hudBmpPtr, left + 32, top, srcRect);
-		top += 16;
-
-		// COURSE CLEAR
-		GAME_ENGINE->SetColor(COLOR(255, 255, 255));
-		SMWFont::PaintPhrase("COURSE CLEAR!", left, top, SMWFont::OUTLINED);
-		top += 22;
-
-		// Bonus time score
-		SMWFont::PaintPhrase("@" + std::to_string(m_FinalExtraScore.m_FinalTimeRemaining) + "*50=", left, top, SMWFont::OUTLINED);
-		std::stringstream scoreShowingStream;
-		scoreShowingStream << std::setw(5) << std::setfill(' ') << std::to_string(m_FinalExtraScore.m_ScoreShowing);
-		SMWFont::PaintPhrase(scoreShowingStream.str(), left + 65, top, SMWFont::OUTLINED);
-
-		// Bonus red stars
-		if (m_FinalExtraScore.m_BonusScoreShowing > 0)
-		{
-			left += 4;
-			top += 28;
-			SMWFont::PaintPhrase("BONUS!", left, top, SMWFont::OUTLINED);
-
-			// RED STAR
-			left += 55;
-			srcRect = RECT2(19, 60, 19 + 8, 60 + 8);
-			GAME_ENGINE->DrawBitmap(hudBmpPtr, left, top, srcRect);
-
-			// X
-			left += 10;
-			top += 2;
-			srcRect = RECT2(10, 61, 10 + 7, 61 + 7);
-			GAME_ENGINE->DrawBitmap(hudBmpPtr, left, top, srcRect);
-
-			// NUMBER OF STARS
-			left += 22;
-			top -= 7;
-			HUD::PaintSeveralDigitLargeNumber(left, top, m_FinalExtraScore.m_BonusScoreShowing);
-		}
-	}
-	
-	if (m_FramesShowingEndScreen < backToClearTransition)
-	{
-		if (m_FramesShowingEndScreen >= fadeFromBlackTransition)
-		{
-			// Fade from black to clear
-			int alpha = int(255 - (double(m_FramesShowingEndScreen - fadeFromBlackTransition) / double(fadeTransition)) * 255);
-			GAME_ENGINE->SetColor(COLOR(0, 0, 0, alpha));
-			GAME_ENGINE->FillRect(0, 0, Game::WIDTH, Game::HEIGHT);
-		}
-	}
-	else
-	{
-		if (m_FramesShowingEndScreen == backToClearTransition)
-		{
-			SoundManager::PlaySoundEffect(SoundManager::Sound::OUTRO_CIRCLE_TRANSITION);
-		}
-		else if (m_FramesShowingEndScreen < resetGameTransition)
-		{
-			double percentage = (resetGameTransition - m_FramesShowingEndScreen) / double(resetGameTransition - backToClearTransition);
-			double innerCircleRadius = percentage * Game::WIDTH;
-			DOUBLE2 playerPosScreenSpace = m_CameraPtr->GetViewMatrix().TransformPoint(m_PlayerPtr->GetPosition());
-			PaintEnclosingCircle(playerPosScreenSpace, innerCircleRadius);
-		}
-		else
-		{
-			Reset();
-			return;
-		}
-	}
-}
-
-// Paints everything black except a circle with the specified radius at the specified pos
-void Level::PaintEnclosingCircle(DOUBLE2 circleCenter, double innerCircleRadius)
-{
-	GAME_ENGINE->SetColor(COLOR(0, 0, 0));
-
-	// Fill the largest four rectangles you can, and then draw several circles (just outlines)
-	double circleLeft = circleCenter.x - innerCircleRadius;
-	double circleRight = circleCenter.x + innerCircleRadius;
-	double circleTop = circleCenter.y - innerCircleRadius;
-	double circleBottom = circleCenter.y + innerCircleRadius;
-	if (circleLeft > 1)
-	{
-		GAME_ENGINE->FillRect(0, 0, circleLeft, Game::HEIGHT);
-	}
-	if (circleRight < Game::WIDTH - 1)
-	{
-		GAME_ENGINE->FillRect(circleRight, 0, Game::WIDTH, Game::HEIGHT);
-	}
-	if (circleTop > 1)
-	{
-		GAME_ENGINE->FillRect(0, 0, Game::WIDTH, circleTop);
-	}
-	if (circleBottom < Game::HEIGHT - 1)
-	{
-		GAME_ENGINE->FillRect(0, circleBottom, Game::WIDTH, Game::HEIGHT);
-	}
-
-	int numOfCircles = 15;
-	double radius = innerCircleRadius;
-	for (int i = 0; i < numOfCircles; ++i)
-	{
-		GAME_ENGINE->DrawEllipse(circleCenter, radius, radius, 7);
-		radius += 5;
-	}
-
-}
-
 void Level::PaintHUD()
 {
-	int playerLives = m_PlayerPtr->GetLives();
-	int playerDragonCoins = m_PlayerPtr->GetDragonCoinsCollected();
-	int playerStars = m_PlayerPtr->GetStarsCollected();
-	int playerCoins = m_PlayerPtr->GetCoinsCollected();
-	int playerScore = m_PlayerPtr->GetScore();
-	Item::Type playerExtraItemType = m_PlayerPtr->GetExtraItemType();
+	const int playerLives = m_PlayerPtr->GetLives();
+	const int playerDragonCoins = m_PlayerPtr->GetDragonCoinsCollected();
+	const int playerRedStars = m_PlayerPtr->GetRedStarsCollected();
+	const int playerCoins = m_PlayerPtr->GetCoinsCollected();
+	const int playerScore = m_PlayerPtr->GetScore();
+	const Item::Type playerExtraItemType = m_PlayerPtr->GetExtraItemType();
 
-	// NOTE: 1 second in game is 2/3 of a real life second!
-	m_TimeRemaining = TOTAL_TIME - (int(m_SecondsElapsed * 1.5));
+	m_TimeRemaining = TOTAL_TIME - (int(m_SecondsElapsed * TIME_SCALE));
 	if (m_TimeWarningPlayed == false && m_TimeRemaining <= TIME_UP_WARNING)
 	{
 		SpeedUpMusic();
@@ -578,7 +451,7 @@ void Level::PaintHUD()
 	// NUMBER OF STARS
 	x += 24;
 	y -= 7;
-	HUD::PaintSeveralDigitLargeNumber(x, y, playerStars);
+	HUD::PaintSeveralDigitLargeNumber(x, y, playerRedStars);
 
 	// ITEM BOX
 	x += 10;
@@ -741,8 +614,9 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool& 
 		case int(ActorId::YOSHI):
 		{
 			if (m_PlayerPtr->IsRidingYoshi() ||
-				m_YoshiPtr->IsHatching() ||
-				m_PlayerPtr->GetLinearVelocity().y <= 0)
+				m_YoshiPtr->IsHatching() || 
+				m_PlayerPtr->IsAirborne() == false || // On the ground
+				(m_PlayerPtr->IsAirborne() && m_PlayerPtr->GetLinearVelocity().y <= 0)) // Going upwards
 			{
 				enableContactRef = false;
 			}
@@ -798,11 +672,11 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool& 
 		{
 			if (actThisPtr->GetUserData() == int(ActorId::ITEM))
 			{
-				Item* thisItem = (Item*)actThisPtr->GetUserPointer();
-				if (thisItem->GetType() == Item::Type::ROTATING_BLOCK)
+				Item* thisItemPtr = (Item*)actThisPtr->GetUserPointer();
+				if (thisItemPtr->GetType() == Item::Type::ROTATING_BLOCK)
 				{
 					// NOTE: Only let p-switches fall through if the rotating block is spinning
-					if (((RotatingBlock*)thisItem)->IsRotating())
+					if (((RotatingBlock*)thisItemPtr)->IsRotating())
 					{
 						enableContactRef = false;
 					}
@@ -813,11 +687,16 @@ void Level::PreSolve(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr, bool& 
 		{
 			KoopaShell* koopaShellPtr = (KoopaShell*)otherItemPtr;
 			// When the player is holding a shell, it doesn't collide with anything except enemies
-			bool shellIsBeingHeld = m_PlayerPtr->GetHeldItemPtr() == koopaShellPtr;
+			const bool shellIsBeingHeld = m_PlayerPtr->GetHeldItemPtr() == koopaShellPtr;
+			const bool shellIsMovingUpwards = actOtherPtr->GetLinearVelocity().y < 0.0;
+			const bool shellIsHittingYoshi = actThisPtr->GetUserData() == int(ActorId::YOSHI);
+			const bool shellIsHittingYoshiWithPlayer = actThisPtr->GetUserData() == int(ActorId::PLAYER) &&
+														m_PlayerPtr->IsRidingYoshi();
 
-			if (actThisPtr->GetUserData() != int(ActorId::ENEMY) &&
-				shellIsBeingHeld ||
-				(actOtherPtr->GetLinearVelocity().y < 0.0))
+			if ((actThisPtr->GetUserData() != int(ActorId::ENEMY) && shellIsBeingHeld) ||
+				shellIsMovingUpwards || 
+				shellIsHittingYoshi || 
+				shellIsHittingYoshiWithPlayer)
 			{
 				enableContactRef = false;
 			}
@@ -938,14 +817,14 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 					if (m_PlayerPtr->GetAnimationState() == Player::AnimationState::FALLING)
 					{
 						koopaShellPtr->SetMoving(false);
-						m_PlayerPtr->Bounce();
+						m_PlayerPtr->Bounce(false);
 					}
 					else
 					{
 						m_PlayerPtr->TakeDamage();
 					}
 				}
-				else if (m_PlayerPtr->IsRunning() && m_PlayerPtr->IsHoldingItem() == false)
+				else if (m_PlayerPtr->IsRunButtonHeldDown() && m_PlayerPtr->IsHoldingItem() == false)
 				{
 					if (koopaShellPtr->IsFallingOffScreen() == false)
 					{
@@ -985,7 +864,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			{
 				PSwitch* pSwitchPtr = (PSwitch*)itemPtr;
 
-				if (m_PlayerPtr->IsRunning() && m_PlayerPtr->IsHoldingItem() == false)
+				if (m_PlayerPtr->IsRunButtonHeldDown() && m_PlayerPtr->IsHoldingItem() == false)
 				{
 					m_PlayerPtr->AddItemToBeHeld(pSwitchPtr);
 				}
@@ -1024,7 +903,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 					else
 					{
 						koopaTroopaPtr->HeadBonk();
-						m_PlayerPtr->Bounce();
+						m_PlayerPtr->Bounce(false);
 					}
 				}
 				else
@@ -1035,7 +914,6 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 					// needs to jump on their head, the player will die if they touch the side of a walking shelless koopa
 					if (koopaTroopaPtr->GetAnimationState() == KoopaTroopa::AnimationState::SHELLESS)
 					{
-						// TODO: Rename this method because not only shell hits cause this behaviour
 						koopaTroopaPtr->ShellHit();
 					}
 					else
@@ -1059,7 +937,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 						else
 						{
 							montyMolePtr->HeadBonk();
-							m_PlayerPtr->Bounce();
+							m_PlayerPtr->Bounce(false);
 						}
 					}
 					else
@@ -1080,7 +958,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 				{
 					charginChuckPtr->HeadBonk();
 					const int horizontalDir = playerFeet.x < charginChuckPtr->GetPosition().x ? -1 : 1;
-					m_PlayerPtr->Bounce(horizontalDir);
+					m_PlayerPtr->Bounce(true, horizontalDir);
 				}
 				else
 				{
@@ -1092,14 +970,12 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 		case int(ActorId::YOSHI):
 		{
 			assert(m_YoshiPtr != nullptr);
-			if (m_YoshiPtr->IsHatching() == false)
+			if (m_YoshiPtr->IsHatching() == false && 
+				m_PlayerPtr->IsRidingYoshi() == false && 
+				m_PlayerPtr->IsHoldingItem() == false &&
+				(m_PlayerPtr->IsAirborne() && m_PlayerPtr->GetLinearVelocity().y >= 0))
 			{
-				if (m_PlayerPtr->IsRidingYoshi() == false && 
-					m_PlayerPtr->IsHoldingItem() == false &&
-					m_PlayerPtr->GetLinearVelocity().y > 0)
-				{
-					m_PlayerPtr->RideYoshi(m_YoshiPtr);
-				}
+				m_PlayerPtr->RideYoshi(m_YoshiPtr);
 			}
 		} break;
 		}
@@ -1168,6 +1044,13 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 				} break;
 				}
 			} break;
+			case int(ActorId::PLAYER):
+			{
+				if (m_PlayerPtr->IsRidingYoshi())
+				{
+					m_PlayerPtr->DismountYoshi(true);
+				}
+			} break;
 			}
 		} break;
 		case Item::Type::GRAB_BLOCK:
@@ -1189,7 +1072,7 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 			{
 				const int grabBlockDir = actOtherPtr->GetLinearVelocity().x > 0 ? Direction::RIGHT : Direction::LEFT;
 				const DOUBLE2 point1 = grabBlockPtr->GetPosition();
-				const DOUBLE2 point2 = grabBlockPtr->GetPosition() + DOUBLE2((Block::WIDTH / 2) * grabBlockDir, 0);
+				const DOUBLE2 point2 = grabBlockPtr->GetPosition() + DOUBLE2((Block::WIDTH / 2 + 3) * grabBlockDir, 0);
 				DOUBLE2 intersection, normal;
 				double fraction = -1.0;
 				int collisionBits = Level::LEVEL | Level::BLOCK;
@@ -1201,6 +1084,16 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 				}
 			}
 		} break;
+		case Item::Type::FIREBALL:
+		{
+			if (actThisPtr->GetUserData() == int(ActorId::ENEMY))
+			{
+				Enemy* enemyPtr = (Enemy*)actThisPtr->GetUserPointer();
+				m_EnemiesToBeRemovedPtrArr.push_back(enemyPtr);
+				SoundManager::PlaySoundEffect(SoundManager::Sound::SHELL_KICK);
+				m_PlayerPtr->AddScore(200, false, enemyPtr->GetPosition() + DOUBLE2(0, -10));
+			}
+		} break;
 		}
 	} break;
 	case int(ActorId::YOSHI_TOUNGE):
@@ -1209,13 +1102,21 @@ void Level::BeginContact(PhysicsActor *actThisPtr, PhysicsActor *actOtherPtr)
 		{
 		case int(ActorId::ENEMY):
 		{
-			Enemy* enemyPtr = (Enemy*)actThisPtr->GetUserPointer();
-			m_YoshiPtr->EatEnemy(enemyPtr);
+			if (m_PlayerPtr->IsRidingYoshi() &&
+				m_YoshiPtr->IsTongueStuckOut() == false) 
+			{
+				m_PlayerPtr->TakeDamage();
+			}
+			else
+			{
+				Enemy* enemyPtr = (Enemy*)actThisPtr->GetUserPointer();
+				m_YoshiPtr->TongueTouchedEnemy(enemyPtr);
+			}
 		} break;
 		case int(ActorId::ITEM):
 		{
 			Item* itemPtr = (Item*)actThisPtr->GetUserPointer();
-			m_YoshiPtr->EatItem(itemPtr);
+			m_YoshiPtr->TongueTouchedItem(itemPtr);
 		} break;
 		}
 	} break;
@@ -1310,6 +1211,7 @@ bool Level::Raycast(DOUBLE2 point1, DOUBLE2 point2, int collisionBits, DOUBLE2 &
 			if (itemsPtrArr[i] != nullptr)
 			{
 				bool blockCollision = collisionBits & BLOCK && itemsPtrArr[i]->IsBlock();
+
 				if (blockCollision && itemsPtrArr[i]->GetType() == Item::Type::ROTATING_BLOCK)
 				{
 					if (((RotatingBlock*)itemsPtrArr[i])->IsRotating())
@@ -1319,6 +1221,7 @@ bool Level::Raycast(DOUBLE2 point1, DOUBLE2 point2, int collisionBits, DOUBLE2 &
 				}
 
 				bool shellCollision = collisionBits & SHELL && itemsPtrArr[i]->GetType() == Item::Type::KOOPA_SHELL;
+
 				if (blockCollision || shellCollision)
 				{
 					if (itemsPtrArr[i]->Raycast(point1, point2, intersectionRef, normalRef, fractionRef))
@@ -1340,6 +1243,9 @@ void Level::TriggerEndScreen(int barHitHeight)
 	m_FinalExtraScore.m_FinalTimeRemaining = m_TimeRemaining;
 	m_FinalExtraScore.m_ScoreShowing = 50 * m_TimeRemaining;
 	m_FinalExtraScore.m_BonusScoreShowing = barHitHeight;
+	
+	EndScreen::Initalize(m_PlayerPtr, m_CameraPtr, m_FinalExtraScore.m_FinalTimeRemaining,
+		m_FinalExtraScore.m_ScoreShowing, m_FinalExtraScore.m_BonusScoreShowing);
 
 	SoundManager::PlaySoundEffect(SoundManager::Sound::COURSE_CLEAR_FANFARE);
 	SoundManager::SetAllSongsPaused(true);
@@ -1360,6 +1266,7 @@ void Level::WarpPlayerToPipe(int pipeIndex)
 	Pipe* pipePtr = m_LevelDataPtr->GetPipeWithIndex(pipeIndex);
 	m_PlayerPtr->SetPosition(pipePtr->GetWarpToPosition());
 	m_PlayerPtr->SetExitingPipe(pipePtr);
+	SoundManager::PlaySoundEffect(SoundManager::Sound::PLAYER_DAMAGE);
 }
 
 DOUBLE2 Level::GetCameraOffset(double deltaTime) 
@@ -1429,7 +1336,7 @@ void Level::SetPaused(bool paused, bool pauseSongs)
 
 	if (pauseSongs)
 	{
-		SoundManager::SetSongPaused(m_BackgroundSong, m_Paused);
+		SoundManager::SetSongPaused(m_BackgroundSong, paused);
 	}
 }
 
@@ -1475,9 +1382,9 @@ bool Level::IsPaused() const
 	return m_Paused;
 }
 
-bool Level::IsYoshiAlive() const
+Yoshi* Level::GetYoshiPtr()
 {
-	return m_YoshiPtr != nullptr;
+	return m_YoshiPtr;
 }
 
 double Level::GetWidth() const

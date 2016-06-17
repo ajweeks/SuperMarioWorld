@@ -10,7 +10,7 @@
 #include "EnemyPoofParticle.h"
 #include "SoundManager.h"
 
-const double KoopaShell::HORIZONTAL_KICK_BASE_VEL = 340;
+const double KoopaShell::HORIZONTAL_KICK_BASE_VEL = 300;
 const double KoopaShell::VERTICAL_KICK_VEL = -30520.0;
 const double KoopaShell::SHELL_HIT_VEL = -180.0;
 const double KoopaShell::HORIZONTAL_SHELL_SHELL_HIT_VEL = 40.0;
@@ -20,7 +20,7 @@ KoopaShell::KoopaShell(DOUBLE2 topLeft, Level* levelPtr, Colour colour, bool ups
 	m_Colour(colour)
 {
 	b2Filter collisionFilter = m_ActPtr->GetCollisionFilter();
-	collisionFilter.maskBits |= Level::ENEMY | Level::SHELL;
+	collisionFilter.maskBits |= Level::ENEMY | Level::SHELL | Level::FIREBALL | Level::YOSHI;
 	m_ActPtr->SetCollisionFilter(collisionFilter);
 
 	if (upsideDown)
@@ -80,7 +80,7 @@ void KoopaShell::Tick(double deltaTime)
 			m_DirMoving = -m_DirMoving;
 		}
 
-		// Prevent moving off the left side of the level
+		// Prevent moving off the left side of the level into infinity
 		if (m_ActPtr->GetPosition().x < -WIDTH)
 		{
 			m_LevelPtr->RemoveItem(this);
@@ -98,7 +98,7 @@ void KoopaShell::Paint()
 	double centerX = m_ActPtr->GetPosition().x;
 	double centerY = m_ActPtr->GetPosition().y;
 
-	MATRIX3X2 matPrevWorld = GAME_ENGINE->GetWorldMatrix();
+	const MATRIX3X2 matPrevWorld = GAME_ENGINE->GetWorldMatrix();
 	if (m_IsFallingOffScreen)
 	{
 		srcRow = 0;
@@ -176,9 +176,11 @@ bool KoopaShell::IsMoving()
 	return m_IsMoving;
 }
 
-void KoopaShell::SetMoving(bool moving)
+void KoopaShell::SetMoving(bool moving, int direction)
 {
 	m_IsMoving = moving;
+
+	if (direction != 0.0) m_DirMoving = direction;
 
 	if (!moving)
 	{

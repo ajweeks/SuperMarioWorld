@@ -33,9 +33,6 @@ private:
 	// How far the player can walk backwards before triggering a camera transition
 	static const int HORIZONTAL_CUSHION_SIZE;
 	
-	// How quickly a camera transition occurs (percentage)
-	//static const double HORIZONTAL_PAN_SPEED;
-
 	static const int TOP_BOUNDARY;
 	static const int TOP_BOUNDARY_LOW;
 	static const int BOTTOM_BOUNDARY;
@@ -52,6 +49,7 @@ private:
 
 	// Stores the distance between the player and the camera
 	double m_XOffset;
+	double m_YTarget;
 
 	MATRIX3X2 m_MatTranslation;
 };

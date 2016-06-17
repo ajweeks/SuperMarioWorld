@@ -33,6 +33,10 @@ MontyMole::MontyMole(DOUBLE2& startingPos, Level* levelPtr, SpawnLocationType sp
 	m_FramesSinceLastHop = SMWTimer(60);
 
 	if (m_AiType == AIType::DUMB) m_FramesSinceLastHop.Start();
+
+	b2Filter collisionFilter = m_ActPtr->GetCollisionFilter();
+	collisionFilter.maskBits |= Level::FIREBALL | Level::BLOCK;
+	m_ActPtr->SetCollisionFilter(collisionFilter);
 }
 
 MontyMole::~MontyMole()
@@ -417,6 +421,14 @@ int MontyMole::GetWidth() const
 int MontyMole::GetHeight() const
 {
 	return HEIGHT;
+}
+
+void MontyMole::SetDead()
+{
+	m_AnimationState = AnimationState::DEAD;
+	delete m_ActPtr;
+	m_ActPtr = nullptr;
+	m_HasBeenKilledByPlayer = true;
 }
 
 bool MontyMole::IsAlive() const

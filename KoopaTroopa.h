@@ -24,10 +24,6 @@ public:
 	WALKING_SHELLESS	ShellHit->  UPSIDEDOWN_SHELLESS
 	SHELLESS			ShellHit->  UPSIDEDOWN_SHELLESS
 
-
-	// SHELL ITEM:
-	SHELL				ShellHit->  Spawn UPSIDEDOWN_SHELL
-
 	*/
 	enum AnimationState
 	{
@@ -94,4 +90,3 @@ private:
 	bool m_ShouldAddKoopaShell = false;
 	bool m_ShouldAddMovingUpwardKoopaShell = false;
 };
-

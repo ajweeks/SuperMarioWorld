@@ -6,6 +6,7 @@ class GrabBlock : public Block
 {
 public:
 	GrabBlock(DOUBLE2 topLeft, Level* levelPtr);
+	virtual ~GrabBlock();
 
 	GrabBlock(const GrabBlock&) = delete;
 	GrabBlock& operator=(const GrabBlock&) = delete;

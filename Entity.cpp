@@ -4,18 +4,17 @@
 #include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
 
-
-Entity::Entity(DOUBLE2& posRef, BodyType bodyType, 
+Entity::Entity(DOUBLE2 centerPos, BodyType bodyType,
 	Level* levelPtr, ActorId actorId, void* userPointer, DOUBLE2& initialVelRef) :
 	m_LevelPtr(levelPtr)
 {
-	m_ActPtr = new PhysicsActor(posRef, 0, bodyType);
+	m_ActPtr = new PhysicsActor(centerPos, 0, bodyType);
 	m_ActPtr->SetUserData(int(actorId));
 	if (userPointer != nullptr)
 	{
 		m_ActPtr->SetUserPointer(userPointer);
 	}
-	m_ActPtr->SetLinearVelocity(initialVelRef);
+	if (initialVelRef != DOUBLE2()) m_ActPtr->SetLinearVelocity(initialVelRef);
 	m_ActPtr->SetFixedRotation(true);
 }
 
@@ -32,6 +31,11 @@ bool Entity::Raycast(DOUBLE2 point1, DOUBLE2 point2, DOUBLE2 &intersectionRef, D
 void Entity::SetPaused(bool paused)
 {
 	m_ActPtr->SetActive(!paused);
+}
+
+bool Entity::IsPaused() const
+{
+	return m_ActPtr->IsActive() == false;
 }
 
 void Entity::AddContactListener(ContactListener* listener)

@@ -9,7 +9,7 @@ public:
 	virtual ~Platform();
 
 	Platform(const Platform&) = delete;
-	Platform&operator=(const Platform&) = delete;
+	Platform& operator=(const Platform&) = delete;
 
 	void AddContactListener(ContactListener* listener);
 	double GetWidth();
@@ -21,7 +21,4 @@ public:
 private:
 	PhysicsActor* m_ActPtr = nullptr;
 	double m_Width;
-
-	// TODO: Add angled platforms
-	// TODO: Add moving platforms
 };

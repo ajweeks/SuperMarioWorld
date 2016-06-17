@@ -11,6 +11,10 @@ EnemyDeathCloudParticle::EnemyDeathCloudParticle(DOUBLE2 position) :
 	m_AnimInfo.secondsPerFrame = 0.1;
 }
 
+EnemyDeathCloudParticle::~EnemyDeathCloudParticle()
+{
+}
+
 bool EnemyDeathCloudParticle::Tick(double deltaTime)
 {
 	m_AnimInfo.Tick(deltaTime);

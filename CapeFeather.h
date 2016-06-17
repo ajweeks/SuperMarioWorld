@@ -6,6 +6,7 @@ class CapeFeather : public Item
 {
 public:
 	CapeFeather(DOUBLE2 topLeft, Level* levelPtr);
+	virtual ~CapeFeather();
 
 	CapeFeather(const CapeFeather&) = delete;
 	CapeFeather& operator=(const CapeFeather&) = delete;

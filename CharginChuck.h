@@ -16,13 +16,15 @@ public:
 	virtual ~CharginChuck();
 
 	CharginChuck(const CharginChuck&) = delete;
-	CharginChuck&operator=(const CharginChuck&) = delete;
+	CharginChuck& operator=(const CharginChuck&) = delete;
 
 	void Tick(double deltaTime);
 	void Paint();
 
 	int GetWidth() const;
 	int GetHeight() const;
+
+	void SetPaused(bool paused);
 
 	void HeadBonk();
 

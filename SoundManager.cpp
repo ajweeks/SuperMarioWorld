@@ -1,8 +1,8 @@
 #include "stdafx.h"
 #include "SoundManager.h"
 
-FmodSound* SoundManager::m_SoundsPtrArr[];
-FmodSound* SoundManager::m_SongsPtrArr[];
+FmodSound* SoundManager::m_SoundsSndPtrArr[];
+FmodSound* SoundManager::m_SongsSndPtrArr[];
 
 bool SoundManager::m_Muted = false;
 double SoundManager::m_GlobalVolumeLevel = 1.0;
@@ -82,30 +82,30 @@ void SoundManager::InitialzeSoundsAndSongs()
 void SoundManager::LoadSong(Song song, String filePath)
 {
 	assert(int(song) >= 0 && int(song) < int(Song::_LAST_ELEMENT));
-	assert(m_SongsPtrArr[int(song)] == nullptr);
+	assert(m_SongsSndPtrArr[int(song)] == nullptr);
 
-	m_SongsPtrArr[int(song)] = new FmodSound();
-	m_SongsPtrArr[int(song)]->CreateStream(filePath, true);
+	m_SongsSndPtrArr[int(song)] = new FmodSound();
+	m_SongsSndPtrArr[int(song)]->CreateStream(filePath, true);
 }
 
 void SoundManager::LoadSound(Sound sound, String filePath)
 {
 	assert(int(sound) >= 0 && int(sound) < int(Sound::_LAST_ELEMENT));
-	assert(m_SoundsPtrArr[int(sound)] == nullptr);
+	assert(m_SoundsSndPtrArr[int(sound)] == nullptr);
 
-	m_SoundsPtrArr[int(sound)] = new FmodSound();
+	m_SoundsSndPtrArr[int(sound)] = new FmodSound();
 	// NOTE: The game engine doesn't seem to use handle Sounds correctly, just use streams instead
-	m_SoundsPtrArr[int(sound)]->CreateStream(filePath, false);
+	m_SoundsSndPtrArr[int(sound)]->CreateStream(filePath, false);
 }
 
 void SoundManager::RestartAndPauseSongs()
 {
 	for (int i = 0; i < int(Song::_LAST_ELEMENT); ++i)
 	{
-		if (m_SongsPtrArr[i]->IsPlaying())
+		if (m_SongsSndPtrArr[i]->IsPlaying())
 		{
-			m_SongsPtrArr[i]->SetPaused(true);
-			m_SongsPtrArr[i]->SetPosition(0);
+			m_SongsSndPtrArr[i]->SetPaused(true);
+			m_SongsSndPtrArr[i]->SetPosition(0);
 		}
 	}
 }
@@ -114,24 +114,20 @@ void SoundManager::UnloadSoundsAndSongs()
 {
 	for (int i = 0; i < int(Song::_LAST_ELEMENT); ++i)
 	{
-		delete m_SongsPtrArr[i];
-		m_SongsPtrArr[i] = nullptr;
+		delete m_SongsSndPtrArr[i];
+		m_SongsSndPtrArr[i] = nullptr;
 	}
 	for (int i = 0; i < int(Sound::_LAST_ELEMENT); ++i)
 	{
-		delete m_SoundsPtrArr[i];
-		m_SoundsPtrArr[i] = nullptr;
+		delete m_SoundsSndPtrArr[i];
+		m_SoundsSndPtrArr[i] = nullptr;
 	}
 }
 
 void SoundManager::PlaySoundEffect(Sound sound)
 {
 	if (m_Muted) return;
-
-	//if (m_SoundsPtrArr[int(sound)]->IsPlaying()) 
-	//	m_SoundsPtrArr[int(sound)]->SetPosition(0);
-	//else
-		m_SoundsPtrArr[int(sound)]->Play();
+	m_SoundsSndPtrArr[int(sound)]->Play();
 }
 
 void SoundManager::SetAllSongsPaused(bool paused)
@@ -142,22 +138,17 @@ void SoundManager::SetAllSongsPaused(bool paused)
 	}
 }
 
-//void SoundManager::SetSoundPaused(Sound sound, bool paused)
-//{
-//	if (m_SoundsPtrArr[int(sound)] == nullptr) return;
-//	m_SoundsPtrArr[int(sound)]->SetPaused(paused);
-//}
-
 void SoundManager::PlaySong(Song song)
 {
-	m_SongsPtrArr[int(song)]->Play();
-	m_SongsPtrArr[int(song)]->SetVolume(m_GlobalVolumeLevel);
+	if (m_SongsSndPtrArr[int(song)] == nullptr) return;
+	m_SongsSndPtrArr[int(song)]->Play();
+	m_SongsSndPtrArr[int(song)]->SetVolume(m_GlobalVolumeLevel);
 }
 
 void SoundManager::SetSongPaused(Song song, bool paused)
 {
-	if (m_SongsPtrArr[int(song)] == nullptr) return;
-	m_SongsPtrArr[int(song)]->SetPaused(paused);
+	if (m_SongsSndPtrArr[int(song)] == nullptr) return;
+	m_SongsSndPtrArr[int(song)]->SetPaused(paused);
 }
 
 void SoundManager::SetVolume(double volume)
@@ -170,16 +161,16 @@ void SoundManager::SetVolume(double volume)
 
 	for (int i = 0; i < int(Song::_LAST_ELEMENT) - 1; ++i)
 	{
-		if (m_SongsPtrArr[i] != nullptr)
+		if (m_SongsSndPtrArr[i] != nullptr)
 		{
-			m_SongsPtrArr[i]->SetVolume(m_GlobalVolumeLevel);
+			m_SongsSndPtrArr[i]->SetVolume(m_GlobalVolumeLevel);
 		}
 	}
 	for (int i = 0; i < int(Sound::_LAST_ELEMENT) - 1; ++i)
 	{
-		if (m_SoundsPtrArr[i] != nullptr)
+		if (m_SoundsSndPtrArr[i] != nullptr)
 		{
-			m_SoundsPtrArr[i]->SetVolume(m_GlobalVolumeLevel);
+			m_SoundsSndPtrArr[i]->SetVolume(m_GlobalVolumeLevel);
 		}
 	}
 }

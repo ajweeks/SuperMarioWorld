@@ -3,14 +3,13 @@
 #include "Enumerations.h"
 #include "AnimationInfo.h"
 
-class EntityManager;
 class SpriteSheet;
 class Level;
 
 class Entity
 {
 public:
-	Entity(DOUBLE2& posRef, BodyType bodyType, 
+	Entity(DOUBLE2 centerPos, BodyType bodyType,
 		Level* levelPtr, ActorId actorId, void* userPointer = nullptr, DOUBLE2& initialVelRef = DOUBLE2());
 	virtual ~Entity();
 
@@ -20,6 +19,7 @@ public:
 	// NOTE: Returns true when this entity should be removed
 	virtual void Tick(double deltaTime) = 0;
 	virtual void Paint() = 0;
+	virtual bool IsPaused() const;
 	virtual void SetPaused(bool paused);
 
 	DOUBLE2 GetPosition();

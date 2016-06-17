@@ -23,7 +23,7 @@ class Particle;
 class ParticleManager;
 class SpriteSheet;
 
-struct LevelInfo;
+struct LevelProperties;
 
 class Level : public ContactListener
 {
@@ -40,6 +40,7 @@ public:
 		BERRY			= (1 << 7),
 		ITEM			= (1 << 8),
 		BEANSTALK		= (1 << 9),
+		FIREBALL		= (1 << 10),
 	};
 
 	// Used to caculate/show the player's extra score at the end of the level
@@ -53,7 +54,7 @@ public:
 		int m_BonusScoreShowing;
 	};
 
-	Level(Game* gamePtr, GameState* gameStatePtr, LevelInfo levelInfo, SessionInfo sessionInfo = {});
+	Level(Game* gamePtr, GameState* gameStatePtr, LevelProperties levelInfo, SessionInfo sessionInfo = {}, Pipe* spawningPipePtr = nullptr);
 	virtual ~Level();
 
 	Level(const Level&) = delete;
@@ -68,7 +69,7 @@ public:
 	void AddEnemy(Enemy* newEnemyPtr);
 	void RemoveEnemy(Enemy* enemyPtr);
 	void AddYoshi(Yoshi* yoshiPtr);
-	bool IsYoshiAlive() const;
+	Yoshi* GetYoshiPtr();
 
 	double GetWidth() const;
 	double GetHeight() const;
@@ -106,14 +107,15 @@ private:
 	void TurnCoinsToBlocks(bool toBlocks);
 	void ReadLevelData(int levelIndex);
 	void PaintHUD();
-	void PaintEndScreen();
 	void PaintEnclosingCircle(DOUBLE2 circleCenter, double innerCircleRadius);
 
-	static const int TIME_UP_WARNING = 100; // When this many in game seconds are remaining a sound is played
-	static const int MESSAGE_BLOCK_WARNING_TIME = 60; // Play a warning sound when this many frames are remaining in the pressed timer
+	static const double TIME_SCALE; // How fast an in-game second is compared to a real life second
+	static const int TIME_UP_WARNING; // When this many in game seconds are remaining a sound is played
+	static const int MESSAGE_BLOCK_WARNING_TIME; // Play a warning sound when this many frames are remaining in the pressed timer
 
 	const int INDEX;
 
+	bool m_IsShowingEndScreen;
 	FinalExtraScore m_FinalExtraScore;
 
 	GameState* m_GameStatePtr = nullptr;
@@ -130,10 +132,8 @@ private:
 	Bitmap* m_BmpForegroundPtr = nullptr;
 	Bitmap* m_BmpBackgroundPtr = nullptr;
 
-	// NOTE: We *could* make this an array, in case the player tries to collect two items
-	// in the same frame, but that isn't very likely and will be caught in the next frame
-	// anyways, so this should be just fine
 	std::vector<Item*> m_ItemsToBeRemovedPtrArr;
+	std::vector<Enemy*> m_EnemiesToBeRemovedPtrArr;
 
 	PhysicsActor* m_ActLevelPtr = nullptr;
 
@@ -164,7 +164,4 @@ private:
 	Camera* m_CameraPtr = nullptr;
 	ParticleManager* m_ParticleManagerPtr = nullptr;
 	Yoshi* m_YoshiPtr = nullptr;
-
-	bool m_IsShowingEndScreen;
-	int m_FramesShowingEndScreen;
 };

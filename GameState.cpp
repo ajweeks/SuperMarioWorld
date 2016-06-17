@@ -4,7 +4,7 @@
 #include "Game.h"
 #include "GameSession.h"
 #include "StateManager.h"
-#include "LevelInfo.h"
+#include "LevelProperties.h"
 #include "SpriteSheetManager.h"
 #include "SoundManager.h"
 #include "SessionInfo.h"
@@ -17,7 +17,7 @@ GameState::GameState(StateManager* stateManagerPtr) :
 	GameSession::ReadSessionInfoFromFile();
 
 	int levelIndex = 0; // Start the player in level 0
-	m_CurrentLevelPtr = new Level(m_StateManagerPtr->GetGamePtr(), this, LevelInfo::levelInfoArr[levelIndex]);
+	m_CurrentLevelPtr = new Level(m_StateManagerPtr->GetGamePtr(), this, LevelProperties::Get(levelIndex));
 
 	ResetMembers();
 	
@@ -116,17 +116,15 @@ void GameState::SetPaused(bool paused, bool pauseSongs)
 
 void GameState::EnterNewLevel(Pipe* spawningPipePtr, SessionInfo sessionInfo)
 {
+	const int pipeIndex = spawningPipePtr->GetWarpPipeIndex();
 	EnterNewLevel(spawningPipePtr->GetWarpLevelIndex(), sessionInfo);
-
-	m_CurrentLevelPtr->WarpPlayerToPipe(spawningPipePtr->GetWarpPipeIndex());
+	m_CurrentLevelPtr->WarpPlayerToPipe(pipeIndex);
 }
 
-void GameState::EnterNewLevel(int levelIndex, SessionInfo sessionInfo)
+void GameState::EnterNewLevel(int levelIndex, SessionInfo sessionInfo, Pipe* spawningPipePtr)
 {
-	// TODO: get current level info (score, time remaining)
-
 	delete m_CurrentLevelPtr;
-	m_CurrentLevelPtr = new Level(m_StateManagerPtr->GetGamePtr(), this, LevelInfo::levelInfoArr[levelIndex], sessionInfo);
+	m_CurrentLevelPtr = new Level(m_StateManagerPtr->GetGamePtr(), this, LevelProperties::Get(levelIndex), sessionInfo, spawningPipePtr);
 }
 
 bool GameState::ShowingSessionInfo() const

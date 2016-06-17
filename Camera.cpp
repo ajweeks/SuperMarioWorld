@@ -58,9 +58,9 @@ DOUBLE2 Camera::GetOffset(Level* levelPtr, double deltaTime)
 double Camera::CalculateXOffset(Level* levelPtr, double deltaTime)
 {
 	Player* playerPtr = levelPtr->GetPlayer();
-	DOUBLE2 playerPos = playerPtr->GetPosition();
-	int playerFacingDr = playerPtr->GetDirectionFacing();
-	int playerMovementDir = playerPtr->GetLinearVelocity().x >= 0.0 ? Direction::RIGHT : Direction::LEFT;
+	const DOUBLE2 playerPos = playerPtr->GetPosition();
+	const int playerFacingDr = playerPtr->GetDirectionFacing();
+	const int playerMovementDir = playerPtr->GetLinearVelocity().x >= 0.0 ? Direction::RIGHT : Direction::LEFT;
 	double translationX = m_PrevOffset.x;
 
 	if (m_TransitionTimer.Tick())
@@ -187,10 +187,10 @@ double Camera::CalculateYOffset(Level* levelPtr, double deltaTime)
 	Player* playerPtr = levelPtr->GetPlayer();
 	const Player::AnimationState playerAnimationState = playerPtr->GetAnimationState();
 	const bool playerIsClimbing = playerAnimationState == Player::AnimationState::CLIMBING;
-	const bool playerIsRunning = playerPtr->IsRunning();
+	const bool playerIsSprinting = playerPtr->IsSprinting();
 
 	if (!playerIsClimbing && 
-		!playerIsRunning &&
+		!playerIsSprinting &&
 		m_PrevOffset.y == DEFAULT_Y_OFFSET)
 	{
 		return DEFAULT_Y_OFFSET;
@@ -203,14 +203,14 @@ double Camera::CalculateYOffset(Level* levelPtr, double deltaTime)
 	{
 		if (playerFeetY - yOffset > BOTTOM_BOUNDARY)
 		{
-			yOffset = playerFeetY - BOTTOM_BOUNDARY;
+			return playerFeetY - BOTTOM_BOUNDARY;
 		}
 		else if (playerFeetY - yOffset < TOP_BOUNDARY)
 		{
-			yOffset = playerFeetY - TOP_BOUNDARY;
+			return playerFeetY - TOP_BOUNDARY;
 		}
 	}
-	else if (playerIsRunning)
+	else if (playerIsSprinting)
 	{
 		if (playerFeetY - yOffset < TOP_BOUNDARY_LOW)
 		{
@@ -224,7 +224,7 @@ double Camera::CalculateYOffset(Level* levelPtr, double deltaTime)
 		{
 			if (playerFeetY > 335) // We hit ground level
 			{
-				yOffset = DEFAULT_Y_OFFSET;
+				return DEFAULT_Y_OFFSET;
 			}
 			else
 			{
@@ -233,11 +233,15 @@ double Camera::CalculateYOffset(Level* levelPtr, double deltaTime)
 		}
 		else if (playerFeetY - yOffset > BOTTOM_BOUNDARY) // Prevent the player from falling off the bottom of the screen
 		{
-			yOffset = playerFeetY - BOTTOM_BOUNDARY;
+			return playerFeetY - BOTTOM_BOUNDARY;
 		}
 	}
 
-	return yOffset;
+	m_YTarget = yOffset;
+	const double maxDY = 0.5;
+	double dy = m_PrevOffset.y - m_YTarget;
+	if (dy < maxDY) return m_YTarget;
+	else return m_PrevOffset.y + (dy > 0 ? -1 : 1) * maxDY;
 }
 
 void Camera::CalculateViewMatrix(Level* levelPtr, double deltaTime)

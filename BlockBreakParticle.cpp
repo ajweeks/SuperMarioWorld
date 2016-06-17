@@ -12,6 +12,9 @@ BlockChunk::BlockChunk(DOUBLE2 position, DOUBLE2 velocity, bool isRainbow) :
 	m_TypeTimer = rand() % 4 + 1;
 	m_AnimInfo.secondsPerFrame = 0.02;
 }
+BlockChunk::~BlockChunk()
+{
+}
 void BlockChunk::Tick(double deltaTime)
 {
 	m_AnimInfo.Tick(deltaTime);

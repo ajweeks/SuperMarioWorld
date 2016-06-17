@@ -23,10 +23,19 @@ GrabBlock::GrabBlock(DOUBLE2 topLeft, Level* levelPtr) :
 	m_LifeRemaining = SMWTimer(500);
 }
 
+GrabBlock::~GrabBlock()
+{
+}
+
 void GrabBlock::Tick(double deltaTime)
 {
+	Player* playerPtr = m_LevelPtr->GetPlayer();
 	if (m_ShouldBeRemoved)
 	{
+		if (playerPtr->GetHeldItemPtr() == this)
+		{
+			playerPtr->DropHeldItem();
+		}
 		m_LevelPtr->RemoveItem(this);
 		return;
 	}
@@ -36,9 +45,9 @@ void GrabBlock::Tick(double deltaTime)
 		EnemyDeathCloudParticle* cloudParticlePtr = new EnemyDeathCloudParticle(m_ActPtr->GetPosition());
 		m_LevelPtr->AddParticle(cloudParticlePtr);
 
-		if (m_LevelPtr->GetPlayer()->GetHeldItemPtr() == this)
+		if (playerPtr->GetHeldItemPtr() == this)
 		{
-			m_LevelPtr->GetPlayer()->DropHeldItem();
+			playerPtr->DropHeldItem();
 		}
 		m_LevelPtr->RemoveItem(this);
 		return;
@@ -104,6 +113,8 @@ void GrabBlock::Explode()
 {
 	BlockBreakParticle* blockBreakParticle = new BlockBreakParticle(m_ActPtr->GetPosition(), true);
 	m_LevelPtr->AddParticle(blockBreakParticle);
+
+	SoundManager::PlaySoundEffect(SoundManager::Sound::BLOCK_BREAK);
 
 	m_ShouldBeRemoved = true;
 }

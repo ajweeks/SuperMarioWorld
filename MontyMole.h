@@ -59,6 +59,7 @@ public:
 	void StompKill();
 
 	bool IsAlive() const;
+	void SetDead();
 
 	void SetPaused(bool paused);
 	bool Raycast(DOUBLE2 point1, DOUBLE2 point2, DOUBLE2 &intersectionRef, DOUBLE2 &normalRef, double &fractionRef);

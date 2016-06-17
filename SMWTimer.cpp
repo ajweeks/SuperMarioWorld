@@ -52,6 +52,11 @@ bool SMWTimer::IsActive() const
 	return m_IsActive;
 }
 
+int SMWTimer::FramesRemaining() const
+{
+	return m_FramesRemaining;
+}
+
 int SMWTimer::FramesElapsed() const
 {
 	return (TOTAL_FRAMES - m_FramesRemaining);
@@ -60,6 +65,11 @@ int SMWTimer::FramesElapsed() const
 int SMWTimer::TotalFrames() const
 {
 	return TOTAL_FRAMES;
+}
+
+void SMWTimer::SetFramesRemaining(int framesRemaining)
+{
+	m_FramesRemaining = max(min(framesRemaining, TOTAL_FRAMES), 0);
 }
 
 void SMWTimer::SetComplete()

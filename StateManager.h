@@ -1,6 +1,5 @@
 #pragma once
 
-#include <stack>
 #include "Game.h"
 
 class BaseState;
@@ -23,8 +22,6 @@ public:
 	void SetState(BaseState* newStatePtr);
 
 private:
-
 	Game* m_GamePtr = nullptr;
-
 	BaseState* m_CurrentStatePtr = nullptr;
 };

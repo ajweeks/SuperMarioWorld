@@ -7,8 +7,7 @@
 #include "SoundManager.h"
 
 Gate::Gate(DOUBLE2 topLeft, Level* levelPtr, Type itemType, int barLength, int barDiameter) :
-	Item(topLeft, itemType, levelPtr, Level::ITEM,
-		BodyType::STATIC, barLength, barDiameter),
+	Item(topLeft, itemType, levelPtr, Level::ITEM, BodyType::STATIC, barLength, barDiameter),
 	m_TopLeft(topLeft)
 {
 	m_AnimInfo.secondsPerFrame = 0.1;

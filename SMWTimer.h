@@ -11,8 +11,10 @@ struct SMWTimer
 	// Returns true if this timer is active, or if it just completed
 	bool Tick();
 
+	int FramesRemaining() const;
 	int FramesElapsed() const;
 	int TotalFrames() const;
+	void SetFramesRemaining(int framesRemaining);
 
 	void SetPaused(bool paused);
 	bool IsPaused() const;

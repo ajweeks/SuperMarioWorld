@@ -18,6 +18,10 @@ KoopaTroopa::KoopaTroopa(DOUBLE2 startingPos, Level* levelPtr, Colour colour) :
 	m_DirFacing = Direction::LEFT;
 	m_AnimInfo.secondsPerFrame = 0.14;
 	m_AnimationState = AnimationState::WALKING;
+
+	b2Filter collisionFilter = m_ActPtr->GetCollisionFilter();
+	collisionFilter.maskBits |= Level::FIREBALL;
+	m_ActPtr->SetCollisionFilter(collisionFilter);
 }
 
 KoopaTroopa::~KoopaTroopa()
@@ -74,8 +78,6 @@ void KoopaTroopa::Tick(double deltaTime)
 			m_FramesSpentBeingShelless = -1;
 
 			ChangeAnimationState(AnimationState::WALKING_SHELLESS);
-
-			// LATER: Move in the direction of the player
 		}
 	}
 
@@ -95,7 +97,7 @@ void KoopaTroopa::Tick(double deltaTime)
 	m_AnimInfo.Tick(deltaTime);
 	m_AnimInfo.frameNumber %= 2;
 
-	// NOTE: Checks if this koopa is near an obstacle, if true then turn around
+	// NOTE: Checks if this koopa is near an obstacle, if true then turns around
 	DOUBLE2 point1 = m_ActPtr->GetPosition();
 	DOUBLE2 point2 = m_ActPtr->GetPosition() + DOUBLE2(m_DirFacing * (GetWidth() / 2 + 2), 0);
 	DOUBLE2 intersection, normal;
@@ -108,7 +110,7 @@ void KoopaTroopa::Tick(double deltaTime)
 	}
 
 
-	// NOTE: Checks if this koopa about to walk off an edge, if true then turn around
+	// NOTE: Checks if this koopa about to walk off an edge, and turns around if so
 	point1 = m_ActPtr->GetPosition();
 	point2 = m_ActPtr->GetPosition() + DOUBLE2(m_DirFacing * (GetWidth() / 2 + 2), GetHeight() / 2 + 4);
 	fraction = -1.0;
@@ -132,7 +134,6 @@ void KoopaTroopa::ChangeDirections()
 {
 	m_DirFacing = -m_DirFacing;
 
-	// NOTE: Only trigger the turn around animation if we're walking
 	if (m_AnimationState == AnimationState::WALKING)
 	{
 		m_FramesSpentTurningAround = 0;

@@ -6,16 +6,19 @@
 #include "SpriteSheet.h"
 #include "Block.h"
 
-MoveableItem::MoveableItem(DOUBLE2 topLeft, Type itemType, int spriteSheetXIndex, int spriteSheetYIndex, Level* levelPtr, int directionFacing) :
+MoveableItem::MoveableItem(DOUBLE2 topLeft, Type itemType, int spriteSheetXIndex, int spriteSheetYIndex, 
+	Level* levelPtr, int directionFacing, bool spawnsFromBlock) :
 	Item(topLeft, itemType, levelPtr, Level::ITEM, BodyType::DYNAMIC, WIDTH, HEIGHT), 
 	m_SpawnLocation(topLeft),
 	m_DirFacing(directionFacing),
-	m_SpriteSheetIndex(INT2(spriteSheetXIndex, spriteSheetYIndex))
+	m_SpriteSheetIndex(INT2(spriteSheetXIndex, spriteSheetYIndex)),
+	m_SpawnedFromBlock(spawnsFromBlock)
 {
 	assert(directionFacing == Direction::LEFT || directionFacing == Direction::RIGHT);
 
 	m_ActPtr->SetSensor(true);
 	m_ActPtr->SetGravityScale(0.0);
+	m_ActPtr->SetActive(false);
 
 	b2Filter collisionFilter;
 	collisionFilter.categoryBits = Level::ITEM;
@@ -40,6 +43,7 @@ void MoveableItem::Tick(double deltaTime)
 		if (m_IntroAnimationTimer.IsComplete())
 		{
 			m_ActPtr->SetSensor(false);
+			m_ActPtr->SetActive(true);
 			m_ActPtr->SetGravityScale(1.0);
 		}
 		else if (m_IntroAnimationTimer.FramesElapsed() > FRAMES_OF_ANIMATION_DELAY)
@@ -86,7 +90,7 @@ void MoveableItem::Paint()
 	// but this is tough to do since things are painted in the order
 	// they are added in. So we'll just paint a 'fake' prize block
 	// exactly in the correct position
-	if (m_IntroAnimationTimer.IsActive() && m_IntroAnimationTimer.FramesElapsed() > FRAMES_OF_ANIMATION_DELAY)
+	if (m_SpawnedFromBlock && m_IntroAnimationTimer.IsActive() && m_IntroAnimationTimer.FramesElapsed() > FRAMES_OF_ANIMATION_DELAY)
 	{
 		double left = m_SpawnLocation.x + WIDTH / 2;
 		double top = m_SpawnLocation.y + Block::HEIGHT / 2 + 2;

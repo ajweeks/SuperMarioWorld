@@ -6,6 +6,7 @@ class BlockChunk
 {
 public:
 	BlockChunk(DOUBLE2 position, DOUBLE2 velocity, bool isRainbow = false);
+	virtual ~BlockChunk();
 
 	BlockChunk(const BlockChunk&) = delete;
 	BlockChunk& operator=(const BlockChunk&) = delete;
@@ -38,10 +39,7 @@ public:
 
 private:
 	static const int LIFETIME = 100;
-	
 
 	// Holds 4 values, one for each block piece
 	BlockChunk* m_BlockChunkPtrArr[4];
-
 };
-

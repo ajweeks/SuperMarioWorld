@@ -16,6 +16,6 @@ public:
 	void Paint();
 
 private:
-	static const int LIFETIME = 4; // NOTE: Once we show our four frames, we're gone
+	static const int LIFETIME = 4; // Once we show our four frames, we're gone
 
 };

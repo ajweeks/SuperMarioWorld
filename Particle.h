@@ -12,13 +12,11 @@ public:
 	Particle(const Particle&) = delete;
 	Particle& operator=(const Particle&) = delete;
 
-	// NOTE: Returns true if this item needs to be removed
+	// Returns true if this item needs to be removed
 	virtual bool Tick(double deltaTime) = 0;
 	virtual void Paint() = 0;
 
 protected:
-	//Bitmap* m_BmpPtr = nullptr;
-	// NOTE: Where in world space this particle is
 	DOUBLE2 m_Position;
 	AnimationInfo m_AnimInfo;
 	int m_LifeRemaining;

@@ -34,7 +34,6 @@ public:
 	static void UnloadSoundsAndSongs();
 
 	static void PlaySoundEffect(Sound sound);
-	//static void SetSoundPaused(Sound sound, bool paused); // UNUSED
 	static void PlaySong(Song song);
 	static void SetSongPaused(Song song, bool paused);
 
@@ -60,8 +59,8 @@ private:
 
 	static const String m_ResourcePath;
 
-	static FmodSound* m_SoundsPtrArr[int(Sound::_LAST_ELEMENT)];
-	static FmodSound* m_SongsPtrArr[int(Song::_LAST_ELEMENT)];
+	static FmodSound* m_SoundsSndPtrArr[int(Sound::_LAST_ELEMENT)];
+	static FmodSound* m_SongsSndPtrArr[int(Song::_LAST_ELEMENT)];
 
 	static double m_GlobalVolumeLevel;
 	static bool m_Muted;

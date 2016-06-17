@@ -9,5 +9,4 @@ public:
 
 	SuperMushroom(const SuperMushroom&) = delete;
 	SuperMushroom& operator=(const SuperMushroom&) = delete;
-
 };

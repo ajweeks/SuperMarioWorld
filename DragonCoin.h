@@ -6,6 +6,7 @@ class DragonCoin : public Coin
 {
 public:
 	DragonCoin(DOUBLE2 topLeft, Level* levelPtr);
+	virtual ~DragonCoin();
 
 	DragonCoin(const DragonCoin&) = delete;
 	DragonCoin& operator=(const DragonCoin&) = delete;
@@ -15,6 +16,5 @@ public:
 	void GenerateParticles();
 	
 	static const int WIDTH = 16;
-	static const int HEIGHT = 16;
-
+	static const int HEIGHT = 32;
 };

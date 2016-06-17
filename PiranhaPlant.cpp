@@ -20,6 +20,10 @@ PiranhaPlant::PiranhaPlant(DOUBLE2 topLeft, Level* levelPtr) :
 	m_ActPtr->SetSensor(true);
 	m_ActPtr->SetGravityScale(0.0);
 
+	b2Filter collisionFilter = m_ActPtr->GetCollisionFilter();
+	collisionFilter.maskBits |= Level::FIREBALL;
+	m_ActPtr->SetCollisionFilter(collisionFilter);
+
 	m_PausedAtTopTimer = SMWTimer(25);
 }
 

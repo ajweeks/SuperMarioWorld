@@ -5,11 +5,11 @@
 #include "Level.h"
 #include "Player.h"
 
-const int Enemy::MINIMUM_PLAYER_DISTANCE = int(Game::WIDTH * (4.0 / 5.0));
+const int Enemy::MINIMUM_PLAYER_DISTANCE = int(Game::WIDTH);
 
-Enemy::Enemy(Type type, DOUBLE2& posRef, double width, double height, BodyType bodyType, Level* levelPtr, void* userPointer) :
-	Entity(posRef, bodyType, levelPtr, ActorId::ENEMY, userPointer),
-	m_Type(type), m_SpawingPosition(posRef)
+Enemy::Enemy(Type type, DOUBLE2 centerPos, double width, double height, BodyType bodyType, Level* levelPtr, void* userPointer) :
+	Entity(centerPos, bodyType, levelPtr, ActorId::ENEMY, userPointer),
+	m_Type(type), m_SpawingPosition(centerPos)
 {
 	m_ActPtr->AddBoxFixture(width, height, 0.0);
 
@@ -46,6 +46,11 @@ void Enemy::Tick(double deltaTime)
 Enemy::Type Enemy::GetType() const
 {
 	return m_Type;
+}
+
+void Enemy::SetPosition(DOUBLE2 newPos)
+{
+	m_ActPtr->SetPosition(newPos);
 }
 
 std::string Enemy::TYPEToString(Type type)

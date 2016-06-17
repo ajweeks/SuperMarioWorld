@@ -16,7 +16,7 @@ private:
 	FileIO() = delete;
 };
 
-// Remove whitespace from level data read from file, but preserves spacing in quotes
+// Removes whitespace from level data read from file, but preserves spacing in quotes
 class IsWhitespace
 {
 public:

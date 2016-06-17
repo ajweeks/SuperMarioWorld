@@ -12,7 +12,7 @@ public:
 		NONE, KOOPA_TROOPA, CHARGIN_CHUCK, PIRHANA_PLANT, MONTY_MOLE
 	};
 
-	Enemy(Type type, DOUBLE2& posRef, double width, double height, BodyType bodyType,
+	Enemy(Type type, DOUBLE2 centerPos, double width, double height, BodyType bodyType,
 		Level* levelPtr, void* userPointer = nullptr);
 	virtual ~Enemy();
 
@@ -26,6 +26,7 @@ public:
 	virtual int GetHeight() const = 0;
 
 	Type GetType() const;
+	void SetPosition(DOUBLE2 newPos);
 
 	static std::string TYPEToString(Type type);
 	static Type StringToTYPE(const std::string& string);
@@ -42,5 +43,4 @@ protected:
 	int m_DirFacingLastFrame;
 
 	bool m_IsOnGround;
-
 };

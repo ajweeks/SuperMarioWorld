@@ -15,7 +15,6 @@ struct SessionInfoPair
 class GameSession
 {
 public:
-
 	GameSession(const GameSession&) = delete;
 	GameSession& operator=(const GameSession&) = delete;
 

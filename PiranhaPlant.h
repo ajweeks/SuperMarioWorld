@@ -42,5 +42,4 @@ private:
 	// The plant moves up quickly (VERTICAL_VEL_FAST) then slows down near the apex
 	// and moves slowly until reaching the pipe again
 	int m_DirMoving;
-
 };

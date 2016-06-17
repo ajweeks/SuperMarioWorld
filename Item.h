@@ -11,7 +11,7 @@ public:
 		NONE,
 		COIN, DRAGON_COIN, BERRY, KEY, KEYHOLE, P_SWITCH,
 		ONE_UP_MUSHROOM, THREE_UP_MOON,
-		KOOPA_SHELL,
+		KOOPA_SHELL, FIREBALL,
 		BEANSTALK, CLOUD_BLOCK,
 		SUPER_MUSHROOM, FIRE_FLOWER, CAPE_FEATHER, STAR, POWER_BALLOON,
 		PRIZE_BLOCK, MESSAGE_BLOCK, ROTATING_BLOCK, EXCLAMATION_MARK_BLOCK, GRAB_BLOCK,
@@ -34,6 +34,10 @@ public:
 
 	static Type StringToTYPE(std::string string);
 	static std::string TYPEToString(Type type);
+
+	// Similar to StringToTYPE, but this carries extra data with it
+	static Item* StringToItem(const std::string& itemString, DOUBLE2 itemPos, Level* levelPtr);
+	static std::string ItemToString(Item* itemPtr);
 
 	Type GetType();
 	bool IsBlock();

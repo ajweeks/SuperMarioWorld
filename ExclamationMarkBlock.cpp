@@ -60,9 +60,9 @@ void ExclamationMarkBlock::Paint()
 		srcCol = 5;
 	}
 
-	double left = m_ActPtr->GetPosition().x;
-	double top = m_ActPtr->GetPosition().y + m_yo * 3;
-	SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES)->Paint(left, top, srcCol, srcRow);
+	int centerX = int(m_ActPtr->GetPosition().x);
+	int centerY = int(m_ActPtr->GetPosition().y + m_yo * 3);
+	SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES)->Paint(centerX, centerY, srcCol, srcRow);
 }
 
 void ExclamationMarkBlock::SetSolid(bool solid)

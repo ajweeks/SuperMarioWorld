@@ -7,8 +7,8 @@
 #include "Level.h"
 #include "EnemyDeathCloudParticle.h"
 
-PSwitch::PSwitch(DOUBLE2 topLeft, Colour colour, Level* levelPtr) :
-	Item(topLeft, Item::Type::P_SWITCH, levelPtr, Level::ITEM, BodyType::DYNAMIC), m_Colour(colour)
+PSwitch::PSwitch(DOUBLE2 topLeft, Level* levelPtr) :
+	Item(topLeft + DOUBLE2(8 - WIDTH / 2, 0), Item::Type::P_SWITCH, levelPtr, Level::ITEM, BodyType::DYNAMIC, WIDTH, HEIGHT)
 {
 	m_PressedTimer = SMWTimer(20);
 }
@@ -49,5 +49,4 @@ void PSwitch::Hit()
 	SoundManager::PlaySoundEffect(SoundManager::Sound::PSWITCH_ACTIVATE);
 
 	// TODO: Add screenshake here!
-	
 }

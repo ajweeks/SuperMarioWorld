@@ -5,14 +5,15 @@
 #include "Level.h"
 #include "Player.h"
 #include "Enemy.h"
-#include "Item.h"
 #include "KoopaTroopa.h"
 #include "KoopaShell.h"
 #include "Message.h"
+#include "MontyMole.h"
 
 #include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
-#include "SuperMushroom.h"
+#include "OneUpMushroom.h"
+#include "Fireball.h"
 #include "YoshiEggBreakParticle.h"
 #include "StarCloudParticle.h"
 
@@ -25,7 +26,6 @@ const int Yoshi::INITIAL_BUMP_Y_VEL = -130;
 const int Yoshi::JUMP_VEL = -25000;
 const int Yoshi::TONGUE_VEL = 130;
 const int Yoshi::HOP_VEL = -2200;
-
 const int Yoshi::RUN_VEL = 5000;
 
 const float Yoshi::HATCHING_SECONDS_PER_FRAME = 0.6f;
@@ -35,7 +35,7 @@ const float Yoshi::WALKING_SECONDS_PER_FRAME = 0.03f;
 const float Yoshi::RUNNING_SECONDS_PER_FRAME = 0.015f;
 const float Yoshi::TONGUE_STUCK_OUT_SECONDS_PER_FRAME = 0.14f;
 
-Yoshi::Yoshi(DOUBLE2 position, Level* levelPtr) : 
+Yoshi::Yoshi(DOUBLE2 position, Level* levelPtr, bool spawnAsAdult, Player* playerCarryingPtr) :
 	Entity(position, BodyType::DYNAMIC, levelPtr, ActorId::YOSHI, this)
 {
 	m_ActPtr->AddBoxFixture(GetWidth(), GetHeight(), 0.0);
@@ -44,7 +44,7 @@ Yoshi::Yoshi(DOUBLE2 position, Level* levelPtr) :
 
 	b2Filter bodyCollisionFilter;
 	bodyCollisionFilter.categoryBits = Level::YOSHI;
-	bodyCollisionFilter.maskBits = Level::LEVEL | Level::BLOCK;
+	bodyCollisionFilter.maskBits = Level::LEVEL | Level::BLOCK | Level::PLAYER | Level::SHELL;
 	m_ActPtr->SetCollisionFilter(bodyCollisionFilter);
 
 	// NOTE: The tounge actor can _**NOT**_ have a body type of kinematic,
@@ -66,21 +66,34 @@ Yoshi::Yoshi(DOUBLE2 position, Level* levelPtr) :
 
 	m_SpriteSheetPtr = SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::SMALL_YOSHI);
 
-	m_TongueTimer = SMWTimer(35);
+	m_TongueTimer = SMWTimer(32);
 	m_HatchingTimer = SMWTimer(50);
-	m_HatchingTimer.Start();
 	m_GrowingTimer = SMWTimer(80);
 	m_YappingTimer = SMWTimer(70);
-	m_YappingTimer.Start();
+	if (spawnAsAdult) 
+	{
+		m_AnimationState = AnimationState::WAITING;
+		if (playerCarryingPtr != nullptr) 
+		{
+			m_PlayerPtr = playerCarryingPtr;
+			m_IsCarryingPlayer = true;
+			m_NeedsNewFixture = true;
+		}
+	}
+	else 
+	{
+		m_HatchingTimer.Start();
+		m_YappingTimer.Start();
+
+		SoundManager::PlaySoundEffect(SoundManager::Sound::YOSHI_SPAWN);
+		SoundManager::PlaySoundEffect(SoundManager::Sound::YOSHI_EGG_BREAK);
+	}
 
 	m_DirFacing = Direction::RIGHT;
-
 	m_ItemsEaten = 0;
-
 	m_MessagePtr = new Message(MESSAGE_STRING, levelPtr);
 
-	SoundManager::PlaySoundEffect(SoundManager::Sound::YOSHI_SPAWN);
-	SoundManager::PlaySoundEffect(SoundManager::Sound::YOSHI_EGG_BREAK); // LATER: add delay here?
+	m_ItemInMouthTypeStr = "";
 }
 
 Yoshi::~Yoshi()
@@ -91,28 +104,18 @@ Yoshi::~Yoshi()
 
 void Yoshi::Tick(double deltaTime)
 {
-	if (m_ItemToBeRemovedPtr != nullptr)
-	{
-		m_LevelPtr->RemoveItem(m_ItemToBeRemovedPtr);
-		m_ItemToBeRemovedPtr = nullptr;
-	}
-	if (m_EnemyToBeRemovedPtr != nullptr)
-	{
-		m_LevelPtr->RemoveEnemy(m_EnemyToBeRemovedPtr);
-		m_EnemyToBeRemovedPtr = nullptr;
-	}
-
 	if (m_ShouldSpawnMushroom)
 	{
 		m_ShouldSpawnMushroom = false;
-		SoundManager::PlaySoundEffect(SoundManager::Sound::YOSHI_EGG_BREAK);
+		// NOTE: Mushroom spawning from Yoshi doesn't work atm
+		//SoundManager::PlaySoundEffect(SoundManager::Sound::YOSHI_EGG_BREAK);
 
-		DOUBLE2 mushroomPos = m_ActPtr->GetPosition();
-		YoshiEggBreakParticle* eggBreakParticlePtr = new YoshiEggBreakParticle(mushroomPos);
-		m_LevelPtr->AddParticle(eggBreakParticlePtr);
+		//DOUBLE2 mushroomPos = m_ActPtr->GetPosition();
+		//YoshiEggBreakParticle* eggBreakParticlePtr = new YoshiEggBreakParticle(mushroomPos);
+		//m_LevelPtr->AddParticle(eggBreakParticlePtr);
 
-		SuperMushroom* superMushroomPtr = new SuperMushroom(mushroomPos, m_LevelPtr, -m_DirFacing);
-		m_LevelPtr->AddItem(superMushroomPtr);
+		//OneUpMushroom* oneUpMushroomPtr = new OneUpMushroom(mushroomPos, m_LevelPtr, -m_DirFacing, false);
+		//m_LevelPtr->AddItem(oneUpMushroomPtr);
 	}
 
 	if (m_NeedsNewFixture)
@@ -126,8 +129,7 @@ void Yoshi::Tick(double deltaTime)
 			m_ActPtr->GetBody()->DestroyFixture(fixturePtr);
 			fixturePtr = nextFixturePtr;
 		}
-		// If we are carrying the player, we don't need a new box fixture,
-		// we will just use theirs
+		// If we are carrying the player, we don't need a new box fixture; we will just use theirs
 		if (m_IsCarryingPlayer)
 		{
 			m_NeedsNewFixture = false;
@@ -135,8 +137,7 @@ void Yoshi::Tick(double deltaTime)
 			return;
 		}
 		m_ActPtr->SetActive(true);
-
-		m_ActPtr->AddBoxFixture(GetWidth(), GetHeight(), 0.0, 0.02);
+		m_ActPtr->AddBoxFixture(GetWidth(), GetHeight(), 0.0, 1.0);
 
 		double newHalfHeight = GetHeight() / 2.0;
 
@@ -153,6 +154,15 @@ void Yoshi::Tick(double deltaTime)
 		m_TongueXVel = 0.0;
 		m_TongueLength = 0;
 		m_IsTongueStuckOut = false;
+
+		if (m_ItemOnTonguePtr != nullptr)
+		{
+			EatItemOnTongue();
+		}
+		if (m_EnemyOnTonguePtr != nullptr)
+		{
+			EatEnemyOnTongue();
+		}
 	}
 
 	if (m_HatchingTimer.Tick())
@@ -229,7 +239,17 @@ void Yoshi::Tick(double deltaTime)
 		yo = -9;
 		xo = 3;
 	}
-	m_ActToungePtr->SetPosition(m_ActPtr->GetPosition() + DOUBLE2(m_TongueLength + xo, yo));
+	const DOUBLE2 newTonguePos = m_ActPtr->GetPosition() + DOUBLE2(m_TongueLength + xo, yo);
+	m_ActToungePtr->SetPosition(newTonguePos);
+	if (m_ItemOnTonguePtr != nullptr)
+	{
+		m_ItemOnTonguePtr->SetPosition(newTonguePos);
+	}
+	if (m_EnemyOnTonguePtr != nullptr)
+	{
+		if (m_EnemyOnTonguePtr->IsPaused() == false) m_EnemyOnTonguePtr->SetPaused(true);
+		m_EnemyOnTonguePtr->SetPosition(newTonguePos);
+	}
 }
 
 void Yoshi::TickAnimations(double deltaTime)
@@ -378,6 +398,18 @@ void Yoshi::PaintAnimationFrame(double left, double top)
 	m_SpriteSheetPtr->Paint(left + xo, top + yo, srcX, srcY);
 }
 
+void Yoshi::PaintEntityOnTongue() const
+{
+	if (m_ItemOnTonguePtr != nullptr)
+	{
+		m_ItemOnTonguePtr->Paint();
+	}
+	if (m_EnemyOnTonguePtr != nullptr)
+	{
+		m_EnemyOnTonguePtr->Paint();
+	}
+}
+
 void Yoshi::ChangeAnimationState(AnimationState newAnimationState)
 {
 	switch (newAnimationState)
@@ -407,28 +439,37 @@ void Yoshi::ChangeAnimationState(AnimationState newAnimationState)
 
 void Yoshi::RunWild()
 {
+	m_PlayerPtr->Bounce(false);
+	m_PlayerPtr->TurnInvincible();
 	SetCarryingPlayer(false, nullptr);
 	ChangeAnimationState(AnimationState::WILD);
+	SoundManager::PlaySoundEffect(SoundManager::Sound::YOSHI_RUN_AWAY);
+}
+
+bool Yoshi::IsCarryingPlayer() const
+{
+	return m_IsCarryingPlayer;
 }
 
 void Yoshi::SetCarryingPlayer(bool carryingPlayer, Player* playerPtr)
 {
 	if (carryingPlayer)
 	{
-		m_YappingTimer.SetComplete(); // stop yer yapping!
+		m_YappingTimer.SetComplete(); // Stop yer yapping!
 	}
 	else
 	{
 		m_YappingTimer.Start();
 		m_SpriteSheetPtr = SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::YOSHI);
 		
-		if (m_PlayerPtr->IsAirborne()) 
+		if (m_PlayerPtr != nullptr && m_PlayerPtr->IsAirborne()) 
 		{
 			ChangeAnimationState(AnimationState::FALLING);
-			m_ActPtr->SetLinearVelocity(DOUBLE2(m_ActPtr->GetLinearVelocity().x, 0));
+			m_ActPtr->SetLinearVelocity(DOUBLE2(m_PlayerPtr->GetLinearVelocity().x, 0));
 		}
 		else
 		{
+			m_ActPtr->SetLinearVelocity(DOUBLE2(0, 0));
 			ChangeAnimationState(AnimationState::WAITING);
 		}
 
@@ -440,53 +481,142 @@ void Yoshi::SetCarryingPlayer(bool carryingPlayer, Player* playerPtr)
 	m_NeedsNewFixture = true;
 }
 
-void Yoshi::EatItem(Item* itemPtr)
+void Yoshi::TongueTouchedItem(Item* itemPtr)
 {
+	if (m_ItemInMouthTypeStr != "") return; // Our mouth is already full!
+	if (m_ItemOnTonguePtr != nullptr) return;
+	if (m_IsCarryingPlayer == false) return;
+
 	switch (itemPtr->GetType())
 	{
 	case Item::Type::BERRY:
+	case Item::Type::KOOPA_SHELL:
+	case Item::Type::SUPER_MUSHROOM:
+	case Item::Type::ONE_UP_MUSHROOM:
+	{
+		m_ItemOnTonguePtr = itemPtr;
+		if (m_TongueTimer.IsActive() == false)
+		{
+			// We are eating a berry that we just walked by without sticking out our tongue
+			m_TongueTimer.Start();
+			m_TongueTimer.SetFramesRemaining(1);
+			m_PlayerPtr->SetLinearVelocity(DOUBLE2(0, m_PlayerPtr->GetLinearVelocity().y));
+		}
+	} break;
+	default:
+	{
+		// Yoshi doesn't eat this type of item!
+		return;
+	} break;
+	}
+
+	int elapsed = m_TongueTimer.FramesElapsed();
+	if (elapsed < m_TongueTimer.TotalFrames() / 2) m_TongueTimer.SetFramesRemaining(elapsed);
+	m_TongueXVel = -m_TongueXVel;
+}
+
+void Yoshi::EatItemOnTongue()
+{
+	if (m_ItemInMouthTypeStr != "") return; // Our mouth is already full!
+	if (m_ItemOnTonguePtr == nullptr) return;
+	if (m_IsCarryingPlayer == false) return;
+
+	switch (m_ItemOnTonguePtr->GetType())
+	{
+	case Item::Type::BERRY:
+	case Item::Type::SUPER_MUSHROOM:
+	case Item::Type::ONE_UP_MUSHROOM:
 	{
 		SwallowItem();
 	} break;
 	case Item::Type::KOOPA_SHELL:
 	{
-		if (m_ItemInMouthType == Item::Type::NONE)
-		{
-			m_ItemInMouthType = Item::Type::KOOPA_SHELL;
-		}
+		m_ItemInMouthTypeStr = Item::ItemToString(m_ItemOnTonguePtr);
+	} break;
+	default:
+	{
+		// Yoshi doesn't eat this type of item!
+		m_ItemOnTonguePtr = nullptr;
+		return;
 	} break;
 	}
 
-	m_ItemToBeRemovedPtr = itemPtr;
+	m_LevelPtr->RemoveItem(m_ItemOnTonguePtr);
+	m_ItemOnTonguePtr = nullptr;
 }
 
-void Yoshi::EatEnemy(Enemy* enemyPtr)
+void Yoshi::TongueTouchedEnemy(Enemy* enemyPtr)
 {
+	if (m_ItemInMouthTypeStr != "") return; // Our mouth is already full!
+	if (m_IsCarryingPlayer == false) return;
+
 	switch (enemyPtr->GetType())
 	{
 	case Enemy::Type::KOOPA_TROOPA:
+	case Enemy::Type::MONTY_MOLE:
+	case Enemy::Type::PIRHANA_PLANT:
 	{
-		KoopaTroopa* koopaPtr = (KoopaTroopa*)enemyPtr;
+		m_EnemyOnTonguePtr = enemyPtr;
+	} break;
+	default:
+	{
+		// Yoshi can't eat these types of enemies!
+		return;
+	} break;
+	}
+
+	int elapsed = m_TongueTimer.FramesElapsed();
+	if (elapsed < m_TongueTimer.TotalFrames() / 2) m_TongueTimer.SetFramesRemaining(elapsed);
+	m_TongueXVel = -m_TongueXVel;
+}
+
+void Yoshi::EatEnemyOnTongue()
+{
+	if (m_EnemyOnTonguePtr == nullptr) return;
+
+	switch (m_EnemyOnTonguePtr->GetType())
+	{
+	case Enemy::Type::KOOPA_TROOPA:
+	{
+		KoopaTroopa* koopaPtr = (KoopaTroopa*)m_EnemyOnTonguePtr;
 		if (koopaPtr->IsShelless())
 		{
 			SwallowItem();
 		}
 		else
 		{
-			//m_ItemInMouthPtr = new KoopaShell(m_ActPtr->GetPosition(), m_LevelPtr, koopaPtr->GetColour());
+			m_ItemInMouthTypeStr = "KoopaShell," + std::string(koopaPtr->GetColour() == Colour::RED ? "Red" : "Green");
 		}
 	} break;
-	case Enemy::Type::CHARGIN_CHUCK:
+	case Enemy::Type::MONTY_MOLE:
 	{
-		return; // The player can't eat these dudes
+		SwallowItem();
+		// We don't want to remove monty moles since
+		// they need to continue painting their spawning hole
+		((MontyMole*)m_EnemyOnTonguePtr)->SetDead(); 
+		m_EnemyOnTonguePtr = nullptr;
+		return;
+	} break;
+	case Enemy::Type::PIRHANA_PLANT:
+	{
+		SwallowItem();
+	} break;
+	default:
+	{
+		// Yoshi can't eat these types of enemies!
+		m_EnemyOnTonguePtr = nullptr;
+		return;
 	} break;
 	}
 
-	m_EnemyToBeRemovedPtr = enemyPtr;
+	m_LevelPtr->RemoveEnemy(m_EnemyOnTonguePtr);
+	m_EnemyOnTonguePtr = nullptr;
 }
 
 void Yoshi::SwallowItem()
 {
+	if (m_IsCarryingPlayer == false) return;
+
 	++m_ItemsEaten;
 	if (m_ItemsEaten > MAX_ITEMS_EATEN)
 	{
@@ -498,34 +628,52 @@ void Yoshi::SwallowItem()
 	{
 		SoundManager::PlaySoundEffect(SoundManager::Sound::YOSHI_SWALLOW);
 	}
+	
+	m_ItemInMouthTypeStr = "";
 }
 
 void Yoshi::SpitOutItem()
 {
-	if (m_ItemInMouthType != Item::Type::NONE)
+	if (m_ItemInMouthTypeStr == "") return; // We have no item to spit out!
+
+	Item* itemPtr = Item::StringToItem(m_ItemInMouthTypeStr, m_ActPtr->GetPosition(), m_LevelPtr);
+	if (itemPtr != nullptr && itemPtr->GetType() != Item::Type::NONE)
 	{
-		switch (m_ItemInMouthType)
+		switch (itemPtr->GetType())
 		{
 		case Item::Type::KOOPA_SHELL:
 		{
-			KoopaShell* koopaShellPtr = new KoopaShell(m_ActPtr->GetPosition(), m_LevelPtr, Colour::GREEN);
-			koopaShellPtr->SetMoving(true);
-			m_LevelPtr->AddItem(koopaShellPtr);
+			KoopaShell* koopaShellPtr = (KoopaShell*)itemPtr;
+			if (koopaShellPtr->GetColour() == Colour::RED)
+			{
+				delete koopaShellPtr;
+				koopaShellPtr = nullptr;
+				itemPtr = nullptr;
 
-			m_ItemInMouthType = Item::Type::NONE;
+				Fireball* fireballPtr = new Fireball(m_ActToungePtr->GetPosition(), m_LevelPtr, m_DirFacing);
+				m_LevelPtr->AddItem(fireballPtr);
 
-			// TODO: if red, spit fire ballz
-			//SoundManager::PlaySoundEffect(SoundManager::Sound::YOSHI_FIRE_SPIT);
-
-			SoundManager::PlaySoundEffect(SoundManager::Sound::YOSHI_SPIT);
+				SoundManager::PlaySoundEffect(SoundManager::Sound::YOSHI_FIRE_SPIT);
+			}
+			else
+			{
+				koopaShellPtr->SetPosition(m_ActToungePtr->GetPosition() + DOUBLE2(m_DirFacing * 5, 0));
+				koopaShellPtr->SetMoving(true, m_DirFacing);
+				m_LevelPtr->AddItem(koopaShellPtr);
+				SoundManager::PlaySoundEffect(SoundManager::Sound::YOSHI_SPIT);
+			}
 		} break;
 		}
 	}
+
+	m_ItemInMouthTypeStr = "";
 }
 
 void Yoshi::StickTongueOut(double deltaTime)
 {
 	if (m_IsTongueStuckOut) return;
+	if (m_ItemInMouthTypeStr != "") return; // We have an item in our mouth already
+	if (m_IsCarryingPlayer == false) return;
 
 	m_IsTongueStuckOut = true;
 	m_TongueTimer.Start();
@@ -541,6 +689,11 @@ bool Yoshi::IsTongueStuckOut() const
 SMWTimer Yoshi::GetTongueTimer() const
 {
 	return m_TongueTimer;
+}
+
+bool Yoshi::IsItemInMouth() const
+{
+	return m_ItemInMouthTypeStr != "";
 }
 
 int Yoshi::GetWidth() const
@@ -588,7 +741,7 @@ double Yoshi::GetTongueLength() const
 	return abs(m_TongueLength);
 }
 
-std::string Yoshi::AnimationStateToString()
+std::string Yoshi::AnimationStateToString() const
 {
 	switch (m_AnimationState)
 	{

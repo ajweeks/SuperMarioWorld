@@ -24,5 +24,4 @@ private:
 	bool m_IsSolid = false;
 	bool m_IsUsed = false;
 	bool m_ShouldSpawnSuperMushroom = false;
-
 };

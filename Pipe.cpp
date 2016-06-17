@@ -22,8 +22,8 @@ Pipe::Pipe(DOUBLE2 topLeft, DOUBLE2 bottomRight, Level* levelPtr, Orientation or
 	}
 
 	m_Bounds = RECT2(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
-	double width = bottomRight.x - topLeft.x;
-	double height = bottomRight.y - topLeft.y;
+	const double width = bottomRight.x - topLeft.x;
+	const double height = bottomRight.y - topLeft.y;
 	m_ActPtr = new PhysicsActor(topLeft + DOUBLE2(width / 2, height / 2), 0, BodyType::STATIC);
 	m_ActPtr->AddBoxFixture(width, height, 0.0);
 	m_ActPtr->SetUserData(int(ActorId::PIPE));
@@ -55,20 +55,31 @@ bool Pipe::IsPlayerInPositionToEnter(Player* playerPtr)
 	if (m_IsWarpPipe == false) return false;
 	if (playerPtr->IsAirborne()) return false; // The player must be on the ground to enter a pipe
 
-	DOUBLE2 pipePos = m_ActPtr->GetPosition();
-	DOUBLE2 playerPos = playerPtr->GetPosition();
+	const DOUBLE2 pipePos = m_ActPtr->GetPosition();
+	const DOUBLE2 playerPos = playerPtr->GetPosition();
 
-	double pipeWidth = m_Bounds.right - m_Bounds.left;
-	double pipeHeight = m_Bounds.bottom - m_Bounds.top;
+	const double pipeWidth = m_Bounds.right - m_Bounds.left;
+	const double pipeHeight = m_Bounds.bottom - m_Bounds.top;
 
-	double minDistFromCenter = pipeWidth / 4;
+	const double playerWidth = playerPtr->GetWidth();
+	const double playerHeight = playerPtr->GetHeight();
 
+	double minDistFromCenter = pipeWidth / 5.0;
+	
 	switch (m_Orientation)
 	{
-	case Orientation::LEFT:  return (playerPos.x < pipePos.x - pipeWidth / 2);
-	case Orientation::RIGHT: return (playerPos.x > pipePos.x + pipeWidth / 2);
-	case Orientation::UP:	 return (playerPos.y < pipePos.y - pipeHeight / 2) && (abs(playerPos.x - pipePos.x) < minDistFromCenter);
-	case Orientation::DOWN:  return (playerPos.y > pipePos.y + pipeHeight / 2) && (abs(playerPos.x - pipePos.x) < minDistFromCenter);
+	case Orientation::LEFT:  return (playerPos.x + playerWidth / 2 < pipePos.x - pipeWidth / 2) && 
+									(playerPos.y - playerHeight / 2 > pipePos.y - pipeHeight / 2);
+
+	case Orientation::RIGHT: return (playerPos.x - playerPtr->GetWidth() / 2 > pipePos.x + pipeWidth / 2) &&
+									(playerPos.y - playerHeight / 2> pipePos.y - pipeHeight / 2);
+
+	case Orientation::UP:	 return (playerPos.y + playerPtr->GetHeight() / 2 < pipePos.y - pipeHeight / 2) &&
+									(abs(playerPos.x - pipePos.x) < minDistFromCenter);
+
+	case Orientation::DOWN:  return (playerPos.y > pipePos.y + pipeHeight / 2) && 
+									(abs(playerPos.x - pipePos.x) < minDistFromCenter);
+
 	default: return false;
 	}
 }
@@ -114,12 +125,12 @@ DOUBLE2 Pipe::GetWarpToPosition()
 {
 	DOUBLE2 offset(0.0, 0.0);
 
-	double width = m_Bounds.right - m_Bounds.left;
-	double height = m_Bounds.bottom - m_Bounds.top;
+	const double width = m_Bounds.right - m_Bounds.left;
+	const double height = m_Bounds.bottom - m_Bounds.top;
 
 	// How far into the pipe the player should start at
-	double xInsetAmount = 10;
-	double yInsetAmount = 20;
+	const double xInsetAmount = 10;
+	const double yInsetAmount = 20;
 
 	switch (m_Orientation)
 	{

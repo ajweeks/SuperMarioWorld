@@ -21,10 +21,10 @@ public:
 	void SetPaused(bool paused, bool pauseSongs);
 	bool ShowingSessionInfo() const;
 
-	// Spawn at beginning of level
-	void EnterNewLevel(int levelIndex, SessionInfo sessionInfo);
-	// Spawn from given pipe
+	// Spawn at given pipe
 	void EnterNewLevel(Pipe* spawningPipePtr, SessionInfo sessionInfo);
+	// Spawn at beginning of level
+	void EnterNewLevel(int levelIndex, SessionInfo sessionInfo, Pipe* spawningPipePtr = nullptr);
 
 private:
 	void Reset();

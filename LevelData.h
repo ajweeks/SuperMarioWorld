@@ -7,6 +7,7 @@ class Enemy;
 class Platform;
 class Pipe;
 
+// Holds/updates/paints all entities in the game
 class LevelData
 {
 public:
@@ -16,8 +17,8 @@ public:
 	LevelData& operator=(const LevelData&) = delete;
 
 	static LevelData* GetLevelData(int levelIndex, Level* levelPtr);
-	static void UnloadAllLevels();
-	static void UnloadLevel(int levelIndex);
+	static void UnloadAllLevelData();
+	static void UnloadLevelData(int levelIndex);
 
 	void AddItem(Item* newItemPtr);
 	void RemoveItem(Item* itemPtr);
@@ -36,13 +37,13 @@ public:
 
 	void SetItemsAndEnemiesPaused(bool paused);
 
-	std::vector<Platform*> GetPlatforms() const;
-	std::vector<Pipe*> GetPipes() const;
-	std::vector<Item*> GetItems() const;
-	std::vector<Enemy*> GetEnemies() const;
+	std::vector<Platform*>& GetPlatforms();
+	std::vector<Pipe*>& GetPipes();
+	std::vector<Item*>& GetItems();
+	std::vector<Enemy*>& GetEnemies();
 
 private:
-	LevelData(std::string platforms, std::string pipes, std::string items, std::string enemies, Level* levelPtr);
+	LevelData(const std::string& platforms, const std::string& pipes, const std::string& items, const std::string& enemies, Level* levelPtr);
 
 	static LevelData* CreateLevelData(int levelIndex, Level* levelPtr);
 

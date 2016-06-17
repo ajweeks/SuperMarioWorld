@@ -54,8 +54,8 @@ void GoalGate::Tick(double deltaTime)
 			m_IsHit = true;
 			m_LevelPtr->TriggerEndScreen();
 
-			Coin* coinPtr = new Coin(m_TopLeft + DOUBLE2((TILES_WIDE/2) * TILE_SIZE, TILES_HIGH * TILE_SIZE - m_BarHeight), m_LevelPtr);
-			m_LevelPtr->AddItem(coinPtr);
+			//Coin* coinPtr = new Coin(m_TopLeft + DOUBLE2((TILES_WIDE/2) * TILE_SIZE, TILES_HIGH * TILE_SIZE - m_BarHeight), m_LevelPtr);
+			//m_LevelPtr->AddItem(coinPtr);
 
 			// LATER: Add smoke poof particle
 		}

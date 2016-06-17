@@ -30,5 +30,4 @@ private:
 	
 	SMWTimer m_LifeRemaining;
 	bool m_IsBlock = false; // This is true for a short period of time after mario hits a p-switch
-
 };

@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include "Item.h"
@@ -13,5 +12,4 @@ public:
 
 	void Tick(double deltaTime);
 	void Paint();
-
 };

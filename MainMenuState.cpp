@@ -62,7 +62,7 @@ void MainMenuState::Tick(double deltaTime)
 	m_CursorAnimationTimer++;
 	m_CursorAnimationTimer %= MAX_CURSOR_TIMER_VALUE;
 
-	// All states but start state handle up/down presses identically
+	// All states except the start state handle up/down presses identically
 	if (m_ScreenShowing != Screen::START)
 	{
 		if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::D_PAD_DOWN))
@@ -129,7 +129,7 @@ void MainMenuState::Tick(double deltaTime)
 			}
 			else
 			{
-				// LATER: Actually erase the data here
+				// TODO: Actually erase the data here
 			}
 
 			SoundManager::PlaySoundEffect(SoundManager::Sound::COIN_COLLECT);
@@ -196,7 +196,7 @@ void MainMenuState::Paint()
 		GAME_ENGINE->SetColor(COLOR(0, 0, 0));
 		GAME_ENGINE->FillRect(0, 0, Game::WIDTH, Game::HEIGHT);
 
-		// - Nintendo Presentes -
+		// - Nintendo Presents -
 		int left = Game::WIDTH / 2 - 32;
 		int top = Game::HEIGHT / 2 - 8;
 		RECT2 srcRect = RECT2(212, 1, 212 + 64, 1 + 16);
@@ -369,7 +369,6 @@ void MainMenuState::PaintBorder()
 		DrawBorderPlank(MED_PLANK, left, top, false, true);
 		top += 16;
 	}
-
 }
 
 void MainMenuState::DrawBorderPlank(int plankIndex, int left, int top, bool flipV, bool flipH)

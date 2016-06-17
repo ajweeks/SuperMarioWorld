@@ -1,13 +1,13 @@
 #pragma once
 
 #include "Enumerations.h"
-#include "SpriteSheet.h"
 #include "Item.h"
 #include "SMWTimer.h"
 #include "INT2.h"
 
 class Level;
 class GameState;
+class SpriteSheet;
 class Entity;
 class KoopaShell;
 class Yoshi;
@@ -28,14 +28,13 @@ public:
 		WAITING, WALKING, JUMPING, SPIN_JUMPING, FALLING, CLIMBING, IN_PIPE, NONE
 	};
 
-	Player(Level* levelPtr, GameState* gameStatePtr);
+	Player(Level* levelPtr, GameState* gameStatePtr, SessionInfo sessionInfo = {});
 	virtual ~Player();
 
 	Player(const Player&) = delete;
 	Player& operator=(const Player&) = delete;
 
 	void Tick(double deltaTime);
-	void TickAnimations(double deltaTime);
 	void Paint();
 	void Reset();
 	
@@ -46,34 +45,27 @@ public:
 	void AddScore(int score, bool combo, DOUBLE2 particlePosition = DOUBLE2());
 	void AddRedStars(int numberOfRedStars);
 	void AddCoin(Coin* coinPtr, bool playSound = true, bool showParticle = true);
-	int GetScore();
+	int GetScore() const;
 
-	int GetLives();
-	int GetCoinsCollected();
-	int GetDragonCoinsCollected();
-	int GetStarsCollected();
-	Item::Type GetExtraItemType();
+	int GetLives() const;
+	int GetCoinsCollected() const;
+	int GetDragonCoinsCollected() const;
+	int GetRedStarsCollected() const;
+	Item::Type GetExtraItemType() const;
 
 	void AddItemToBeHeld(Item* itemPtr);
-	bool IsHoldingItem();
+	bool IsHoldingItem() const;
 	Item* GetHeldItemPtr();
 	void DropHeldItem();
 
-	DOUBLE2 GetLinearVelocity();
+	DOUBLE2 GetLinearVelocity() const;
 	void SetLinearVelocity(const DOUBLE2& newLinearVelRef);
-	DOUBLE2 GetPosition();
-	int GetDirectionFacing();
+	DOUBLE2 GetPosition() const;
+	int GetDirectionFacing() const;
 
-	PowerupState GetPowerupState();
-
-	bool IsOnGround();
-
-	bool IsRidingYoshi();
-	void RideYoshi(Yoshi* yoshiPtr);
-	void DismountYoshi(bool runWild = false);
-
+	void TurnInvincible();
 	// Called when the player bounces off an enemy's head, or off a moving koopa shell
-	void Bounce(int horizontalDir = 0);
+	void Bounce(bool horizontallyAlso = true, int horizontalDir = 0);
 	void Die();
 	void TakeDamage();
 	void KickShell(KoopaShell* koopaShellPtr, bool wasThrown);
@@ -87,25 +79,32 @@ public:
 	void SetPosition(DOUBLE2 newPosition);
 
 	void MidwayGatePasshrough();
+	AnimationState GetAnimationState();
+	PowerupState GetPowerupState() const;
 	void SetClimbingBeanstalk(bool climbing);
 	void SetOverlappingWithBeanstalk(bool overlapping);
-	AnimationState GetAnimationState();
-	int GetWidth();
-	int GetHeight();
-	bool IsDead();
-	bool IsRunning();
-	bool IsDucking();
-	bool IsInvincible();
-	bool IsAirborne();
-	bool DEBUGIsTouchingGrabBlock();
+	int GetWidth() const;
+	int GetHeight() const;
+	bool IsDead() const;
+	bool IsRunButtonHeldDown() const;
+	bool IsSprinting() const; // Running at full speed
+	bool IsDucking() const;
+	bool IsInvincible() const;
+	bool IsAirborne() const;
+	bool IsOnGround() const;
+	bool IsTransitioningPowerups() const;
+	bool IsRidingYoshi() const;
+	void RideYoshi(Yoshi* yoshiPtr);
+	void DismountYoshi(bool runWild = false, double horizontalVel = -1.0);
+	bool DEBUGIsTouchingGrabBlock() const;
 
 	// NOTE: This should be called every time the player stomps on a KoopaTroopa's head
 	//       Every frames m_FramesUntilEnemyHeadBounceEndSound is decremented, and plays the
 	//		 sound when it reaches 0
 	void ResetNumberOfFramesUntilEndStompSound();
-	bool IsTransitioningPowerups();
 
 private:
+	void TickAnimations(double deltaTime);
 	void HandleKeyboardInput(double deltaTime);
 	void HandleClimbingStateKeyboardInput(double deltaTime);
 
@@ -122,7 +121,7 @@ private:
 
 	// Returns whether or not we were successful in entering a pipe
 	bool AttemptToEnterPipes(); 
-	
+
 	static const double FRICTION;
 	static const int WALKING_ACCELERATION;
 	static const int RUNNING_ACCELERATION;
@@ -132,10 +131,11 @@ private:
 	static const int BEANSTALK_JUMP_VEL;
 	static const int MAX_FALL_VEL;
 	static const int BOUNCE_VEL;
-	static const int BOUNCE_VEL_HORIZONTAL;
 	static const int STARTING_LIVES;
+	static const int BOUNCE_VEL_HORIZONTAL;
 	static const int YOSHI_DISMOUNT_XVEL;
 	static const int YOSHI_TURN_AROUND_FRAMES;
+	static const int DEATH_Y_VEL;
 
 	static const double MARIO_SECONDS_PER_FRAME;
 	static const double MARIO_SPINNING_SECONDS_PER_FRAME;
@@ -147,7 +147,7 @@ private:
 	int m_Lives;
 	int m_Coins;
 	int m_DragonCoins;
-	int m_Stars;
+	int m_RedStars;
 	int m_Score;
 	int m_LastScoreAdded; // Used for calculating combo scores
 	bool m_NeedsNewFixture;

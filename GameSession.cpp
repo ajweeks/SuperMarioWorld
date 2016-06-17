@@ -70,7 +70,7 @@ void GameSession::RecordSessionInfo(SessionInfo &sessionInfo, Level* levelPtr)
 	sessionInfo.m_CheckpointCleared = levelPtr->IsCheckpointCleared();
 	sessionInfo.m_PlayerRidingYoshi = playerPtr->IsRidingYoshi();
 	sessionInfo.m_PlayerPowerupState = Player::PowerupStateToString(playerPtr->GetPowerupState());
-	if (playerPtr->GetHeldItemPtr() != nullptr) sessionInfo.m_HeldItemType = playerPtr->ItemToString(playerPtr->GetHeldItemPtr());
+	if (playerPtr->GetHeldItemPtr() != nullptr) sessionInfo.m_HeldItemType = Item::ItemToString(playerPtr->GetHeldItemPtr());
 	sessionInfo.m_TimeRemaining = levelPtr->GetTimeRemaining();
 }
 
@@ -274,8 +274,6 @@ SessionInfo GameSession::GetSessionInfo(const std::string& sessionString)
 
 	const std::string allDragonCoinsCollectedStr = FileIO::GetTagContent(sessionString, "DragonCoinsCollected");
 	if (allDragonCoinsCollectedStr.length() > 0) sessionInfo.m_DragonCoinsCollected = FileIO::StringToBool(allDragonCoinsCollectedStr);
-
-	//sessionInfo.m_Initialized = true;
 
 	return sessionInfo;
 }

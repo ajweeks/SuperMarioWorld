@@ -19,19 +19,22 @@ LevelSelectState::LevelSelectState(StateManager* stateManagerPtr) :
 
 	ReadLevelSelectScreenDataFromFile();
 
-	m_CurrentDestinationIndex = 0;
-	m_CurrentMapMarioPosition.x = m_DestinationNodesArr[m_CurrentDestinationIndex].m_Pos.x;
-	m_CurrentMapMarioPosition.y = m_DestinationNodesArr[m_CurrentDestinationIndex].m_Pos.y;
+	m_CurrentDestinationIndex = 2;
+	m_CurrentMapMarioPosition.x = m_DestinationNodesMap[m_CurrentDestinationIndex].m_Pos.x;
+	m_CurrentMapMarioPosition.y = m_DestinationNodesMap[m_CurrentDestinationIndex].m_Pos.y;
 	m_TargetDestinationIndex = -1;
 
 	m_AnimationState = AnimationState::STATIONARY;
 	m_MarioDirectionFacing = 0;
 
-	m_FadeOutTimer = SMWTimer(60);
+	m_FadeOutTimer = SMWTimer(110);
+
+	SoundManager::PlaySong(SoundManager::Song::MAP1_YOSHIS_ISLAND);
 }
 
 LevelSelectState::~LevelSelectState()
 {
+	SoundManager::SetSongPaused(SoundManager::Song::MAP1_YOSHIS_ISLAND, true);
 }
 
 void LevelSelectState::Tick(double deltaTime)
@@ -43,6 +46,8 @@ void LevelSelectState::Tick(double deltaTime)
 		m_StateManagerPtr->SetState(new GameState(m_StateManagerPtr));
 		return;
 	}
+
+	if (m_AnimationState == AnimationState::ENTERING_LEVEL) return;
 
 	if (m_TargetDestinationIndex != -1) // Mario is walking from one destination to another
 	{
@@ -73,22 +78,22 @@ void LevelSelectState::Tick(double deltaTime)
 		}
 		else if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::D_PAD_LEFT))
 		{
-			const int leftNeighborID = m_DestinationNodesArr[m_CurrentDestinationIndex].m_NeighborIDsArr[LevelDestinationNode::LEFT];
+			const int leftNeighborID = m_DestinationNodesMap[m_CurrentDestinationIndex].m_NeighborIDsArr[LevelDestinationNode::LEFT];
 			if (leftNeighborID != -1) SetTargetID(leftNeighborID, LevelDestinationNode::LEFT);
 		}
 		else if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::D_PAD_RIGHT))
 		{
-			const int rightNeighborID = m_DestinationNodesArr[m_CurrentDestinationIndex].m_NeighborIDsArr[LevelDestinationNode::RIGHT];
+			const int rightNeighborID = m_DestinationNodesMap[m_CurrentDestinationIndex].m_NeighborIDsArr[LevelDestinationNode::RIGHT];
 			if (rightNeighborID != -1) SetTargetID(rightNeighborID, LevelDestinationNode::RIGHT);
 		}
 		else if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::D_PAD_UP))
 		{
-			const int topNeighborID = m_DestinationNodesArr[m_CurrentDestinationIndex].m_NeighborIDsArr[LevelDestinationNode::TOP];
+			const int topNeighborID = m_DestinationNodesMap[m_CurrentDestinationIndex].m_NeighborIDsArr[LevelDestinationNode::TOP];
 			if (topNeighborID != -1) SetTargetID(topNeighborID, LevelDestinationNode::TOP);
 		}
 		else if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::D_PAD_DOWN))
 		{
-			const int bottomNeighborID = m_DestinationNodesArr[m_CurrentDestinationIndex].m_NeighborIDsArr[LevelDestinationNode::BOTTOM];
+			const int bottomNeighborID = m_DestinationNodesMap[m_CurrentDestinationIndex].m_NeighborIDsArr[LevelDestinationNode::BOTTOM];
 			if (bottomNeighborID != -1) SetTargetID(bottomNeighborID, LevelDestinationNode::BOTTOM);
 		}
 	}
@@ -100,8 +105,8 @@ void LevelSelectState::SetTargetID(int targetDestinationID, int direction)
 	m_TargetDestinationIndex = targetDestinationID;
 	m_MarioDirectionFacing = direction;
 
-	const double dx = m_DestinationNodesArr[m_TargetDestinationIndex].m_Pos.x - m_CurrentMapMarioPosition.x;
-	const double dy = m_DestinationNodesArr[m_TargetDestinationIndex].m_Pos.y - m_CurrentMapMarioPosition.y;
+	const double dx = m_DestinationNodesMap[m_TargetDestinationIndex].m_Pos.x - m_CurrentMapMarioPosition.x;
+	const double dy = m_DestinationNodesMap[m_TargetDestinationIndex].m_Pos.y - m_CurrentMapMarioPosition.y;
 
 	const int numOfFrames = int(sqrt(dx * dx + dy * dy) * 1.25);
 
@@ -174,11 +179,11 @@ void LevelSelectState::Paint()
 
 	if (m_FadeOutTimer.IsActive())
 	{
-		int alpha = min(int((double(m_FadeOutTimer.FramesElapsed()) / double(m_FadeOutTimer.TotalFrames() - 10)) * 255.0), 255);
+		int alpha = min(int((double(m_FadeOutTimer.FramesElapsed()) / double(m_FadeOutTimer.TotalFrames() - 40)) * 255.0), 255);
 		GAME_ENGINE->SetColor(COLOR(0, 0, 0, alpha));
 		GAME_ENGINE->FillRect(0, 0, Game::WIDTH, Game::HEIGHT);
 
-		if (m_FadeOutTimer.FramesElapsed() > m_FadeOutTimer.TotalFrames() - 10)
+		if (m_FadeOutTimer.FramesElapsed() > m_FadeOutTimer.TotalFrames() - 40)
 		{
 			SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::TITLE_TEXT)->Paint(Game::WIDTH / 2, Game::HEIGHT / 2, 0, 0);
 		}
@@ -245,7 +250,6 @@ void LevelSelectState::ReadLevelSelectScreenDataFromFile()
 void LevelSelectState::ParseFileString(const std::string& fileString)
 {
 	const size_t numberOfDestinations = GetNumberOfDestinations(fileString);
-	m_DestinationNodesArr.resize(numberOfDestinations);
 
 	int currentIndexInFileString = 0;
 	for (size_t i = 0; i < numberOfDestinations; ++i)
@@ -256,7 +260,8 @@ void LevelSelectState::ParseFileString(const std::string& fileString)
 		if (destinationStartTag != std::string::npos && destinationEndTag != std::string::npos)
 		{
 			const std::string destinationStr = fileString.substr(destinationStartTag, destinationEndTag - destinationStartTag);
-			m_DestinationNodesArr[i] = GetDestinationNode(destinationStr);
+			LevelDestinationNode node = GetDestinationNode(destinationStr);
+			m_DestinationNodesMap[node.m_ID] = node;
 			currentIndexInFileString = destinationEndTag + std::string("</Destination>").length();
 		}
 	}
@@ -291,19 +296,21 @@ LevelDestinationNode LevelSelectState::GetDestinationNode(const std::string& des
 	const std::string neighborsStr = FileIO::GetTagContent(destinationString, "Neighbors");
 	if (neighborsStr.length() > 0)
 	{
-		int currentNeighborIndex = -1;
-		while ((currentNeighborIndex = destinationString.find("<Neighbor>", currentNeighborIndex + 1)) != std::string::npos)
+		int currentNeighborIndex = 0;
+		while ((currentNeighborIndex = neighborsStr.find("<Neighbor>", currentNeighborIndex)) != std::string::npos)
 		{
-			const std::string neighborsStr = FileIO::GetTagContent(destinationString, "Neighbor");
+			const std::string currentNeighborStr = FileIO::GetTagContent(neighborsStr, "Neighbor", currentNeighborIndex);
 
-			const int neighborStrComma = neighborsStr.find(',');
-			const std::string directionStr = neighborsStr.substr(0, neighborStrComma);
-			const int neighborID = stoi(neighborsStr.substr(neighborStrComma + 1));
+			const int neighborStrComma = currentNeighborStr.find(',');
+			const std::string directionStr = currentNeighborStr.substr(0, neighborStrComma);
+			const int neighborID = stoi(currentNeighborStr.substr(neighborStrComma + 1));
 
 			if (!directionStr.compare("Left")) destinationNode.m_NeighborIDsArr[LevelDestinationNode::LEFT] = neighborID;
 			else if (!directionStr.compare("Right")) destinationNode.m_NeighborIDsArr[LevelDestinationNode::RIGHT] = neighborID;
 			else if (!directionStr.compare("Top")) destinationNode.m_NeighborIDsArr[LevelDestinationNode::TOP] = neighborID;
 			else if (!directionStr.compare("Bottom")) destinationNode.m_NeighborIDsArr[LevelDestinationNode::BOTTOM] = neighborID;
+
+			currentNeighborIndex = neighborsStr.find("</Neighbor>", currentNeighborIndex) + std::string("</Neighbor>").length();
 		}
 	}
 

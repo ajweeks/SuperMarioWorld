@@ -12,7 +12,7 @@
 #include "Game.h"
 
 PrizeBlock::PrizeBlock(DOUBLE2 topLeft, Level* levelPtr, std::string spawnTypeStr, bool isFlyer) :
-	Block(topLeft, Type::PRIZE_BLOCK, levelPtr),
+	Block(topLeft + DOUBLE2(0.001, 0), Type::PRIZE_BLOCK, levelPtr),
 	m_SpawnTypeStr(spawnTypeStr),
 	m_IsFlyer(isFlyer)
 {
@@ -37,10 +37,13 @@ void PrizeBlock::Tick(double deltaTime)
 		DOUBLE2 itemPos(m_ActPtr->GetPosition().x - WIDTH / 2, m_ActPtr->GetPosition().y - HEIGHT / 2);
 		if (!m_SpawnTypeStr.compare("Yoshi"))
 		{
-			if (m_LevelPtr->IsYoshiAlive())
+			if (m_LevelPtr->GetYoshiPtr() != nullptr) // There is already a yoshi in the level, spawn mushroom instead
 			{
 				OneUpMushroom* oneUpMushroomPtr = new OneUpMushroom(itemPos + DOUBLE2(3, -2), m_LevelPtr);
 				m_LevelPtr->AddItem(oneUpMushroomPtr, true);
+
+				SoundManager::PlaySoundEffect(SoundManager::Sound::YOSHI_SPAWN);
+				SoundManager::PlaySoundEffect(SoundManager::Sound::YOSHI_EGG_BREAK);
 			}
 			else
 			{
@@ -57,11 +60,6 @@ void PrizeBlock::Tick(double deltaTime)
 
 	if (m_BumpAnimationTimer.Tick())
 	{
-		// NOTE: I *think* what happens during the bump animation is
-		//		 the block renders the normal question mark (not spinning)
-		//       and moves up then down around 3 or 5 pixels.
-		//		 Then the block is "used" and renders the brown used block texture
-
 		m_yo = m_BumpAnimationTimer.FramesElapsed();
 		if (m_yo > m_BumpAnimationTimer.TotalFrames() / 2)
 		{
@@ -110,20 +108,20 @@ void PrizeBlock::Paint()
 	int srcCol = 0 + m_AnimInfo.frameNumber;
 	int srcRow = 4;
 
-	int left = (int)m_ActPtr->GetPosition().x;
-	int top = (int)m_ActPtr->GetPosition().y + m_yo * 3;
+	int centerX = (int)m_ActPtr->GetPosition().x;
+	int centerY = (int)m_ActPtr->GetPosition().y + m_yo * 3;
 
 	if (m_IsFlyer && m_IsFlying)
 	{
 		// Wings
 		srcRow = 5;
 		srcCol = 4 + m_AnimInfo.frameNumber;
-		int wingLeft = left - 7;
-		int wingTop = top - 9;
+		int wingLeft = centerX - 7;
+		int wingTop = centerY - 9;
 		SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES)->Paint(wingLeft, wingTop, srcCol, srcRow);
 
 		MATRIX3X2 matWorldPrev = GAME_ENGINE->GetWorldMatrix();
-		MATRIX3X2 matTranslate = MATRIX3X2::CreateTranslationMatrix(left + Item::TILE_SIZE / 2, top);
+		MATRIX3X2 matTranslate = MATRIX3X2::CreateTranslationMatrix(centerX + Item::TILE_SIZE / 2, centerY);
 		MATRIX3X2 matReflect = MATRIX3X2::CreateScalingMatrix(-1, 1);
 		GAME_ENGINE->SetWorldMatrix(matTranslate.Inverse() * matReflect * matTranslate * matWorldPrev);
 
@@ -135,7 +133,7 @@ void PrizeBlock::Paint()
 		// Block
 		srcRow = 4;
 		srcCol = 4;
-		SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES)->Paint(left, top, srcCol, srcRow);
+		SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES)->Paint(centerX, centerY, srcCol, srcRow);
 	}
 
 	if (m_BumpAnimationTimer.IsActive() && m_IsFlyer == false)
@@ -147,7 +145,7 @@ void PrizeBlock::Paint()
 		srcCol = 5;
 	}
 
-	SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES)->Paint(left, top, srcCol, srcRow);
+	SpriteSheetManager::GetSpriteSheetPtr(SpriteSheetManager::GENERAL_TILES)->Paint(centerX, centerY, srcCol, srcRow);
 }
 
 void PrizeBlock::Hit()

@@ -66,7 +66,7 @@ void SpriteSheetManager::Load()
 	// Yoshi
 	m_SpriteSheetPtrArr[int(SpriteSheets::YOSHI)] = new SpriteSheet(String("Resources/yoshi.png"), 4, 1);
 	m_SpriteSheetPtrArr[int(SpriteSheets::SMALL_YOSHI)] = new SpriteSheet(String("Resources/yoshi-small.png"), 4, 2);
-	m_SpriteSheetPtrArr[int(SpriteSheets::YOSHI_WITH_MARIO)] = new SpriteSheet(String("Resources/yoshi-with-mario.png"), 13, 2);
+	m_SpriteSheetPtrArr[int(SpriteSheets::YOSHI_WITH_MARIO)] = new SpriteSheet(String("Resources/yoshi-with-mario.png"), 14, 2);
 }
 
 void SpriteSheetManager::Unload()

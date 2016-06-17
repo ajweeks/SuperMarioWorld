@@ -3,6 +3,7 @@
 #include "BaseState.h"
 #include "AnimationInfo.h"
 #include "INT2.h"
+#include <map>
 
 class StateManager;
 
@@ -35,10 +36,10 @@ public:
 	LevelSelectState& operator=(const LevelSelectState&) = delete;
 
 	void Tick(double deltaTime);
-	void TickAnimations(double deltaTime);
 	void Paint();
 
 private:
+	void TickAnimations(double deltaTime);
 	void SetTargetID(int targetDestinationID, int direction);
 	INT2 CalculateAnimationFrame();
 
@@ -53,7 +54,8 @@ private:
 	DOUBLE2 m_CurrentMapMarioPosition;
 	int m_CurrentDestinationIndex;
 	int m_TargetDestinationIndex;
-	std::vector<LevelDestinationNode> m_DestinationNodesArr;
+	// Keys are level IDs, values are node objects
+	std::map<int, LevelDestinationNode> m_DestinationNodesMap;
 
 	AnimationState m_AnimationState;
 	int m_MarioDirectionFacing;

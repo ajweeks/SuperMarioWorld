@@ -31,7 +31,6 @@ EnemyPoofParticle::~EnemyPoofParticle()
 	}
 
 	delete m_SplatParticlePtr;
-
 	delete m_CloudParticlePtr;
 }
 
@@ -46,7 +45,6 @@ bool EnemyPoofParticle::Tick(double deltaTime)
 	}
 
 	m_SplatParticlePtr->Tick(deltaTime);
-
 	m_CloudParticlePtr->Tick(deltaTime);
 
 	return (m_LifeRemaining < 0);
@@ -60,8 +58,5 @@ void EnemyPoofParticle::Paint()
 	}
 	
 	m_SplatParticlePtr->Paint();
-
-	// LATER: Paint these behind the player (probably will require a seperate EnemyDeathCloud 
-	// class instance which extends Particle to be added to level particles array)
 	m_CloudParticlePtr->Paint();
 }

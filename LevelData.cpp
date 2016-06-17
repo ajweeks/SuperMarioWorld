@@ -38,13 +38,12 @@
 
 std::vector<LevelData*> LevelData::m_LevelDataPtrArr = std::vector<LevelData*>(Constants::NUM_LEVELS);
 
-LevelData::LevelData(std::string platforms, std::string pipes, std::string items, std::string enemies, Level* levelPtr) : 
+LevelData::LevelData(const std::string& platforms, const std::string& pipes, const std::string& items, const std::string& enemies, Level* levelPtr) :
 	m_LevelPtr(levelPtr)
 {
 	std::string line;
 
 	// PLATFORMS
-	platforms.erase(std::remove_if(platforms.begin(), platforms.end(), IsWhitespace()), platforms.end());
 	int platformTagBeginIndex = -1;
 	while ((platformTagBeginIndex = platforms.find("<Platform>", platformTagBeginIndex + 1)) != std::string::npos)
 	{
@@ -61,7 +60,6 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 
 
 	// PIPES
-	pipes.erase(std::remove_if(pipes.begin(), pipes.end(), IsWhitespace()), pipes.end());
 	int pipeTagBeginIndex = -1;
 	int pipeIndex = 0; // Keep track of how many pipes we've added so far
 	while ((pipeTagBeginIndex = pipes.find("<Pipe>", pipeTagBeginIndex + 1)) != std::string::npos)
@@ -98,7 +96,6 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 
 
 	// ITEMS
-	items.erase(std::remove_if(items.begin(), items.end(), IsWhitespace()), items.end());
 	int itemTagBeginIndex = -1;
 	while ((itemTagBeginIndex = items.find("<Item>", itemTagBeginIndex + 1)) != std::string::npos)
 	{
@@ -156,7 +153,7 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 		} break;
 		case int(Item::Type::P_SWITCH):
 		{
-			m_ItemsPtrArr.push_back(new PSwitch(topLeft, itemColour, levelPtr));
+			m_ItemsPtrArr.push_back(new PSwitch(topLeft, levelPtr));
 		} break;
 		case int(Item::Type::BERRY):
 		{
@@ -187,7 +184,6 @@ LevelData::LevelData(std::string platforms, std::string pipes, std::string items
 	}
 
 	// ENEMIES
-	enemies.erase(std::remove_if(enemies.begin(), enemies.end(), IsWhitespace()), enemies.end());
 	int enemyTagBeginIndex = -1;
 	while ((enemyTagBeginIndex = enemies.find("<Enemy>", enemyTagBeginIndex + 1)) != std::string::npos)
 	{
@@ -249,11 +245,27 @@ LevelData* LevelData::GetLevelData(int levelIndex, Level* levelPtr)
 
 	if (m_LevelDataPtrArr[levelIndex] == nullptr)
 	{
-		delete m_LevelDataPtrArr[levelIndex];
 		m_LevelDataPtrArr[levelIndex] = CreateLevelData(levelIndex, levelPtr);
 	}
 
 	return m_LevelDataPtrArr[levelIndex];
+}
+
+void LevelData::UnloadAllLevelData()
+{
+	for (size_t i = 0; i < m_LevelDataPtrArr.size(); ++i)
+	{
+		UnloadLevelData(i);
+	}
+}
+
+void LevelData::UnloadLevelData(int index)
+{
+	if (m_LevelDataPtrArr[index] != nullptr)
+	{
+		delete m_LevelDataPtrArr[index];
+		m_LevelDataPtrArr[index] = nullptr;
+	}
 }
 
 LevelData* LevelData::CreateLevelData(int levelIndex, Level* levelPtr)
@@ -282,9 +294,16 @@ LevelData* LevelData::CreateLevelData(int levelIndex, Level* levelPtr)
 	std::string entireFileContents = stringStream.str();
 	
 	std::string platformsString = FileIO::GetTagContent(entireFileContents, "Platforms");
+	platformsString.erase(std::remove_if(platformsString.begin(), platformsString.end(), IsWhitespace()), platformsString.end());
+
 	std::string pipesString = FileIO::GetTagContent(entireFileContents, "Pipes");
+	pipesString.erase(std::remove_if(pipesString.begin(), pipesString.end(), IsWhitespace()), pipesString.end());
+
 	std::string itemsString = FileIO::GetTagContent(entireFileContents, "Items");
+	itemsString.erase(std::remove_if(itemsString.begin(), itemsString.end(), IsWhitespace()), itemsString.end());
+
 	std::string enemiesString = FileIO::GetTagContent(entireFileContents, "Enemies");
+	enemiesString.erase(std::remove_if(enemiesString.begin(), enemiesString.end(), IsWhitespace()), enemiesString.end());
 
 	return new LevelData(platformsString, pipesString, itemsString, enemiesString, levelPtr);
 }
@@ -450,23 +469,6 @@ DOUBLE2 LevelData::StringToDOUBLE2(const std::string& DOUBLE2String) const
 	return result;
 }
 
-void LevelData::UnloadAllLevels()
-{
-	for (size_t i = 0; i < m_LevelDataPtrArr.size(); ++i)
-	{
-		UnloadLevel(i);
-	}
-}
-
-void LevelData::UnloadLevel(int index)
-{
-	if (m_LevelDataPtrArr[index] != nullptr)
-	{
-		delete m_LevelDataPtrArr[index];
-		m_LevelDataPtrArr[index] = nullptr;
-	}
-}
-
 void LevelData::SetItemsAndEnemiesPaused(bool paused)
 {
 	for (size_t i = 0; i < m_ItemsPtrArr.size(); ++i)
@@ -500,22 +502,22 @@ Pipe* LevelData::GetPipeWithIndex(int index) const
 	return nullptr;
 }
 
-std::vector<Platform*> LevelData::GetPlatforms() const
+std::vector<Platform*>& LevelData::GetPlatforms()
 {
 	return m_PlatformsPtrArr;
 }
 
-std::vector<Pipe*> LevelData::GetPipes() const
+std::vector<Pipe*>& LevelData::GetPipes()
 {
 	return m_PipesPtrArr;
 }
 
-std::vector<Item*> LevelData::GetItems() const
+std::vector<Item*>& LevelData::GetItems()
 {
 	return m_ItemsPtrArr;
 }
 
-std::vector<Enemy*> LevelData::GetEnemies() const
+std::vector<Enemy*>& LevelData::GetEnemies()
 {
 	return m_EnemiesPtrArr;
 }

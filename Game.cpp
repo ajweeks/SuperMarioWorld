@@ -18,7 +18,7 @@
 #include "Enumerations.h"
 #include "StateManager.h"
 #include "GameState.h"
-#include "LevelInfo.h"
+#include "LevelProperties.h"
 #include "Keybindings.h"
 
 // Static initializations
@@ -95,7 +95,7 @@ void Game::GameStart()
 	Game::Font9Ptr = new Font(String("consolas"), 9);
 	Game::Font6Ptr = new Font(String("consolas"), 6);
 
-	LevelInfo::Initialize();
+	LevelProperties::Initialize();
 
 	matIdentity = MATRIX3X2::CreateScalingMatrix(WINDOW_SCALE);
 
@@ -134,7 +134,7 @@ void Game::GameEnd()
 	delete Font9Ptr;
 	delete Font6Ptr;
 
-	LevelData::UnloadAllLevels();
+	LevelData::UnloadAllLevelData();
 	SpriteSheetManager::Unload();
 
 	SoundManager::UnloadSoundsAndSongs();

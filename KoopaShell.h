@@ -15,8 +15,6 @@ public:
 	void Tick(double deltaTime);
 	void Paint();
 
-	// NOTE: wasThrown is true when this shell was being held by Mario and was then thrown
-	// An extra splat particle is generated
 	void KickHorizontally(int facingDir, bool wasThrown);
 	void KickVertically(double deltaTime, double horizontalVel);
 	void ShellHit(int dirX = 0);
@@ -25,7 +23,7 @@ public:
 	bool IsFallingOffScreen();
 
 	bool IsMoving();
-	void SetMoving(bool moving);
+	void SetMoving(bool moving, int direction = 0);
 	bool IsBouncing();
 
 	Colour GetColour();

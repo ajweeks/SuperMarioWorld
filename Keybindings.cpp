@@ -85,12 +85,12 @@ void Keybindings::StoreStringData(const std::string& fileContents)
 	SHOW_PREVIOUS_INFO_SESSION = RegisterKeycode(fileContents, "ShowPreviousInfoSession", VK_PRIOR); // (PgUp)
 	SCROLL_THROUGH_SESSIONS = RegisterKeycode(fileContents, "ScrollThroughSessions", VK_CONTROL);
 	TOGGLE_MUTED = RegisterKeycode(fileContents, "ToggleMuted", 'M');
-	GENERATE_BAR_GRAPH = RegisterKeycode(fileContents, "GenerateBarGraph", VK_F2);
 
 	DEBUG_TELEPORT_PLAYER = RegisterKeycode(fileContents, "DEBUGTeleportPlayer", 'O');
 	DEBUG_QUICK_RESET = RegisterKeycode(fileContents, "DEBUGQuickReset", 'R');
 	DEBUG_TOGGLE_PHYSICS_RENDERING = RegisterKeycode(fileContents, "DEBUGTogglePhysicsRendering", 'P');
-	DEBUG_FRAME_BY_FRAME_ADVANCE = RegisterKeycode(fileContents, "DEBUGFrameByFrameAdvance", VK_OEM_5); // (Backslash)
+	DEBUG_FRAME_BY_FRAME_ADVANCE = RegisterKeycode(fileContents, "DEBUGFrameByFrameAdvance", VK_OEM_5); // (Period)
+	GENERATE_BAR_GRAPH = RegisterKeycode(fileContents, "GenerateBarGraph", VK_F2);
 	DEBUG_TOGGLE_CAMERA_DEBUG_OVERLAY = RegisterKeycode(fileContents, "DEBUGToggleCameraDebugOverlay", VK_F9);
 	DEBUG_TOGGLE_PLAYER_INFO = RegisterKeycode(fileContents, "DEBUGTogglePlayerInfo", VK_F10);
 	DEBUG_TOGGLE_ENEMY_AI_OVERLAY = RegisterKeycode(fileContents, "DEBUGToggleEnemyAIInfo", VK_F11);

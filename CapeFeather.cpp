@@ -9,6 +9,10 @@ CapeFeather::CapeFeather(DOUBLE2 topLeft, Level* levelPtr) :
 {
 }
 
+CapeFeather::~CapeFeather()
+{
+}
+
 void CapeFeather::Tick(double deltaTime)
 {
 	Item::Tick(deltaTime);

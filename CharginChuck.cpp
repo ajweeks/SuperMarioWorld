@@ -7,7 +7,6 @@
 #include "SpriteSheet.h"
 #include "SpriteSheetManager.h"
 #include "SoundManager.h"
-
 #include "SplatParticle.h"
 
 const double CharginChuck::TARGET_OVERSHOOT_DISTANCE = 60.0;
@@ -39,6 +38,16 @@ CharginChuck::~CharginChuck()
 
 void CharginChuck::Tick(double deltaTime)
 {
+	if (m_AnimationState == AnimationState::DEAD)
+	{
+		if (m_ActPtr->GetPosition().y > m_LevelPtr->GetHeight() + GetHeight())
+		{
+			// Delete the actor once they fall below the bottom of the screen
+			m_LevelPtr->RemoveEnemy(this);
+		}
+		return;
+	}
+
 	bool wasActive = m_IsActive;
 	Enemy::Tick(deltaTime);
 	if (m_IsActive == false && wasActive)
@@ -96,12 +105,7 @@ void CharginChuck::Tick(double deltaTime)
 	} break;
 	case AnimationState::DEAD:
 	{
-		// Delete the actor once they fall below the bottom of the screen
-		if (m_ActPtr->GetPosition().y > m_LevelPtr->GetHeight() + GetHeight())
-		{
-			m_LevelPtr->RemoveEnemy(this);
-			return;
-		}
+
 	} break;
 	default:
 	{
@@ -114,8 +118,6 @@ void CharginChuck::Tick(double deltaTime)
 
 bool CharginChuck::CalculateOnGround()
 {
-	//return abs(m_ActPtr->GetLinearVelocity().y) < 0.1;
-
 	if (m_ActPtr->GetLinearVelocity().y < 0) return false;
 
 	DOUBLE2 point1 = m_ActPtr->GetPosition();
@@ -385,6 +387,10 @@ void CharginChuck::SetAnimationState(AnimationState newAnimationState)
 		m_HurtTimer.Start();
 		SoundManager::SetSongPaused(SoundManager::Song::CHARGIN_CHUCK_RUN, true);
 	} break;
+	case AnimationState::JUMPING:
+	{
+		SoundManager::SetSongPaused(SoundManager::Song::CHARGIN_CHUCK_RUN, true);
+	} break;
 	case AnimationState::DEAD:
 	{
 		m_AnimInfo.secondsPerFrame = SHAKING_HEAD_HURT_SECONDS_PER_FRAME;
@@ -412,4 +418,13 @@ int CharginChuck::GetWidth() const
 int CharginChuck::GetHeight() const
 {
 	return HEIGHT;
+}
+
+void CharginChuck::SetPaused(bool paused)
+{
+	m_ActPtr->SetActive(!paused);
+	if (m_AnimationState == AnimationState::CHARGIN)
+	{
+		SoundManager::SetSongPaused(SoundManager::Song::CHARGIN_CHUCK_RUN, paused);
+	}
 }

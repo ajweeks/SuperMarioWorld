@@ -74,7 +74,6 @@
 		</Item>
 		<Item>
 			<Type>ExclamationMarkBlock</Type>
-			<Colour>Yellow</Colour>
 			<TopLeft>39,18</TopLeft>
 		</Item>
 		<Item>

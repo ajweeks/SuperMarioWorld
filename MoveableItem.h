@@ -8,7 +8,8 @@
 class MoveableItem : public Item
 {
 public:
-	MoveableItem(DOUBLE2 topLeft, Type itemType, int spriteSheetXIndex, int spriteSheetYIndex, Level* levelPtr, int directionFacing = Direction::RIGHT);
+	MoveableItem(DOUBLE2 topLeft, Type itemType, int spriteSheetXIndex, int spriteSheetYIndex, Level* levelPtr, 
+		int directionFacing = Direction::RIGHT, bool spawnsFromBlock = true);
 
 	MoveableItem(const MoveableItem&) = delete;
 	MoveableItem& operator=(const MoveableItem&) = delete;
@@ -29,11 +30,11 @@ private:
 
 	INT2 m_SpriteSheetIndex;
 
+	bool m_SpawnedFromBlock;
 	DOUBLE2 m_SpawnLocation;
 	int m_DirFacing;
 	bool m_IsFalingFromTopOfScreen = false;
 
 	static const int FRAMES_OF_ANIMATION_DELAY = 14; // How long to wait before starting the animation
 	SMWTimer m_IntroAnimationTimer;
-
 };
