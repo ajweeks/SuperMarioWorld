@@ -8,11 +8,14 @@
 StateManager::StateManager(Game* gamePtr) : 
 	m_GamePtr(gamePtr)
 {
-#if SMW_SKIP_MAIN_MENU
-	m_CurrentStatePtr = new GameState(this);
-#else
-	m_CurrentStatePtr = new MainMenuState(this);
-#endif
+	if (Game::DEBUG_SKIP_MAIN_MENU)
+	{
+		m_CurrentStatePtr = new GameState(this);
+	}
+	else
+	{
+		m_CurrentStatePtr = new MainMenuState(this);
+	}
 }
 
 StateManager::~StateManager()

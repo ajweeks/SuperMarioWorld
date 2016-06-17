@@ -4,7 +4,6 @@
 #include "SpriteSheetManager.h"
 #include "SpriteSheet.h"
 
-#define GAME_ENGINE (GameEngine::GetSingleton())
 
 Entity::Entity(DOUBLE2& posRef, BodyType bodyType, 
 	Level* levelPtr, ActorId actorId, void* userPointer, DOUBLE2& initialVelRef) :

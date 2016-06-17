@@ -325,10 +325,11 @@ void Level::Paint()
 		PaintEndScreen();
 	}
 
-#if SMW_DEBUG_ZOOM_OUT
-	GAME_ENGINE->SetColor(COLOR(250, 10, 10));
-	GAME_ENGINE->DrawRect(0, 0, Game::WIDTH, Game::HEIGHT, 2.5);
-#endif
+	if (Game::DEBUG_ZOOM_OUT)
+	{
+		GAME_ENGINE->SetColor(COLOR(250, 10, 10));
+		GAME_ENGINE->DrawRect(0, 0, Game::WIDTH, Game::HEIGHT, 2.5);
+	}
 
 	PaintHUD();
 

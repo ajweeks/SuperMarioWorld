@@ -7,8 +7,6 @@ class Enemy;
 class Platform;
 class Pipe;
 
-#define GAME_ENGINE (GameEngine::GetSingleton())
-
 class LevelData
 {
 public:

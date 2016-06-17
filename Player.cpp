@@ -128,13 +128,14 @@ void Player::Reset()
 
 void Player::Tick(double deltaTime)
 {
-#ifdef SMW_ENABLE_JUMP_TO
-	if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::DEBUG_TELEPORT_PLAYER))
+	if (Game::DEBUG_TELEPORT_PLAYER_TO_POSITION != -1)
 	{
-		m_ActPtr->SetPosition(DOUBLE2(SMW_JUMP_TO_POS_X, 250));
+		if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::DEBUG_TELEPORT_PLAYER))
+		{
+			m_ActPtr->SetPosition(DOUBLE2(Game::DEBUG_TELEPORT_PLAYER_TO_POSITION, 250));
+		}
 	}
-#endif
-	
+
 	if (m_IsDead)
 	{
 		if (m_DeathAnimationTimer.Tick() && m_DeathAnimationTimer.IsComplete())

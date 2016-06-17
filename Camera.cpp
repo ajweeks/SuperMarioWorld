@@ -34,13 +34,14 @@ void Camera::Reset()
 
 DOUBLE2 Camera::GetOffset(Level* levelPtr, double deltaTime)
 {
-#ifdef SMW_ENABLE_JUMP_TO
-	if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::DEBUG_TELEPORT_PLAYER))
+	if (Game::DEBUG_TELEPORT_PLAYER_TO_POSITION != -1)
 	{
-		m_PrevOffset.x = SMW_JUMP_TO_POS_X - WIDTH / 2.0;
-		return m_PrevOffset;
+		if (GAME_ENGINE->IsKeyboardKeyPressed(Keybindings::DEBUG_TELEPORT_PLAYER))
+		{
+			m_PrevOffset.x = Game::DEBUG_TELEPORT_PLAYER_TO_POSITION - WIDTH / 2.0;
+			return m_PrevOffset;
+		}
 	}
-#endif
 
 	int xo = int(CalculateXOffset(levelPtr, deltaTime));
 	int yo = int(CalculateYOffset(levelPtr, deltaTime));

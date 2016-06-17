@@ -29,11 +29,24 @@ Font* Game::Font6Ptr = nullptr;
 const int Game::WIDTH = 256;
 const int Game::HEIGHT = 224;
 
+const int Game::WINDOW_SCALE = 3;
+
 MATRIX3X2 Game::matIdentity;
 
 bool Game::DEBUG_SHOWING_CAMERA_INFO = false;
 bool Game::DEBUG_SHOWING_PLAYER_INFO = false;
 bool Game::DEBUG_SHOWING_ENEMY_AI_INFO = false;
+const bool Game::DEBUG_SKIP_MAIN_MENU = false;
+const bool Game::DEBUG_ZOOM_OUT = false;
+const bool Game::DEBUG_START_MUTED = false;
+
+const int Game::DEBUG_TELEPORT_PLAYER_TO_YOSHI = 840;
+const int Game::DEBUG_TELEPORT_PLAYER_TO_CHARGIN_CHUCK = 2000;
+const int Game::DEBUG_TELEPORT_PLAYER_TO_MONTY_MOLES = 3000;
+const int Game::DEBUG_TELEPORT_PLAYER_TO_PIPES = 3890;
+const int Game::DEBUG_TELEPORT_PLAYER_TO_PIRANHA_PLANT = 4270;
+const int Game::DEBUG_TELEPORT_PLAYER_TO_GOAL_GATE = 4700;
+const int Game::DEBUG_TELEPORT_PLAYER_TO_POSITION = DEBUG_TELEPORT_PLAYER_TO_YOSHI;
 
 Game::Game()
 {
@@ -73,9 +86,10 @@ void Game::GameStart()
 	SpriteSheetManager::Load();
 
 	SoundManager::InitialzeSoundsAndSongs();
-#if SMW_DEFAULT_MUTE
-	SoundManager::SetMuted(true);
-#endif
+	if (DEBUG_START_MUTED)
+	{
+		SoundManager::SetMuted(true);
+	}
 
 	Game::Font12Ptr = new Font(String("consolas"), 12);
 	Game::Font9Ptr = new Font(String("consolas"), 9);
@@ -85,9 +99,10 @@ void Game::GameStart()
 
 	matIdentity = MATRIX3X2::CreateScalingMatrix(WINDOW_SCALE);
 
-#if SMW_DEBUG_ZOOM_OUT
-	matIdentity = MATRIX3X2::CreateScalingMatrix(0.65) * MATRIX3X2::CreateTranslationMatrix(150, 0);
-#endif
+	if (DEBUG_ZOOM_OUT)
+	{
+		matIdentity = MATRIX3X2::CreateScalingMatrix(0.65) * MATRIX3X2::CreateTranslationMatrix(150, 0);
+	}
 
 	m_StateManagerPtr = new StateManager(this);
 

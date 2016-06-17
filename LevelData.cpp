@@ -1,6 +1,7 @@
 #include "stdafx.h"
 
 #include "LevelData.h"
+#include "Game.h"
 #include "Enumerations.h"
 #include "Level.h"
 #include "Player.h"
